@@ -111,6 +111,41 @@ QString VtermWidget::text() const {
     return lines.join("<br>");
 }
 
+QList<VtermWidget::Cell> VtermWidget::cells() const {
+    QList<Cell> cells{};
+    cells.reserve(m_rows * m_cols);
+    for (int row = 0; row < m_rows; ++row) {
+        for (int col = 0; col < m_cols; ++col) {
+            VTermScreenCell _cell{};
+            vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
+            Cell cell{};
+
+            if (_cell.chars[0] == UINT32_MAX) {
+                cell.text = QString{};
+            } else if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') {
+                cell.text = QStringLiteral(" ");
+            } else {
+                int length = 0;
+                while (length < VTERM_MAX_CHARS_PER_CELL && _cell.chars[length] != 0 && _cell.chars[length] != UINT32_MAX) {
+                    ++length;
+                }
+                cell.text = QString::fromUcs4(_cell.chars, length);
+            }
+
+            VTermColor foreground = _cell.fg;
+            vterm_screen_convert_color_to_rgb(m_screen, &foreground);
+            cell.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
+
+            VTermColor background = _cell.bg;
+            vterm_screen_convert_color_to_rgb(m_screen, &background);
+            cell.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
+
+            cells.append(cell);
+        }
+    }
+    return cells;
+}
+
 int VtermWidget::cursorPosition() const {
     VTermPos pos{};
     vterm_state_get_cursorpos(vterm_obtain_state(m_vterm), &pos);

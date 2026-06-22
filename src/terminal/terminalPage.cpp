@@ -11,6 +11,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "terminal/module/terminalWidget.h"
 #include "terminal/module/vtermWidget.h"
 
 #ifndef PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE
@@ -46,11 +47,29 @@ void TerminalPage::propertySet(const QVariantHash &objects) {
 }
 
 void TerminalPage::propertyGet(const QVariantMap &objects) {
-    m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
+    m_terminalItem = qvariant_cast<QObject *>(objects["terminalItem"]);
+    auto *terminalItem = qobject_cast<QQuickItem *>(m_terminalItem);
+
     auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
-    m_textArea->setProperty("font", font);
+
+    m_terminalWidget = new TerminalWidget(terminalItem);
+    m_terminalWidget->setParentItem(terminalItem);
+    m_terminalWidget->setWidth(terminalItem->width());
+    m_terminalWidget->setHeight(terminalItem->height());
+    m_terminalWidget->fontSet(font);
+    connect(terminalItem, &QQuickItem::widthChanged, m_terminalWidget, [this, terminalItem] {
+        if (m_terminalWidget) m_terminalWidget->setWidth(terminalItem->width());
+    });
+    connect(terminalItem, &QQuickItem::heightChanged, m_terminalWidget, [this, terminalItem] {
+        if (m_terminalWidget) m_terminalWidget->setHeight(terminalItem->height());
+    });
+    connect(m_terminalWidget, &TerminalWidget::resizeRequest, this, [this](const int rows, const int cols) {
+        terminalResize(rows, cols);
+    });
+
+    terminalRefresh();
 }
 
 bool TerminalPage::terminalInput(const int key, const int modifiers, const QString &text) const {
@@ -270,9 +289,8 @@ bool TerminalPage::terminalRunning() const {
 }
 
 void TerminalPage::terminalRefresh() const {
-    if (m_textArea && m_vtermWidget) {
-        m_textArea->setProperty("text", m_vtermWidget->text());
-        m_textArea->setProperty("cursorPosition", m_vtermWidget->cursorPosition());
+    if (m_terminalWidget && m_vtermWidget) {
+        m_terminalWidget->cellsSet(m_vtermWidget->cells(), m_vtermWidget->rows(), m_vtermWidget->cols());
     }
 }
 

@@ -1,6 +1,8 @@
 #ifndef UNICOMM_VTERMWIDGET_H
 #define UNICOMM_VTERMWIDGET_H
 
+#include <QColor>
+#include <QList>
 #include <QObject>
 #include <QString>
 #include <vterm.h>
@@ -14,6 +16,12 @@ class VtermWidget final : public QObject {
     Q_OBJECT
 
 public:
+    struct Cell {
+        QString text;
+        QColor foreground;
+        QColor background;
+    };
+
     explicit VtermWidget(int rows = 24, int cols = 80, QObject *parent = nullptr);
 
     ~VtermWidget() override;
@@ -37,6 +45,8 @@ public:
     void inputWrite(const QByteArray &bytes) const;
 
     [[nodiscard]] QString text() const;
+
+    [[nodiscard]] QList<Cell> cells() const;
 
     [[nodiscard]] int cursorPosition() const;
 

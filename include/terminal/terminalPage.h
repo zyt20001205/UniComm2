@@ -6,6 +6,7 @@
 #include <QThread>
 
 class QQuickWidget;
+class TerminalWidget;
 class VtermWidget;
 
 class TerminalPage final: public KDDockWidgets::QtWidgets::DockWidget {
@@ -44,7 +45,8 @@ private:
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
-    QObject *m_textArea{};
+    QObject *m_terminalItem{};
+    TerminalWidget *m_terminalWidget{};
     VtermWidget *m_vtermWidget{};
     void *m_pseudoConsole{};
     void *m_conptyInputWrite{};

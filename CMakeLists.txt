@@ -115,6 +115,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/service/git/gitModule.h
         include/terminal/logModule.h
         include/terminal/terminalModule.h
+        include/terminal/module/terminalWidget.h
         include/terminal/module/vtermWidget.h
         include/terminal/terminalPage.h
         include/util/cmarkUtils.h
@@ -205,6 +206,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/service/git/gitModule.cpp
         src/terminal/logModule.cpp
         src/terminal/terminalModule.cpp
+        src/terminal/module/terminalWidget.cpp
         src/terminal/module/vtermWidget.cpp
         src/terminal/terminalPage.cpp
         src/util/cmarkUtils.cpp
