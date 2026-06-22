@@ -68,6 +68,7 @@ QString VtermWidget::text() const {
 
         QString buffer{};
         QString foreground{};
+        QString background{};
         for (int col = 0; col < m_cols; ++col) {
             QString cell{};
             // cell
@@ -76,26 +77,35 @@ QString VtermWidget::text() const {
             if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') cell = "&nbsp;";
             else if (_cell.chars[0] == UINT32_MAX) cell = "&#8203;";
             else cell = QString::fromUcs4(&_cell.chars[0], 1).toHtmlEscaped();
-
+            // foreground
             VTermColor fg = _cell.fg;
             vterm_screen_convert_color_to_rgb(m_screen, &fg);
             const auto &_foreground = QString("#%1%2%3")
                 .arg(fg.rgb.red, 2, 16, QLatin1Char('0'))
                 .arg(fg.rgb.green, 2, 16, QLatin1Char('0'))
                 .arg(fg.rgb.blue, 2, 16, QLatin1Char('0'));
+            // background
+            VTermColor bg = _cell.bg;
+            vterm_screen_convert_color_to_rgb(m_screen, &bg);
+            const auto &_background = QString("#%1%2%3")
+                .arg(bg.rgb.red, 2, 16, QLatin1Char('0'))
+                .arg(bg.rgb.green, 2, 16, QLatin1Char('0'))
+                .arg(bg.rgb.blue, 2, 16, QLatin1Char('0'));
             // first
-            if (foreground.isEmpty()) {
+            if (foreground.isEmpty() || background.isEmpty()) {
                 foreground = _foreground;
+                background = _background;
             }
             // new style
-            else if (foreground != _foreground) {
-                line.append(QString("<span style=\"color:%1\">%2</span>").arg(foreground, buffer));
+            else if (foreground != _foreground || background != _background) {
+                line.append(QString("<span style=\"color:%1; background:%2\">%3</span>").arg(foreground, background, buffer));
                 buffer.clear();
                 foreground = _foreground;
+                background = _background;
             }
             buffer.append(cell);
         }
-        if (!buffer.isEmpty()) line.append(QString("<span style=\"color:%1\">%2</span>").arg(foreground, buffer));
+        if (!buffer.isEmpty()) line.append(QString("<span style=\"color:%1; background:%2\">%3</span>").arg(foreground, background, buffer));
         lines.append(line);
     }
     return lines.join("<br>");
