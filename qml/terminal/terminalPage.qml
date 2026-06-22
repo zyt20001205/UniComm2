@@ -63,14 +63,14 @@ Item {
     function terminalResize() {
         const charWidth = Math.max(1, terminalFontMetrics.advanceWidth("M"))
         const lineHeight = Math.max(1, terminalFontMetrics.lineSpacing)
-        const availableWidth = Math.max(1, textArea.width - textArea.leftPadding - textArea.rightPadding)
-        const availableHeight = Math.max(1, textArea.height - textArea.topPadding - textArea.bottomPadding)
+        const availableWidth = Math.max(1, textArea.width - textArea.leftPadding - textArea.rightPadding - 12)
+        const availableHeight = Math.max(1, textArea.height - textArea.topPadding - textArea.bottomPadding - 12)
         terminalPage.terminalResize(
             Math.max(1, Math.floor(availableHeight / lineHeight)),
             Math.max(1, Math.floor(availableWidth / charWidth))
         )
     }
-    
+
     Component.onCompleted: {
         const objects = {
             "textArea": textArea
