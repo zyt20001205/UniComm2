@@ -18,7 +18,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void backgroundAppend(int &taskId, const QString &name, const std::function<void()> &callback);
+    void backgroundAppend(int &taskId, const std::function<void()> &callback);
 
     void backgroundRemove(int taskId) const;
 

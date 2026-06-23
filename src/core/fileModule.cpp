@@ -17,14 +17,7 @@ FileModule::FileModule(QObject *parent)
 }
 
 void FileModule::propertySet(const QVariantHash &objects) {
-    m_busyDialog = qvariant_cast<QObject *>(objects["mainWindowBusyDialog"]);
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
-}
-
-void FileModule::processTerminate() const {
-    // const auto state = m_process->state();
-    // qDebug() << state;
-    m_process->terminate();
 }
 
 void FileModule::fileOpenInExplorer(const QUrl &fileUrl) {
@@ -40,12 +33,11 @@ void FileModule::fileOpenInExplorer(const QUrl &fileUrl) {
     }
 #endif
     connect(m_process, &QProcess::started, this, [this] {
-        m_busyDialog->setProperty("title", tr("Waiting for explorer..."));
-        QMetaObject::invokeMethod(m_busyDialog, "open");
+        emit appendBackground(m_taskId, [this] { this->processTerminate(); });
+        emit refreshBackground(m_taskId, tr("Waiting for explorer..."));
     });
     connect(m_process, &QProcess::finished, this, [this] {
-        m_busyDialog->setProperty("title", "");
-        QMetaObject::invokeMethod(m_busyDialog, "close");
+        emit removeBackground(m_taskId);
     });
     m_process->start(command, args);
 }
@@ -58,12 +50,11 @@ void FileModule::fileOpenInApplication(const QUrl &fileUrl) {
     args << QDir::toNativeSeparators(filePath);
 #endif
     connect(m_process, &QProcess::started, this, [this] {
-        m_busyDialog->setProperty("title", tr("Waiting for application..."));
-        QMetaObject::invokeMethod(m_busyDialog, "open");
+        emit appendBackground(m_taskId, [this] { this->processTerminate(); });
+        emit refreshBackground(m_taskId, tr("Waiting for application..."));
     });
     connect(m_process, &QProcess::finished, this, [this] {
-        m_busyDialog->setProperty("title", "");
-        QMetaObject::invokeMethod(m_busyDialog, "close");
+        emit removeBackground(m_taskId);
     });
     m_process->start(command, args);
 }
@@ -192,6 +183,13 @@ QString FileModule::textGet(const QUrl &documentUrl, const int startLine, const 
         if (i < endLine) out << Qt::endl;
     }
     return text;
+}
+
+// private
+void FileModule::processTerminate() const {
+    // const auto state = m_process->state();
+    // qDebug() << state;
+    m_process->terminate();
 }
 
 void FileModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {

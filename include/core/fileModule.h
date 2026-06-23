@@ -15,8 +15,6 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    Q_INVOKABLE void processTerminate() const;
-
     Q_INVOKABLE void fileOpenInExplorer(const QUrl &fileUrl);
 
     Q_INVOKABLE void fileOpenInApplication(const QUrl &fileUrl);
@@ -44,15 +42,23 @@ signals:
 
     void setPermission(const QUrl &documentUrl);
 
+    void appendBackground(int &taskId, const std::function<void()> &abort);
+
+    void removeBackground(int taskId);
+
+    void refreshBackground(int taskId, const QString &message);
+
     void notificationJson(const QString &method, const QJsonObject &params);
 
 private:
+    void processTerminate() const;
+
     void didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl);
 
     void didDeleteFilesNotification(const QUrl &fileUrl);
 
-    QObject *m_busyDialog{};
     QObject *m_messageDialog{};
+    int m_taskId{-1};
     QProcess *m_process{};
 };
 

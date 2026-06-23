@@ -103,7 +103,7 @@ signals:
 
     void addFinish();
 
-    void appendBackground(int &taskId, const QString &name, const std::function<void()> &callback);
+    void appendBackground(int &taskId, const std::function<void()> &abort);
 
     void removeBackground(int taskId);
 
@@ -144,7 +144,7 @@ private:
     QTimer *m_branchWatcherTimer{};
     QString m_current{};
     QString m_upstream{};
-    int m_taskId = -1;
+    int m_taskId{-1};
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
     ShowModel *m_showModel{};

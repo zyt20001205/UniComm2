@@ -68,29 +68,6 @@ Item {
 
     // main window
     Dialog {
-        id: mainWindowBusyDialog
-        parent: Overlay.overlay
-        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
-        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
-        width: 600
-        modal: true
-        standardButtons: Dialog.Abort
-        topPadding: 30; bottomPadding: 20
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onRejected: fileModule.processTerminate()
-
-        ProgressBar {
-            width: parent.width
-            indeterminate: true
-        }
-    }
-
-    Dialog {
         id: mainWindowCloseDialog
         parent: Overlay.overlay
         x: mainScreenItem.x + (mainScreenItem.width - width) / 2
@@ -4747,7 +4724,6 @@ Item {
     Component.onCompleted: {
         const objects = {
             "mainItem": mainItem,
-            "mainWindowBusyDialog": mainWindowBusyDialog,
             "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainWindowMessageDialog": mainWindowMessageDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,

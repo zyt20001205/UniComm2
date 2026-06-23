@@ -262,11 +262,10 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_structureModule->propertySet(structureObjects);
 
-    const QVariantHash systemObjects = {
-        {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
+    const QVariantHash fileObjects = {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]}
     };
-    m_fileModule->propertySet(systemObjects);
+    m_fileModule->propertySet(fileObjects);
 
     const QVariantHash terminalObjects = {
         {"terminalModuleTerminalMenu", objects["terminalModuleTerminalMenu"]}
@@ -516,6 +515,9 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_fileModule, &FileModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);
+    connect(m_fileModule, &FileModule::appendBackground, m_statusModule, &StatusModule::backgroundAppend);
+    connect(m_fileModule, &FileModule::removeBackground, m_statusModule, &StatusModule::backgroundRemove);
+    connect(m_fileModule, &FileModule::refreshBackground, m_statusModule, &StatusModule::backgroundRefresh);
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
     connect(m_gitModule, &GitModule::updateIndex, m_explorerModule, &ExplorerModule::indexUpdate);

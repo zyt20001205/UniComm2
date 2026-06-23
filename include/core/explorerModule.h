@@ -50,7 +50,6 @@ private:
     SortFilterProxyModel *m_sortFilterProxyModel{};
     QObject *m_treeView{};
     QProcess *m_process{};
-    QFileSystemWatcher *m_fileWatcher{};
     QHash<QUrl, QVariant> m_documentStatus{};
 };
 

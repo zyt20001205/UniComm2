@@ -38,10 +38,10 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
-void StatusModule::backgroundAppend(int &taskId, const QString &name, const std::function<void()> &callback) {
+void StatusModule::backgroundAppend(int &taskId, const std::function<void()> &callback) {
     taskId = m_taskId++;
     if (callback) {
-        auto *item = new QStandardItem(name); // NOLINT
+        auto *item = new QStandardItem(); // NOLINT
         item->setData(taskId, Qt::UserRole + 1);
         m_backgroundModel->appendRow(item);
         backgroundUpdate();
@@ -75,7 +75,6 @@ void StatusModule::backgroundAbort(const int taskId) {
     const auto callback = m_callbacks.take(taskId);
     if (callback) callback();
 }
-
 
 void StatusModule::documentGoto(const QUrl &documentUrl) {
     emit gotoDocument(documentUrl);
