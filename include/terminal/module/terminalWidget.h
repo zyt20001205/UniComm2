@@ -7,6 +7,8 @@
 #include <QQuickPaintedItem>
 #include <QTimer>
 
+struct TerminalCell;
+
 class TerminalWidget final : public QQuickPaintedItem {
     Q_OBJECT
 
@@ -17,7 +19,7 @@ public:
 
     void fontSet(const QFont &font);
 
-    void screenSet(int rows, int cols, const QList<VtermWidget::Cell> &cells, const VtermWidget::Cursor &cursor);
+    void screenSet(int rows, int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback, const QPoint &cursor);
 
 signals:
     void resize(int rows, int cols);
@@ -39,6 +41,8 @@ protected:
 
     void mouseMoveEvent(QMouseEvent *event) override;
 
+    void wheelEvent(QWheelEvent *event) override;
+
     void focusInEvent(QFocusEvent *event) override;
 
     void focusOutEvent(QFocusEvent *event) override;
@@ -51,10 +55,12 @@ private:
     void cursorBlink(bool enabled);
 
     QFont m_font{};
-    QList<VtermWidget::Cell> m_cells{};
-    VtermWidget::Cursor m_cursor{};
+    QList<TerminalCell> m_cells{};
+    QList<QList<TerminalCell>> m_scrollback{};
+    QPoint m_cursor{};
     QTimer m_cursorBlinkTimer{};
     bool m_cursorVisible{false};
+    int m_scrollOffset{};
     int m_rows{};
     int m_cols{};
     int m_requestedRows{};

@@ -1,9 +1,7 @@
 #ifndef UNICOMM_VTERMWIDGET_H
 #define UNICOMM_VTERMWIDGET_H
 
-#include <QColor>
 #include <QObject>
-#include <QString>
 #include <vterm.h>
 
 extern "C" {
@@ -11,22 +9,12 @@ typedef VTerm VTerm;
 typedef VTermScreen VTermScreen;
 }
 
+struct TerminalCell;
+
 class VtermWidget final : public QObject {
     Q_OBJECT
 
 public:
-    struct Cell {
-        QString text{};
-        QColor foreground{};
-        QColor background{};
-        int width{};
-    };
-
-    struct Cursor {
-        int row{};
-        int col{};
-    };
-
     explicit VtermWidget(int rows = 24, int cols = 80, QObject *parent = nullptr);
 
     ~VtermWidget() override;
@@ -48,16 +36,19 @@ public:
 signals:
     void outputWrite(const QByteArray &bytes);
 
-    void setScreen(int row, int col, const QList<Cell> &cells, const Cursor &cursor);
+    void setScreen(int row, int col, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback, const QPoint &cursor);
 
 private:
     void outputRead();
+
+    int linePush(int cols, const VTermScreenCell *cells);
 
     int m_rows{};
     int m_cols{};
     VTerm *m_vterm{};
     VTermScreen *m_screen{};
-    const VTermScreenCallbacks m_callbacks{};
+    VTermScreenCallbacks m_callbacks{};
+    QList<QList<TerminalCell>> m_scrollback{};
 };
 
 #endif //UNICOMM_VTERMWIDGET_H

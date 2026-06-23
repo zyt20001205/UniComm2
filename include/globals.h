@@ -277,4 +277,11 @@ namespace GitStatusCode {
     };
 }
 
+struct TerminalCell {
+    int width{};
+    QString text{};
+    QColor foreground{};
+    QColor background{};
+};
+
 #endif //UNICOMM_GLOBALS_H

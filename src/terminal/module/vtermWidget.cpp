@@ -1,7 +1,6 @@
 #include "terminal/module/vtermWidget.h"
 
-#include <vterm.h>
-
+#include "globals.h"
 #include "util/uniCast.h"
 
 VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
@@ -9,18 +8,12 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
       m_rows(rows),
       m_cols(cols),
       m_vterm(vterm_new(m_rows, m_cols)),
-      m_screen(vterm_obtain_screen(m_vterm)),
-      m_callbacks{
-          nullptr,
-          nullptr,
-          nullptr,
-          nullptr,
-          nullptr,
-          nullptr,
-          nullptr,
-          nullptr
-      } {
+      m_screen(vterm_obtain_screen(m_vterm)) {
     vterm_set_utf8(m_vterm, 1);
+
+    m_callbacks.sb_pushline = [](const int cols, const VTermScreenCell *cells, void *user) -> int {
+        return static_cast<VtermWidget *>(user)->linePush(cols, cells);
+    };
 
     vterm_screen_set_callbacks(m_screen, &m_callbacks, this);
     vterm_screen_set_damage_merge(m_screen, VTERM_DAMAGE_SCROLL);
@@ -47,45 +40,19 @@ void VtermWidget::inputWrite(const QByteArray &bytes) {
     if (bytes.isEmpty()) return;
     vterm_input_write(m_vterm, bytes.constData(), static_cast<size_t>(bytes.size()));
     vterm_screen_flush_damage(m_screen);
-    QList<Cell> cells{};
+    QList<TerminalCell> cells{};
     cells.reserve(m_rows * m_cols);
     for (int row = 0; row < m_rows; ++row) {
         for (int col = 0; col < m_cols; ++col) {
             VTermScreenCell _cell{};
             vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
-            Cell cell{};
-            cell.width = static_cast<int>(_cell.width);
-
-            // placeholder
-            if (_cell.chars[0] == UINT32_MAX) {
-                cell.text = QString{};
-                cell.width = 0;
-            }
-            // space
-            else if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') {
-                cell.text = ' ';
-            }
-            // utf8
-            else {
-                int length = 0;
-                while (length < VTERM_MAX_CHARS_PER_CELL && _cell.chars[length] != 0 && _cell.chars[length] != UINT32_MAX) ++length;
-                cell.text = QString::fromUcs4(_cell.chars, length);
-            }
-
-            VTermColor foreground = _cell.fg;
-            vterm_screen_convert_color_to_rgb(m_screen, &foreground);
-            cell.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
-
-            VTermColor background = _cell.bg;
-            vterm_screen_convert_color_to_rgb(m_screen, &background);
-            cell.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
-
+            const auto &cell = uni_cast<TerminalCell>(m_screen, _cell);
             cells.append(cell);
         }
     }
     VTermPos pos{};
     vterm_state_get_cursorpos(vterm_obtain_state(m_vterm), &pos);
-    emit setScreen(m_rows, m_cols, cells, {pos.row, pos.col});
+    emit setScreen(m_rows, m_cols, cells, m_scrollback, {pos.row, pos.col});
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
@@ -128,4 +95,19 @@ void VtermWidget::outputRead() {
         output.append(buffer, static_cast<qsizetype>(read));
     }
     emit outputWrite(output);
+}
+
+int VtermWidget::linePush(const int cols, const VTermScreenCell *cells) {
+    QList<TerminalCell> row{};
+    row.reserve(cols);
+    for (int col = 0; col < cols; ++col) {
+        const auto &cell = uni_cast<TerminalCell>(m_screen, cells[col]);
+        row.append(cell);
+    }
+    m_scrollback.append(row);
+
+    constexpr int maxScrollbackLines = 10000;
+    if (m_scrollback.size() > maxScrollbackLines) m_scrollback.removeFirst();
+
+    return 1;
 }

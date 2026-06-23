@@ -1,8 +1,9 @@
 #include "terminal/module/terminalWidget.h"
 
 #include <QKeyEvent>
-#include <QMouseEvent>
 #include <QPainter>
+
+#include "globals.h"
 
 TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setAntialiasing(false);
@@ -21,18 +22,23 @@ TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
 void TerminalWidget::paint(QPainter *painter) {
     painter->setFont(m_font);
 
+    const int totalRows = m_scrollback.size() + m_rows;
+    const int firstRow = qMax(0, totalRows - m_rows - m_scrollOffset);
+
     for (int row = 0; row < m_rows; ++row) {
+        const int sourceRow = firstRow + row;
         const qreal y = row * m_cellHeight + m_ascent;
         for (int col = 0; col < m_cols; ++col) {
-            const int index = row * m_cols + col;
-            const auto &cell = m_cells[index];
+            // get cell
+            const auto &cell = sourceRow < m_scrollback.size()
+            ? m_scrollback[sourceRow][col]
+            : m_cells[(sourceRow - m_scrollback.size()) * m_cols + col];
+            // draw background
             if (cell.width == 0) continue;
-
             const QRectF rect(col * m_cellWidth, row * m_cellHeight, cell.width * m_cellWidth, m_cellHeight);
-            const bool isCursor = m_cursorVisible && row == m_cursor.row && col == m_cursor.col;
-
+            const bool isCursor = m_scrollOffset == 0 && m_cursorVisible && row == m_cursor.x() && col == m_cursor.y();
             painter->fillRect(rect, isCursor ? cell.foreground : cell.background);
-
+            // draw text
             if (cell.text.isEmpty()) continue;
             painter->setPen(isCursor ? cell.background : cell.foreground);
             painter->drawText(QPointF(rect.left(), y), cell.text);
@@ -46,10 +52,12 @@ void TerminalWidget::fontSet(const QFont &font) {
     update();
 }
 
-void TerminalWidget::screenSet(const int rows, const int cols, const QList<VtermWidget::Cell> &cells, const VtermWidget::Cursor &cursor) {
+void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback, const QPoint &cursor) {
     m_rows = rows;
     m_cols = cols;
     m_cells = cells;
+    m_scrollback = scrollback;
+    m_scrollOffset = qBound(0, m_scrollOffset, m_scrollback.size());
     m_cursor = cursor;
     update();
 }
@@ -87,6 +95,20 @@ void TerminalWidget::mouseMoveEvent(QMouseEvent *event) {
         event->button(),
         event->modifiers()
     );
+    event->accept();
+}
+
+void TerminalWidget::wheelEvent(QWheelEvent *event) {
+    const int degrees = event->angleDelta().y() / 120;
+    const int pixels = event->pixelDelta().y() == 0 ? 0 : event->pixelDelta().y() / static_cast<int>(m_cellHeight);
+    const int lines = pixels != 0 ? pixels : degrees * 3;
+    if (lines == 0) {
+        event->ignore();
+        return;
+    }
+
+    m_scrollOffset = qBound(0, m_scrollOffset + lines, m_scrollback.size());
+    update();
     event->accept();
 }
 

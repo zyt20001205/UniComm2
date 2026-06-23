@@ -4,7 +4,10 @@
 #include <QUrl>
 #include <QVariant>
 #include <sol/object.hpp>
+#include <vterm.h>
 #include <vterm_keycodes.h>
+
+struct TerminalCell;
 
 struct LUrl {
     QString value;
@@ -35,6 +38,9 @@ template<typename D, typename S>
 
 template<typename D, typename S>
 [[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
+
+template<typename D, typename S>
+[[nodiscard]] D uni_cast(const VTermScreen *vts, const S& s, int depth = 0);
 
 // lua -> qt
 template<>
@@ -72,6 +78,10 @@ template<>
 // qt -> qt
 template<>
 [[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);
+
+// vterm -> qt
+template<>
+[[nodiscard]] TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, const VTermScreenCell &s, int depth);
 
 // qt-> vterm
 template<>

@@ -270,6 +270,35 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     return QUrl("qrc:/icon/fileTypeDefault.svg");
 }
 
+// vterm -> qt
+template<>
+TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, const VTermScreenCell &s, const int depth) {
+    Q_UNUSED(depth);
+    TerminalCell d{};
+    d.width = static_cast<int>(s.width);
+
+    if (s.chars[0] == UINT32_MAX) {
+        d.text = QString{};
+        d.width = 0;
+    } else if (s.chars[0] == 0 || s.chars[0] == ' ') {
+        d.text = ' ';
+    } else {
+        int length = 0;
+        while (length < VTERM_MAX_CHARS_PER_CELL && s.chars[length] != 0 && s.chars[length] != UINT32_MAX) ++length;
+        d.text = QString::fromUcs4(s.chars, length);
+    }
+
+    VTermColor foreground = s.fg;
+    vterm_screen_convert_color_to_rgb(vts, &foreground);
+    d.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
+
+    VTermColor background = s.bg;
+    vterm_screen_convert_color_to_rgb(vts, &background);
+    d.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
+
+    return d;
+}
+
 // qt-> vterm
 template<>
 VTermButton uni_cast<VTermButton, int>(const int &s, const int depth) {
