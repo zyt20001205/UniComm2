@@ -2,6 +2,7 @@
 #define UNICOMM_VTERMWIDGET_H
 
 #include <QObject>
+#include <QPoint>
 #include <vterm.h>
 
 extern "C" {
@@ -36,10 +37,16 @@ public:
 signals:
     void outputWrite(const QByteArray &bytes);
 
-    void setScreen(int row, int col, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback, const QPoint &cursor);
+    void setScreen(int row, int col, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback);
+
+    void setCursor(const QPoint &cursor, bool visible);
 
 private:
     void outputRead();
+
+    int cursorMove(VTermPos pos, VTermPos oldPos, int visible);
+
+    int termPropSet(VTermProp prop, const VTermValue *value);
 
     int linePush(int cols, const VTermScreenCell *cells);
 
@@ -48,6 +55,8 @@ private:
     VTerm *m_vterm{};
     VTermScreen *m_screen{};
     VTermScreenCallbacks m_callbacks{};
+    QPoint m_cursor{};
+    bool m_cursorVisible{true};
     QList<QList<TerminalCell>> m_scrollback{};
 };
 

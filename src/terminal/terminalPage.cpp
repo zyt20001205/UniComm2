@@ -57,6 +57,7 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
     connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
     connect(m_vtermWidget, &VtermWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
+    connect(m_vtermWidget, &VtermWidget::setCursor, m_terminalWidget, &TerminalWidget::cursorSet);
 
     connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
 

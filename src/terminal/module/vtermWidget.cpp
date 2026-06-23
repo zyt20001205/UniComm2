@@ -11,6 +11,12 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
       m_screen(vterm_obtain_screen(m_vterm)) {
     vterm_set_utf8(m_vterm, 1);
 
+    m_callbacks.movecursor = [](const VTermPos pos, const VTermPos oldPos, const int visible, void *user) -> int {
+        return static_cast<VtermWidget *>(user)->cursorMove(pos, oldPos, visible);
+    };
+    m_callbacks.settermprop = [](const VTermProp prop, VTermValue *value, void *user) -> int {
+        return static_cast<VtermWidget *>(user)->termPropSet(prop, value);
+    };
     m_callbacks.sb_pushline = [](const int cols, const VTermScreenCell *cells, void *user) -> int {
         return static_cast<VtermWidget *>(user)->linePush(cols, cells);
     };
@@ -50,9 +56,7 @@ void VtermWidget::inputWrite(const QByteArray &bytes) {
             cells.append(cell);
         }
     }
-    VTermPos pos{};
-    vterm_state_get_cursorpos(vterm_obtain_state(m_vterm), &pos);
-    emit setScreen(m_rows, m_cols, cells, m_scrollback, {pos.row, pos.col});
+    emit setScreen(m_rows, m_cols, cells, m_scrollback);
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
@@ -95,6 +99,22 @@ void VtermWidget::outputRead() {
         output.append(buffer, static_cast<qsizetype>(read));
     }
     emit outputWrite(output);
+}
+
+int VtermWidget::cursorMove(const VTermPos pos, const VTermPos oldPos, const int visible) {
+    Q_UNUSED(oldPos);
+    Q_UNUSED(visible);
+    m_cursor = {pos.row, pos.col};
+    emit setCursor(m_cursor, m_cursorVisible);
+    return 1;
+}
+
+int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
+    if (prop != VTERM_PROP_CURSORVISIBLE) return 1;
+
+    m_cursorVisible = value && value->boolean != 0;
+    emit setCursor(m_cursor, m_cursorVisible);
+    return 1;
 }
 
 int VtermWidget::linePush(const int cols, const VTermScreenCell *cells) {

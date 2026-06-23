@@ -11,11 +11,6 @@ TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setFlag(ItemHasContents, true);
     setAcceptedMouseButtons(Qt::AllButtons);
     forceActiveFocus();
-    m_cursorBlinkTimer.setInterval(500);
-    connect(&m_cursorBlinkTimer, &QTimer::timeout, this, [this] {
-        m_cursorVisible = !m_cursorVisible;
-        update();
-    });
     metricsUpdate();
 }
 
@@ -52,13 +47,18 @@ void TerminalWidget::fontSet(const QFont &font) {
     update();
 }
 
-void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback, const QPoint &cursor) {
+void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback) {
     m_rows = rows;
     m_cols = cols;
     m_cells = cells;
     m_scrollback = scrollback;
     m_scrollOffset = qBound(0, m_scrollOffset, m_scrollback.size());
+    update();
+}
+
+void TerminalWidget::cursorSet(const QPoint &cursor, const bool visible) {
     m_cursor = cursor;
+    m_cursorVisible = visible;
     update();
 }
 
@@ -114,14 +114,11 @@ void TerminalWidget::wheelEvent(QWheelEvent *event) {
 
 void TerminalWidget::focusInEvent(QFocusEvent *event) {
     QQuickPaintedItem::focusInEvent(event);
-    m_cursorVisible = true;
-    cursorBlink(true);
     update();
 }
 
 void TerminalWidget::focusOutEvent(QFocusEvent *event) {
     QQuickPaintedItem::focusOutEvent(event);
-    cursorBlink(false);
     update();
 }
 
@@ -145,11 +142,3 @@ void TerminalWidget::metricsUpdate() {
     emit resize(rows, cols);
 }
 
-void TerminalWidget::cursorBlink(const bool enabled) {
-    if (enabled) {
-        m_cursorBlinkTimer.start();
-    } else {
-        m_cursorBlinkTimer.stop();
-        m_cursorVisible = false;
-    }
-}

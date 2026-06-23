@@ -5,7 +5,6 @@
 
 #include <QList>
 #include <QQuickPaintedItem>
-#include <QTimer>
 
 struct TerminalCell;
 
@@ -19,7 +18,9 @@ public:
 
     void fontSet(const QFont &font);
 
-    void screenSet(int rows, int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback, const QPoint &cursor);
+    void screenSet(int rows, int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback);
+
+    void cursorSet(const QPoint &cursor, bool visible);
 
 signals:
     void resize(int rows, int cols);
@@ -52,14 +53,11 @@ protected:
 private:
     void metricsUpdate();
 
-    void cursorBlink(bool enabled);
-
     QFont m_font{};
     QList<TerminalCell> m_cells{};
     QList<QList<TerminalCell>> m_scrollback{};
     QPoint m_cursor{};
-    QTimer m_cursorBlinkTimer{};
-    bool m_cursorVisible{false};
+    bool m_cursorVisible{true};
     int m_scrollOffset{};
     int m_rows{};
     int m_cols{};
