@@ -841,7 +841,6 @@ void GitModule::processFinished(const int exitcode) {
         switch (command) {
             case GitCommand::Init: {
                 g_globalManager->gitEnabledSet();
-                emit updateIndex();
                 gitWatch();
             }
             break;

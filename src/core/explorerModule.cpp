@@ -55,7 +55,6 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 }
 
 void ExplorerModule::indexUpdate() const {
-    qDebug() << g_gitPath;
     m_process->start("git", {"status", "-uall", "--porcelain", "--ignored"});
 }
 
