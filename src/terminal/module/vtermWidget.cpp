@@ -78,12 +78,19 @@ void VtermWidget::inputWrite(const QByteArray &bytes) {
             VTermScreenCell _cell{};
             vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
             Cell cell{};
+            cell.width = static_cast<int>(_cell.width);
 
+            // placeholder
             if (_cell.chars[0] == UINT32_MAX) {
                 cell.text = QString{};
-            } else if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') {
+                cell.width = 0;
+            }
+            // space
+            else if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') {
                 cell.text = ' ';
-            } else {
+            }
+            // utf8
+            else {
                 int length = 0;
                 while (length < VTERM_MAX_CHARS_PER_CELL && _cell.chars[length] != 0 && _cell.chars[length] != UINT32_MAX) ++length;
                 cell.text = QString::fromUcs4(_cell.chars, length);

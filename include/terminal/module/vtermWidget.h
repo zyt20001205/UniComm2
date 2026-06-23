@@ -20,6 +20,7 @@ public:
         QString text{};
         QColor foreground{};
         QColor background{};
+        int width{};
     };
 
     struct Cursor {

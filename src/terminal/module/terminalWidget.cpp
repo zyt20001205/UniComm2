@@ -26,7 +26,9 @@ void TerminalWidget::paint(QPainter *painter) {
         for (int col = 0; col < m_cols; ++col) {
             const int index = row * m_cols + col;
             const auto &cell = m_cells[index];
-            const QRectF rect(col * m_cellWidth, row * m_cellHeight, m_cellWidth, m_cellHeight);
+            if (cell.width == 0) continue;
+
+            const QRectF rect(col * m_cellWidth, row * m_cellHeight, cell.width * m_cellWidth, m_cellHeight);
             const bool isCursor = m_cursorVisible && row == m_cursor.row && col == m_cursor.col;
 
             painter->fillRect(rect, isCursor ? cell.foreground : cell.background);
