@@ -12,6 +12,7 @@ class QStandardItemModel;
 
 class McpModule;
 class ToolsModule;
+class BigmodelProvider;
 class DeepseekProvider;
 
 class LLMModule final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -100,6 +101,7 @@ private:
     QHash<QString, QJsonArray> m_tools{};
     McpModule *m_mcpModule{};
     ToolsModule *m_toolsModule{};
+    BigmodelProvider *m_bigmodelProvider{};
     DeepseekProvider *m_deepseekProvider{};
 };
 

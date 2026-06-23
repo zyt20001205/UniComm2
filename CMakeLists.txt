@@ -91,6 +91,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/llm/module/mcpModule.h
         include/llm/module/toolsModule.h
         include/llm/provider/baseProvider.h
+        include/llm/provider/bigmodelProvider.h
         include/llm/provider/deepseekProvider.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
@@ -183,6 +184,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/llm/module/mcpModule.cpp
         src/llm/module/toolsModule.cpp
         src/llm/provider/baseProvider.cpp
+        src/llm/provider/bigmodelProvider.cpp
         src/llm/provider/deepseekProvider.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp

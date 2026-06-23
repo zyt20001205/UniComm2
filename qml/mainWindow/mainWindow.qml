@@ -3114,6 +3114,8 @@ Item {
 
     Menu {
         id: llmModuleModelMenu
+        property string bigmodelApikey
+        property var bigmodelModel
         property string deepseekApikey
         property var deepseekModel
 
@@ -3123,6 +3125,39 @@ Item {
         }
         onClosed: widgetCount -= 1
 
+        Menu {
+            id: llmModuleBigmodelMenu
+            title: qsTr("bigmodel")
+            // icon.source: "qrc:/icon/bigmodel.svg"
+            // icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("API Key")
+
+                onTriggered: {
+                    llmModuleApikeyDialog.title = qsTr("Enter Bigmodel API Key")
+                    llmModuleApikeyDialog.key = "bigmodel-api-key"
+                    llmModuleApikeyDialog.apikey = llmModuleModelMenu.bigmodelApikey
+                    llmModuleApikeyDialog.open()
+                }
+            }
+
+            MenuSeparator {
+            }
+
+            Instantiator {
+                id: llmModuleBigmodelInstantiator
+                model: llmModuleModelMenu.bigmodelModel
+                delegate: MenuItem {
+                    text: model.display
+                    onTriggered: llmModule.modelSet(text)
+                }
+
+                onObjectAdded: (index, object) => llmModuleBigmodelMenu.addItem(object)
+                onObjectRemoved: (index, object) => llmModuleBigmodelMenu.removeItem(object)
+            }
+        }
+        
         Menu {
             id: llmModuleDeepseekMenu
             title: qsTr("deepseek")
@@ -3141,7 +3176,6 @@ Item {
             }
 
             MenuSeparator {
-                visible: llmModuleDeepseekInstantiator.count > 0
             }
 
             Instantiator {

@@ -13,6 +13,7 @@
 #include "document/documentModule.h"
 #include "llm/module/mcpModule.h"
 #include "llm/module/toolsModule.h"
+#include "llm/provider/bigmodelProvider.h"
 #include "llm/provider/deepseekProvider.h"
 
 // public
@@ -31,6 +32,7 @@ LLMModule::LLMModule()
       m_topicStandardItemModel(new QStandardItemModel(this)),
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_toolsModule(new ToolsModule(this)),
+      m_bigmodelProvider(new BigmodelProvider(this)),
       m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
 
@@ -76,6 +78,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     m_widget->setSource(QUrl("qrc:/qml/llm/llmModule.qml"));
     m_root = m_widget->rootObject();
 
+    // scaffold
     connect(m_mcpModule, &McpModule::setModel, this, [this](QStandardItemModel *mcpModel) {
         m_mcpMenu->setProperty("mcpModel", QVariant::fromValue(mcpModel));
     });
@@ -84,6 +87,15 @@ void LLMModule::propertySet(const QVariantHash &objects) {
 
     connect(m_toolsModule, &ToolsModule::registerTools, this, &LLMModule::toolsRegister);
     m_toolsModule->initialize();
+
+    // base model
+    connect(m_bigmodelProvider, &BigmodelProvider::setApikey, this, [this](const QString &apikey) {
+        m_modelMenu->setProperty("bigmodelApikey", apikey);
+    });
+    connect(m_bigmodelProvider, &BigmodelProvider::setModel, this, [this](QStandardItemModel *bigmodelModel) {
+        m_modelMenu->setProperty("bigmodelModel", QVariant::fromValue(bigmodelModel));
+    });
+    m_bigmodelProvider->apikeyGet();
 
     connect(m_deepseekProvider, &DeepseekProvider::setApikey, this, [this](const QString &apikey) {
         m_modelMenu->setProperty("deepseekApikey", apikey);
@@ -124,7 +136,8 @@ void LLMModule::llmConfigSave() {
 }
 
 void LLMModule::apikeySet(const QString &key, const QString &apikey) const {
-    if (key == "deepseek-api-key") m_deepseekProvider->apikeySet(apikey);
+    if (key == "bigmodel-api-key") m_bigmodelProvider->apikeySet(apikey);
+    else if (key == "deepseek-api-key") m_deepseekProvider->apikeySet(apikey);
 }
 
 void LLMModule::modeSet(const QString &mode) {
