@@ -286,7 +286,9 @@ void LLMModule::conversationSend() {
     body["stream"] = true;
     body["tools"] = session["mode"] == "ask" ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
-    auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
+    // TODO: provider judge
+    auto *reply = g_networkAccessManager->post(m_bigmodelProvider->requestGet(), QJsonDocument(body).toJson());
+    // auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     auto reasoning = std::make_shared<QString>();
     auto content = std::make_shared<QString>();
