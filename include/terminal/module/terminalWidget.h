@@ -20,7 +20,13 @@ public:
 
     void screenSet(int rows, int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback);
 
-    void cursorSet(const QPoint &cursor, bool visible);
+    void cursorPositionSet(const QPoint &position);
+
+    void cursorVisibleSet(bool visible);
+
+    void cursorBlinkSet(bool blink);
+
+    void cursorShapeSet(int shape);
 
 signals:
     void resize(int rows, int cols);
@@ -56,8 +62,13 @@ private:
     QFont m_font{};
     QList<TerminalCell> m_cells{};
     QList<QList<TerminalCell>> m_scrollback{};
-    QPoint m_cursor{};
-    bool m_cursorVisible{true};
+    // cursor
+    QPoint m_position{};
+    bool m_visible{true};
+    QTimer *m_blinkTimer{};
+    bool m_blinkPhase{true};
+    int m_shape{VTERM_PROP_CURSORSHAPE_BAR_LEFT};
+
     int m_scrollOffset{};
     int m_rows{};
     int m_cols{};

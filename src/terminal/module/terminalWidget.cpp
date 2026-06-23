@@ -2,16 +2,26 @@
 
 #include <QKeyEvent>
 #include <QPainter>
+#include <QTimer>
 
 #include "globals.h"
 
-TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
+TerminalWidget::TerminalWidget(QQuickItem *parent)
+    : QQuickPaintedItem(parent),
+      m_blinkTimer(new QTimer(this)) {
     setAntialiasing(false);
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
     setAcceptedMouseButtons(Qt::AllButtons);
     forceActiveFocus();
     metricsUpdate();
+
+    m_blinkTimer->setInterval(500);
+    connect(m_blinkTimer, &QTimer::timeout, this, [this] {
+        m_blinkPhase = !m_blinkPhase;
+        update();
+    });
+    m_blinkTimer->start();
 }
 
 void TerminalWidget::paint(QPainter *painter) {
@@ -23,20 +33,47 @@ void TerminalWidget::paint(QPainter *painter) {
     for (int row = 0; row < m_rows; ++row) {
         const int sourceRow = firstRow + row;
         const qreal y = row * m_cellHeight + m_ascent;
-        for (int col = 0; col < m_cols; ++col) {
+        int col = 0;
+        while (col < m_cols) {
             // get cell
             const auto &cell = sourceRow < m_scrollback.size()
-            ? m_scrollback[sourceRow][col]
-            : m_cells[(sourceRow - m_scrollback.size()) * m_cols + col];
+                                   ? m_scrollback[sourceRow][col]
+                                   : m_cells[(sourceRow - m_scrollback.size()) * m_cols + col];
+            if (cell.width == 0) {
+                ++col;
+                continue;
+            }
             // draw background
-            if (cell.width == 0) continue;
             const QRectF rect(col * m_cellWidth, row * m_cellHeight, cell.width * m_cellWidth, m_cellHeight);
-            const bool isCursor = m_scrollOffset == 0 && m_cursorVisible && row == m_cursor.x() && col == m_cursor.y();
-            painter->fillRect(rect, isCursor ? cell.foreground : cell.background);
-            // draw text
-            if (cell.text.isEmpty()) continue;
-            painter->setPen(isCursor ? cell.background : cell.foreground);
-            painter->drawText(QPointF(rect.left(), y), cell.text);
+            painter->fillRect(rect, cell.background);
+            // draw cell
+            if (!cell.text.isEmpty()) {
+                painter->setPen(cell.foreground);
+                painter->drawText(QPointF(rect.left(), y), cell.text);
+            }
+            // draw cursor
+            if (m_scrollOffset == 0 && m_visible && m_blinkPhase && row == m_position.x() && col == m_position.y()) {
+                switch (m_shape) {
+                    case VTERM_PROP_CURSORSHAPE_BLOCK: {
+                        painter->fillRect(rect, cell.foreground);
+                        painter->setPen(cell.background);
+                        painter->drawText(QPointF(rect.left(), y), cell.text);
+                    }
+                    break;
+                    case VTERM_PROP_CURSORSHAPE_UNDERLINE: {
+                        const qreal thickness = qMax<qreal>(1, m_cellHeight / 10);
+                        painter->fillRect(QRectF(rect.left(), rect.bottom() - thickness, rect.width(), thickness), cell.foreground);
+                    }
+                    break;
+                    case VTERM_PROP_CURSORSHAPE_BAR_LEFT: {
+                        const qreal thickness = qMax<qreal>(1, m_cellWidth / 8);
+                        painter->fillRect(QRectF(rect.left(), rect.top(), thickness, rect.height()), cell.foreground);
+                    }
+                    break;
+                    default: break;
+                }
+            }
+            col += cell.width;
         }
     }
 }
@@ -47,7 +84,7 @@ void TerminalWidget::fontSet(const QFont &font) {
     update();
 }
 
-void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback) {
+void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell> > &scrollback) {
     m_rows = rows;
     m_cols = cols;
     m_cells = cells;
@@ -56,9 +93,28 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Termi
     update();
 }
 
-void TerminalWidget::cursorSet(const QPoint &cursor, const bool visible) {
-    m_cursor = cursor;
-    m_cursorVisible = visible;
+void TerminalWidget::cursorPositionSet(const QPoint &position) {
+    m_position = position;
+    update();
+}
+
+void TerminalWidget::cursorVisibleSet(const bool visible) {
+    m_visible = visible;
+    update();
+}
+
+void TerminalWidget::cursorBlinkSet(const bool blink) {
+    if (blink) {
+        m_blinkTimer->start();
+    } else {
+        m_blinkTimer->stop();
+        m_blinkPhase = true;
+        update();
+    }
+}
+
+void TerminalWidget::cursorShapeSet(const int shape) {
+    m_shape = shape;
     update();
 }
 
@@ -141,4 +197,3 @@ void TerminalWidget::metricsUpdate() {
     m_requestedCols = cols;
     emit resize(rows, cols);
 }
-

@@ -104,16 +104,20 @@ void VtermWidget::outputRead() {
 int VtermWidget::cursorMove(const VTermPos pos, const VTermPos oldPos, const int visible) {
     Q_UNUSED(oldPos);
     Q_UNUSED(visible);
-    m_cursor = {pos.row, pos.col};
-    emit setCursor(m_cursor, m_cursorVisible);
+    emit setCursorPosition({pos.row, pos.col});
     return 1;
 }
 
 int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
-    if (prop != VTERM_PROP_CURSORVISIBLE) return 1;
-
-    m_cursorVisible = value && value->boolean != 0;
-    emit setCursor(m_cursor, m_cursorVisible);
+    switch (static_cast<int>(prop)) {
+        case VTERM_PROP_CURSORVISIBLE: emit setCursorVisible(value->boolean);
+            break;
+        case VTERM_PROP_CURSORBLINK: emit setCursorBlink(value->boolean);
+            break;
+        case VTERM_PROP_CURSORSHAPE: emit setCursorShape(value->number);
+            break;
+        default: break;
+    }
     return 1;
 }
 
