@@ -52,11 +52,10 @@ void ExplorerModule::propertySet(const QVariantHash &objects) {
 
 void ExplorerModule::propertyGet(const QVariantMap &objects) {
     m_treeView = qvariant_cast<QObject *>(objects["treeView"]);
-
-    if (g_globalManager->gitEnabledGet()) indexUpdate();
 }
 
 void ExplorerModule::indexUpdate() const {
+    qDebug() << g_gitPath;
     m_process->start("git", {"status", "-uall", "--porcelain", "--ignored"});
 }
 
@@ -90,7 +89,7 @@ void ExplorerModule::processFinished(const int exitcode) {
         const auto workingTreeStatus = line.at(1);
         auto filePath = line.mid(3).trimmed();
         if (indexStatus == 'R' || indexStatus == 'C' || workingTreeStatus == 'R' || workingTreeStatus == 'C') filePath = filePath.section(" -> ", 1);
-        const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(filePath);
+        const auto documentPath = QDir(g_gitPath).filePath(filePath);
         const auto documentUrl = QUrl::fromLocalFile(documentPath);
         m_documentStatus[documentUrl] = QVariantHash{
                     {"indexStatus", g_gitStatusCode[indexStatus]},

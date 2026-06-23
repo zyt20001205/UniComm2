@@ -338,7 +338,7 @@ void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
 
 void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     // check file and open
-    const auto gitignorePath = QDir(g_workspaceUrl.toLocalFile()).filePath(".gitignore");
+    const auto gitignorePath = QDir(g_gitPath).filePath(".gitignore");
     auto gitignoreFile = QFile(gitignorePath);
     if (!gitignoreFile.exists()) {
         if (!gitignoreFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
@@ -355,7 +355,7 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     gitignoreFile.close();
     // ready to add / remove
     const auto documentPath = documentUrl.toLocalFile();
-    const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
+    const auto workspaceDir = QDir(g_gitPath);
     const auto relativePath = '/' + workspaceDir.relativeFilePath(documentPath);
     if (status) {
         bool inserted = false;
@@ -411,7 +411,8 @@ void GitModule::processFinished(const int exitcode) {
         switch (command) {
             case GitCommand::Watch: {
                 const auto &gitPath = QString::fromLocal8Bit(output).trimmed();
-                const auto &gitDir = QDir(gitPath);
+                g_gitPath = QFileInfo(gitPath).absolutePath();
+                const auto &gitDir = QDir(g_gitPath);
 
                 const auto &indexPath = gitDir.filePath("index");
                 if (QFileInfo::exists(indexPath)) m_indexWatcher->addPath(indexPath);
@@ -553,12 +554,12 @@ void GitModule::processFinished(const int exitcode) {
                         path2 = change[1];
                     }
                     const auto &path = path2.split('/');
-                    const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
+                    const auto &documentPath = QDir(g_gitPath).filePath(path2);
                     const auto &documentUrl = QUrl::fromLocalFile(documentPath);
                     QString display{};
                     if (status == GitStatusCode::Renamed || status == GitStatusCode::Copied) {
                         display = QString("%1 -> %2 (%3%)").arg(
-                            QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(path1)).fileName(),
+                            QUrl::fromLocalFile(QDir(g_gitPath).filePath(path1)).fileName(),
                             documentUrl.fileName(),
                             change[0].mid(1)
                         );
@@ -628,7 +629,7 @@ void GitModule::processFinished(const int exitcode) {
                     const auto workingTreeStatus = g_gitStatusCode[change.at(1)];
                     auto path = change.mid(3).trimmed();
                     if (indexStatus == 'R' || indexStatus == 'C' || workingTreeStatus == 'R' || workingTreeStatus == 'C') path = path.section(" -> ", 1);
-                    const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path);
+                    const auto &documentPath = QDir(g_gitPath).filePath(path);
                     const auto &documentUrl = QUrl::fromLocalFile(documentPath);
                     const auto &display = documentUrl.fileName();
                     const auto &source = uni_cast<QFileIcon>(documentUrl);
@@ -646,7 +647,7 @@ void GitModule::processFinished(const int exitcode) {
                             if (!_rootItem) {
                                 _rootItem = new QStandardItem(pathList[i]); // NOLINT
                                 _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
-                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(rootPath)), Qt::UserRole + 1);
+                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_gitPath).filePath(rootPath)), Qt::UserRole + 1);
 
                                 if (rootItem) rootItem->appendRow(_rootItem);
                                 else m_workingTreeModel->appendRow(_rootItem);
@@ -678,7 +679,7 @@ void GitModule::processFinished(const int exitcode) {
                             if (!_rootItem) {
                                 _rootItem = new QStandardItem(pathList[i]); // NOLINT
                                 _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
-                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(rootPath)), Qt::UserRole + 1);
+                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_gitPath).filePath(rootPath)), Qt::UserRole + 1);
 
                                 if (rootItem) rootItem->appendRow(_rootItem);
                                 else m_indexModel->appendRow(_rootItem);
@@ -731,12 +732,12 @@ void GitModule::processFinished(const int exitcode) {
                         path2 = change[1];
                     }
                     const auto &path = path2.split('/');
-                    const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
+                    const auto &documentPath = QDir(g_gitPath).filePath(path2);
                     const auto &documentUrl = QUrl::fromLocalFile(documentPath);
                     QString display{};
                     if (status == GitStatusCode::Renamed || status == GitStatusCode::Copied) {
                         display = QString("%1 -> %2 (%3%)").arg(
-                            QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(path1)).fileName(),
+                            QUrl::fromLocalFile(QDir(g_gitPath).filePath(path1)).fileName(),
                             documentUrl.fileName(),
                             change[0].mid(1)
                         );
@@ -794,12 +795,12 @@ void GitModule::processFinished(const int exitcode) {
                         path2 = change[1];
                     }
                     const auto &path = path2.split('/');
-                    const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
+                    const auto &documentPath = QDir(g_gitPath).filePath(path2);
                     const auto &documentUrl = QUrl::fromLocalFile(documentPath);
                     QString display{};
                     if (status == GitStatusCode::Renamed || status == GitStatusCode::Copied) {
                         display = QString("%1 -> %2 (%3%)").arg(
-                            QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(path1)).fileName(),
+                            QUrl::fromLocalFile(QDir(g_gitPath).filePath(path1)).fileName(),
                             documentUrl.fileName(),
                             change[0].mid(1)
                         );
@@ -844,7 +845,10 @@ void GitModule::processFinished(const int exitcode) {
                 gitWatch();
             }
             break;
-            case GitCommand::Watch: gitUpstream();
+            case GitCommand::Watch: {
+                emit updateIndex();
+                gitUpstream();
+            }
                 break;
             case GitCommand::Upstream: gitBranch();
                 break;

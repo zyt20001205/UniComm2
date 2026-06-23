@@ -18,6 +18,7 @@ UndoModule *g_undo = nullptr;
 bool g_terminating = false;
 int g_theme = {};
 QUrl g_workspaceUrl = {};
+QString g_gitPath = {};
 QJsonObject g_mainConfig = {};
 QJsonObject g_workspaceConfig = {};
 
