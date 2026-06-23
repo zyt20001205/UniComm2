@@ -269,3 +269,87 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     if (fileInfo.isDir()) return QUrl("qrc:/icon/fileTypeFolder.svg");
     return QUrl("qrc:/icon/fileTypeDefault.svg");
 }
+
+// qt-> vterm
+template<>
+VTermButton uni_cast<VTermButton, int>(const int &s, const int depth) {
+    Q_UNUSED(depth);
+    switch (s) {
+        case Qt::LeftButton:
+            return 1;
+        case Qt::MiddleButton:
+            return 2;
+        case Qt::RightButton:
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+template<>
+VTermKey uni_cast<VTermKey, int>(const int &s, const int depth) {
+    Q_UNUSED(depth);
+    int d = VTERM_KEY_NONE;
+    switch (s) {
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
+            d = VTERM_KEY_ENTER;
+            break;
+        case Qt::Key_Tab:
+        case Qt::Key_Backtab:
+            d = VTERM_KEY_TAB;
+            break;
+        case Qt::Key_Backspace:
+            d = VTERM_KEY_BACKSPACE;
+            break;
+        case Qt::Key_Escape:
+            d = VTERM_KEY_ESCAPE;
+            break;
+        case Qt::Key_Up:
+            d = VTERM_KEY_UP;
+            break;
+        case Qt::Key_Down:
+            d = VTERM_KEY_DOWN;
+            break;
+        case Qt::Key_Left:
+            d = VTERM_KEY_LEFT;
+            break;
+        case Qt::Key_Right:
+            d = VTERM_KEY_RIGHT;
+            break;
+        case Qt::Key_Insert:
+            d = VTERM_KEY_INS;
+            break;
+        case Qt::Key_Delete:
+            d = VTERM_KEY_DEL;
+            break;
+        case Qt::Key_Home:
+            d = VTERM_KEY_HOME;
+            break;
+        case Qt::Key_End:
+            d = VTERM_KEY_END;
+            break;
+        case Qt::Key_PageUp:
+            d = VTERM_KEY_PAGEUP;
+            break;
+        case Qt::Key_PageDown:
+            d = VTERM_KEY_PAGEDOWN;
+            break;
+        default:
+            if (s >= Qt::Key_F1 && s <= Qt::Key_F35) {
+                d = VTERM_KEY_FUNCTION(s - Qt::Key_F1 + 1);
+            }
+            break;
+    }
+    return static_cast<VTermKey>(d);
+}
+
+template<>
+VTermModifier uni_cast<VTermModifier, int>(const int &s, const int depth) {
+    Q_UNUSED(depth);
+    int d = VTERM_MOD_NONE;
+    if (s & Qt::ShiftModifier) d |= VTERM_MOD_SHIFT;
+    if (s & Qt::AltModifier) d |= VTERM_MOD_ALT;
+    if (s & Qt::ControlModifier) d |= VTERM_MOD_CTRL;
+    return static_cast<VTermModifier>(d);
+}

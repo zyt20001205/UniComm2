@@ -2,7 +2,6 @@
 #define UNICOMM_VTERMWIDGET_H
 
 #include <QColor>
-#include <QList>
 #include <QObject>
 #include <QString>
 #include <vterm.h>

@@ -1,32 +1,8 @@
 #include "terminal/module/vtermWidget.h"
 
-#include <QDebug>
-#include <QStringList>
-#include <Qt>
 #include <vterm.h>
 
-namespace {
-VTermModifier toVtermModifiers(const int modifiers) {
-    int vtermModifiers = VTERM_MOD_NONE;
-    if (modifiers & Qt::ShiftModifier) vtermModifiers |= VTERM_MOD_SHIFT;
-    if (modifiers & Qt::AltModifier) vtermModifiers |= VTERM_MOD_ALT;
-    if (modifiers & Qt::ControlModifier) vtermModifiers |= VTERM_MOD_CTRL;
-    return static_cast<VTermModifier>(vtermModifiers);
-}
-
-int toVtermButton(const int button) {
-    switch (button) {
-        case Qt::LeftButton:
-            return 1;
-        case Qt::MiddleButton:
-            return 2;
-        case Qt::RightButton:
-            return 3;
-        default:
-            return 0;
-    }
-}
-}
+#include "util/uniCast.h"
 
 VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     : QObject(parent),
@@ -113,84 +89,32 @@ void VtermWidget::inputWrite(const QByteArray &bytes) {
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
-    const auto vtermModifiers = toVtermModifiers(modifiers);
-    int vtermKey = VTERM_KEY_NONE;
-    switch (key) {
-        case Qt::Key_Return:
-        case Qt::Key_Enter:
-            vtermKey = VTERM_KEY_ENTER;
-            break;
-        case Qt::Key_Tab:
-        case Qt::Key_Backtab:
-            vtermKey = VTERM_KEY_TAB;
-            break;
-        case Qt::Key_Backspace:
-            vtermKey = VTERM_KEY_BACKSPACE;
-            break;
-        case Qt::Key_Escape:
-            vtermKey = VTERM_KEY_ESCAPE;
-            break;
-        case Qt::Key_Up:
-            vtermKey = VTERM_KEY_UP;
-            break;
-        case Qt::Key_Down:
-            vtermKey = VTERM_KEY_DOWN;
-            break;
-        case Qt::Key_Left:
-            vtermKey = VTERM_KEY_LEFT;
-            break;
-        case Qt::Key_Right:
-            vtermKey = VTERM_KEY_RIGHT;
-            break;
-        case Qt::Key_Insert:
-            vtermKey = VTERM_KEY_INS;
-            break;
-        case Qt::Key_Delete:
-            vtermKey = VTERM_KEY_DEL;
-            break;
-        case Qt::Key_Home:
-            vtermKey = VTERM_KEY_HOME;
-            break;
-        case Qt::Key_End:
-            vtermKey = VTERM_KEY_END;
-            break;
-        case Qt::Key_PageUp:
-            vtermKey = VTERM_KEY_PAGEUP;
-            break;
-        case Qt::Key_PageDown:
-            vtermKey = VTERM_KEY_PAGEDOWN;
-            break;
-        default:
-            if (key >= Qt::Key_F1 && key <= Qt::Key_F35) {
-                vtermKey = VTERM_KEY_FUNCTION(key - Qt::Key_F1 + 1);
-            }
-            break;
-    }
-
-    if (vtermKey != VTERM_KEY_NONE) vterm_keyboard_key(m_vterm, static_cast<VTermKey>(vtermKey), vtermModifiers);
-    else for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, vtermModifiers);
+    const auto &vtermModifier = uni_cast<VTermModifier>(modifiers);
+    const auto &vtermKey = uni_cast<VTermKey>(key);
+    if (vtermKey != VTERM_KEY_NONE) vterm_keyboard_key(m_vterm, vtermKey, vtermModifier);
+    else for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, vtermModifier);
     outputRead();
 }
 
 void VtermWidget::mousePressed(const int row, const int col, const int button, const int modifiers) {
-    const auto vtermModifiers = toVtermModifiers(modifiers);
-    vterm_mouse_move(m_vterm, row, col, vtermModifiers);
-    const int vtermButton = toVtermButton(button);
-    if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, true, vtermModifiers);
+    const auto &vtermModifier = uni_cast<VTermModifier>(modifiers);
+    vterm_mouse_move(m_vterm, row, col, vtermModifier);
+    const auto &vtermButton = uni_cast<VTermButton>(button);
+    if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, true, vtermModifier);
     outputRead();
 }
 
 void VtermWidget::mouseReleased(const int row, const int col, const int button, const int modifiers) {
-    const auto vtermModifiers = toVtermModifiers(modifiers);
-    vterm_mouse_move(m_vterm, row, col, vtermModifiers);
-    const int vtermButton = toVtermButton(button);
-    if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, false, vtermModifiers);
+    const auto &vtermModifier = uni_cast<VTermModifier>(modifiers);
+    vterm_mouse_move(m_vterm, row, col, vtermModifier);
+    const auto &vtermButton = uni_cast<VTermButton>(button);
+    if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, false, vtermModifier);
     outputRead();
 }
 
 void VtermWidget::mouseMoved(const int row, const int col, const int button, const int modifiers) {
-    const auto vtermModifiers = toVtermModifiers(modifiers);
-    vterm_mouse_move(m_vterm, row, col, vtermModifiers);
+    const auto &vtermModifier = uni_cast<VTermModifier>(modifiers);
+    vterm_mouse_move(m_vterm, row, col, vtermModifier);
     outputRead();
 }
 

@@ -4,6 +4,7 @@
 #include <QUrl>
 #include <QVariant>
 #include <sol/object.hpp>
+#include <vterm_keycodes.h>
 
 struct LUrl {
     QString value;
@@ -21,6 +22,12 @@ struct QFileIcon {
     QUrl value;
     QFileIcon(QUrl s) : value(std::move(s)) {}
     operator QUrl() const { return value; }
+};
+
+struct VTermButton {
+    int value;
+    VTermButton(int s) : value(std::move(s)) {}
+    operator int() const { return value; }
 };
 
 template<typename D, typename S>
@@ -65,5 +72,15 @@ template<>
 // qt -> qt
 template<>
 [[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);
+
+// qt-> vterm
+template<>
+[[nodiscard]] VTermButton uni_cast<VTermButton, int>(const int &s, int depth);
+
+template<>
+[[nodiscard]] VTermKey uni_cast<VTermKey, int>(const int &s, int depth);
+
+template<>
+[[nodiscard]] VTermModifier uni_cast<VTermModifier, int>(const int &s, int depth);
 
 #endif //UNICOMM_UNICAST_H
