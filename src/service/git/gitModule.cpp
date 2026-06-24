@@ -76,7 +76,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/service/git/gitModule.qml"));
     m_root = m_widget->rootObject();
-    if (g_globalManager->gitEnabledGet()) gitFetch();
+    if (g_globalManager->gitEnabledGet()) gitWatch();
 
     // commit window
     m_commitWindow->setTitle(tr("Git Commit"));
@@ -175,12 +175,15 @@ void GitModule::gitFetch() {
 
 // public: push
 void GitModule::gitPushPre() {
-    if (m_upstream.isEmpty()) QMetaObject::invokeMethod(m_remoteAddDialog, "open");
-    else gitAhead();
-}
-
-void GitModule::gitRemoteAdd(const QString &upstreamUrl) {
-    processEnqueue(GitCommand::RemoteAdd, QStringList{"remote" , "add", "origin", upstreamUrl});
+    if (!m_remote) {
+        QMetaObject::invokeMethod(m_remoteAddDialog, "open");
+    } else if (m_upstream.isEmpty()) {
+        m_errorDialog->setProperty("title", tr("No Upstream Branch"));
+        m_errorDialog->setProperty("text", tr("Right-click the remote branch to set it as the upstream."));
+        QMetaObject::invokeMethod(m_errorDialog, "open");
+    } else {
+        gitAhead();
+    }
 }
 
 void GitModule::gitAhead() {
@@ -207,14 +210,24 @@ void GitModule::gitPush() {
 
 // public: file watcher
 void GitModule::gitWatch() {
-    const auto &files = m_branchWatcher->files();
-    if (!files.isEmpty()) m_branchWatcher->removePaths(files);
     processEnqueue(GitCommand::Watch, QStringList{"rev-parse", "--absolute-git-dir"});
 }
 
 // public: branch
+void GitModule::gitRemoteAdd(const QString &upstreamUrl) {
+    processEnqueue(GitCommand::RemoteAdd, QStringList{"remote", "add", "origin", upstreamUrl});
+}
+
+void GitModule::gitRemoteGet() {
+    processEnqueue(GitCommand::RemoteGet, QStringList{"remote", "-v"});
+}
+
 void GitModule::gitUpstreamSet(const QString &upstream) {
-    processEnqueue(GitCommand::UpstreamSet, QStringList{"log", "branch", "-u", upstream});
+    processEnqueue(GitCommand::UpstreamSet, QStringList{"branch", "-u", upstream});
+}
+
+void GitModule::gitUpstreamUnset() {
+    processEnqueue(GitCommand::UpstreamSet, QStringList{"branch", "--unset-upstream"});
 }
 
 void GitModule::gitUpstreamGet() {
@@ -426,10 +439,12 @@ void GitModule::processFinished(const int exitcode) {
                 const auto &gitPath = QString::fromLocal8Bit(output).trimmed();
                 g_gitPath = QFileInfo(gitPath).absolutePath();
                 const auto &gitDir = QDir(g_gitPath);
-
+                // index watcher
                 const auto &indexPath = gitDir.filePath("index");
                 if (QFileInfo::exists(indexPath)) m_indexWatcher->addPath(indexPath);
-
+                // branch watcher
+                const auto &files = m_branchWatcher->files();
+                if (!files.isEmpty()) m_branchWatcher->removePaths(files);
                 const auto &headPath = gitDir.filePath("HEAD");
                 const auto &refsPath = gitDir.filePath("refs");
                 if (QFileInfo::exists(headPath)) m_branchWatcher->addPath(headPath);
@@ -439,6 +454,8 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
             break;
+            case GitCommand::RemoteGet: m_remote = !QString::fromLocal8Bit(output).trimmed().isEmpty();
+                break;
             case GitCommand::UpstreamGet: m_upstream = QString::fromLocal8Bit(output).trimmed();
                 break;
             case GitCommand::Branch: {
@@ -871,16 +888,14 @@ void GitModule::processFinished(const int exitcode) {
                     gitDiff();
                 }
             }
-                break;
+            break;
             case GitCommand::Commit: {
                 if (m_current.isEmpty()) {
                     gitWatch();
                     gitStatus();
                 }
             }
-                break;
-            case GitCommand::RemoteAdd: gitFetch();
-                break;
+            break;
             case GitCommand::Fetch: gitWatch();
             case GitCommand::Continue:
             case GitCommand::Abort:
@@ -888,13 +903,19 @@ void GitModule::processFinished(const int exitcode) {
                 emit removeBackground(m_taskId);
                 g_globalManager->gitStatusSet(GitStatus::Idle);
             }
-                break;
+            break;
             case GitCommand::Ahead: gitDiff_();
                 break;
             case GitCommand::Watch: {
                 emit updateIndex();
-                gitUpstreamGet();
+                gitRemoteGet();
             }
+            break;
+            case GitCommand::RemoteAdd: gitFetch();
+                break;
+            case GitCommand::RemoteGet:
+            case GitCommand::UpstreamUnset:
+            case GitCommand::UpstreamSet: gitUpstreamGet();
                 break;
             case GitCommand::UpstreamGet: gitBranch();
                 break;

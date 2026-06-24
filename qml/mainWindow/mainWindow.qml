@@ -2857,8 +2857,17 @@ Item {
         }
 
         MenuItem {
+            text: gitModuleBranchMenu.type === "upstream" ? qsTr("Unset Upstream") : qsTr("Set Upstream")
+            enabled: global.gitStatus === 0
+            icon.source: "qrc:/icon/link.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: gitModuleBranchMenu.type === "upstream" ? gitModule.gitUpstreamUnset() : gitModule.gitUpstreamSet(gitModuleBranchMenu.name)
+        }
+
+        MenuItem {
             text: qsTr("Merge")
-            enabled: gitModuleBranchMenu.type !== "current" && global.gitStatus === 0
+            enabled: global.gitStatus === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 
@@ -2867,7 +2876,7 @@ Item {
 
         MenuItem {
             text: qsTr("Rebase")
-            enabled: gitModuleBranchMenu.type !== "current" && global.gitStatus === 0
+            enabled: global.gitStatus === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 

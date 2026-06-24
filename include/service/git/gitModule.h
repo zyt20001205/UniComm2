@@ -50,8 +50,6 @@ public:
 
     Q_INVOKABLE void gitPushPre();
 
-    Q_INVOKABLE void gitRemoteAdd(const QString &upstreamUrl);
-
     void gitAhead();
 
     Q_INVOKABLE void gitDiff_();
@@ -62,7 +60,13 @@ public:
 
     void gitWatch();
 
+    Q_INVOKABLE void gitRemoteAdd(const QString &upstreamUrl);
+
+    void gitRemoteGet();
+
     Q_INVOKABLE void gitUpstreamSet(const QString &upstream);
+
+    Q_INVOKABLE void gitUpstreamUnset();
 
     void gitUpstreamGet();
 
@@ -148,6 +152,7 @@ private:
     QFileSystemWatcher *m_branchWatcher{};
     QTimer *m_branchWatcherTimer{};
     QString m_current{};
+    bool m_remote{};
     QString m_upstream{};
     int m_taskId{-1};
     BranchModel *m_branchModel{};
@@ -168,13 +173,15 @@ private:
             Add,
             Commit,
             Fetch,
-            RemoteAdd,
             Ahead,
             Diff_,
             ShowCommit_,
             Push,
             Watch,
+            RemoteAdd,
+            RemoteGet,
             UpstreamSet,
+            UpstreamUnset,
             UpstreamGet,
             Branch,
             Switch,
