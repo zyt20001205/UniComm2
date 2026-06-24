@@ -49,10 +49,11 @@ void StatusModule::backgroundAppend(int &taskId, const std::function<void()> &ca
     }
 }
 
-void StatusModule::backgroundRemove(const int taskId) const {
+void StatusModule::backgroundRemove(const int taskId) {
     for (int i = 0; i < m_backgroundModel->rowCount(); ++i) {
         if (m_backgroundModel->item(i, 0)->data(Qt::UserRole + 1).toInt() == taskId) {
             m_backgroundModel->removeRow(i);
+            m_callbacks.remove(taskId);
             backgroundUpdate();
             break;
         }

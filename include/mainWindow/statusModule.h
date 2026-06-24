@@ -20,7 +20,7 @@ public:
 
     void backgroundAppend(int &taskId, const std::function<void()> &callback);
 
-    void backgroundRemove(int taskId) const;
+    void backgroundRemove(int taskId);
 
     void backgroundRefresh(int taskId, const QString &message) const;
 
