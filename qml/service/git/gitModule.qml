@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool modelVisible: branchModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -15,22 +14,22 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !global.gitEnabled
+        visible: branchModel.empty
 
         RowLayout {
             anchors.centerIn: parent
 
             Button {
                 flat: true
-                text: qsTr("Click to create git repository.")
+                text: !global.gitEnabled ? qsTr("Click to create git repository.") : qsTr("Click to create first commit.")
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignVCenter
 
-                onClicked: gitModule.gitInit()
+                onClicked: !global.gitEnabled ? gitModule.gitInit() : gitModule.gitCommitPre()
             }
 
             IconImage {
-                source: "qrc:/icon/fileTypeGit.svg"
+                source: !global.gitEnabled ? "qrc:/icon/fileTypeGit.svg" : "qrc:/icon/gitCommit.svg"
                 color: global.fore
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -40,37 +39,16 @@ Item {
     SplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
-        visible: global.gitEnabled
+        visible: global.gitEnabled && !branchModel.empty
 
         Item {
             SplitView.preferredWidth: 400
-
-            RowLayout {
-                anchors.centerIn: parent
-                visible: !modelVisible
-
-                Button {
-                    flat: true
-                    text: qsTr("No commits yet.")
-                    font.pixelSize: 16
-                    Layout.alignment: Qt.AlignVCenter
-
-                    onClicked: gitModule.gitCommit()
-                }
-
-                IconImage {
-                    source: "qrc:/icon/gitBranch.svg"
-                    color: global.fore
-                    Layout.alignment: Qt.AlignVCenter
-                }
-            }
 
             TreeView {
                 id: branchTreeView
                 anchors.fill: parent
                 clip: true
                 model: branchModel
-                visible: modelVisible
                 property int selectedRow: -1
 
                 ScrollBar.vertical: ScrollBar {
@@ -229,7 +207,6 @@ Item {
             clip: true
             editTriggers: TableView.NoEditTriggers
             model: logModel
-            visible: modelVisible
             contentWidth: width
             SplitView.fillWidth: true
             property int hoveredRow: -1
@@ -420,7 +397,6 @@ Item {
                 width: parent.width
                 clip: true
                 model: showModel
-                visible: modelVisible
                 Layout.fillHeight: true
                 property int selectedRow: -1
 
@@ -606,22 +582,6 @@ Item {
                     Layout.fillWidth: true
                 }
             }
-        }
-    }
-
-    Connections {
-        target: branchModel
-
-        function onRowsInserted() {
-            modelVisible = true
-        }
-
-        function onRowsRemoved() {
-            modelVisible = branchModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            modelVisible = false
         }
     }
 

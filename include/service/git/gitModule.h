@@ -159,6 +159,14 @@ private:
         enum {
             Null,
             Init,
+            Status,
+            Add,
+            Commit,
+            Fetch,
+            Ahead,
+            Diff_,
+            ShowCommit_,
+            Push,
             Watch,
             Branch,
             Upstream,
@@ -175,14 +183,6 @@ private:
             Abort,
             Continue,
             Diff,
-            Status,
-            Commit,
-            Fetch,
-            Ahead,
-            Diff_,
-            ShowCommit_,
-            Push,
-            Add,
             Restore
         };
     };
@@ -208,11 +208,28 @@ private:
 
 class BranchModel final : public QStandardItemModel {
     Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
 
 public:
     using QStandardItemModel::QStandardItemModel;
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] bool emptyGet() const {
+        return m_empty;
+    }
+
+    void emptySet(const bool empty) {
+        if (m_empty == empty) return;
+        m_empty = empty;
+        emit emptyChanged();
+    }
+
+signals:
+    void emptyChanged();
+
+private:
+    bool m_empty{true};
 };
 
 class LogModel final : public QStandardItemModel {
@@ -233,7 +250,7 @@ public:
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
-    [[nodiscard]] QString hashGet() {
+    [[nodiscard]] QString hashGet() const {
         return m_hash;
     }
 
