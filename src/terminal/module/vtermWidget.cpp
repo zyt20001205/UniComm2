@@ -17,6 +17,9 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     m_callbacks.settermprop = [](const VTermProp prop, VTermValue *value, void *user) -> int {
         return static_cast<VtermWidget *>(user)->termPropSet(prop, value);
     };
+    m_callbacks.bell = [](void *user) -> int {
+        return static_cast<VtermWidget *>(user)->bell();
+    };
     m_callbacks.sb_pushline = [](const int cols, const VTermScreenCell *cells, void *user) -> int {
         return static_cast<VtermWidget *>(user)->linePush(cols, cells);
     };
@@ -118,6 +121,11 @@ int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
             break;
         default: break;
     }
+    return 1;
+}
+
+int VtermWidget::bell() {
+    QApplication::beep();
     return 1;
 }
 

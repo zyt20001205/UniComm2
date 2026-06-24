@@ -258,6 +258,7 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     if (imageType.contains(suffix)) return QUrl("qrc:/icon/fileTypeImage.svg");
     if (suffix == "bat") return QUrl("qrc:/icon/fileTypeBatch.svg");
     if (suffix == "csv") return QUrl("qrc:/icon/fileTypeCsv.svg");
+    if (suffix == "exe") return QUrl("qrc:/icon/fileTypeExe.svg");
     if (suffix == "gitignore") return QUrl("qrc:/icon/fileTypeGit.svg");
     if (suffix == "json") return QUrl("qrc:/icon/fileTypeJson.svg");
     if (suffix == "lua") return QUrl("qrc:/icon/fileTypeLua.svg");

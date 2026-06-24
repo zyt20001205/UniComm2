@@ -54,6 +54,8 @@ private:
 
     int termPropSet(VTermProp prop, const VTermValue *value);
 
+    int bell();
+
     int linePush(int cols, const VTermScreenCell *cells);
 
     int m_rows{};
