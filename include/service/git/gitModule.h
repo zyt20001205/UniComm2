@@ -40,9 +40,31 @@ public:
 
     Q_INVOKABLE void gitProxy();
 
+    Q_INVOKABLE void gitCommitPre();
+
+    void gitStatus();
+
+    Q_INVOKABLE void gitCommit(const QString &subject);
+
+    Q_INVOKABLE void gitFetch();
+
+    Q_INVOKABLE void gitPushPre();
+
+    Q_INVOKABLE void gitRemoteAdd(const QString &upstreamUrl);
+
+    void gitAhead();
+
+    Q_INVOKABLE void gitDiff_();
+
+    Q_INVOKABLE void gitShowCommit_(const QString &hash);
+
+    Q_INVOKABLE void gitPush();
+
     void gitWatch();
 
-    void gitUpstream();
+    Q_INVOKABLE void gitUpstreamSet(const QString &upstream);
+
+    void gitUpstreamGet();
 
     Q_INVOKABLE void gitBranch();
 
@@ -71,24 +93,6 @@ public:
     Q_INVOKABLE void gitContinue(const QString &message);
 
     Q_INVOKABLE void gitDiff();
-
-    Q_INVOKABLE void gitCommitPre();
-
-    void gitStatus();
-
-    Q_INVOKABLE void gitCommit(const QString &subject);
-
-    Q_INVOKABLE void gitFetch();
-
-    Q_INVOKABLE void gitPushPre();
-
-    void gitAhead();
-
-    Q_INVOKABLE void gitDiff_();
-
-    Q_INVOKABLE void gitShowCommit_(const QString &hash);
-
-    Q_INVOKABLE void gitPush();
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl = QUrl());
 
@@ -121,6 +125,7 @@ private:
     QObject *m_root{};
     QObject *m_continueDialog{};
     QObject *m_errorDialog{};
+    QObject *m_remoteAddDialog{};
     QObject *m_canvas{};
     QObject *m_subjectLabel{};
     QObject *m_dateLabel{};
@@ -163,13 +168,15 @@ private:
             Add,
             Commit,
             Fetch,
+            RemoteAdd,
             Ahead,
             Diff_,
             ShowCommit_,
             Push,
             Watch,
+            UpstreamSet,
+            UpstreamGet,
             Branch,
-            Upstream,
             Switch,
             Create,
             Rename,

@@ -206,6 +206,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"gitModuleContinueDialog", objects["gitModuleContinueDialog"]},
         {"gitModuleErrorDialog", objects["gitModuleErrorDialog"]},
+        {"gitModuleRemoteAddDialog", objects["gitModuleRemoteAddDialog"]},
         {"gitModuleBranchMenu", objects["gitModuleBranchMenu"]},
         {"gitModuleLogMenu", objects["gitModuleLogMenu"]}
     };

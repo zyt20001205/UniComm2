@@ -62,6 +62,7 @@ GitModule::~GitModule() {
 void GitModule::propertySet(const QVariantHash &objects) {
     m_continueDialog = qvariant_cast<QObject *>(objects["gitModuleContinueDialog"]);
     m_errorDialog = qvariant_cast<QObject *>(objects["gitModuleErrorDialog"]);
+    m_remoteAddDialog = qvariant_cast<QObject *>(objects["gitModuleRemoteAddDialog"]);
 
     m_widget->rootContext()->setContextProperty("gitModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
@@ -75,7 +76,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/service/git/gitModule.qml"));
     m_root = m_widget->rootObject();
-    if (g_globalManager->gitEnabledGet()) gitWatch();
+    if (g_globalManager->gitEnabledGet()) gitFetch();
 
     // commit window
     m_commitWindow->setTitle(tr("Git Commit"));
@@ -174,12 +175,17 @@ void GitModule::gitFetch() {
 
 // public: push
 void GitModule::gitPushPre() {
-    m_pushWindow->resize(1080, 720);
-    m_pushWindow->show();
-    gitAhead();
+    if (m_upstream.isEmpty()) QMetaObject::invokeMethod(m_remoteAddDialog, "open");
+    else gitAhead();
+}
+
+void GitModule::gitRemoteAdd(const QString &upstreamUrl) {
+    processEnqueue(GitCommand::RemoteAdd, QStringList{"remote" , "add", "origin", upstreamUrl});
 }
 
 void GitModule::gitAhead() {
+    m_pushWindow->resize(1080, 720);
+    m_pushWindow->show();
     processEnqueue(GitCommand::Ahead, QStringList{"log", "@{upstream}..HEAD", "-z", "--pretty=format:%h%x1e%s"});
 }
 
@@ -207,8 +213,12 @@ void GitModule::gitWatch() {
 }
 
 // public: branch
-void GitModule::gitUpstream() {
-    processEnqueue(GitCommand::Upstream, QStringList{"rev-parse", "--abbrev-ref", "@{upstream}"});
+void GitModule::gitUpstreamSet(const QString &upstream) {
+    processEnqueue(GitCommand::UpstreamSet, QStringList{"log", "branch", "-u", upstream});
+}
+
+void GitModule::gitUpstreamGet() {
+    processEnqueue(GitCommand::UpstreamGet, QStringList{"rev-parse", "--abbrev-ref", "@{upstream}"});
 }
 
 void GitModule::gitBranch() {
@@ -429,7 +439,7 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
             break;
-            case GitCommand::Upstream: m_upstream = QString::fromLocal8Bit(output).trimmed();
+            case GitCommand::UpstreamGet: m_upstream = QString::fromLocal8Bit(output).trimmed();
                 break;
             case GitCommand::Branch: {
                 m_branchModel->clear();
@@ -869,6 +879,8 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
                 break;
+            case GitCommand::RemoteAdd: gitFetch();
+                break;
             case GitCommand::Fetch: gitWatch();
             case GitCommand::Continue:
             case GitCommand::Abort:
@@ -881,14 +893,14 @@ void GitModule::processFinished(const int exitcode) {
                 break;
             case GitCommand::Watch: {
                 emit updateIndex();
-                gitUpstream();
+                gitUpstreamGet();
             }
                 break;
-            case GitCommand::Upstream: gitBranch();
+            case GitCommand::UpstreamGet: gitBranch();
                 break;
             case GitCommand::Branch: gitLog();
                 break;
-            case GitCommand::Switch: gitUpstream();
+            case GitCommand::Switch: gitUpstreamGet();
                 break;
             case GitCommand::Create:
             case GitCommand::Rename:
@@ -910,7 +922,7 @@ void GitModule::processFinished(const int exitcode) {
         QString text{};
         // error parser
         switch (command) {
-            case GitCommand::Upstream: m_upstream = "";
+            case GitCommand::UpstreamGet: m_upstream = "";
                 break;
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
@@ -953,7 +965,7 @@ void GitModule::processFinished(const int exitcode) {
         }
         // state machine
         switch (command) {
-            case GitCommand::Upstream: gitBranch();
+            case GitCommand::UpstreamGet: gitBranch();
                 break;
             case GitCommand::Merge:
             case GitCommand::Rebase: gitDiff();

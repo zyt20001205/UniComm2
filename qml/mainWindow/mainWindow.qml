@@ -2758,6 +2758,38 @@ Item {
             Keys.onEscapePressed: gitModuleBranchRenameDialog.reject()
         }
     }
+
+    Dialog {
+        id: gitModuleRemoteAddDialog
+        parent: Overlay.overlay
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
+        width: 600
+        modal: true
+        title: qsTr("Add Remote Repository")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            gitModuleRemoteAddTextField.text = ""
+            gitModuleRemoteAddTextField.forceActiveFocus()
+        }
+
+        onAccepted: gitModule.gitRemoteAdd(gitModuleRemoteAddTextField.text)
+
+        TextField {
+            id: gitModuleRemoteAddTextField
+            placeholderText: qsTr("Remote URL (e.g., https://github.com/user/repo.git)")
+            width: parent.width
+
+            onAccepted: gitModuleRemoteAddDialog.accept()
+            Keys.onEscapePressed: gitModuleRemoteAddDialog.reject()
+        }
+    }
     
     Menu {
         id: gitModuleBranchMenu
@@ -4777,6 +4809,7 @@ Item {
 
             "gitModuleContinueDialog": gitModuleContinueDialog,
             "gitModuleErrorDialog": gitModuleErrorDialog,
+            "gitModuleRemoteAddDialog": gitModuleRemoteAddDialog,
             "gitModuleBranchMenu": gitModuleBranchMenu,
             "gitModuleLogMenu": gitModuleLogMenu,
 
