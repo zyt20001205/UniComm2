@@ -28,6 +28,8 @@ public:
 
     void cursorShapeSet(int shape);
 
+    void cursorModeSet(int mode);
+
 signals:
     void resize(int rows, int cols);
 
@@ -68,6 +70,7 @@ private:
     QTimer *m_blinkTimer{};
     bool m_blinkPhase{true};
     int m_shape{VTERM_PROP_CURSORSHAPE_BAR_LEFT};
+    int m_mode{VTERM_PROP_MOUSE_NONE};
 
     int m_scrollOffset{};
     int m_rows{};

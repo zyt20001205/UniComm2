@@ -119,6 +119,8 @@ int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
             break;
         case VTERM_PROP_CURSORSHAPE: emit setCursorShape(value->number);
             break;
+        case VTERM_PROP_MOUSE: emit setCursorMode(value->number);
+            break;
         default: break;
     }
     return 1;

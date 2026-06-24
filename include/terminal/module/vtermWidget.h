@@ -47,6 +47,8 @@ signals:
 
     void setCursorShape(int shape);
 
+    void setCursorMode(int mode);
+
 private:
     void outputRead();
 

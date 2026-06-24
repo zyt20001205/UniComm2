@@ -1,5 +1,6 @@
 #include "terminal/module/terminalWidget.h"
 
+#include <QClipboard>
 #include <QKeyEvent>
 #include <QPainter>
 #include <QTimer>
@@ -94,11 +95,13 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Termi
 }
 
 void TerminalWidget::cursorPositionSet(const QPoint &position) {
+    if (m_position == position) return;
     m_position = position;
     update();
 }
 
 void TerminalWidget::cursorVisibleSet(const bool visible) {
+    if (m_visible == visible) return;
     m_visible = visible;
     update();
 }
@@ -114,8 +117,14 @@ void TerminalWidget::cursorBlinkSet(const bool blink) {
 }
 
 void TerminalWidget::cursorShapeSet(const int shape) {
+    if (m_shape == shape) return;
     m_shape = shape;
     update();
+}
+
+void TerminalWidget::cursorModeSet(const int mode) {
+    if (m_mode == mode) return;
+    m_mode = mode;
 }
 
 void TerminalWidget::keyPressEvent(QKeyEvent *event) {
@@ -125,32 +134,44 @@ void TerminalWidget::keyPressEvent(QKeyEvent *event) {
 
 void TerminalWidget::mousePressEvent(QMouseEvent *event) {
     forceActiveFocus();
-    emit mousePressed(
-        event->position().y() / m_cellHeight,
-        event->position().x() / m_cellWidth,
-        event->button(),
-        event->modifiers()
-    );
+    if (m_mode >= VTERM_PROP_MOUSE_CLICK) {
+        emit mousePressed(
+            event->position().y() / m_cellHeight,
+            event->position().x() / m_cellWidth,
+            event->button(),
+            event->modifiers()
+        );
+    } else {
+        if (event->button() == Qt::MiddleButton) {
+            const QString text = QGuiApplication::clipboard()->text();
+            if (!text.isEmpty()) emit keyPressed(0, Qt::NoModifier, text);
+        }
+    }
     event->accept();
 }
 
 void TerminalWidget::mouseReleaseEvent(QMouseEvent *event) {
-    emit mouseReleased(
-        event->position().y() / m_cellHeight,
-        event->position().x() / m_cellWidth,
-        event->button(),
-        event->modifiers()
-    );
+    if (m_mode >= VTERM_PROP_MOUSE_CLICK) {
+        emit mouseReleased(
+            event->position().y() / m_cellHeight,
+            event->position().x() / m_cellWidth,
+            event->button(),
+            event->modifiers()
+        );
+    }
     event->accept();
 }
 
 void TerminalWidget::mouseMoveEvent(QMouseEvent *event) {
-    emit mouseMoved(
-        event->position().y() / m_cellHeight,
-        event->position().x() / m_cellWidth,
-        event->button(),
-        event->modifiers()
-    );
+    if (m_mode == VTERM_PROP_MOUSE_MOVE || (m_mode == VTERM_PROP_MOUSE_DRAG && event->buttons() != Qt::NoButton)) {
+        emit mouseMoved(
+            event->position().y() / m_cellHeight,
+            event->position().x() / m_cellWidth,
+            event->button(),
+            event->modifiers()
+        );
+    }
+    // else qDebug() << "handle move here";
     event->accept();
 }
 
