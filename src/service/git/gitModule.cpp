@@ -168,7 +168,11 @@ void GitModule::gitCommit(const QString &subject) {
 // public: pull
 void GitModule::gitFetch() {
     processEnqueue(GitCommand::Fetch, QStringList{"fetch", "-p"});
-    emit appendBackground(m_taskId, [this] { this->gitAbort(); });
+    emit appendBackground(
+        m_taskId,
+        [this] { this->gitAbort(); },
+        [] {
+        });
     emit refreshBackground(m_taskId, tr("Fetching from remote..."));
     g_globalManager->gitStatusSet(GitStatus::Transfer);
 }
@@ -203,7 +207,11 @@ void GitModule::gitShowCommit_(const QString &hash) {
 void GitModule::gitPush() {
     m_pushWindow->close();
     processEnqueue(GitCommand::Push, QStringList{"push"});
-    emit appendBackground(m_taskId, [this] { this->gitAbort(); });
+    emit appendBackground(
+        m_taskId,
+        [this] { this->gitAbort(); },
+        [] {
+        });
     emit refreshBackground(m_taskId, tr("Pushing to remote..."));
     g_globalManager->gitStatusSet(GitStatus::Transfer);
 }
@@ -948,14 +956,22 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
                 text = QString::fromLocal8Bit(output).trimmed();
-                emit appendBackground(m_taskId, [this] { this->gitAbort(); });
+                emit appendBackground(
+                    m_taskId,
+                    [this] { this->gitAbort(); },
+                    [] {
+                    });
                 g_globalManager->gitStatusSet(GitStatus::Merge);
             }
             break;
             case GitCommand::Rebase: {
                 title = tr("Rebase Failed");
                 text = QString::fromLocal8Bit(output).trimmed();
-                emit appendBackground(m_taskId, [this] { this->gitAbort(); });
+                emit appendBackground(
+                    m_taskId,
+                    [this] { this->gitAbort(); },
+                    [] {
+                    });
                 g_globalManager->gitStatusSet(GitStatus::Rebase);
             }
             break;

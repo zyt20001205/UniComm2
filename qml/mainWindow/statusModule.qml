@@ -68,8 +68,12 @@ Item {
         RowLayout {
             visible: modelVisible
 
-            Label {
+            Button {
                 text: backgroundModel.title
+                flat: true
+                Layout.preferredHeight: 24
+
+                onClicked: statusModule.backgroundInfo(taskId)
             }
 
             ProgressBar {

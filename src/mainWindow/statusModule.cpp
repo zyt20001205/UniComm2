@@ -38,14 +38,14 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
-void StatusModule::backgroundAppend(int &taskId, const std::function<void()> &callback) {
+void StatusModule::backgroundAppend(int &taskId, const std::function<void()> &abort, const std::function<void()> &info) {
     taskId = m_taskId++;
-    if (callback) {
+    if (abort) {
         auto *item = new QStandardItem(); // NOLINT
         item->setData(taskId, Qt::UserRole + 1);
         m_backgroundModel->appendRow(item);
         backgroundUpdate();
-        m_callbacks.insert(taskId, callback);
+        m_abortCallbacks.insert(taskId, abort);
     }
 }
 
@@ -53,7 +53,7 @@ void StatusModule::backgroundRemove(const int taskId) {
     for (int i = 0; i < m_backgroundModel->rowCount(); ++i) {
         if (m_backgroundModel->item(i, 0)->data(Qt::UserRole + 1).toInt() == taskId) {
             m_backgroundModel->removeRow(i);
-            m_callbacks.remove(taskId);
+            m_abortCallbacks.remove(taskId);
             backgroundUpdate();
             break;
         }
@@ -72,8 +72,13 @@ void StatusModule::backgroundRefresh(const int taskId, const QString &message) c
 }
 
 void StatusModule::backgroundAbort(const int taskId) {
-    const auto callback = m_callbacks.take(taskId);
+    const auto callback = m_abortCallbacks.take(taskId);
     backgroundRemove(taskId);
+    if (callback) callback();
+}
+
+void StatusModule::backgroundInfo(const int taskId) const {
+    const auto callback = m_infoCallbacks.value(taskId);
     if (callback) callback();
 }
 
