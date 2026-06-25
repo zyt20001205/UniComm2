@@ -12,8 +12,7 @@
 
 // public
 FileModule::FileModule(QObject *parent)
-    : QObject(parent),
-      m_process(new QProcess(this)) {
+    : QObject(parent) {
 }
 
 void FileModule::propertySet(const QVariantHash &objects) {
@@ -32,14 +31,23 @@ void FileModule::fileOpenInExplorer(const QUrl &fileUrl) {
         args << QDir::toNativeSeparators(filePath);
     }
 #endif
-    connect(m_process, &QProcess::started, this, [this] {
-        emit appendBackground(m_taskId, [this] { this->processTerminate(); });
-        emit refreshBackground(m_taskId, tr("Waiting for explorer..."));
+    auto *process = new QProcess(this); // NOLINT
+    connect(process, &QProcess::started, this, [this, process] {
+        int taskId = -1;
+        emit appendBackground(taskId, [process] {
+            if (process->state() != QProcess::NotRunning) process->terminate();
+        });
+        process->setProperty("taskId", taskId);
+        emit refreshBackground(taskId, tr("Waiting for explorer..."));
     });
-    connect(m_process, &QProcess::finished, this, [this] {
-        emit removeBackground(m_taskId);
+    connect(process, &QProcess::finished, this, [this, process] {
+        emit removeBackground(process->property("taskId").toInt());
+        process->deleteLater();
     });
-    m_process->start(command, args);
+    connect(process, &QProcess::errorOccurred, this, [process](const QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart) process->deleteLater();
+    });
+    process->start(command, args);
 }
 
 void FileModule::fileOpenInApplication(const QUrl &fileUrl) {
@@ -49,14 +57,23 @@ void FileModule::fileOpenInApplication(const QUrl &fileUrl) {
     const QString command = "explorer.exe";
     args << QDir::toNativeSeparators(filePath);
 #endif
-    connect(m_process, &QProcess::started, this, [this] {
-        emit appendBackground(m_taskId, [this] { this->processTerminate(); });
-        emit refreshBackground(m_taskId, tr("Waiting for application..."));
+    auto *process = new QProcess(this); // NOLINT
+    connect(process, &QProcess::started, this, [this, process] {
+        int taskId = -1;
+        emit appendBackground(taskId, [process] {
+            if (process->state() != QProcess::NotRunning) process->terminate();
+        });
+        process->setProperty("taskId", taskId);
+        emit refreshBackground(taskId, tr("Waiting for application..."));
     });
-    connect(m_process, &QProcess::finished, this, [this] {
-        emit removeBackground(m_taskId);
+    connect(process, &QProcess::finished, this, [this, process] {
+        emit removeBackground(process->property("taskId").toInt());
+        process->deleteLater();
     });
-    m_process->start(command, args);
+    connect(process, &QProcess::errorOccurred, this, [process](const QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart) process->deleteLater();
+    });
+    process->start(command, args);
 }
 
 QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
@@ -183,13 +200,6 @@ QString FileModule::textGet(const QUrl &documentUrl, const int startLine, const 
         if (i < endLine) out << Qt::endl;
     }
     return text;
-}
-
-// private
-void FileModule::processTerminate() const {
-    // const auto state = m_process->state();
-    // qDebug() << state;
-    m_process->terminate();
 }
 
 void FileModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {

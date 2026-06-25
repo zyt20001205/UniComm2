@@ -72,8 +72,8 @@ void StatusModule::backgroundRefresh(const int taskId, const QString &message) c
 }
 
 void StatusModule::backgroundAbort(const int taskId) {
-    backgroundRemove(taskId);
     const auto callback = m_callbacks.take(taskId);
+    backgroundRemove(taskId);
     if (callback) callback();
 }
 

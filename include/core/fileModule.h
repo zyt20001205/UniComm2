@@ -3,8 +3,6 @@
 
 #include <QVariantHash>
 
-class QProcess;
-
 class FileModule final : public QObject {
     Q_OBJECT
 
@@ -51,15 +49,11 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
 private:
-    void processTerminate() const;
-
     void didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl);
 
     void didDeleteFilesNotification(const QUrl &fileUrl);
 
     QObject *m_messageDialog{};
-    int m_taskId{-1};
-    QProcess *m_process{};
 };
 
 #endif //UNICOMM_FILEMODULE_H
