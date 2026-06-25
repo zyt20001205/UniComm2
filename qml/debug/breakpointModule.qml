@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool modelVisible: standardItemModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -15,7 +14,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !modelVisible
+        visible: standardItemModel.empty
 
         RowLayout {
             anchors.centerIn: parent
@@ -39,7 +38,7 @@ Item {
         anchors.fill: parent
         clip: true
         model: standardItemModel
-        visible: modelVisible
+        visible: !standardItemModel.empty
         property int selectedRow: -1
 
         ScrollBar.vertical: ScrollBar {
@@ -183,23 +182,6 @@ Item {
             }
         }
     }
-
-    Connections {
-        target: standardItemModel
-
-        function onRowsInserted() {
-            modelVisible = true
-        }
-
-        function onRowsRemoved() {
-            modelVisible = standardItemModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            modelVisible = false
-        }
-    }
-
     Component.onCompleted: {
         const objects = {
             "treeView": treeView

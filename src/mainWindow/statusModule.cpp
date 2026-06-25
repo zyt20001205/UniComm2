@@ -40,12 +40,13 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
 
 void StatusModule::backgroundAppend(int &taskId, const std::function<void()> &abort, const std::function<void()> &info) {
     taskId = m_taskId++;
-    if (abort) {
+    if (abort || info) {
         auto *item = new QStandardItem(); // NOLINT
         item->setData(taskId, Qt::UserRole + 1);
         m_backgroundModel->appendRow(item);
         backgroundUpdate();
-        m_abortCallbacks.insert(taskId, abort);
+        if (abort) m_abortCallbacks.insert(taskId, abort);
+        if (info) m_infoCallbacks.insert(taskId, info);
     }
 }
 
@@ -54,6 +55,7 @@ void StatusModule::backgroundRemove(const int taskId) {
         if (m_backgroundModel->item(i, 0)->data(Qt::UserRole + 1).toInt() == taskId) {
             m_backgroundModel->removeRow(i);
             m_abortCallbacks.remove(taskId);
+            m_infoCallbacks.remove(taskId);
             backgroundUpdate();
             break;
         }
@@ -151,6 +153,13 @@ void StatusModule::backgroundUpdate() const {
 }
 
 // public
+BackgroundModel::BackgroundModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &BackgroundModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &BackgroundModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &BackgroundModel::emptyChanged);
+}
+
 QHash<int, QByteArray> BackgroundModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "taskId";

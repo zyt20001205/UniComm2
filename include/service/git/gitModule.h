@@ -225,25 +225,16 @@ class BranchModel final : public QStandardItemModel {
     Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
 
 public:
-    using QStandardItemModel::QStandardItemModel;
+    explicit BranchModel(QObject *parent = nullptr);
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] bool emptyGet() const {
-        return m_empty;
-    }
-
-    void emptySet(const bool empty) {
-        if (m_empty == empty) return;
-        m_empty = empty;
-        emit emptyChanged();
+        return rowCount() == 0;
     }
 
 signals:
     void emptyChanged();
-
-private:
-    bool m_empty{true};
 };
 
 class LogModel final : public QStandardItemModel {
@@ -283,20 +274,36 @@ private:
 
 class StatusModel final : public QStandardItemModel {
     Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
 
 public:
-    using QStandardItemModel::QStandardItemModel;
+    explicit StatusModel(QObject *parent = nullptr);
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] bool emptyGet() const {
+        return rowCount() == 0;
+    }
+
+signals:
+    void emptyChanged();
 };
 
 class CommitModel final : public QStandardItemModel {
     Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
 
 public:
-    using QStandardItemModel::QStandardItemModel;
+    explicit CommitModel(QObject *parent = nullptr);
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] bool emptyGet() const {
+        return rowCount() == 0;
+    }
+
+signals:
+    void emptyChanged();
 };
 
 #endif //UNICOMM_GITMODULE_H

@@ -2616,8 +2616,8 @@ Item {
         y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
-        title: global.gitStatus === 1 ? qsTr("Finish Merge") : qsTr("Finish Rebase")
-        standardButtons: Dialog.Abort | Dialog.Ok
+        title: global.gitStatus === 2 ? qsTr("Finish Merge") : qsTr("Finish Rebase")
+        standardButtons: Dialog.Ok
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2632,7 +2632,6 @@ Item {
         }
 
         onAccepted: gitModule.gitContinue(gitModuleContinueTextField.text)
-        onRejected: gitModule.gitAbort()
 
         ColumnLayout {
             width: parent.width

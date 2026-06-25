@@ -232,6 +232,13 @@ void ThreadpoolModule::messageDialogNew(const QEventLoop *eventloop, const QStri
 }
 
 // public
+ThreadpoolModel::ThreadpoolModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &ThreadpoolModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &ThreadpoolModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &ThreadpoolModel::emptyChanged);
+}
+
 QHash<int, QByteArray> ThreadpoolModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 2] = "status";

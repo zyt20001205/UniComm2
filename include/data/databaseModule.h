@@ -48,11 +48,21 @@ private:
 
 class DatabaseModel final : public QStandardItemModel {
     Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
 
 public:
+    explicit DatabaseModel(QObject *parent = nullptr);
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+
+    [[nodiscard]] bool emptyGet() const {
+        return rowCount() == 0;
+    }
+
+signals:
+    void emptyChanged();
 };
 
 #endif //UNICOMM_DATABASE_H

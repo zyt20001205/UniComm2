@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool modelVisible: standardItemModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -15,7 +14,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !modelVisible
+        visible: standardItemModel.empty
 
         RowLayout {
             anchors.centerIn: parent
@@ -46,7 +45,7 @@ Item {
 
         Item {
             anchors.fill: parent
-            visible: modelVisible
+            visible: !standardItemModel.empty
 
             VerticalHeaderView {
                 id: verticalHeaderView
@@ -235,23 +234,6 @@ Item {
         anchors.fill: parent
         sourceComponent: tableComponent
     }
-
-    Connections {
-        target: standardItemModel
-
-        function onRowsInserted() {
-            modelVisible = true
-        }
-
-        function onRowsRemoved() {
-            modelVisible = standardItemModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            modelVisible = false
-        }
-    }
-
     function reload() {
         tableLoader.active = false
         tableLoader.active = true

@@ -5,7 +5,6 @@ import QtQuick.Layouts
 
 Item {
     anchors.fill: parent
-    property bool modelVisible: standardItemModel ? standardItemModel.rowCount() > 0 : false
 
     Rectangle {
         anchors.fill: parent
@@ -14,7 +13,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !modelVisible
+        visible: standardItemModel.empty
 
         RowLayout {
             anchors.centerIn: parent
@@ -40,7 +39,7 @@ Item {
         syncView: tableView
         clip: true
         interactive: false
-        visible: modelVisible
+        visible: !standardItemModel.empty
         delegate: HorizontalHeaderViewDelegate {
             id: horizontalHeaderViewDelegate
             required property int index
@@ -69,7 +68,7 @@ Item {
         editTriggers: TableView.NoEditTriggers
         rowSpacing: 1
         model: standardItemModel
-        visible: modelVisible
+        visible: !standardItemModel.empty
         contentWidth: width
 
         ScrollBar.vertical: ScrollBar {
@@ -177,22 +176,6 @@ Item {
                     }
                 }
             }
-        }
-    }
-
-    Connections {
-        target: standardItemModel
-
-        function onRowsInserted() {
-            modelVisible = true
-        }
-
-        function onRowsRemoved() {
-            modelVisible = standardItemModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            modelVisible = false
         }
     }
 }

@@ -23,7 +23,7 @@ Item {
             id: resolveStatLabel
             horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
             text: conflicts === 0 ? qsTr("Add to index")
-                : conflicts + qsTr(" conflicts remaining")
+                : conflicts + qsTr(" conflict(s) left")
             Layout.fillWidth: true; Layout.preferredHeight: 24
         }
 

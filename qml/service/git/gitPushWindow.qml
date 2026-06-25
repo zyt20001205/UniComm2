@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool pushable: commitModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -345,7 +344,7 @@ Item {
             Layout.alignment: Qt.AlignRight
 
             Button {
-                enabled: pushable
+                enabled: !commitModel.empty
                 text: qsTr("Push")
 
                 onClicked: gitModule.gitPush()
@@ -356,23 +355,6 @@ Item {
     function reset() {
         commitTreeView.selectedRow = -1
     }
-
-    Connections {
-        target: commitModel
-
-        function onRowsInserted() {
-            pushable = true
-        }
-
-        function onRowsRemoved() {
-            pushable = commitModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            pushable = false
-        }
-    }
-
     Component.onCompleted: {
         const objects = {
             "subjectLabel": subjectLabel,

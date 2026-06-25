@@ -63,11 +63,19 @@ private:
 
 class BreakpointModel final : public QStandardItemModel {
     Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
 
 public:
-    using QStandardItemModel::QStandardItemModel;
+    explicit BreakpointModel(QObject *parent = nullptr);
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] bool emptyGet() const {
+        return rowCount() == 0;
+    }
+
+signals:
+    void emptyChanged();
 };
 
 #endif //UNICOMM_BREAKPOINTMODULE_H

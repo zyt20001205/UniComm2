@@ -513,7 +513,6 @@ void GitModule::processFinished(const int exitcode) {
                         remoteItem->appendRow(item);
                     }
                 }
-                m_branchModel->emptySet(m_branchModel->rowCount() == 0);
                 QMetaObject::invokeMethod(m_root, "branchExpand");
             }
             break;
@@ -644,7 +643,7 @@ void GitModule::processFinished(const int exitcode) {
                 const auto &paths = QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts);
                 // finish conflict resolve
                 if (paths.size() == 0) {
-                    emit refreshBackground(m_taskId, tr("Resolving conflict: ready for commit"));
+                    emit refreshBackground(m_taskId, tr("Resolving conflict: ready to commit"));
                     QMetaObject::invokeMethod(m_continueDialog, "open");
                 }
                 // continue conflict resolve
@@ -959,8 +958,7 @@ void GitModule::processFinished(const int exitcode) {
                 emit appendBackground(
                     m_taskId,
                     [this] { this->gitAbort(); },
-                    [] {
-                    });
+                    [this] { this->gitDiff(); });
                 g_globalManager->gitStatusSet(GitStatus::Merge);
             }
             break;
@@ -970,8 +968,7 @@ void GitModule::processFinished(const int exitcode) {
                 emit appendBackground(
                     m_taskId,
                     [this] { this->gitAbort(); },
-                    [] {
-                    });
+                    [this] { this->gitDiff(); });
                 g_globalManager->gitStatusSet(GitStatus::Rebase);
             }
             break;
@@ -1014,6 +1011,13 @@ void GitModule::processFinished(const int exitcode) {
 }
 
 // public
+BranchModel::BranchModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &BranchModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &BranchModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &BranchModel::emptyChanged);
+}
+
 QHash<int, QByteArray> BranchModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "type";
@@ -1040,6 +1044,13 @@ QHash<int, QByteArray> ShowModel::roleNames() const {
 }
 
 // public
+StatusModel::StatusModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &StatusModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &StatusModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &StatusModel::emptyChanged);
+}
+
 QHash<int, QByteArray> StatusModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "documentUrl";
@@ -1048,6 +1059,13 @@ QHash<int, QByteArray> StatusModel::roleNames() const {
 }
 
 // public
+CommitModel::CommitModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &CommitModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &CommitModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &CommitModel::emptyChanged);
+}
+
 QHash<int, QByteArray> CommitModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "hash";

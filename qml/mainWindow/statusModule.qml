@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     height: 24
-    property bool modelVisible: backgroundModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -66,14 +65,14 @@ Item {
         }
 
         RowLayout {
-            visible: modelVisible
+            visible: !backgroundModel.empty
 
             Button {
                 text: backgroundModel.title
                 flat: true
                 Layout.preferredHeight: 24
 
-                onClicked: statusModule.backgroundInfo(taskId)
+                onClicked: statusModule.backgroundInfo(backgroundModel.taskId)
             }
 
             ProgressBar {
@@ -82,15 +81,13 @@ Item {
             }
 
             Button {
-                visible: taskId !== -1
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 flat: true
-                icon.source: "qrc:/icon/dismiss.svg"
+                icon.source: backgroundModel.taskId === -1 ? "qrc:/icon/moreHorizontal.svg" : "qrc:/icon/dismiss.svg"
                 icon.width: 12; icon.height: 12
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                property int taskId: backgroundModel.taskId
 
-                onClicked: statusModule.backgroundAbort(taskId)
+                onClicked: backgroundModel.taskId === -1 ? console.log("expand") : statusModule.backgroundAbort(backgroundModel.taskId)
             }
         }
 
@@ -161,23 +158,6 @@ Item {
             }
         }
     }
-
-    Connections {
-        target: backgroundModel
-
-        function onRowsInserted() {
-            modelVisible = true
-        }
-
-        function onRowsRemoved() {
-            modelVisible = backgroundModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            modelVisible = false
-        }
-    }
-
     function documentPathLoad(pathList) {
         pathBreadcrumb.children = [];
         for (const path of pathList) {

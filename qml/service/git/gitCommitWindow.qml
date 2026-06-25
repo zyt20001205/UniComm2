@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool commitable: indexModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -541,7 +540,7 @@ Item {
             Layout.alignment: Qt.AlignRight
 
             Button {
-                enabled: commitTextArea.text && commitable
+                enabled: commitTextArea.text && !indexModel.empty
                 text: qsTr("Commit")
 
                 onClicked: gitModule.gitCommit(commitTextArea.text)
@@ -566,22 +565,6 @@ Item {
     function indexExpand() {
         for (let i = 0; i < indexTreeView.rows; ++i) {
             indexTreeView.expandRecursively(i)
-        }
-    }
-
-    Connections {
-        target: indexModel
-
-        function onRowsInserted() {
-            commitable = true
-        }
-
-        function onRowsRemoved() {
-            commitable = indexModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            commitable = false
         }
     }
 }

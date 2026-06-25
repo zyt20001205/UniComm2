@@ -189,6 +189,13 @@ bool BreakpointModule::eventFilter(QObject *watched, QEvent *event) {
 }
 
 // public
+BreakpointModel::BreakpointModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &BreakpointModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &BreakpointModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &BreakpointModel::emptyChanged);
+}
+
 QHash<int, QByteArray> BreakpointModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "documentUrl";

@@ -107,6 +107,14 @@ void DatabaseModule::databaseIndex() {
     }
 }
 
+// public
+DatabaseModel::DatabaseModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &DatabaseModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &DatabaseModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &DatabaseModel::emptyChanged);
+}
+
 QHash<int, QByteArray> DatabaseModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "key";
