@@ -442,9 +442,9 @@ void GitModule::processFinished(const int exitcode) {
         // output parser
         switch (command) {
             case GitCommand::Watch: {
-                const auto &gitPath = QString::fromLocal8Bit(output).trimmed();
+                const auto &gitPath = QString::fromUtf8(output).trimmed();
                 g_gitPath = QFileInfo(gitPath).absolutePath();
-                const auto &gitDir = QDir(g_gitPath);
+                const auto &gitDir = QDir(gitPath);
                 // index watcher
                 const auto &indexPath = gitDir.filePath("index");
                 if (QFileInfo::exists(indexPath)) m_indexWatcher->addPath(indexPath);
@@ -460,15 +460,15 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
             break;
-            case GitCommand::RemoteGet: m_remote = !QString::fromLocal8Bit(output).trimmed().isEmpty();
+            case GitCommand::RemoteGet: m_remote = !QString::fromUtf8(output).trimmed().isEmpty();
                 break;
-            case GitCommand::UpstreamGet: m_upstream = QString::fromLocal8Bit(output).trimmed();
+            case GitCommand::UpstreamGet: m_upstream = QString::fromUtf8(output).trimmed();
                 break;
             case GitCommand::Branch: {
                 m_branchModel->clear();
                 QStandardItem *localItem = nullptr;
                 QStandardItem *remoteItem = nullptr;
-                for (const auto &value: QString::fromLocal8Bit(output).split('\n')) {
+                for (const auto &value: QString::fromUtf8(output).split('\n')) {
                     QString branch{};
                     QString type{};
                     if (value.startsWith('*')) type = "current";
@@ -524,8 +524,8 @@ void GitModule::processFinished(const int exitcode) {
                     const auto param = value.split('\x1e');
                     if (param.size() != 5) continue;
 
-                    const QString &hash = QString::fromLocal8Bit(param[0]);
-                    const QStringList parents = QString::fromLocal8Bit(param[1]).split(' ', Qt::SkipEmptyParts);
+                    const QString &hash = QString::fromUtf8(param[0]);
+                    const QStringList parents = QString::fromUtf8(param[1]).split(' ', Qt::SkipEmptyParts);
                     int lane = static_cast<int>(lanes.indexOf(hash));
                     if (lane < 0) {
                         lane = 0;
@@ -544,9 +544,9 @@ void GitModule::processFinished(const int exitcode) {
                     }
                     laneCount = qMax(laneCount, static_cast<int>(lanes.size()));
 
-                    const auto &date = QString::fromLocal8Bit(param[2]);
-                    const auto &author = QString::fromLocal8Bit(param[3]);
-                    const auto subject = QString::fromLocal8Bit(param[4]);
+                    const auto &date = QString::fromUtf8(param[2]);
+                    const auto &author = QString::fromUtf8(param[3]);
+                    const auto subject = QString::fromUtf8(param[4]);
                     const auto &nodeItem = new QStandardItem(); // NOLINT
                     const QList items{new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), nodeItem};
                     for (auto *item: items) {
@@ -570,16 +570,16 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::ShowCommit: {
                 const auto param = output.split('\x1e');
                 if (param.size() != 6) break;
-                const auto &hash = QString::fromLocal8Bit(param[0].trimmed());
-                m_subjectLabel->setProperty("text", '(' + hash + ')' + QString::fromLocal8Bit(param[1].trimmed()));
-                m_dateLabel->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()));
-                m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
+                const auto &hash = QString::fromUtf8(param[0].trimmed());
+                m_subjectLabel->setProperty("text", '(' + hash + ')' + QString::fromUtf8(param[1].trimmed()));
+                m_dateLabel->setProperty("text", QString::fromUtf8(param[2].trimmed()));
+                m_authorLabel->setProperty("text", QString::fromUtf8(param[3].trimmed()) + '<' + QString::fromUtf8(param[4].trimmed()) + '>');
 
                 m_showModel->clear();
                 m_showModel->hashSet(QString());
                 m_showModel->hashSet(hash);
                 QHash<QString, QStandardItem *> roots{};
-                const auto &changes = QString::fromLocal8Bit(param[5]).split('\n', Qt::SkipEmptyParts);
+                const auto &changes = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
                 for (const auto &value: changes) {
                     const auto change = value.split('\t');
                     if (change.size() < 2) continue;
@@ -638,7 +638,7 @@ void GitModule::processFinished(const int exitcode) {
             }
             break;
             case GitCommand::Diff: {
-                const auto &paths = QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts);
+                const auto &paths = QString::fromUtf8(output).split('\n', Qt::SkipEmptyParts);
                 // finish conflict resolve
                 if (paths.size() == 0) {
                     emit refreshBackground(m_taskId, tr("Resolving conflict: ready to commit"));
@@ -662,7 +662,7 @@ void GitModule::processFinished(const int exitcode) {
                 const auto changes = output.split('\n');
                 for (const auto &value: changes) {
                     if (value.size() < 4) continue;
-                    const auto &change = QString::fromLocal8Bit(value);
+                    const auto &change = QString::fromUtf8(value);
 
                     const auto indexStatus = g_gitStatusCode[change.at(0)];
                     const auto workingTreeStatus = g_gitStatusCode[change.at(1)];
@@ -757,7 +757,7 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::Diff_: {
                 m_showModel_->clear();
                 QHash<QString, QStandardItem *> roots{};
-                const auto &changes = QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts);
+                const auto &changes = QString::fromUtf8(output).split('\n', Qt::SkipEmptyParts);
                 for (const auto &value: changes) {
                     const auto change = value.split('\t');
                     if (change.size() < 2) continue;
@@ -814,13 +814,13 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::ShowCommit_: {
                 const auto param = output.split('\x1e');
                 if (param.size() != 6) break;
-                m_subjectLabel_->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
-                m_dateLabel_->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()));
-                m_authorLabel_->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
+                m_subjectLabel_->setProperty("text", '(' + QString::fromUtf8(param[0].trimmed()) + ')' + QString::fromUtf8(param[1].trimmed()));
+                m_dateLabel_->setProperty("text", QString::fromUtf8(param[2].trimmed()));
+                m_authorLabel_->setProperty("text", QString::fromUtf8(param[3].trimmed()) + '<' + QString::fromUtf8(param[4].trimmed()) + '>');
 
                 m_showModel_->clear();
                 QHash<QString, QStandardItem *> roots{};
-                const auto &changes = QString::fromLocal8Bit(param[5]).split('\n', Qt::SkipEmptyParts);
+                const auto &changes = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
                 for (const auto &value: changes) {
                     const auto change = value.split('\t');
                     if (change.size() < 2) continue;
@@ -952,7 +952,7 @@ void GitModule::processFinished(const int exitcode) {
                 break;
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
-                text = QString::fromLocal8Bit(output).trimmed();
+                text = QString::fromUtf8(output).trimmed();
                 emit appendBackground(
                     m_taskId,
                     [this] { this->gitAbort(); },
@@ -962,7 +962,7 @@ void GitModule::processFinished(const int exitcode) {
             break;
             case GitCommand::Rebase: {
                 title = tr("Rebase Failed");
-                text = QString::fromLocal8Bit(output).trimmed();
+                text = QString::fromUtf8(output).trimmed();
                 emit appendBackground(
                     m_taskId,
                     [this] { this->gitAbort(); },
@@ -972,21 +972,21 @@ void GitModule::processFinished(const int exitcode) {
             break;
             case GitCommand::Fetch: {
                 title = tr("Fetch Failed");
-                text = QString::fromLocal8Bit(error).trimmed();
+                text = QString::fromUtf8(error).trimmed();
                 emit removeBackground(m_taskId);
                 g_globalManager->gitStatusSet(GitStatus::Idle);
             }
             break;
             case GitCommand::Push: {
                 title = tr("Push Failed");
-                text = QString::fromLocal8Bit(error).trimmed();
+                text = QString::fromUtf8(error).trimmed();
                 emit removeBackground(m_taskId);
                 g_globalManager->gitStatusSet(GitStatus::Idle);
             }
             break;
             default: {
                 title = tr("Git command failed");
-                text = QString::fromLocal8Bit(error).trimmed();
+                text = QString::fromUtf8(error).trimmed();
             }
             break;
         }
