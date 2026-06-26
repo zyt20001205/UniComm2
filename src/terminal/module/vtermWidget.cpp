@@ -10,7 +10,9 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
       m_rows(rows),
       m_cols(cols),
       m_vterm(vterm_new(m_rows, m_cols)),
-      m_screen(vterm_obtain_screen(m_vterm)) {
+      m_state(vterm_obtain_state(m_vterm)),
+      m_screen(vterm_obtain_screen(m_vterm)),
+      m_selectionBuffer(1024 * 1024, '\0') {
     vterm_set_utf8(m_vterm, 1);
 
     m_callbacks.movecursor = [](const VTermPos pos, const VTermPos oldPos, const int visible, void *user) -> int {
@@ -28,9 +30,16 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     m_fallbacks.osc = [](const int command, const VTermStringFragment frag, void *user) -> int {
         return static_cast<VtermWidget *>(user)->osc(command, frag);
     };
+    m_selectionCallbacks.set = [](const VTermSelectionMask mask, const VTermStringFragment frag, void *user) -> int {
+        return static_cast<VtermWidget *>(user)->selectionSet(mask, frag);
+    };
+    m_selectionCallbacks.query = [](const VTermSelectionMask mask, void *user) -> int {
+        return static_cast<VtermWidget *>(user)->selectionQuery(mask);
+    };
 
     vterm_screen_set_callbacks(m_screen, &m_callbacks, this);
     vterm_screen_set_unrecognised_fallbacks(m_screen, &m_fallbacks, this);
+    vterm_state_set_selection_callbacks(m_state, &m_selectionCallbacks, this, m_selectionBuffer.data(), static_cast<size_t>(m_selectionBuffer.size()));
     vterm_screen_set_damage_merge(m_screen, VTERM_DAMAGE_SCROLL);
     vterm_screen_reset(m_screen, 1);
 }
@@ -185,10 +194,24 @@ int VtermWidget::bell() {
     return 1;
 }
 
+int VtermWidget::linePush(const int cols, const VTermScreenCell *cells) {
+    QList<TerminalCell> row{};
+    row.reserve(cols);
+    for (int col = 0; col < cols; ++col) {
+        const auto &cell = uni_cast<TerminalCell>(m_screen, cells[col]);
+        row.append(cell);
+    }
+    m_scrollback.append(row);
+
+    constexpr int maxScrollbackLines = 10000;
+    if (m_scrollback.size() > maxScrollbackLines) m_scrollback.removeFirst();
+
+    return 1;
+}
+
 int VtermWidget::osc(const int command, const VTermStringFragment frag) {
     switch (command) {
         case 8: return osc8(frag);
-        case 52: return osc52(frag);
         default: return 0;
     }
 }
@@ -207,40 +230,26 @@ int VtermWidget::osc8(const VTermStringFragment frag) {
     return 1;
 }
 
-int VtermWidget::osc52(const VTermStringFragment frag) {
+int VtermWidget::selectionSet(const VTermSelectionMask mask, const VTermStringFragment frag) {
+    if (frag.initial) m_pendingSelection.clear();
+    m_pendingSelection += QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len));
+
     if (!frag.final) return 1;
 
-    const QString payload = QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len));
-    const int separator = payload.indexOf(';');
-    if (separator < 0) return 1;
-
-    const QString target = payload.left(separator);
-    const QString encoded = payload.mid(separator + 1);
-    if (encoded.isEmpty() || encoded == "?") return 1;
-
-    const QByteArray decoded = QByteArray::fromBase64(encoded.toLatin1());
-    const QString text = QString::fromUtf8(decoded);
-    if (text.isEmpty()) return 1;
-
-    auto *clipboard = QApplication::clipboard();
-    clipboard->setText(text, QClipboard::Clipboard);
-    if (target.contains('p') && clipboard->supportsSelection()) {
-        clipboard->setText(text, QClipboard::Selection);
+    if (!m_pendingSelection.isEmpty()) {
+        auto *clipboard = QApplication::clipboard();
+        if (static_cast<int>(mask) & VTERM_SELECTION_CLIPBOARD) {
+            clipboard->setText(m_pendingSelection, QClipboard::Clipboard);
+        }
+        if ((static_cast<int>(mask) & VTERM_SELECTION_PRIMARY) && clipboard->supportsSelection()) {
+            clipboard->setText(m_pendingSelection, QClipboard::Selection);
+        }
     }
+    m_pendingSelection.clear();
     return 1;
 }
 
-int VtermWidget::linePush(const int cols, const VTermScreenCell *cells) {
-    QList<TerminalCell> row{};
-    row.reserve(cols);
-    for (int col = 0; col < cols; ++col) {
-        const auto &cell = uni_cast<TerminalCell>(m_screen, cells[col]);
-        row.append(cell);
-    }
-    m_scrollback.append(row);
-
-    constexpr int maxScrollbackLines = 10000;
-    if (m_scrollback.size() > maxScrollbackLines) m_scrollback.removeFirst();
-
+int VtermWidget::selectionQuery(const VTermSelectionMask mask) {
+    qDebug() << "OSC 52 selection query:" << mask;
     return 1;
 }

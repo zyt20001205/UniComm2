@@ -7,6 +7,7 @@
 
 extern "C" {
 typedef VTerm VTerm;
+typedef VTermState VTermState;
 typedef VTermScreen VTermScreen;
 }
 
@@ -70,19 +71,26 @@ private:
 
     int osc8(VTermStringFragment frag);
 
-    int osc52(VTermStringFragment frag);
+    int selectionSet(VTermSelectionMask mask, VTermStringFragment frag);
+
+    int selectionQuery(VTermSelectionMask mask);
 
     int m_rows{};
     int m_cols{};
     VTerm *m_vterm{};
+    VTermState *m_state{};
     VTermScreen *m_screen{};
     VTermScreenCallbacks m_callbacks{};
     VTermStateFallbacks m_fallbacks{};
+    VTermSelectionCallbacks m_selectionCallbacks{};
     bool m_cursorVisible{true};
     QList<QList<TerminalCell> > m_scrollback{};
     int m_scrollOffset{};
     // osc8
     QString m_hyperlink{};
+    // osc52
+    QByteArray m_selectionBuffer{};
+    QString m_pendingSelection{};
 };
 
 #endif //UNICOMM_VTERMWIDGET_H
