@@ -23,7 +23,7 @@ MyStack::MyStack(KDDockWidgets::Core::Stack *controller, QWidget *parent)
 void MyStack::paintEvent(QPaintEvent *event) {
     QPainter p(this);
     if (f_theme == Theme::Light) p.fillRect(QWidget::rect(), "#ffffff");
-    else p.fillRect(QWidget::rect(), "#242424");
+    else p.fillRect(QWidget::rect(), "#292929");
 }
 
 MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent)
@@ -33,7 +33,7 @@ MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidge
 void MySeparator::paintEvent(QPaintEvent *event) {
     QPainter p(this);
     if (f_theme == Theme::Light) p.fillRect(QWidget::rect(), "#ffffff");
-    else p.fillRect(QWidget::rect(), "#242424");
+    else p.fillRect(QWidget::rect(), "#292929");
 
     auto line = QWidget::rect();
     if (line.width() > line.height()) {
