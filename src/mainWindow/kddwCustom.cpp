@@ -32,6 +32,17 @@ MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidge
 
 void MySeparator::paintEvent(QPaintEvent *event) {
     QPainter p(this);
-    if (f_theme == Theme::Light) p.fillRect(QWidget::rect(), "#d1d1d1");
-    else p.fillRect(QWidget::rect(), "#666666");
+    if (f_theme == Theme::Light) p.fillRect(QWidget::rect(), "#ffffff");
+    else p.fillRect(QWidget::rect(), "#242424");
+
+    auto line = QWidget::rect();
+    if (line.width() > line.height()) {
+        line.setHeight(1);
+        line.moveTop((height() - line.height()) / 2);
+    } else {
+        line.setWidth(1);
+        line.moveLeft((width() - line.width()) / 2);
+    }
+    if (f_theme == Theme::Light) p.fillRect(line, "#d1d1d1");
+    else p.fillRect(line, "#666666");
 }
