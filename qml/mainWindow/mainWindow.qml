@@ -2857,7 +2857,7 @@ Item {
 
         MenuItem {
             text: gitModuleBranchMenu.type === "upstream" ? qsTr("Unset Upstream") : qsTr("Set Upstream")
-            enabled: global.gitStatus === 0
+            enabled: global.gitStatus === 0 && ["upstream", "remote"].includes(gitModuleBranchMenu.type)
             icon.source: "qrc:/icon/link.svg"
             icon.width: 16; icon.height: 16
 
