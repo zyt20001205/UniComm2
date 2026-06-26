@@ -1,5 +1,7 @@
 #include "terminal/module/vtermWidget.h"
 
+#include <QClipboard>
+
 #include "globals.h"
 #include "util/uniCast.h"
 
@@ -23,8 +25,12 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     m_callbacks.sb_pushline = [](const int cols, const VTermScreenCell *cells, void *user) -> int {
         return static_cast<VtermWidget *>(user)->linePush(cols, cells);
     };
+    m_fallbacks.osc = [](const int command, const VTermStringFragment frag, void *user) -> int {
+        return static_cast<VtermWidget *>(user)->osc(command, frag);
+    };
 
     vterm_screen_set_callbacks(m_screen, &m_callbacks, this);
+    vterm_screen_set_unrecognised_fallbacks(m_screen, &m_fallbacks, this);
     vterm_screen_set_damage_merge(m_screen, VTERM_DAMAGE_SCROLL);
     vterm_screen_reset(m_screen, 1);
 }
@@ -176,6 +182,51 @@ int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
 
 int VtermWidget::bell() {
     QApplication::beep();
+    return 1;
+}
+
+int VtermWidget::osc(const int command, const VTermStringFragment frag) {
+    switch (command) {
+        case 8: return osc8(frag);
+        case 52: return osc52(frag);
+        default: return 0;
+    }
+}
+
+int VtermWidget::osc8(const VTermStringFragment frag) {
+    if (!frag.final) return 1;
+
+    const QString payload = QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len));
+    const int separator = payload.indexOf(';');
+    if (separator < 0) return 1;
+
+    const QString url = payload.mid(separator + 1);
+    if (url.isEmpty()) return 1;
+
+    m_hyperlink = url;
+    return 1;
+}
+
+int VtermWidget::osc52(const VTermStringFragment frag) {
+    if (!frag.final) return 1;
+
+    const QString payload = QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len));
+    const int separator = payload.indexOf(';');
+    if (separator < 0) return 1;
+
+    const QString target = payload.left(separator);
+    const QString encoded = payload.mid(separator + 1);
+    if (encoded.isEmpty() || encoded == "?") return 1;
+
+    const QByteArray decoded = QByteArray::fromBase64(encoded.toLatin1());
+    const QString text = QString::fromUtf8(decoded);
+    if (text.isEmpty()) return 1;
+
+    auto *clipboard = QApplication::clipboard();
+    clipboard->setText(text, QClipboard::Clipboard);
+    if (target.contains('p') && clipboard->supportsSelection()) {
+        clipboard->setText(text, QClipboard::Selection);
+    }
     return 1;
 }
 

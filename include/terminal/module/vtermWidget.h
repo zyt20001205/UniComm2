@@ -66,14 +66,23 @@ private:
 
     int linePush(int cols, const VTermScreenCell *cells);
 
+    int osc(int command, VTermStringFragment frag);
+
+    int osc8(VTermStringFragment frag);
+
+    int osc52(VTermStringFragment frag);
+
     int m_rows{};
     int m_cols{};
     VTerm *m_vterm{};
     VTermScreen *m_screen{};
     VTermScreenCallbacks m_callbacks{};
+    VTermStateFallbacks m_fallbacks{};
     bool m_cursorVisible{true};
-    QList<QList<TerminalCell>> m_scrollback{};
+    QList<QList<TerminalCell> > m_scrollback{};
     int m_scrollOffset{};
+    // osc8
+    QString m_hyperlink{};
 };
 
 #endif //UNICOMM_VTERMWIDGET_H
