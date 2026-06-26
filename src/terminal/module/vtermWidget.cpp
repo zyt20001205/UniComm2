@@ -38,28 +38,22 @@ void VtermWidget::resize(const int rows, const int cols) {
     m_cols = cols;
     vterm_set_size(m_vterm, m_rows, m_cols);
     vterm_screen_flush_damage(m_screen);
+    renderScreen();
 }
 
-void VtermWidget::reset(const bool hard) const {
+void VtermWidget::reset(const bool hard) {
     vterm_screen_reset(m_screen, hard ? 1 : 0);
     vterm_screen_flush_damage(m_screen);
+    m_scrollOffset = 0;
+    renderScreen();
 }
 
 void VtermWidget::inputWrite(const QByteArray &bytes) {
     if (bytes.isEmpty()) return;
     vterm_input_write(m_vterm, bytes.constData(), static_cast<size_t>(bytes.size()));
     vterm_screen_flush_damage(m_screen);
-    QList<TerminalCell> cells{};
-    cells.reserve(m_rows * m_cols);
-    for (int row = 0; row < m_rows; ++row) {
-        for (int col = 0; col < m_cols; ++col) {
-            VTermScreenCell _cell{};
-            vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
-            const auto &cell = uni_cast<TerminalCell>(m_screen, _cell);
-            cells.append(cell);
-        }
-    }
-    emit setScreen(m_rows, m_cols, cells, m_scrollback);
+    m_scrollOffset = qBound(0, m_scrollOffset, m_scrollback.size());
+    renderScreen();
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
@@ -92,7 +86,61 @@ void VtermWidget::mouseMoved(const int row, const int col, const int button, con
     outputRead();
 }
 
+void VtermWidget::mouseWheeled(const int row, const int col, const int lines, const int modifiers) {
+    const auto &vtermModifier = uni_cast<VTermModifier>(modifiers);
+    const int button = lines > 0 ? 4 : 5;
+    const int steps = qMax(1, qAbs(lines) / 3);
+    vterm_mouse_move(m_vterm, row, col, vtermModifier);
+    for (int step = 0; step < steps; ++step) {
+        vterm_mouse_button(m_vterm, button, true, vtermModifier);
+        vterm_mouse_button(m_vterm, button, false, vtermModifier);
+    }
+    outputRead();
+}
+
+void VtermWidget::mouseScrolled(const int lines) {
+    if (lines == 0) return;
+    m_scrollOffset = qBound(0, m_scrollOffset + lines, m_scrollback.size());
+    renderScreen();
+}
+
 // private
+void VtermWidget::renderScreen() {
+    QList<TerminalCell> screen{};
+    screen.reserve(m_rows * m_cols);
+    for (int row = 0; row < m_rows; ++row) {
+        for (int col = 0; col < m_cols; ++col) {
+            VTermScreenCell _cell{};
+            vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
+            screen.append(uni_cast<TerminalCell>(m_screen, _cell));
+        }
+    }
+
+    m_scrollOffset = qBound(0, m_scrollOffset, m_scrollback.size());
+    const int totalRows = m_scrollback.size() + m_rows;
+    const int firstRow = qMax(0, totalRows - m_rows - m_scrollOffset);
+
+    QList<TerminalCell> visible{};
+    visible.reserve(m_rows * m_cols);
+    for (int row = 0; row < m_rows; ++row) {
+        const int sourceRow = firstRow + row;
+        if (sourceRow < m_scrollback.size()) {
+            const auto &line = m_scrollback[sourceRow];
+            for (int col = 0; col < m_cols; ++col) {
+                if (col < line.size()) visible.append(line[col]);
+                else visible.append(TerminalCell{});
+            }
+        } else {
+            const int screenRow = sourceRow - m_scrollback.size();
+            for (int col = 0; col < m_cols; ++col) {
+                visible.append(screen[screenRow * m_cols + col]);
+            }
+        }
+    }
+
+    emit setScreen(m_rows, m_cols, visible, m_scrollOffset == 0);
+}
+
 void VtermWidget::outputRead() {
     QByteArray output;
     char buffer[256]{};

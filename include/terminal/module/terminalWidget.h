@@ -18,7 +18,7 @@ public:
 
     void fontSet(const QFont &font);
 
-    void screenSet(int rows, int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback);
+    void screenSet(int rows, int cols, const QList<TerminalCell> &cells, bool atBottom);
 
     void cursorPositionSet(const QPoint &position);
 
@@ -40,6 +40,10 @@ signals:
     void mouseReleased(int row, int col, int button, int modifiers);
 
     void mouseMoved(int row, int col, int button, int modifiers);
+
+    void mouseWheeled(int row, int col, int lines, int modifiers);
+
+    void mouseScrolled(int lines);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
@@ -63,7 +67,6 @@ private:
 
     QFont m_font{};
     QList<TerminalCell> m_cells{};
-    QList<QList<TerminalCell>> m_scrollback{};
     // cursor
     QPoint m_position{};
     bool m_visible{true};
@@ -71,8 +74,8 @@ private:
     bool m_blinkPhase{true};
     int m_shape{VTERM_PROP_CURSORSHAPE_BAR_LEFT};
     int m_mode{VTERM_PROP_MOUSE_NONE};
+    bool m_atBottom{true};
 
-    int m_scrollOffset{};
     int m_rows{};
     int m_cols{};
     int m_requestedRows{};

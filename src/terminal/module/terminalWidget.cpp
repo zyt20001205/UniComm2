@@ -28,18 +28,12 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
 void TerminalWidget::paint(QPainter *painter) {
     painter->setFont(m_font);
 
-    const int totalRows = m_scrollback.size() + m_rows;
-    const int firstRow = qMax(0, totalRows - m_rows - m_scrollOffset);
-
     for (int row = 0; row < m_rows; ++row) {
-        const int sourceRow = firstRow + row;
         const qreal y = row * m_cellHeight + m_ascent;
         int col = 0;
         while (col < m_cols) {
             // get cell
-            const auto &cell = sourceRow < m_scrollback.size()
-                                   ? m_scrollback[sourceRow][col]
-                                   : m_cells[(sourceRow - m_scrollback.size()) * m_cols + col];
+            const auto &cell = m_cells[row * m_cols + col];
             if (cell.width == 0) {
                 ++col;
                 continue;
@@ -53,7 +47,7 @@ void TerminalWidget::paint(QPainter *painter) {
                 painter->drawText(QPointF(rect.left(), y), cell.text);
             }
             // draw cursor
-            if (m_scrollOffset == 0 && m_visible && m_blinkPhase && row == m_position.x() && col == m_position.y()) {
+            if (m_atBottom && m_visible && m_blinkPhase && row == m_position.x() && col == m_position.y()) {
                 switch (m_shape) {
                     case VTERM_PROP_CURSORSHAPE_BLOCK: {
                         painter->fillRect(rect, cell.foreground);
@@ -85,12 +79,11 @@ void TerminalWidget::fontSet(const QFont &font) {
     update();
 }
 
-void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const QList<QList<TerminalCell> > &scrollback) {
+void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const bool atBottom) {
     m_rows = rows;
     m_cols = cols;
     m_cells = cells;
-    m_scrollback = scrollback;
-    m_scrollOffset = qBound(0, m_scrollOffset, m_scrollback.size());
+    m_atBottom = atBottom;
     update();
 }
 
@@ -184,8 +177,16 @@ void TerminalWidget::wheelEvent(QWheelEvent *event) {
         return;
     }
 
-    m_scrollOffset = qBound(0, m_scrollOffset + lines, m_scrollback.size());
-    update();
+    if (m_mode >= VTERM_PROP_MOUSE_CLICK) {
+        emit mouseWheeled(
+            event->position().y() / m_cellHeight,
+            event->position().x() / m_cellWidth,
+            lines,
+            event->modifiers()
+        );
+    } else {
+        emit mouseScrolled(lines);
+    }
     event->accept();
 }
 

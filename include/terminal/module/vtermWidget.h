@@ -22,7 +22,7 @@ public:
 
     void resize(int rows, int cols);
 
-    void reset(bool hard = true) const;
+    void reset(bool hard = true);
 
     void inputWrite(const QByteArray &bytes);
 
@@ -34,10 +34,14 @@ public:
 
     void mouseMoved(int row, int col, int button, int modifiers);
 
+    void mouseWheeled(int row, int col, int lines, int modifiers);
+
+    void mouseScrolled(int lines);
+
 signals:
     void outputWrite(const QByteArray &bytes);
 
-    void setScreen(int row, int col, const QList<TerminalCell> &cells, const QList<QList<TerminalCell>> &scrollback);
+    void setScreen(int row, int col, const QList<TerminalCell> &cells, bool atBottom);
 
     void setCursorPosition(const QPoint &position);
 
@@ -50,6 +54,8 @@ signals:
     void setCursorMode(int mode);
 
 private:
+    void renderScreen();
+
     void outputRead();
 
     int cursorMove(VTermPos pos, VTermPos oldPos, int visible);
@@ -67,6 +73,7 @@ private:
     VTermScreenCallbacks m_callbacks{};
     bool m_cursorVisible{true};
     QList<QList<TerminalCell>> m_scrollback{};
+    int m_scrollOffset{};
 };
 
 #endif //UNICOMM_VTERMWIDGET_H
