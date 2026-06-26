@@ -80,6 +80,6 @@ void ConflictPage::savepointChange(const bool status) {
 
 void ConflictPage::resolveFinish() {
     documentSave();
-    g_git->gitAdd(m_documentUrl);
     connect(g_git, &GitModule::addFinish, this, [this] { emit reloadDocument(m_documentUrl.toLocalFile()); });
+    g_git->gitAdd(m_documentUrl);
 }

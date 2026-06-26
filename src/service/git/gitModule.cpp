@@ -646,9 +646,9 @@ void GitModule::processFinished(const int exitcode) {
                 }
                 // continue conflict resolve
                 else {
-                    const auto &documentPath = paths.first();
-                    auto documentUrl = QUrl::fromLocalFile(documentPath);
-                    // emit openDocument(documentUrl);
+                    const auto &documentPath = QDir(g_gitPath).filePath(paths.first());
+                    const auto &documentUrl = QUrl::fromLocalFile(documentPath);
+                    emit openDocument(documentUrl);
                     emit refreshBackground(m_taskId, tr("Resolving conflict: %1 file(s) left").arg(QString::number(paths.size())));
                 }
             }
