@@ -171,8 +171,7 @@ void GitModule::gitFetch() {
     emit appendBackground(
         m_taskId,
         [this] { this->gitAbort(); },
-        [] {
-        });
+        {});
     emit refreshBackground(m_taskId, tr("Fetching from remote..."));
     g_globalManager->gitStatusSet(GitStatus::Transfer);
 }
@@ -210,8 +209,7 @@ void GitModule::gitPush() {
     emit appendBackground(
         m_taskId,
         [this] { this->gitAbort(); },
-        [] {
-        });
+        {});
     emit refreshBackground(m_taskId, tr("Pushing to remote..."));
     g_globalManager->gitStatusSet(GitStatus::Transfer);
 }

@@ -37,7 +37,7 @@ void FileModule::fileOpenInExplorer(const QUrl &fileUrl) {
         emit appendBackground(
             taskId,
             [process] { if (process->state() != QProcess::NotRunning) process->terminate(); },
-            []{});
+            {});
         process->setProperty("taskId", taskId);
         emit refreshBackground(taskId, tr("Waiting for explorer..."));
     });
@@ -64,7 +64,7 @@ void FileModule::fileOpenInApplication(const QUrl &fileUrl) {
         emit appendBackground(
             taskId,
             [process] { if (process->state() != QProcess::NotRunning) process->terminate(); },
-            []{});
+            {});
         process->setProperty("taskId", taskId);
         emit refreshBackground(taskId, tr("Waiting for application..."));
     });
