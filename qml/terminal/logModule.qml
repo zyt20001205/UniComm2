@@ -25,11 +25,11 @@ Item {
 
             Button {
                 id: timestampButton
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
                 icon.source: "qrc:/icon/clock.svg"
                 icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onToggled: logModule.timestampToggle(checked)
 
@@ -48,11 +48,11 @@ Item {
 
             Button {
                 id: wrapButton
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
                 icon.source: "qrc:/icon/wrap.svg"
                 icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onToggled: logModule.wrapToggle(checked)
 
@@ -70,10 +70,10 @@ Item {
             }
 
             Button {
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/autoFitHeight.svg"
                 icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onClicked: heightDialog.open()
 
@@ -91,10 +91,10 @@ Item {
             }
 
             Button {
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/save.svg"
                 icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onClicked: {
                     if (logModule.logSaveCheck()) {
@@ -125,11 +125,11 @@ Item {
             }
 
             Button {
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
                 icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
                 icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onToggled: {
                     if (!checked) {

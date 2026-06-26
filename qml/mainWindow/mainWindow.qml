@@ -1945,7 +1945,6 @@ Item {
         property bool gitUntracked
         property bool gitIgnored
         property string documentUrl
-        property var treeView
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2088,45 +2087,11 @@ Item {
                 onTriggered: gitModule.gitIgnore(explorerModuleFileMenu.documentUrl, !explorerModuleFileMenu.gitIgnored)
             }
         }
-
-        MenuSeparator {
-        }
-
-        Menu {
-            title: qsTr("Folding")
-            icon.source: "qrc:/icon/fold.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Collapse All")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    for (let i = 0; i < explorerModuleFileMenu.treeView.rows; ++i) {
-                        explorerModuleFileMenu.treeView.collapseRecursively(i)
-                    }
-                }
-            }
-
-            MenuItem {
-                text: qsTr("Expand All")
-                icon.source: "qrc:/icon/expand.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    for (let i = 0; i < explorerModuleFileMenu.treeView.rows; ++i) {
-                        explorerModuleFileMenu.treeView.expandRecursively(i)
-                    }
-                }
-            }
-        }
     }
 
     Menu {
         id: explorerModuleFolderMenu
         property string documentUrl
-        property var treeView
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2251,45 +2216,11 @@ Item {
                 onTriggered: gitModule.gitIgnore(explorerModuleFolderMenu.documentUrl, true)
             }
         }
-
-        MenuSeparator {
-        }
-
-        Menu {
-            title: qsTr("Folding")
-            icon.source: "qrc:/icon/fold.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Collapse All")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    for (let i = 0; i < explorerModuleFolderMenu.treeView.rows; ++i) {
-                        explorerModuleFolderMenu.treeView.collapseRecursively(i)
-                    }
-                }
-            }
-
-            MenuItem {
-                text: qsTr("Expand All")
-                icon.source: "qrc:/icon/expand.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    for (let i = 0; i < explorerModuleFolderMenu.treeView.rows; ++i) {
-                        explorerModuleFolderMenu.treeView.expandRecursively(i)
-                    }
-                }
-            }
-        }
     }
 
     Menu {
         id: explorerModuleRootMenu
         property string documentUrl
-        property var treeView
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2373,39 +2304,6 @@ Item {
                     text: qsTr("Both")
 
                     onTriggered: gitModule.gitRestore("", 2)
-                }
-            }
-        }
-
-        MenuSeparator {
-        }
-
-        Menu {
-            title: qsTr("Folding")
-            icon.source: "qrc:/icon/fold.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Collapse All")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
-                        explorerModuleRootMenu.treeView.collapseRecursively(i)
-                    }
-                }
-            }
-
-            MenuItem {
-                text: qsTr("Expand All")
-                icon.source: "qrc:/icon/expand.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
-                        explorerModuleRootMenu.treeView.expandRecursively(i)
-                    }
                 }
             }
         }

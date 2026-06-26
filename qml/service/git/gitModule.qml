@@ -40,6 +40,17 @@ Item {
         anchors.fill: parent
         orientation: Qt.Horizontal
         visible: global.gitEnabled && !branchModel.empty
+        handle: Item {
+            implicitWidth: 5
+
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: 1
+                color: global.stroke
+            }
+        }
 
         TreeView {
             id: branchTreeView
@@ -388,6 +399,60 @@ Item {
         ColumnLayout {
             SplitView.preferredWidth: 400
 
+            RowLayout {
+                id: showToolBar
+                Layout.fillWidth: true; Layout.fillHeight: false
+                spacing: 0
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    icon.source: "qrc:/icon/collapse.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    onClicked: showTreeView.collapseRecursively()
+
+                    HoverHandler {
+                        onHoveredChanged: {
+                            if (!hovered) {
+                                mainToolTip.text = ""
+                            }
+                        }
+                        onPointChanged: {
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = qsTr("Collapse All")
+                        }
+                    }
+                }
+
+                Button {
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    icon.source: "qrc:/icon/expand.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    onClicked: showTreeView.expandRecursively()
+
+                    HoverHandler {
+                        onHoveredChanged: {
+                            if (!hovered) {
+                                mainToolTip.text = ""
+                            }
+                        }
+                        onPointChanged: {
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = qsTr("Expand All")
+                        }
+                    }
+                }
+            }
+
             TreeView {
                 id: showTreeView
                 width: parent.width
@@ -599,9 +664,7 @@ Item {
     }
 
     function branchExpand() {
-        for (let i = 0; i < branchTreeView.rows; ++i) {
-            branchTreeView.expandRecursively(i)
-        }
+        branchTreeView.expandRecursively()
     }
 
     Component.onCompleted: {
