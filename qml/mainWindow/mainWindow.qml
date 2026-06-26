@@ -4231,6 +4231,8 @@ Item {
         onClosed: widgetCount -= 1
 
         MenuItem {
+            id: menuModuleFetchItem
+            enabled: global.gitStatus === 0
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
@@ -4239,7 +4241,7 @@ Item {
                     source: "qrc:/icon/gitFetch.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleFetchItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -4255,6 +4257,8 @@ Item {
         }
 
         MenuItem {
+            id: menuModuleCommitItem
+            enabled: global.gitStatus === 0
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
@@ -4263,7 +4267,7 @@ Item {
                     source: "qrc:/icon/gitCommit.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleCommitItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -4279,6 +4283,8 @@ Item {
         }
 
         MenuItem {
+            id: menuModulePushItem
+            enabled: global.gitStatus === 0
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
@@ -4287,7 +4293,7 @@ Item {
                     source: "qrc:/icon/gitPush.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModulePushItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
