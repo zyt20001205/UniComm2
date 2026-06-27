@@ -255,12 +255,14 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     const auto fileInfo = QFileInfo(s.toLocalFile());
     const auto suffix = fileInfo.suffix().toLower();
     const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
+    const QStringList libType = {"dll", "so"};
     if (imageType.contains(suffix)) return QUrl("qrc:/icon/fileTypeImage.svg");
     if (suffix == "bat") return QUrl("qrc:/icon/fileTypeBatch.svg");
     if (suffix == "csv") return QUrl("qrc:/icon/fileTypeCsv.svg");
     if (suffix == "exe") return QUrl("qrc:/icon/fileTypeExe.svg");
     if (suffix == "gitignore") return QUrl("qrc:/icon/fileTypeGit.svg");
     if (suffix == "json") return QUrl("qrc:/icon/fileTypeJson.svg");
+    if (libType.contains(suffix)) return QUrl("qrc:/icon/fileTypeLib.svg");
     if (suffix == "lua") return QUrl("qrc:/icon/fileTypeLua.svg");
     if (suffix == "pdf") return QUrl("qrc:/icon/fileTypePdf.svg");
     if (suffix == "ps1") return QUrl("qrc:/icon/fileTypePowershell.svg");

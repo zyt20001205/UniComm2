@@ -12,6 +12,7 @@ class QQuickView;
 class QQuickWidget;
 class QTextDocument;
 
+class GitConfig;
 class BranchModel;
 class LogModel;
 class ShowModel;
@@ -37,8 +38,6 @@ public:
     [[nodiscard]] static bool gitGet();
 
     Q_INVOKABLE void gitInit();
-
-    Q_INVOKABLE void gitProxy();
 
     Q_INVOKABLE void gitCommitPre();
 
@@ -104,6 +103,10 @@ public:
 
     Q_INVOKABLE void gitIgnore(const QUrl &documentUrl, bool status);
 
+    Q_INVOKABLE void gitProxyGet() const;
+
+    Q_INVOKABLE void gitProxySet(const QString &localHttpProxy, const QString &localHttpsProxy, const QString &globalHttpProxy, const QString &globalHttpsProxy) const;
+
 signals:
     void updateIndex();
 
@@ -155,6 +158,9 @@ private:
     bool m_remote{};
     QString m_upstream{};
     int m_taskId{-1};
+
+    GitConfig *m_gitConfig{};
+
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
     ShowModel *m_showModel{};

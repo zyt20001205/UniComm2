@@ -12,6 +12,7 @@
 #include <QTextDocument>
 
 #include "core/globalManager.h"
+#include "service/git/gitConfig.h"
 #include "util/uniCast.h"
 
 // public
@@ -26,6 +27,7 @@ GitModule::GitModule()
       m_indexWatcherTimer(new QTimer(this)),
       m_branchWatcher(new QFileSystemWatcher(this)),
       m_branchWatcherTimer(new QTimer(this)),
+m_gitConfig(new GitConfig(this)),
       m_branchModel(new BranchModel(this)),
       m_logModel(new LogModel(this)),
       m_showModel(new ShowModel(this)),
@@ -77,6 +79,12 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->setSource(QUrl("qrc:/qml/service/git/gitModule.qml"));
     m_root = m_widget->rootObject();
     if (g_globalManager->gitEnabledGet()) gitWatch();
+
+    // config
+    m_gitConfig->propertySet(QVariantHash{
+        {"gitModuleErrorDialog", objects["gitModuleErrorDialog"]},
+        {"gitModuleProxyDialog", objects["gitModuleProxyDialog"]},
+    });
 
     // commit window
     m_commitWindow->setTitle(tr("Git Commit"));
@@ -142,10 +150,6 @@ bool GitModule::gitGet() {
 
 void GitModule::gitInit() {
     processEnqueue(GitCommand::Init, QStringList{"init"});
-}
-
-void GitModule::gitProxy() {
-    // TODO: proxy dialog
 }
 
 // public: commit
@@ -413,6 +417,15 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     gitignoreFile.close();
 
     emit updateIndex();
+}
+
+// git config
+void GitModule::gitProxyGet() const {
+    m_gitConfig->localHttpProxyGet();
+}
+
+void GitModule::gitProxySet(const QString &localHttpProxy, const QString &localHttpsProxy, const QString &globalHttpProxy, const QString &globalHttpsProxy) const {
+    m_gitConfig->gitProxySet(localHttpProxy, localHttpsProxy, globalHttpProxy, globalHttpsProxy);
 }
 
 // private

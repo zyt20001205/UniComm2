@@ -2623,6 +2623,95 @@ Item {
     }
 
     Dialog {
+        id: gitModuleProxyDialog
+        parent: Overlay.overlay
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
+        width: 600
+        modal: true
+        title: qsTr("Proxy Configuration")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string localHttpProxy
+        property string localHttpsProxy
+        property string globalHttpProxy
+        property string globalHttpsProxy
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            gitModuleLocalHttpProxyTextField.text = gitModuleProxyDialog.localHttpProxy
+            gitModuleLocalHttpsProxyTextField.text = gitModuleProxyDialog.localHttpsProxy
+            gitModuleGlobalHttpProxyTextField.text = gitModuleProxyDialog.globalHttpProxy
+            gitModuleGlobalHttpsProxyTextField.text = gitModuleProxyDialog.globalHttpsProxy
+        }
+
+        onAccepted: gitModule.gitProxySet(
+            gitModuleLocalHttpProxyTextField.text,
+            gitModuleLocalHttpsProxyTextField.text,
+            gitModuleGlobalHttpProxyTextField.text,
+            gitModuleGlobalHttpsProxyTextField.text)
+
+        ColumnLayout {
+            width: parent.width
+
+            Label {
+                text: qsTr("Local Http Proxy")
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: gitModuleLocalHttpProxyTextField
+                Layout.fillWidth: true
+
+                onAccepted: gitModuleProxyDialog.accept()
+                Keys.onEscapePressed: gitModuleProxyDialog.reject()
+            }
+
+            Label {
+                text: qsTr("Local Https Proxy")
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: gitModuleLocalHttpsProxyTextField
+                Layout.fillWidth: true
+
+                onAccepted: gitModuleProxyDialog.accept()
+                Keys.onEscapePressed: gitModuleProxyDialog.reject()
+            }
+
+            Label {
+                text: qsTr("Global Http Proxy")
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: gitModuleGlobalHttpProxyTextField
+                Layout.fillWidth: true
+
+                onAccepted: gitModuleProxyDialog.accept()
+                Keys.onEscapePressed: gitModuleProxyDialog.reject()
+            }
+
+            Label {
+                text: qsTr("Global Https Proxy")
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: gitModuleGlobalHttpsProxyTextField
+                Layout.fillWidth: true
+
+                onAccepted: gitModuleProxyDialog.accept()
+                Keys.onEscapePressed: gitModuleProxyDialog.reject()
+            }
+        }
+    }
+
+    Dialog {
         id: gitModuleBranchRenameDialog
         parent: Overlay.overlay
         x: mainScreenItem.x + (mainScreenItem.width - width) / 2
@@ -2645,7 +2734,7 @@ Item {
         }
 
         onAccepted: gitModule.gitRename(gitModuleBranchRenameDialog.name, gitModuleBranchRenameTextField.text)
-        
+
         TextField {
             id: gitModuleBranchRenameTextField
             placeholderText: qsTr("Enter branch name:")
@@ -2687,7 +2776,7 @@ Item {
             Keys.onEscapePressed: gitModuleRemoteAddDialog.reject()
         }
     }
-    
+
     Menu {
         id: gitModuleBranchMenu
         property url name
@@ -2966,7 +3055,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        
+
         MenuItem {
             text: qsTr("Add server")
 
@@ -2991,7 +3080,7 @@ Item {
             onObjectRemoved: (index, object) => llmModuleMcpMenu.removeItem(object)
         }
     }
-    
+
     Menu {
         id: llmModuleModeMenu
 
@@ -3072,7 +3161,7 @@ Item {
                 onObjectRemoved: (index, object) => llmModuleBigmodelMenu.removeItem(object)
             }
         }
-        
+
         Menu {
             id: llmModuleDeepseekMenu
             title: qsTr("deepseek")
@@ -4205,6 +4294,22 @@ Item {
 
             onTriggered: gitModule.gitPushPre()
         }
+
+        MenuSeparator {
+
+        }
+
+        Menu {
+            title: qsTr("Config")
+            icon.source: "qrc:/icon/settings.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Proxy")
+
+                onTriggered: gitModule.gitProxyGet()
+            }
+        }
     }
 
     // port module
@@ -4721,6 +4826,7 @@ Item {
 
             "gitModuleContinueDialog": gitModuleContinueDialog,
             "gitModuleErrorDialog": gitModuleErrorDialog,
+            "gitModuleProxyDialog": gitModuleProxyDialog,
             "gitModuleRemoteAddDialog": gitModuleRemoteAddDialog,
             "gitModuleBranchMenu": gitModuleBranchMenu,
             "gitModuleLogMenu": gitModuleLogMenu,
