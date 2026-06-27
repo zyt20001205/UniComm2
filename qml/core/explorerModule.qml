@@ -81,10 +81,8 @@ Item {
             id: treeView
             clip: true
             model: sortFilterProxyModel
+            reuseItems: false
             rootIndex: modelRootIndex
-            columnWidthProvider: function (col) {
-                return col === 0 ? treeView.width : 0
-            }
             Layout.fillWidth: true; Layout.fillHeight: true
             property int selectedRow: -1
 

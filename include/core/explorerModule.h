@@ -63,6 +63,8 @@ public:
 
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 
+    [[nodiscard]] int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
 private:
     const QHash<QUrl, QVariant> *m_documentStatus{};
 };

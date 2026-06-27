@@ -141,3 +141,8 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
     }
     return QSortFilterProxyModel::data(index, role);
 }
+
+int SortFilterProxyModel::columnCount(const QModelIndex &parent) const {
+    Q_UNUSED(parent)
+    return 1;
+}

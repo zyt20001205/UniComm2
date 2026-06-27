@@ -245,7 +245,7 @@ void GitModule::gitUpstreamGet() {
 }
 
 void GitModule::gitBranch() {
-    processEnqueue(GitCommand::Branch, QStringList{"branch", "-avv"});
+    processEnqueue(GitCommand::Branch, QStringList{"branch", "-av"});
 }
 
 void GitModule::gitSwitch(const QString &name) {
