@@ -24,6 +24,7 @@ find_package(Qt6 REQUIRED COMPONENTS
         SerialPort
         Svg
         TextToSpeech
+        WebView
         Widgets
 )
 
@@ -223,6 +224,7 @@ target_link_libraries(UniComm PRIVATE
         Qt6::SerialPort
         Qt6::Svg
         Qt6::TextToSpeech
+        Qt6::WebView
         Qt6::Widgets
         ${CMARK_LIB}
         ${DRMINGW_LIB}
@@ -251,136 +253,138 @@ target_compile_options(UniComm PRIVATE
         $<$<CONFIG:Release>:-g1>
 )
 
-#theme
-set(THEME_DIR "${CMAKE_SOURCE_DIR}/resources/theme")
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${THEME_DIR}"
-        "${CMAKE_BINARY_DIR}/theme"
-        COMMENT "THEME DIR COPIED")
-#lua-language-server-3.18.2
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${LUALS_DIR}"
-        "${CMAKE_BINARY_DIR}/lua-language-server"
-        COMMENT "LUALS DIR COPIED")
-#nuspell-5.1.7-1
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${NUSPELL_DICT}"
-        "${CMAKE_BINARY_DIR}/dict"
-        COMMENT "NUSPELL DICT COPIED")
-#ripgrep-15.1.0
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${RIPGREP_DIR}"
-        "${CMAKE_BINARY_DIR}/ripgrep"
-        COMMENT "RIPGREP DIR COPIED")
-#tesseract-5.5.2-1
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${TESSERACT_LANG}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "TESSERACT LANG COPIED")
+if(FALSE)
+    #auto deploy(do not use)
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND Qt6::windeployqt
+            --qmldir "${CMAKE_SOURCE_DIR}/qml"
+            "$<TARGET_FILE:UniComm>")
+else ()
+    #theme
+    set(THEME_DIR "${CMAKE_SOURCE_DIR}/resources/theme")
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${THEME_DIR}"
+            "${CMAKE_BINARY_DIR}/theme"
+            COMMENT "THEME DIR COPIED")
+    #lua-language-server-3.18.2
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${LUALS_DIR}"
+            "${CMAKE_BINARY_DIR}/lua-language-server"
+            COMMENT "LUALS DIR COPIED")
+    #nuspell-5.1.7-1
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${NUSPELL_DICT}"
+            "${CMAKE_BINARY_DIR}/dict"
+            COMMENT "NUSPELL DICT COPIED")
+    #ripgrep-15.1.0
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${RIPGREP_DIR}"
+            "${CMAKE_BINARY_DIR}/ripgrep"
+            COMMENT "RIPGREP DIR COPIED")
+    #tesseract-5.5.2-1
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TESSERACT_LANG}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "TESSERACT LANG COPIED")
 
-#auto deploy(do not use)
-#add_custom_command(TARGET UniComm POST_BUILD
-#        COMMAND Qt6::windeployqt
-#        --qmldir "${CMAKE_SOURCE_DIR}/qml"
-#        "$<TARGET_FILE:UniComm>")
-
-#qt-6.11.0
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${QT_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "QT BIN COPIED")
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${QT_SHARE}"
-        "${CMAKE_BINARY_DIR}/share"
-        COMMENT "QT SHARE COPIED")
-#misc
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${MISC_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "MISC BIN COPIED")
-#cmark-0.31.2
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMARK_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "CMARK BIN COPIED")
-#drmingw-0.9.11-2
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${DRMINGW_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "DRMINGW BIN COPIED")
-#icu-78.3-2
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${ICU_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "ICU BIN COPIED")
-#kddw-2.4.0
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${KDDW_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "KDDW BIN COPIED")
-#leptonica-1.87.0-1
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${LEPTONICA_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "LEPTONICA BIN COPIED")
-#lua-5.5.0-1
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${LUA_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "LUA BIN COPIED")
-#nuspell-5.1.7-1
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${NUSPELL_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "NUSPELL BIN COPIED")
-#opencv-4.13.0-4
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${OPENCV_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "OPENCV BIN COPIED")
-#qtkeychain-0.15.0-2
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${QTKEYCHAIN_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "QTKEYCHAIN BIN COPIED")
-#scintilla-5.6.2
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${SCINTILLA_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "SCINTILLA BIN COPIED")
-#tesseract-5.5.2-1
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${TESSERACT_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "TESSERACT BIN COPIED")
-#visa
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${VISA_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "VISA BIN COPIED")
-#vterm-0.3.3-1
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${VTERM_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "VTERM BIN COPIED")
+    #qt-6.11.1
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QT_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "QT BIN COPIED")
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QT_SHARE}"
+            "${CMAKE_BINARY_DIR}/share"
+            COMMENT "QT SHARE COPIED")
+    #misc
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${MISC_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "MISC BIN COPIED")
+    #cmark-0.31.2
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMARK_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "CMARK BIN COPIED")
+    #drmingw-0.9.11-2
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${DRMINGW_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "DRMINGW BIN COPIED")
+    #icu-78.3-2
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${ICU_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "ICU BIN COPIED")
+    #kddw-2.4.0
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${KDDW_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "KDDW BIN COPIED")
+    #leptonica-1.87.0-1
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${LEPTONICA_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "LEPTONICA BIN COPIED")
+    #lua-5.5.0-1
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${LUA_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "LUA BIN COPIED")
+    #nuspell-5.1.7-1
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${NUSPELL_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "NUSPELL BIN COPIED")
+    #opencv-4.13.0-4
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${OPENCV_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "OPENCV BIN COPIED")
+    #qtkeychain-0.15.0-2
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QTKEYCHAIN_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "QTKEYCHAIN BIN COPIED")
+    #scintilla-5.6.2
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${SCINTILLA_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "SCINTILLA BIN COPIED")
+    #tesseract-5.5.2-1
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TESSERACT_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "TESSERACT BIN COPIED")
+    #visa
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${VISA_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "VISA BIN COPIED")
+    #vterm-0.3.3-1
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${VTERM_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "VTERM BIN COPIED")
+endif()

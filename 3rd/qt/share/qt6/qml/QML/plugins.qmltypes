@@ -2276,11 +2276,11 @@ Module {
             write: "setObjectName"
             notify: "objectNameChanged"
             index: 0
-            lineNumber: 108
+            lineNumber: 109
         }
         Signal {
             name: "objectNameChanged"
-            lineNumber: 347
+            lineNumber: 348
             Parameter { name: "objectName"; type: "QString" }
         }
         Method { name: "toString"; type: "QString"; isMethodConstant: true }
@@ -2292,10 +2292,10 @@ Module {
         Method {
             name: "QObject"
             isConstructor: true
-            lineNumber: 113
+            lineNumber: 114
             Parameter { name: "parent"; type: "QObject"; isPointer: true }
         }
-        Method { name: "QObject"; isCloned: true; isConstructor: true; lineNumber: 113 }
+        Method { name: "QObject"; isCloned: true; isConstructor: true; lineNumber: 114 }
     }
     Component {
         file: "private/qqmlbuiltins_p.h"
@@ -2627,7 +2627,7 @@ Module {
     }
     Component {
         file: "qqml.h"
-        lineNumber: 137
+        lineNumber: 140
         name: "QQmlTypeNotAvailable"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -2745,12 +2745,12 @@ Module {
     }
     Component {
         file: "qnamespace.h"
-        lineNumber: 25
+        lineNumber: 26
         name: "Qt"
         accessSemantics: "none"
         Enum {
             name: "GlobalColor"
-            lineNumber: 28
+            lineNumber: 29
             values: [
                 "color0",
                 "color1",
@@ -2777,20 +2777,20 @@ Module {
         Enum {
             name: "ColorScheme"
             isScoped: true
-            lineNumber: 51
+            lineNumber: 52
             values: ["Unknown", "Light", "Dark"]
         }
         Enum {
             name: "ContrastPreference"
             isScoped: true
-            lineNumber: 57
+            lineNumber: 58
             values: ["NoPreference", "HighContrast"]
         }
         Enum {
             name: "MouseButtons"
             alias: "MouseButton"
             isFlag: true
-            lineNumber: 62
+            lineNumber: 63
             values: [
                 "NoButton",
                 "LeftButton",
@@ -2832,19 +2832,19 @@ Module {
         }
         Enum {
             name: "Orientation"
-            lineNumber: 104
+            lineNumber: 105
             values: ["Horizontal", "Vertical"]
         }
         Enum {
             name: "Orientations"
             alias: "Orientation"
             isFlag: true
-            lineNumber: 104
+            lineNumber: 105
             values: ["Horizontal", "Vertical"]
         }
         Enum {
             name: "FocusPolicy"
-            lineNumber: 112
+            lineNumber: 113
             values: [
                 "NoFocus",
                 "TabFocus",
@@ -2855,7 +2855,7 @@ Module {
         }
         Enum {
             name: "TabFocusBehavior"
-            lineNumber: 120
+            lineNumber: 121
             values: [
                 "NoTabFocus",
                 "TabFocusTextControls",
@@ -2865,21 +2865,21 @@ Module {
         }
         Enum {
             name: "SortOrder"
-            lineNumber: 127
+            lineNumber: 128
             values: ["AscendingOrder", "DescendingOrder"]
         }
         Enum {
             name: "SplitBehavior"
             alias: "SplitBehaviorFlags"
             isFlag: true
-            lineNumber: 132
+            lineNumber: 133
             values: ["KeepEmptyParts", "SkipEmptyParts"]
         }
         Enum {
             name: "Alignment"
             alias: "AlignmentFlag"
             isFlag: true
-            lineNumber: 149
+            lineNumber: 150
             values: [
                 "AlignLeft",
                 "AlignLeading",
@@ -2899,7 +2899,7 @@ Module {
         }
         Enum {
             name: "TextFlag"
-            lineNumber: 175
+            lineNumber: 176
             values: [
                 "TextSingleLine",
                 "TextDontClip",
@@ -2918,12 +2918,12 @@ Module {
         }
         Enum {
             name: "TextElideMode"
-            lineNumber: 194
+            lineNumber: 195
             values: ["ElideLeft", "ElideRight", "ElideMiddle", "ElideNone"]
         }
         Enum {
             name: "WindowType"
-            lineNumber: 211
+            lineNumber: 212
             values: [
                 "Widget",
                 "Window",
@@ -2971,7 +2971,7 @@ Module {
             name: "WindowFlags"
             alias: "WindowType"
             isFlag: true
-            lineNumber: 211
+            lineNumber: 212
             values: [
                 "Widget",
                 "Window",
@@ -3017,7 +3017,7 @@ Module {
         }
         Enum {
             name: "WindowState"
-            lineNumber: 268
+            lineNumber: 269
             values: [
                 "WindowNoState",
                 "WindowMinimized",
@@ -3030,7 +3030,7 @@ Module {
             name: "WindowStates"
             alias: "WindowState"
             isFlag: true
-            lineNumber: 268
+            lineNumber: 269
             values: [
                 "WindowNoState",
                 "WindowMinimized",
@@ -3041,7 +3041,7 @@ Module {
         }
         Enum {
             name: "ApplicationState"
-            lineNumber: 279
+            lineNumber: 280
             values: [
                 "ApplicationSuspended",
                 "ApplicationHidden",
@@ -3051,7 +3051,7 @@ Module {
         }
         Enum {
             name: "ScreenOrientation"
-            lineNumber: 288
+            lineNumber: 289
             values: [
                 "PrimaryOrientation",
                 "PortraitOrientation",
@@ -3064,7 +3064,7 @@ Module {
             name: "ScreenOrientations"
             alias: "ScreenOrientation"
             isFlag: true
-            lineNumber: 288
+            lineNumber: 289
             values: [
                 "PrimaryOrientation",
                 "PortraitOrientation",
@@ -3075,7 +3075,7 @@ Module {
         }
         Enum {
             name: "WidgetAttribute"
-            lineNumber: 299
+            lineNumber: 300
             values: [
                 "WA_Disabled",
                 "WA_UnderMouse",
@@ -3184,7 +3184,7 @@ Module {
         }
         Enum {
             name: "ApplicationAttribute"
-            lineNumber: 440
+            lineNumber: 441
             values: [
                 "AA_QtQuickUseDefaultSizePolicy",
                 "AA_DontShowIconsInMenus",
@@ -3223,7 +3223,7 @@ Module {
             name: "ImageConversionFlags"
             alias: "ImageConversionFlag"
             isFlag: true
-            lineNumber: 493
+            lineNumber: 494
             values: [
                 "ColorMode_Mask",
                 "AutoColor",
@@ -3248,12 +3248,12 @@ Module {
         }
         Enum {
             name: "BGMode"
-            lineNumber: 523
+            lineNumber: 524
             values: ["TransparentMode", "OpaqueMode"]
         }
         Enum {
             name: "Key"
-            lineNumber: 528
+            lineNumber: 529
             values: [
                 "Key_Space",
                 "Key_Any",
@@ -3730,7 +3730,7 @@ Module {
         }
         Enum {
             name: "KeyboardModifier"
-            lineNumber: 1071
+            lineNumber: 1072
             values: [
                 "NoModifier",
                 "ShiftModifier",
@@ -3746,7 +3746,7 @@ Module {
             name: "KeyboardModifiers"
             alias: "KeyboardModifier"
             isFlag: true
-            lineNumber: 1071
+            lineNumber: 1072
             values: [
                 "NoModifier",
                 "ShiftModifier",
@@ -3760,19 +3760,19 @@ Module {
         }
         Enum {
             name: "Modifier"
-            lineNumber: 1091
+            lineNumber: 1092
             values: ["META", "SHIFT", "CTRL", "ALT", "MODIFIER_MASK"]
         }
         Enum {
             name: "Modifiers"
             alias: "Modifier"
             isFlag: true
-            lineNumber: 1091
+            lineNumber: 1092
             values: ["META", "SHIFT", "CTRL", "ALT", "MODIFIER_MASK"]
         }
         Enum {
             name: "ArrowType"
-            lineNumber: 1101
+            lineNumber: 1102
             values: [
                 "NoArrow",
                 "UpArrow",
@@ -3783,7 +3783,7 @@ Module {
         }
         Enum {
             name: "PenStyle"
-            lineNumber: 1109
+            lineNumber: 1110
             values: [
                 "NoPen",
                 "SolidLine",
@@ -3796,12 +3796,12 @@ Module {
         }
         Enum {
             name: "PenCapStyle"
-            lineNumber: 1122
+            lineNumber: 1123
             values: ["FlatCap", "SquareCap", "RoundCap", "MPenCapStyle"]
         }
         Enum {
             name: "PenJoinStyle"
-            lineNumber: 1129
+            lineNumber: 1130
             values: [
                 "MiterJoin",
                 "BevelJoin",
@@ -3812,7 +3812,7 @@ Module {
         }
         Enum {
             name: "BrushStyle"
-            lineNumber: 1137
+            lineNumber: 1138
             values: [
                 "NoBrush",
                 "SolidPattern",
@@ -3837,12 +3837,12 @@ Module {
         }
         Enum {
             name: "SizeMode"
-            lineNumber: 1159
+            lineNumber: 1160
             values: ["AbsoluteSize", "RelativeSize"]
         }
         Enum {
             name: "CursorShape"
-            lineNumber: 1174
+            lineNumber: 1175
             values: [
                 "ArrowCursor",
                 "UpArrowCursor",
@@ -3873,12 +3873,12 @@ Module {
         }
         Enum {
             name: "TextFormat"
-            lineNumber: 1207
+            lineNumber: 1208
             values: ["PlainText", "RichText", "AutoText", "MarkdownText"]
         }
         Enum {
             name: "AspectRatioMode"
-            lineNumber: 1214
+            lineNumber: 1215
             values: [
                 "IgnoreAspectRatio",
                 "KeepAspectRatio",
@@ -3887,7 +3887,7 @@ Module {
         }
         Enum {
             name: "DockWidgetArea"
-            lineNumber: 1220
+            lineNumber: 1221
             values: [
                 "LeftDockWidgetArea",
                 "RightDockWidgetArea",
@@ -3902,7 +3902,7 @@ Module {
             name: "DockWidgetAreas"
             alias: "DockWidgetArea"
             isFlag: true
-            lineNumber: 1220
+            lineNumber: 1221
             values: [
                 "LeftDockWidgetArea",
                 "RightDockWidgetArea",
@@ -3915,7 +3915,7 @@ Module {
         }
         Enum {
             name: "ToolBarArea"
-            lineNumber: 1237
+            lineNumber: 1238
             values: [
                 "LeftToolBarArea",
                 "RightToolBarArea",
@@ -3930,7 +3930,7 @@ Module {
             name: "ToolBarAreas"
             alias: "ToolBarArea"
             isFlag: true
-            lineNumber: 1237
+            lineNumber: 1238
             values: [
                 "LeftToolBarArea",
                 "RightToolBarArea",
@@ -3943,17 +3943,17 @@ Module {
         }
         Enum {
             name: "DateFormat"
-            lineNumber: 1255
+            lineNumber: 1256
             values: ["TextDate", "ISODate", "RFC2822Date", "ISODateWithMs"]
         }
         Enum {
             name: "TimeSpec"
-            lineNumber: 1262
+            lineNumber: 1263
             values: ["LocalTime", "UTC", "OffsetFromUTC", "TimeZone"]
         }
         Enum {
             name: "DayOfWeek"
-            lineNumber: 1269
+            lineNumber: 1270
             values: [
                 "Monday",
                 "Tuesday",
@@ -3966,7 +3966,7 @@ Module {
         }
         Enum {
             name: "ScrollBarPolicy"
-            lineNumber: 1279
+            lineNumber: 1280
             values: [
                 "ScrollBarAsNeeded",
                 "ScrollBarAlwaysOff",
@@ -3975,12 +3975,12 @@ Module {
         }
         Enum {
             name: "CaseSensitivity"
-            lineNumber: 1285
+            lineNumber: 1286
             values: ["CaseInsensitive", "CaseSensitive"]
         }
         Enum {
             name: "Corner"
-            lineNumber: 1290
+            lineNumber: 1291
             values: [
                 "TopLeftCorner",
                 "TopRightCorner",
@@ -3990,19 +3990,19 @@ Module {
         }
         Enum {
             name: "Edge"
-            lineNumber: 1297
+            lineNumber: 1298
             values: ["TopEdge", "LeftEdge", "RightEdge", "BottomEdge"]
         }
         Enum {
             name: "Edges"
             alias: "Edge"
             isFlag: true
-            lineNumber: 1297
+            lineNumber: 1298
             values: ["TopEdge", "LeftEdge", "RightEdge", "BottomEdge"]
         }
         Enum {
             name: "ConnectionType"
-            lineNumber: 1307
+            lineNumber: 1308
             values: [
                 "AutoConnection",
                 "DirectConnection",
@@ -4014,7 +4014,7 @@ Module {
         }
         Enum {
             name: "ShortcutContext"
-            lineNumber: 1316
+            lineNumber: 1317
             values: [
                 "WidgetShortcut",
                 "WindowShortcut",
@@ -4024,22 +4024,22 @@ Module {
         }
         Enum {
             name: "FillRule"
-            lineNumber: 1323
+            lineNumber: 1324
             values: ["OddEvenFill", "WindingFill"]
         }
         Enum {
             name: "MaskMode"
-            lineNumber: 1328
+            lineNumber: 1329
             values: ["MaskInColor", "MaskOutColor"]
         }
         Enum {
             name: "ClipOperation"
-            lineNumber: 1333
+            lineNumber: 1334
             values: ["NoClip", "ReplaceClip", "IntersectClip"]
         }
         Enum {
             name: "ItemSelectionMode"
-            lineNumber: 1340
+            lineNumber: 1341
             values: [
                 "ContainsItemShape",
                 "IntersectsItemShape",
@@ -4049,22 +4049,22 @@ Module {
         }
         Enum {
             name: "ItemSelectionOperation"
-            lineNumber: 1347
+            lineNumber: 1348
             values: ["ReplaceSelection", "AddToSelection"]
         }
         Enum {
             name: "TransformationMode"
-            lineNumber: 1352
+            lineNumber: 1353
             values: ["FastTransformation", "SmoothTransformation"]
         }
         Enum {
             name: "Axis"
-            lineNumber: 1357
+            lineNumber: 1358
             values: ["XAxis", "YAxis", "ZAxis"]
         }
         Enum {
             name: "FocusReason"
-            lineNumber: 1363
+            lineNumber: 1364
             values: [
                 "MouseFocusReason",
                 "TabFocusReason",
@@ -4079,7 +4079,7 @@ Module {
         }
         Enum {
             name: "ContextMenuPolicy"
-            lineNumber: 1375
+            lineNumber: 1376
             values: [
                 "NoContextMenu",
                 "DefaultContextMenu",
@@ -4091,12 +4091,12 @@ Module {
         Enum {
             name: "ContextMenuTrigger"
             isScoped: true
-            lineNumber: 1383
+            lineNumber: 1384
             values: ["Press", "Release"]
         }
         Enum {
             name: "InputMethodQuery"
-            lineNumber: 1388
+            lineNumber: 1389
             values: [
                 "ImEnabled",
                 "ImCursorRectangle",
@@ -4124,7 +4124,7 @@ Module {
             name: "InputMethodQueries"
             alias: "InputMethodQuery"
             isFlag: true
-            lineNumber: 1388
+            lineNumber: 1389
             values: [
                 "ImEnabled",
                 "ImCursorRectangle",
@@ -4150,7 +4150,7 @@ Module {
         }
         Enum {
             name: "InputMethodHint"
-            lineNumber: 1416
+            lineNumber: 1417
             values: [
                 "ImhNone",
                 "ImhHiddenText",
@@ -4181,7 +4181,7 @@ Module {
             name: "InputMethodHints"
             alias: "InputMethodHint"
             isFlag: true
-            lineNumber: 1416
+            lineNumber: 1417
             values: [
                 "ImhNone",
                 "ImhHiddenText",
@@ -4210,7 +4210,7 @@ Module {
         }
         Enum {
             name: "EnterKeyType"
-            lineNumber: 1451
+            lineNumber: 1452
             values: [
                 "EnterKeyDefault",
                 "EnterKeyReturn",
@@ -4224,7 +4224,7 @@ Module {
         }
         Enum {
             name: "ToolButtonStyle"
-            lineNumber: 1462
+            lineNumber: 1463
             values: [
                 "ToolButtonIconOnly",
                 "ToolButtonTextOnly",
@@ -4235,12 +4235,12 @@ Module {
         }
         Enum {
             name: "LayoutDirection"
-            lineNumber: 1470
+            lineNumber: 1471
             values: ["LeftToRight", "RightToLeft", "LayoutDirectionAuto"]
         }
         Enum {
             name: "DropAction"
-            lineNumber: 1492
+            lineNumber: 1493
             values: [
                 "CopyAction",
                 "MoveAction",
@@ -4254,7 +4254,7 @@ Module {
             name: "DropActions"
             alias: "DropAction"
             isFlag: true
-            lineNumber: 1492
+            lineNumber: 1493
             values: [
                 "CopyAction",
                 "MoveAction",
@@ -4266,12 +4266,12 @@ Module {
         }
         Enum {
             name: "CheckState"
-            lineNumber: 1503
+            lineNumber: 1504
             values: ["Unchecked", "PartiallyChecked", "Checked"]
         }
         Enum {
             name: "ItemDataRole"
-            lineNumber: 1509
+            lineNumber: 1510
             values: [
                 "DisplayRole",
                 "DecorationRole",
@@ -4305,7 +4305,7 @@ Module {
             name: "ItemFlags"
             alias: "ItemFlag"
             isFlag: true
-            lineNumber: 1548
+            lineNumber: 1549
             values: [
                 "NoItemFlags",
                 "ItemIsSelectable",
@@ -4323,7 +4323,7 @@ Module {
             name: "MatchFlags"
             alias: "MatchFlag"
             isFlag: true
-            lineNumber: 1563
+            lineNumber: 1564
             values: [
                 "MatchExactly",
                 "MatchContains",
@@ -4340,12 +4340,12 @@ Module {
         }
         Enum {
             name: "WindowModality"
-            lineNumber: 1581
+            lineNumber: 1582
             values: ["NonModal", "WindowModal", "ApplicationModal"]
         }
         Enum {
             name: "TextInteractionFlag"
-            lineNumber: 1587
+            lineNumber: 1588
             values: [
                 "NoTextInteraction",
                 "TextSelectableByMouse",
@@ -4361,7 +4361,7 @@ Module {
             name: "TextInteractionFlags"
             alias: "TextInteractionFlag"
             isFlag: true
-            lineNumber: 1587
+            lineNumber: 1588
             values: [
                 "NoTextInteraction",
                 "TextSelectableByMouse",
@@ -4375,7 +4375,7 @@ Module {
         }
         Enum {
             name: "SizeHint"
-            lineNumber: 1607
+            lineNumber: 1608
             values: [
                 "MinimumSize",
                 "PreferredSize",
@@ -4388,7 +4388,7 @@ Module {
             name: "TouchPointStates"
             alias: "TouchPointState"
             isFlag: true
-            lineNumber: 1640
+            lineNumber: 1641
             values: [
                 "TouchPointUnknownState",
                 "TouchPointPressed",
@@ -4399,7 +4399,7 @@ Module {
         }
         Enum {
             name: "GestureState"
-            lineNumber: 1651
+            lineNumber: 1652
             values: [
                 "NoGesture",
                 "GestureStarted",
@@ -4410,7 +4410,7 @@ Module {
         }
         Enum {
             name: "GestureType"
-            lineNumber: 1660
+            lineNumber: 1661
             values: [
                 "TapGesture",
                 "TapAndHoldGesture",
@@ -4423,7 +4423,7 @@ Module {
         }
         Enum {
             name: "NativeGestureType"
-            lineNumber: 1682
+            lineNumber: 1683
             values: [
                 "BeginNativeGesture",
                 "EndNativeGesture",
@@ -4436,23 +4436,23 @@ Module {
         }
         Enum {
             name: "CursorMoveStyle"
-            lineNumber: 1704
+            lineNumber: 1705
             values: ["LogicalMoveStyle", "VisualMoveStyle"]
         }
         Enum {
             name: "TimerType"
-            lineNumber: 1709
+            lineNumber: 1710
             values: ["PreciseTimer", "CoarseTimer", "VeryCoarseTimer"]
         }
         Enum {
             name: "TimerId"
             isScoped: true
-            lineNumber: 1715
+            lineNumber: 1716
             values: ["Invalid"]
         }
         Enum {
             name: "ScrollPhase"
-            lineNumber: 1719
+            lineNumber: 1720
             values: [
                 "NoScrollPhase",
                 "ScrollBegin",
@@ -4463,7 +4463,7 @@ Module {
         }
         Enum {
             name: "MouseEventSource"
-            lineNumber: 1727
+            lineNumber: 1728
             values: [
                 "MouseEventNotSynthesized",
                 "MouseEventSynthesizedBySystem",
@@ -4475,7 +4475,7 @@ Module {
             name: "MouseEventFlags"
             alias: "MouseEventFlag"
             isFlag: true
-            lineNumber: 1734
+            lineNumber: 1735
             values: [
                 "NoMouseEventFlag",
                 "MouseEventCreatedDoubleClick",
@@ -4484,13 +4484,13 @@ Module {
         }
         Enum {
             name: "ChecksumType"
-            lineNumber: 1742
+            lineNumber: 1743
             values: ["ChecksumIso3309", "ChecksumItuV41"]
         }
         Enum {
             name: "HighDpiScaleFactorRoundingPolicy"
             isScoped: true
-            lineNumber: 1747
+            lineNumber: 1748
             values: [
                 "Unset",
                 "Round",
@@ -4503,7 +4503,7 @@ Module {
         Enum {
             name: "PermissionStatus"
             isScoped: true
-            lineNumber: 1756
+            lineNumber: 1757
             values: ["Undetermined", "Granted", "Denied"]
         }
     }
