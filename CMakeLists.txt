@@ -115,7 +115,7 @@ set(MISC_DIR "${CMAKE_SOURCE_DIR}/3rd/misc")
 set(MISC_BIN "${MISC_DIR}/bin")
 
 #3rd alphabetical order
-set(CMARK_DIR "${CMAKE_SOURCE_DIR}/3rd/cmark")
+set(CMARK_DIR "${CMAKE_SOURCE_DIR}/3rd/cmark-gfm")
 set(CMARK_INCLUDE "${CMARK_DIR}/include")
 file(GLOB CMARK_LIB "${CMARK_DIR}/lib/*.a")
 set(CMARK_BIN "${CMARK_DIR}/bin")
@@ -146,6 +146,8 @@ file(GLOB LUA_LIB "${LUA_DIR}/lib/*.a")
 set(LUA_BIN "${LUA_DIR}/bin")
 
 set(LUALS_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server")
+
+set(MERMAID_DIR "${CMAKE_SOURCE_DIR}/3rd/mermaid")
 
 set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell")
 set(NUSPELL_INCLUDE "${NUSPELL_DIR}/include")
@@ -279,6 +281,12 @@ else ()
             "${LUALS_DIR}"
             "${CMAKE_BINARY_DIR}/lua-language-server"
             COMMENT "LUALS DIR COPIED")
+    #mermaid-11.16.0
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${MERMAID_DIR}"
+            "${CMAKE_BINARY_DIR}/javascript"
+            COMMENT "MERMAID COPIED")
     #nuspell-5.1.7-1
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -315,7 +323,7 @@ else ()
             "${MISC_BIN}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "MISC BIN COPIED")
-    #cmark-0.31.2
+    #cmark-gfm-0.29.0.gfm.13
     add_custom_command(TARGET UniComm POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMARK_BIN}"

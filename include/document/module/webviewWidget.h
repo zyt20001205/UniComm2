@@ -1,11 +1,11 @@
 #ifndef UNICOMM_WEBVIEWWIDGET_H
 #define UNICOMM_WEBVIEWWIDGET_H
 
-#include <QString>
 #include <QUrl>
 #include <QWidget>
 
 struct ICoreWebView2;
+struct ICoreWebView2_28;
 struct ICoreWebView2Controller;
 struct ICoreWebView2Environment;
 
@@ -56,6 +56,7 @@ private:
     ICoreWebView2Environment *m_environment{};
     ICoreWebView2Controller *m_controller{};
     ICoreWebView2 *m_webView{};
+    ICoreWebView2_28 *m_webView28{};
 };
 
 #endif //UNICOMM_WEBVIEWWIDGET_H

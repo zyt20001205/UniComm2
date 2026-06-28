@@ -184,6 +184,16 @@ void WebviewWidget::ensureCreated() {
                 return S_OK;
             }
             registerEvents();
+
+            if (SUCCEEDED(m_webView->QueryInterface(IID_ICoreWebView2_28, (void**)&m_webView28))) {
+                std::wstring mermaidPath = (QCoreApplication::applicationDirPath() + "/javascript").toStdWString();
+                m_webView28->SetVirtualHostNameToFolderMapping(
+                    L"unicomm",
+                    mermaidPath.c_str(),
+                    COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW
+                );
+            }
+
             resizeWebView();
             m_ready = m_webView && m_controller;
             emit readyChanged(m_ready);

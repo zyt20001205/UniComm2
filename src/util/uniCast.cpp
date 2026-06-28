@@ -6,7 +6,9 @@
 #include <sol/variadic_args.hpp>
 #include <sol/userdata.hpp>
 
-#include "cmark.h"
+#include "cmark-gfm.h"
+#include "cmark-gfm-core-extensions.h"
+#include "cmark-gfm-extension_api.h"
 #include "globals.h"
 
 // lua -> qt
@@ -286,10 +288,29 @@ template<>
 QHtmlString uni_cast<QHtmlString, QString>(const QString &s, const int depth) {
     Q_UNUSED(depth);
     const auto md = s.toUtf8();
-    char *htmlChar = cmark_markdown_to_html(md.constData(), md.size(), CMARK_OPT_DEFAULT);
-    if (!htmlChar) return QString();
-    const QString d = QString::fromUtf8(htmlChar);
-    free(htmlChar);
+
+    cmark_gfm_core_extensions_ensure_registered();
+    constexpr int options = CMARK_OPT_UNSAFE | CMARK_OPT_FOOTNOTES;
+    cmark_parser *parser = cmark_parser_new(options);
+    const char *extensions[] = {
+        "footnotes",
+        "table",
+        "strikethrough",
+        "autolink",
+        "tasklist",
+    };
+    for (const auto *name: extensions) {
+        auto *extension = cmark_find_syntax_extension(name);
+        if (extension) cmark_parser_attach_syntax_extension(parser, extension);
+    }
+    cmark_parser_feed(parser, md.constData(), md.size());
+    cmark_node *document = cmark_parser_finish(parser);
+    char *htmlChar = cmark_render_html(document, options, cmark_parser_get_syntax_extensions(parser));
+
+    const QString d = htmlChar ? QString::fromUtf8(htmlChar) : QString();
+    if (htmlChar) free(htmlChar);
+    cmark_node_free(document);
+    cmark_parser_free(parser);
     return d;
 }
 
