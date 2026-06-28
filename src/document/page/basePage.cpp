@@ -4,6 +4,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "util/uniCast.h"
 
 // public
 BasePage::BasePage(const QUrl &documentUrl)
@@ -23,7 +24,7 @@ void BasePage::pathDisambiguation() {
 void BasePage::permissionGet() {
     const QString documentPath = m_documentUrl.toLocalFile();
     const QFileInfo documentInfo(documentPath);
-    documentInfo.isWritable() ? setIcon(QIcon()) :
+    documentInfo.isWritable() ? setIcon(uni_cast<QIcon>(m_documentUrl)) :
     g_globalManager->themeGet() == Theme::Light ? setIcon(QIcon(":/icon/lockLight.svg")) :
     setIcon(QIcon(":/icon/lockDark.svg"));
 }

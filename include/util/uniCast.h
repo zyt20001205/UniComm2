@@ -86,6 +86,9 @@ template<>
 [[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);
 
 template<>
+[[nodiscard]] QIcon uni_cast<QIcon, QUrl>(const QUrl &s, int depth);
+
+template<>
 [[nodiscard]] QHtmlString uni_cast<QHtmlString, QString>(const QString &s, int depth);
 
 // vterm -> qt

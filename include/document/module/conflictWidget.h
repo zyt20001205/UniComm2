@@ -27,11 +27,10 @@ protected:
 
     void markerInit() const override;
 
-private:
-    void contentChange();
+    void contentChange() override;
 
+private:
     QObject *m_toolTip{};
-    QTimer *m_contentTimer{};
     QList<int> m_head{};
     QHash<int, QList<int>> m_hunk{};
 };

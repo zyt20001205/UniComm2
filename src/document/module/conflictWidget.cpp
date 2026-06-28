@@ -11,16 +11,8 @@
 
 // public
 ConflictWidget::ConflictWidget(const QJsonObject &documentConfig, const QUrl &documentUrl, QWidget *parent)
-    : EditorWidget(documentConfig, documentUrl, parent),
-      m_contentTimer(new QTimer(this)) {
-    connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
-        if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
-    });
+    : EditorWidget(documentConfig, documentUrl, parent){
     m_scintillaWidget->viewport()->installEventFilter(this);
-    // 500ms debounce for content change
-    m_contentTimer->setSingleShot(true);
-    m_contentTimer->setInterval(500);
-    connect(m_contentTimer, &QTimer::timeout, this, &ConflictWidget::contentChange);
 }
 
 void ConflictWidget::propertySet(const QVariantHash &objects) {
@@ -135,7 +127,6 @@ void ConflictWidget::markerInit() const {
         });
 }
 
-// private:
 void ConflictWidget::contentChange() {
     m_head.clear();
     m_hunk.clear();

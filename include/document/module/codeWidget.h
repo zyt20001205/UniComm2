@@ -92,6 +92,8 @@ protected:
 
     void selectionChange() override;
 
+    void contentChange() override;
+
     bool symbolPair(QChar ch) override;
 
     void indicatorInit() const override;
@@ -104,8 +106,6 @@ private:
     void charAdd(int ch);
 
     void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
-
-    void contentChange();
 
     void dwellChange();
 
@@ -165,7 +165,6 @@ private:
     QObject *m_breakpointEditDialog{};
     QObject *m_editorMenu{};
 
-    QTimer *m_contentTimer{};
     QTimer *m_dwellTimer{};
     QSet<QChar> m_completionSet{};
     QSet<QChar> m_signatureHelpSet{};

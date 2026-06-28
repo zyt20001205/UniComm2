@@ -265,6 +265,7 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     if (suffix == "json") return QUrl("qrc:/icon/fileTypeJson.svg");
     if (libType.contains(suffix)) return QUrl("qrc:/icon/fileTypeLib.svg");
     if (suffix == "lua") return QUrl("qrc:/icon/fileTypeLua.svg");
+    if (suffix == "md") return QUrl("qrc:/icon/fileTypeMarkdown.svg");
     if (suffix == "pdf") return QUrl("qrc:/icon/fileTypePdf.svg");
     if (suffix == "ps1") return QUrl("qrc:/icon/fileTypePowershell.svg");
     if (suffix == "txt") return QUrl("qrc:/icon/fileTypeTxt.svg");
@@ -272,6 +273,13 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     if (fileInfo.isDir() && fileInfo.fileName() == ".idea") return QUrl("qrc:/icon/fileTypeFolderIntellij.svg");
     if (fileInfo.isDir()) return QUrl("qrc:/icon/fileTypeFolder.svg");
     return QUrl("qrc:/icon/fileTypeDefault.svg");
+}
+
+template<>
+QIcon uni_cast<QIcon, QUrl>(const QUrl &s, const int depth) {
+    Q_UNUSED(depth);
+    const auto &source = ':' + uni_cast<QFileIcon>(s).value.path();
+    return QIcon(source);
 }
 
 template<>

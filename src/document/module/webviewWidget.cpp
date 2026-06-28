@@ -93,7 +93,7 @@ namespace {
     };
 } // namespace
 
-WebViewWidget::WebViewWidget(QWidget *parent)
+WebviewWidget::WebviewWidget(QWidget *parent)
     : QWidget(parent) {
     setAttribute(Qt::WA_NativeWindow);
     setAttribute(Qt::WA_DontCreateNativeAncestors, false);
@@ -104,12 +104,12 @@ WebViewWidget::WebViewWidget(QWidget *parent)
     if (FAILED(hr)) emit errorOccurred("Failed to initialize COM");
 }
 
-WebViewWidget::~WebViewWidget() {
+WebviewWidget::~WebviewWidget() {
     closeWebView();
     if (m_oleInitialized) OleUninitialize();
 }
 
-void WebViewWidget::navigate(const QUrl &url) {
+void WebviewWidget::navigate(const QUrl &url) {
     m_pendingHtml.clear();
     m_pendingUrl = url.toString();
     ensureCreated();
@@ -119,7 +119,7 @@ void WebViewWidget::navigate(const QUrl &url) {
     if (FAILED(hr)) emit errorOccurred("Failed to navigate");
 }
 
-void WebViewWidget::setHtml(const QString &html) {
+void WebviewWidget::setHtml(const QString &html) {
     m_pendingUrl.clear();
     m_pendingHtml = html;
     ensureCreated();
@@ -129,29 +129,29 @@ void WebViewWidget::setHtml(const QString &html) {
     if (FAILED(hr)) emit errorOccurred("Failed to render HTML");
 }
 
-void WebViewWidget::reload() const {
+void WebviewWidget::reload() const {
     if (m_webView) m_webView->Reload();
 }
 
-void WebViewWidget::stop() const {
+void WebviewWidget::stop() const {
     if (m_webView) m_webView->Stop();
 }
 
-bool WebViewWidget::isReady() const {
+bool WebviewWidget::isReady() const {
     return m_ready;
 }
 
-void WebViewWidget::showEvent(QShowEvent *event) {
+void WebviewWidget::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
     QTimer::singleShot(0, this, [this] { ensureCreated(); });
 }
 
-void WebViewWidget::resizeEvent(QResizeEvent *event) {
+void WebviewWidget::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
     resizeWebView();
 }
 
-void WebViewWidget::ensureCreated() {
+void WebviewWidget::ensureCreated() {
     if (m_ready || m_creating || !m_oleInitialized || !isVisible()) return;
 
     m_creating = true;
@@ -217,7 +217,7 @@ void WebViewWidget::ensureCreated() {
     }
 }
 
-void WebViewWidget::resizeWebView() const {
+void WebviewWidget::resizeWebView() const {
     if (!m_controller) return;
 
     RECT bounds{};
@@ -225,7 +225,7 @@ void WebViewWidget::resizeWebView() const {
     m_controller->put_Bounds(bounds);
 }
 
-void WebViewWidget::closeWebView() {
+void WebviewWidget::closeWebView() {
     if (m_controller) m_controller->Close();
     if (m_webView) {
         m_webView->Release();
@@ -243,7 +243,7 @@ void WebViewWidget::closeWebView() {
     m_creating = false;
 }
 
-void WebViewWidget::registerEvents() {
+void WebviewWidget::registerEvents() {
     auto *handler = new NavigationCompletedHandler([this](ICoreWebView2NavigationCompletedEventArgs *args) -> HRESULT {
         BOOL success = FALSE;
         if (args) args->get_IsSuccess(&success);

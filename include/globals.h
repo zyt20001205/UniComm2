@@ -142,7 +142,7 @@ namespace ScintillaMarker {
     };
 }
 
-namespace LuaTokenType {
+namespace ScintillaStyle {
     enum {
         Unused,
         Namespace,

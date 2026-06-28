@@ -17,6 +17,7 @@
 #include "document/page/pdfPage.h"
 #include "document/page/textPage.h"
 #include "document/page/conflictPage.h"
+#include "document/page/markdownPage.h"
 #include "document/page/welcomePage.h"
 
 // public
@@ -123,7 +124,9 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new ConflictPage(m_config, documentUrl);
                 auto *conflictPage = qobject_cast<ConflictPage *>(newPage);
                 conflictPage->propertySet(QVariantHash{
-                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
+                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
                 });
                 connect(conflictPage, &ConflictPage::isFocusedChanged, this, [this, conflictPage](const bool status) { documentFocus(conflictPage, status); });
                 connect(conflictPage, &ConflictPage::changeSelection, this, &DocumentModule::changeSelection);
@@ -178,6 +181,19 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
                 connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
                 luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
+            }
+            // markdown page
+            else if (suffix == "md") {
+                newPage = new MarkdownPage(m_config, documentUrl);
+                auto *markdownPage = qobject_cast<MarkdownPage *>(newPage);
+                markdownPage->propertySet(QVariantHash{
+                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
+                    {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)}
+                });
+                connect(markdownPage, &MarkdownPage::isFocusedChanged, this, [this, markdownPage](const bool status) { documentFocus(markdownPage, status); });
+                connect(markdownPage, &MarkdownPage::changeSelection, this, &DocumentModule::changeSelection);
             }
             // pdf page
             else if (suffix == "pdf") {

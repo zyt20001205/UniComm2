@@ -32,10 +32,14 @@ signals:
 
     void changeSelection(const QHash<QString, int> &selection);
 
+    void changeContent();
+
 protected:
     virtual void shortcutInit();
 
     virtual void selectionChange();
+
+    virtual void contentChange();
 
     virtual bool symbolPair(QChar ch);
 
@@ -56,6 +60,9 @@ protected:
     QUrl m_documentUrl{};
     ScintillaWidget *m_scintillaWidget{};
     QHash<QString, int> m_selection{};
+
+    QTimer *m_selectionTimer{};
+    QTimer *m_contentTimer{};
 
 private:
     void documentOpen() const;
@@ -81,8 +88,6 @@ private:
     QObject *m_propertyDialog{};
     QObject *m_gotoDialog{};
     SearchWidget *m_searchWidget{};
-
-    QTimer *m_selectionTimer{};
 
     QHash<QChar, QChar> m_pair{};
     QVariantHash m_search{};

@@ -9,13 +9,13 @@ struct ICoreWebView2;
 struct ICoreWebView2Controller;
 struct ICoreWebView2Environment;
 
-class WebViewWidget final : public QWidget {
+class WebviewWidget final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit WebViewWidget(QWidget *parent = nullptr);
+    explicit WebviewWidget(QWidget *parent = nullptr);
 
-    ~WebViewWidget() override;
+    ~WebviewWidget() override;
 
     void navigate(const QUrl &url);
 

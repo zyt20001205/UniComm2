@@ -18,6 +18,7 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
       m_config(documentConfig),
       m_searchWidget(new SearchWidget(this)),
       m_selectionTimer(new QTimer(this)),
+      m_contentTimer(new QTimer(this)),
       m_pair{
           {'"', '"'},
           {'\'', '\''},
@@ -40,6 +41,9 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     connect(m_scintillaWidget, &ScintillaEdit::focusChanged, this, [this](const bool focused) {
         if (focused) m_selectionTimer->start();
     });
+    connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
+        if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
+    });
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_scintillaWidget, &ScintillaWidget::searchFlagsSet);
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &EditorWidget::searchRequest);
     connect(m_searchWidget, &SearchWidget::prevSearch, this, &EditorWidget::searchPrev);
@@ -51,6 +55,10 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     m_selectionTimer->setSingleShot(true);
     m_selectionTimer->setInterval(100);
     connect(m_selectionTimer, &QTimer::timeout, this, &EditorWidget::selectionChange);
+    // 500ms debounce for content change
+    m_contentTimer->setSingleShot(true);
+    m_contentTimer->setInterval(500);
+    connect(m_contentTimer, &QTimer::timeout, this, &EditorWidget::contentChange);
 }
 
 void EditorWidget::propertySet(const QVariantHash &objects) {
@@ -136,6 +144,10 @@ void EditorWidget::shortcutInit() {
 void EditorWidget::selectionChange() {
     m_selection = m_scintillaWidget->selectionGet();
     emit changeSelection(m_selection);
+}
+
+void EditorWidget::contentChange() {
+    emit changeContent();
 }
 
 bool EditorWidget::symbolPair(const QChar ch) {

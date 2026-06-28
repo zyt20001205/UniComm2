@@ -13,20 +13,12 @@
 // public
 CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUrl, QWidget *parent)
     : EditorWidget(documentConfig, documentUrl, parent),
-      m_contentTimer(new QTimer(this)),
       m_dwellTimer(new QTimer(this)),
       m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpSet{'(', ','},
       m_onTypeFormattingSet{'\n'} {
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
-    connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
-        if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
-    });
     m_scintillaWidget->viewport()->installEventFilter(this);
-    // 500ms debounce for content change
-    m_contentTimer->setSingleShot(true);
-    m_contentTimer->setInterval(500);
-    connect(m_contentTimer, &QTimer::timeout, this, &CodeWidget::contentChange);
     // 1000ms debounce for dwell change
     m_dwellTimer->setSingleShot(true);
     m_dwellTimer->setInterval(1000);
@@ -59,97 +51,97 @@ void CodeWidget::themeLoad(const int theme) const {
     const auto themeConfig = themeDoc.object();
     const auto styleConfig = themeConfig["style"].toObject();
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Namespace,
+        ScintillaStyle::Namespace,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["namespace"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Class,
+        ScintillaStyle::Class,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["class"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Type,
+        ScintillaStyle::Type,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["type"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Parameter,
+        ScintillaStyle::Parameter,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["parameter"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Variable,
+        ScintillaStyle::Variable,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["variable"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Property,
+        ScintillaStyle::Property,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["property"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::EnumMember,
+        ScintillaStyle::EnumMember,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["enumMember"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::FunctionCall,
+        ScintillaStyle::FunctionCall,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["functionCall"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::FunctionDeclaration,
+        ScintillaStyle::FunctionDeclaration,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["functionDeclaration"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Method,
+        ScintillaStyle::Method,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["method"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Macro,
+        ScintillaStyle::Macro,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["macro"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Keyword,
+        ScintillaStyle::Keyword,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["keyword"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Comment,
+        ScintillaStyle::Comment,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["comment"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::String,
+        ScintillaStyle::String,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["string"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Number,
+        ScintillaStyle::Number,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["number"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
-        LuaTokenType::Operator,
+        ScintillaStyle::Operator,
         QVariantHash{
             {"fore", ScintillaWidget::colorGet(styleConfig["operator"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
@@ -336,7 +328,7 @@ void CodeWidget::rangeFormattingResponse(const QString &newText) const {
 
 void CodeWidget::semanticTokensResponse(const QJsonArray &data) {
     // clear
-    m_scintillaWidget->styleSet(LuaTokenType::Unused);
+    m_scintillaWidget->styleSet(ScintillaStyle::Unused);
     // publish
     int line = 0;
     int character = 0;
@@ -351,50 +343,50 @@ void CodeWidget::semanticTokensResponse(const QJsonArray &data) {
         int type{};
         switch (tokenType) {
             case LspTokenType::Namespace:
-                type = LuaTokenType::Namespace;
+                type = ScintillaStyle::Namespace;
                 break;
             case LspTokenType::Class:
-                type = LuaTokenType::Class;
+                type = ScintillaStyle::Class;
                 break;
             case LspTokenType::Type:
-                type = LuaTokenType::Type;
+                type = ScintillaStyle::Type;
                 break;
             case LspTokenType::Parameter:
-                type = LuaTokenType::Parameter;
+                type = ScintillaStyle::Parameter;
                 break;
             case LspTokenType::Variable:
-                type = LuaTokenType::Variable;
+                type = ScintillaStyle::Variable;
                 break;
             case LspTokenType::Property:
-                type = LuaTokenType::Property;
+                type = ScintillaStyle::Property;
                 break;
             case LspTokenType::EnumMember:
-                type = LuaTokenType::EnumMember;
+                type = ScintillaStyle::EnumMember;
                 break;
             case LspTokenType::Function:
-                if (tokenModifiers == LspTokenModifiers::Declaration || tokenModifiers == LspTokenModifiers::Global) type = LuaTokenType::FunctionDeclaration;
-                else type = LuaTokenType::FunctionCall;
+                if (tokenModifiers == LspTokenModifiers::Declaration || tokenModifiers == LspTokenModifiers::Global) type = ScintillaStyle::FunctionDeclaration;
+                else type = ScintillaStyle::FunctionCall;
                 break;
             case LspTokenType::Method:
-                type = LuaTokenType::Method;
+                type = ScintillaStyle::Method;
                 break;
             case LspTokenType::Macro:
-                type = LuaTokenType::Macro;
+                type = ScintillaStyle::Macro;
                 break;
             case LspTokenType::Keyword:
-                type = LuaTokenType::Keyword;
+                type = ScintillaStyle::Keyword;
                 break;
             case LspTokenType::Comment:
-                type = LuaTokenType::Comment;
+                type = ScintillaStyle::Comment;
                 break;
             case LspTokenType::String:
-                type = LuaTokenType::String;
+                type = ScintillaStyle::String;
                 break;
             case LspTokenType::Number:
-                type = LuaTokenType::Number;
+                type = ScintillaStyle::Number;
                 break;
             case LspTokenType::Operator:
-                type = LuaTokenType::Operator;
+                type = ScintillaStyle::Operator;
                 break;
             default:
                 emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported semantic (token type:%1)").arg(QString::number(tokenType)));
@@ -479,6 +471,23 @@ void CodeWidget::selectionChange() {
         documentHighlightRequest();
         emit showDocumentSymbol(m_selection["line"], m_selection["character"]);
     }
+}
+
+void CodeWidget::contentChange() {
+    // status refresh
+    breakpointGet();
+    regionGet();
+    // lsp request
+    didChangeNotification();
+    documentHighlightRequest();
+    documentSymbolRequest();
+    foldingRangeRequest();
+    semanticTokensRequest();
+    // nuspell request
+    spellCheckRequest();
+    // assembly request
+    // TODO: assembly interaction
+    // assemblyToggle(m_assemblyWidget->isVisible());
 }
 
 bool CodeWidget::symbolPair(const QChar ch) {
@@ -737,23 +746,6 @@ void CodeWidget::marginClick(const Scintilla::Position position, const int mouse
             }
         }
     }
-}
-
-void CodeWidget::contentChange() {
-    // status refresh
-    breakpointGet();
-    regionGet();
-    // lsp request
-    didChangeNotification();
-    documentHighlightRequest();
-    documentSymbolRequest();
-    foldingRangeRequest();
-    semanticTokensRequest();
-    // nuspell request
-    spellCheckRequest();
-    // assembly request
-    // TODO: assembly interaction
-    // assemblyToggle(m_assemblyWidget->isVisible());
 }
 
 void CodeWidget::dwellChange() {
@@ -1026,7 +1018,7 @@ void CodeWidget::commentToggle() {
 
 bool CodeWidget::navigable(const Scintilla::Position position) const {
     const int type = m_scintillaWidget->styleGet(position);
-    if (type > 0 && type < LuaTokenType::Macro) return true;
+    if (type > 0 && type < ScintillaStyle::Macro) return true;
     return false;
 }
 
