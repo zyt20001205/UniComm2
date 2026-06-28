@@ -27,9 +27,15 @@ struct QFileIcon {
     operator QUrl() const { return value; }
 };
 
+struct QHtmlString {
+    QString value;
+    QHtmlString(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
 struct VTermButton {
     int value;
-    VTermButton(int s) : value(std::move(s)) {}
+    VTermButton(int s) : value(s) {}
     operator int() const { return value; }
 };
 
@@ -78,6 +84,9 @@ template<>
 // qt -> qt
 template<>
 [[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);
+
+template<>
+[[nodiscard]] QHtmlString uni_cast<QHtmlString, QString>(const QString &s, int depth);
 
 // vterm -> qt
 template<>

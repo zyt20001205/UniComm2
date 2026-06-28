@@ -6,6 +6,7 @@
 #include <sol/variadic_args.hpp>
 #include <sol/userdata.hpp>
 
+#include "cmark.h"
 #include "globals.h"
 
 // lua -> qt
@@ -271,6 +272,17 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     if (fileInfo.isDir() && fileInfo.fileName() == ".idea") return QUrl("qrc:/icon/fileTypeFolderIntellij.svg");
     if (fileInfo.isDir()) return QUrl("qrc:/icon/fileTypeFolder.svg");
     return QUrl("qrc:/icon/fileTypeDefault.svg");
+}
+
+template<>
+QHtmlString uni_cast<QHtmlString, QString>(const QString &s, const int depth) {
+    Q_UNUSED(depth);
+    const auto md = s.toUtf8();
+    char *htmlChar = cmark_markdown_to_html(md.constData(), md.size(), CMARK_OPT_DEFAULT);
+    if (!htmlChar) return QString();
+    const QString d = QString::fromUtf8(htmlChar);
+    free(htmlChar);
+    return d;
 }
 
 // vterm -> qt

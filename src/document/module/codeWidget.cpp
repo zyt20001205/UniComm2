@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "core/globalManager.h"
 #include "document/module/scintillaWidget.h"
-#include "util/cmarkUtils.h"
+#include "util/uniCast.h"
 
 // public
 CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUrl, QWidget *parent)
@@ -928,7 +928,9 @@ void CodeWidget::hoverRequest() {
         // qDebug() << message << parsed;
         const QString customUrl = QString("request.code.action://reserved/%1/%2/%3/%4").arg(
             QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
-        diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td align='right'><a href='%3'>Code Action</a></td></tr>").arg(severityString, md2html(message), customUrl);
+        const auto html = uni_cast<QHtmlString>(message).value;
+        // remove <p> & </p>\n
+        diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td align='right'><a href='%3'>Code Action</a></td></tr>").arg(severityString, html.mid(3, html.size() - 8), customUrl);
     }
     // show typo if exists
     for (const auto &value: m_typo) {

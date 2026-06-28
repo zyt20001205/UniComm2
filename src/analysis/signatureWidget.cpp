@@ -4,7 +4,7 @@
 #include <QJsonObject>
 #include <QLabel>
 
-#include "util/cmarkUtils.h"
+#include "util/uniCast.h"
 
 // public
 SignatureWidget::SignatureWidget(QWidget *parent)
@@ -53,7 +53,9 @@ void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const 
             const int endIndex = range[1].toInt();
             QString param = label.mid(startIndex, endIndex - startIndex);
             if (index == activeParameter) {
-                param = QString("<span style='color: #115ea3; font-weight: 600;'>%1</span>").arg(md2html(param));
+                const auto html = uni_cast<QHtmlString>(param).value;
+                // remove <p> & </p>\n
+                param = QString("<span style='color: #115ea3; font-weight: 600;'>%1</span>").arg(html.mid(3, html.size() - 8));
             }
             helpText += param;
             helpText += ", ";

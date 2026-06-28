@@ -7,6 +7,7 @@
 #include <QStyleFactory>
 
 #include "core/configManager.h"
+#include "document/module/webviewWidget.h"
 
 int main(int argc, char *argv[]) {
     // crash handler init

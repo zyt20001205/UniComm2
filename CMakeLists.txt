@@ -24,7 +24,6 @@ find_package(Qt6 REQUIRED COMPONENTS
         SerialPort
         Svg
         TextToSpeech
-        WebView
         Widgets
 )
 
@@ -190,6 +189,11 @@ set(VTERM_INCLUDE "${VTERM_DIR}/include")
 file(GLOB VTERM_LIB "${VTERM_DIR}/lib/*.a")
 set(VTERM_BIN "${VTERM_DIR}/bin")
 
+set(WEBVIEW2_DIR "${CMAKE_SOURCE_DIR}/3rd/webview2")
+set(WEBVIEW2_INCLUDE "${WEBVIEW2_DIR}/include")
+file(GLOB WEBVIEW2_LIB "${WEBVIEW2_DIR}/lib/*.dll")
+set(WEBVIEW2_BIN "${WEBVIEW2_DIR}/bin")
+
 target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE}
         ${CMARK_INCLUDE}
@@ -206,6 +210,7 @@ target_include_directories(UniComm PRIVATE
         ${TESSERACT_INCLUDE}
         ${VISA_INCLUDE}
         ${VTERM_INCLUDE}
+        ${WEBVIEW2_INCLUDE}
 )
 
 target_link_libraries(UniComm PRIVATE
@@ -224,7 +229,6 @@ target_link_libraries(UniComm PRIVATE
         Qt6::SerialPort
         Qt6::Svg
         Qt6::TextToSpeech
-        Qt6::WebView
         Qt6::Widgets
         ${CMARK_LIB}
         ${DRMINGW_LIB}
@@ -238,6 +242,8 @@ target_link_libraries(UniComm PRIVATE
         ${TESSERACT_LIB}
         ${VISA_LIB}
         ${VTERM_LIB}
+        ${WEBVIEW2_LIB}
+        ole32
         -Wl,--start-group
         ${OPENCV_LIB}
         -Wl,--end-group
@@ -387,4 +393,10 @@ else ()
             "${VTERM_BIN}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "VTERM BIN COPIED")
+    #webview2
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${WEBVIEW2_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "WEBVIEW2 BIN COPIED")
 endif()
