@@ -229,7 +229,11 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         if (conflict) newPage->pathDisambiguation();
         m_watcher->addPath(documentUrl.toLocalFile());
         m_pageHash[documentUrl] = newPage;
-        if (m_focusedUrl.isEmpty()) {
+        if (qobject_cast<MarkdownPage *>(newPage)) {
+            newPage->setFloating(true);
+            newPage->open();
+            m_pageHash[m_focusedUrl]->addDockWidgetAsTab(newPage);
+        } else if (m_focusedUrl.isEmpty()) {
             m_welcomePage->open();
             m_welcomePage->addDockWidgetAsTab(newPage);
             m_welcomePage->close();
