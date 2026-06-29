@@ -9,6 +9,4 @@ QByteArray fileHashCalc(const QString &fileInfo);
 
 QByteArray fileHashCalc(const QUrl &fileInfo);
 
-QString md2plain(const QString &markdown);
-
 #endif //UNICOMM_QTUTILS_H

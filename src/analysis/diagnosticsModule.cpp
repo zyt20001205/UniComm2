@@ -10,7 +10,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
-#include "util/qtUtils.h"
+#include "util/uniCast.h"
 
 // public
 DiagnosticsModule::DiagnosticsModule()
@@ -65,7 +65,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const Q
         const QString data = diagnostic["data"].toString();
         // placeholder operation
         if (diagnostic["message"].toString().contains("__PLACEHOLDER__")) continue;
-        const QString message = md2plain(diagnostic["message"].toString());
+        const QString message = uni_cast<QHtmlString>(diagnostic["message"].toString());
         auto *severityItem = new QStandardItem(); // NOLINT
         switch (severity) {
             case LEVEL_ERROR: {

@@ -19,10 +19,3 @@ QByteArray fileHashCalc(const QUrl &fileInfo) {
     const QString filePath = fileInfo.toLocalFile();
     return fileHashCalc(filePath);
 }
-
-QString md2plain(const QString &markdown) {
-    QTextDocument doc{};
-    doc.setMarkdown(markdown.toHtmlEscaped());
-    const QString plain = doc.toPlainText();
-    return plain;
-}
