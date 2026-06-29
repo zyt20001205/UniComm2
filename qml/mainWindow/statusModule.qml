@@ -65,14 +65,23 @@ Item {
         }
 
         RowLayout {
-            visible: !backgroundModel.empty
+            visible: backgroundModel.taskCount !== 0
 
             Button {
+                id: backgroundButton
                 text: backgroundModel.title
                 flat: true
                 Layout.preferredHeight: 24
 
-                onClicked: statusModule.backgroundInfo(backgroundModel.taskId)
+                onClicked: {
+                    if (backgroundModel.taskId === -1) {
+                        const globalPos = backgroundButton.mapToGlobal(0, -backgroundTooltip.height);
+                        backgroundTooltip.position = backgroundTooltip.parent.mapFromGlobal(globalPos.x, globalPos.y)
+                        backgroundTooltip.open()
+                    } else {
+                        statusModule.backgroundInfo(backgroundModel.taskId)
+                    }
+                }
             }
 
             ProgressBar {
@@ -87,7 +96,15 @@ Item {
                 icon.width: 12; icon.height: 12
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: backgroundModel.taskId === -1 ? console.log("expand") : statusModule.backgroundAbort(backgroundModel.taskId)
+                onClicked: {
+                    if (backgroundModel.taskId === -1) {
+                        const globalPos = backgroundButton.mapToGlobal(0, -backgroundTooltip.height);
+                        backgroundTooltip.position = backgroundTooltip.parent.mapFromGlobal(globalPos.x, globalPos.y)
+                        backgroundTooltip.open()
+                    } else {
+                        statusModule.backgroundAbort(backgroundModel.taskId)
+                    }
+                }
             }
         }
 
@@ -158,6 +175,7 @@ Item {
             }
         }
     }
+
     function documentPathLoad(pathList) {
         pathBreadcrumb.children = [];
         for (const path of pathList) {

@@ -4431,6 +4431,97 @@ Item {
         }
     }
 
+    ToolTip {
+        id: statusModuleBackgroundToolTip
+        parent: Overlay.overlay
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+        property var backgroundModel
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, false)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            x = position.x
+            y = position.y
+        }
+
+        contentItem: TableView {
+            id: statusModuleBackgroundTableView
+            anchors.fill: parent
+            anchors.margins: 6
+            implicitWidth: 400; implicitHeight: 300
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            rowSpacing: 1
+            model: statusModuleBackgroundToolTip.backgroundModel
+            contentWidth: width
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
+
+            delegate: Item {
+                implicitWidth: statusModuleBackgroundTableView.width
+                implicitHeight: 48
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.back
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+
+                    RowLayout {
+                        Layout.fillWidth: true; Layout.fillHeight: true
+
+                        Label {
+                            leftPadding: 6
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                            text: model.display || ""
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true; Layout.preferredHeight: 24
+                        }
+
+                        Button {
+                            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                            flat: true
+                            icon.source: "qrc:/icon/dismiss.svg"
+                            icon.width: 16; icon.height: 16
+                            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                            onClicked: {
+                                const close = statusModuleBackgroundToolTip.backgroundModel.taskCount <= 2
+                                statusModule.backgroundAbort(model.taskId)
+                                if (close) {
+                                    statusModuleBackgroundToolTip.close()
+                                }
+                            }
+                        }
+                    }
+
+                    ProgressBar {
+                        indeterminate: true
+                        Layout.fillWidth: true; Layout.preferredHeight: 12
+                    }
+                }
+            }
+        }
+    }
+
     // structure module
     Menu {
         id: structureModuleRootMenu
@@ -4851,6 +4942,7 @@ Item {
             "portModuleRootMenu": portModuleRootMenu,
 
             "statusModuleEolModeMenu": statusModuleEolModeMenu,
+            "statusModuleBackgroundToolTip": statusModuleBackgroundToolTip,
 
             "structureModuleRootMenu": structureModuleRootMenu,
 

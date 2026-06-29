@@ -20,11 +20,14 @@ StatusModule::~StatusModule() {
 }
 
 void StatusModule::propertySet(const QVariantHash &objects) {
+    auto *backgroundTooltip = qvariant_cast<QObject *>(objects["statusModuleBackgroundToolTip"]);
+    backgroundTooltip->setProperty("backgroundModel", QVariant::fromValue<QObject *>(m_backgroundModel));
     rootContext()->setContextProperty("global", g_globalManager);
 
     rootContext()->setContextProperty("statusModule", this);
     rootContext()->setContextProperty("workspaceName", g_workspaceUrl.fileName());
     rootContext()->setContextProperty("eolModeMenu", qvariant_cast<QObject *>(objects["statusModuleEolModeMenu"]));
+    rootContext()->setContextProperty("backgroundTooltip", backgroundTooltip);
     rootContext()->setContextProperty("backgroundModel", m_backgroundModel);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/mainWindow/statusModule.qml"));
@@ -155,9 +158,9 @@ void StatusModule::backgroundUpdate() const {
 // public
 BackgroundModel::BackgroundModel(QObject *parent)
     : QStandardItemModel(parent) {
-    connect(this, &QAbstractItemModel::rowsInserted, this, &BackgroundModel::emptyChanged);
-    connect(this, &QAbstractItemModel::rowsRemoved, this, &BackgroundModel::emptyChanged);
-    connect(this, &QAbstractItemModel::modelReset, this, &BackgroundModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsInserted, this, &BackgroundModel::taskCountChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &BackgroundModel::taskCountChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &BackgroundModel::taskCountChanged);
 }
 
 QHash<int, QByteArray> BackgroundModel::roleNames() const {

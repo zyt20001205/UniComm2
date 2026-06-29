@@ -55,18 +55,14 @@ private:
 
 class BackgroundModel final : public QStandardItemModel {
     Q_OBJECT
-    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
     Q_PROPERTY(QString title READ titleGet NOTIFY titleChanged)
     Q_PROPERTY(int taskId READ taskIdGet NOTIFY taskIdChanged)
+    Q_PROPERTY(int taskCount READ taskCountGet NOTIFY taskCountChanged)
 
 public:
     explicit BackgroundModel(QObject *parent = nullptr);
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
-
-    [[nodiscard]] bool emptyGet() const {
-        return rowCount() == 0;
-    }
 
     [[nodiscard]] QString titleGet() const {
         return m_title;
@@ -88,12 +84,16 @@ public:
         emit taskIdChanged();
     }
 
+    [[nodiscard]] int taskCountGet() const {
+        return rowCount();
+    }
+
 signals:
     void titleChanged();
 
     void taskIdChanged();
 
-    void emptyChanged();
+    void taskCountChanged();
 
 private:
     QString m_title{};

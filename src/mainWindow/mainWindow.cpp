@@ -91,15 +91,15 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("datatableModule", m_datatableModule);
     m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
+    m_overlay->rootContext()->setContextProperty("documentModule", m_documentModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("gitModule", m_gitModule);
     m_overlay->rootContext()->setContextProperty("llmModule", m_llmModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     m_overlay->rootContext()->setContextProperty("menuModule", m_menuModule);
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
-    // m_overlay->rootContext()->setContextProperty("statusModule", m_statusModule);
+    m_overlay->rootContext()->setContextProperty("statusModule", m_statusModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
-    m_overlay->rootContext()->setContextProperty("documentModule", m_documentModule);
     // m_overlay->rootContext()->setContextProperty("sendModule", m_sendModule);
     m_overlay->rootContext()->setContextProperty("fileModule", m_fileModule);
     m_overlay->rootContext()->setContextProperty("terminalModule", m_terminalModule);
@@ -254,7 +254,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_sendModule->propertySet(sendObjects);
 
     const QVariantHash statusObjects = {
-        {"statusModuleEolModeMenu", objects["statusModuleEolModeMenu"]}
+        {"statusModuleEolModeMenu", objects["statusModuleEolModeMenu"]},
+        {"statusModuleBackgroundToolTip", objects["statusModuleBackgroundToolTip"]}
     };
     m_statusModule->propertySet(statusObjects);
 
