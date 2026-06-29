@@ -50,7 +50,7 @@ class GlobalManager final : public QObject {
     Q_PROPERTY(bool refresh READ refreshGet WRITE refreshSet)
 
 public:
-    explicit GlobalManager(QWidget *parent = nullptr);
+    explicit GlobalManager(QObject *parent = nullptr);
 
     ~GlobalManager() override = default;
 

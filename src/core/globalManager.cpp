@@ -6,7 +6,7 @@
 #include "mainWindow/kddwCustom.h"
 
 // public
-GlobalManager::GlobalManager(QWidget *parent)
+GlobalManager::GlobalManager(QObject *parent)
     : QObject(parent),
       m_theme(g_mainConfig["theme"].toInt()),
       m_palette({
