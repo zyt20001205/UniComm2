@@ -10,6 +10,7 @@
 #include "cmark-gfm-core-extensions.h"
 #include "cmark-gfm-extension_api.h"
 #include "globals.h"
+#include "core/globalManager.h"
 
 // lua -> qt
 template<>
@@ -307,10 +308,164 @@ QHtmlString uni_cast<QHtmlString, QString>(const QString &s, const int depth) {
     cmark_node *document = cmark_parser_finish(parser);
     char *htmlChar = cmark_render_html(document, options, cmark_parser_get_syntax_extensions(parser));
 
-    const QString d = htmlChar ? QString::fromUtf8(htmlChar) : QString();
+    QString d = htmlChar ? QString::fromUtf8(htmlChar) : QString();
     if (htmlChar) free(htmlChar);
     cmark_node_free(document);
     cmark_parser_free(parser);
+    if (!g_globalManager) return d;
+
+    d.replace("<pre>", R"(<pre style='font-family: Consolas, monospace; background-color: @hover; border: 1px solid @stroke; padding: 8px; white-space: pre-wrap;'>)");
+    d.replace("<pre ", R"(<pre style='font-family: Consolas, monospace; background-color: @hover; border: 1px solid @stroke; padding: 8px; white-space: pre-wrap;' )");
+    d.replace("<code>", R"(<code style='font-family: Consolas, monospace; background-color: @hover; border: 1px solid @stroke; padding: 2px 4px; white-space: pre-wrap;'>)");
+    d.replace("<code ", R"(<code style='font-family: Consolas, monospace; background-color: @hover; border: 1px solid @stroke; padding: 2px 4px; white-space: pre-wrap;' )");
+    d.replace("<table>", R"(<table style='border-collapse: collapse; margin: 8px 0;'>)");
+    d.replace("<table ", R"(<table style='border-collapse: collapse; margin: 8px 0;' )");
+    d.replace("<td>", R"(<td style='border: 1px solid @stroke; padding: 4px 8px;'>)");
+    d.replace("<td ", R"(<td style='border: 1px solid @stroke; padding: 4px 8px;' )");
+    d.replace("<th>", R"(<th style='border: 1px solid @stroke; padding: 4px 8px; background-color: @hover; font-weight: 600;'>)");
+    d.replace("<th ", R"(<th style='border: 1px solid @stroke; padding: 4px 8px; background-color: @hover; font-weight: 600;' )");
+    d.replace("@hover", g_globalManager->backHoverGet());
+    d.replace("@stroke", g_globalManager->strokeGet());
+    return d;
+}
+
+template<>
+QFullHtmlString uni_cast<QFullHtmlString, QString>(const QString &s, const int depth) {
+    Q_UNUSED(depth);
+    const auto md = s.toUtf8();
+
+    cmark_gfm_core_extensions_ensure_registered();
+    constexpr int options = CMARK_OPT_UNSAFE | CMARK_OPT_FOOTNOTES;
+    cmark_parser *parser = cmark_parser_new(options);
+    const char *extensions[] = {
+        "footnotes",
+        "table",
+        "strikethrough",
+        "autolink",
+        "tasklist",
+    };
+    for (const auto *name: extensions) {
+        auto *extension = cmark_find_syntax_extension(name);
+        if (extension) cmark_parser_attach_syntax_extension(parser, extension);
+    }
+    cmark_parser_feed(parser, md.constData(), md.size());
+    cmark_node *document = cmark_parser_finish(parser);
+    char *htmlChar = cmark_render_html(document, options, cmark_parser_get_syntax_extensions(parser));
+
+    const QString body = htmlChar ? QString::fromUtf8(htmlChar) : QString();
+    if (htmlChar) free(htmlChar);
+    cmark_node_free(document);
+    cmark_parser_free(parser);
+
+    auto d = QString(R"(<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html, body {
+    margin: 0;
+    min-height: 100%;
+    color: @fore;
+    background: @back;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+body {
+    padding: 12px;
+}
+a {
+    color: @link;
+}
+pre, code {
+    font-family: Consolas, monospace;
+}
+code {
+    padding: 2px 4px;
+    border: 1px solid @stroke;
+    border-radius: 4px;
+    background: @hover;
+}
+pre {
+    overflow: auto;
+    padding: 8px;
+    background: @hover;
+}
+pre code {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+table {
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+th, td {
+    border: 1px solid @stroke;
+    padding: 4px 8px;
+}
+th {
+    background: @hover;
+    font-weight: 600;
+}
+tr:nth-child(even) td {
+    background: @selected;
+}
+img {
+    max-width: 100%;
+}
+.mermaid {
+    overflow: auto;
+}
+.mermaid svg {
+    max-width: 100%;
+}
+.hljs {
+    background: transparent;
+}
+</style>
+<link rel="stylesheet" href="http://unicomm/@highlightTheme">
+<script src="http://unicomm/mermaid.min.js"></script>
+<script src="http://unicomm/highlight.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const blocks = document.querySelectorAll("pre > code.language-mermaid, pre > code.mermaid");
+
+    if (window.hljs) {
+        document.querySelectorAll("pre > code").forEach((code) => {
+            if (code.classList.contains("language-mermaid") || code.classList.contains("mermaid")) return;
+            hljs.highlightElement(code);
+        });
+    }
+
+    if (window.mermaid && blocks.length > 0) {
+        blocks.forEach((code) => {
+            const diagram = document.createElement("div");
+            diagram.className = "mermaid";
+            diagram.textContent = code.textContent;
+            code.parentElement.replaceWith(diagram);
+        });
+
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: "loose",
+            theme: "@mermaidTheme"
+        });
+        await mermaid.run({ querySelector: ".mermaid" });
+    }
+});
+</script>
+</head>
+<body>@body</body>
+</html>)");
+    d.replace("@fore", g_globalManager->foreGet());
+    d.replace("@back", g_globalManager->backGet());
+    d.replace("@link", g_globalManager->brandLinkGet());
+    d.replace("@hover", g_globalManager->backHoverGet());
+    d.replace("@stroke", g_globalManager->strokeGet());
+    d.replace("@selected", g_globalManager->backSelectedGet());
+    d.replace("@mermaidTheme", g_globalManager->themeGet() == Theme::Light ? "default" : "dark");
+    d.replace("@highlightTheme", g_globalManager->themeGet() == Theme::Light ? "highlight-light.min.css" : "highlight-dark.min.css");
+    d.replace("@body", body);
     return d;
 }
 

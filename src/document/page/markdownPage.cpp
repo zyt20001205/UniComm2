@@ -1,13 +1,8 @@
 #include "document/page/markdownPage.h"
 
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
 #include <QShortcut>
 #include <QSplitter>
 
-#include "globals.h"
-#include "core/globalManager.h"
 #include "document/module/editorWidget.h"
 #include "document/module/scintillaWidget.h"
 #include "document/module/webviewWidget.h"
@@ -25,12 +20,12 @@ MarkdownPage::MarkdownPage(const QJsonObject &documentConfig, const QUrl &docume
     splitter->setStretchFactor(1, 1);
     splitter->setSizes({600, 600});
     setWidget(splitter);
-    m_webviewWidget->setHtml(pageGenerate(this->handler()->textGet()));
+    m_webviewWidget->setHtml(uni_cast<QFullHtmlString>(this->handler()->textGet()));
     connect(m_editorWidget, &EditorWidget::appendLog, this, &MarkdownPage::appendLog);
     connect(m_editorWidget, &EditorWidget::changeSavepoint, this, &MarkdownPage::savepointChange);
     connect(m_editorWidget, &EditorWidget::changeSelection, this, &MarkdownPage::changeSelection);
     connect(m_editorWidget, &EditorWidget::changeContent, this, [this] {
-        m_webviewWidget->setHtml(pageGenerate(this->handler()->textGet()));
+        m_webviewWidget->setHtml(uni_cast<QFullHtmlString>(this->handler()->textGet()));
     });
 }
 
@@ -80,117 +75,4 @@ void MarkdownPage::savepointChange(const bool status) {
     } else {
         setTitle(pageName.chopped(1));
     }
-}
-
-QString MarkdownPage::pageGenerate(const QString &text) {
-    auto html = QString(R"(<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-html, body {
-    margin: 0;
-    min-height: 100%;
-    color: @fore;
-    background: @back;
-    font-family: "Segoe UI", sans-serif;
-    font-size: 14px;
-}
-body {
-    padding: 12px;
-}
-a {
-    color: @link;
-}
-pre, code {
-    font-family: Consolas, monospace;
-}
-code {
-    padding: 2px 4px;
-    border: 1px solid @stroke;
-    border-radius: 4px;
-    background: @hover;
-}
-pre {
-    overflow: auto;
-    padding: 8px;
-    background: @hover;
-}
-pre code {
-    padding: 0;
-    border: 0;
-    background: transparent;
-}
-table {
-    border-collapse: collapse;
-    margin: 8px 0;
-}
-th, td {
-    border: 1px solid @stroke;
-    padding: 4px 8px;
-}
-th {
-    background: @hover;
-    font-weight: 600;
-}
-tr:nth-child(even) td {
-    background: @selected;
-}
-img {
-    max-width: 100%;
-}
-.mermaid {
-    overflow: auto;
-}
-.mermaid svg {
-    max-width: 100%;
-}
-.hljs {
-    background: transparent;
-}
-</style>
-<link rel="stylesheet" href="http://unicomm/@highlightTheme">
-<script src="http://unicomm/mermaid.min.js"></script>
-<script src="http://unicomm/highlight.min.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-    const blocks = document.querySelectorAll("pre > code.language-mermaid, pre > code.mermaid");
-
-    if (window.hljs) {
-        document.querySelectorAll("pre > code").forEach((code) => {
-            if (code.classList.contains("language-mermaid") || code.classList.contains("mermaid")) return;
-            hljs.highlightElement(code);
-        });
-    }
-
-    if (window.mermaid && blocks.length > 0) {
-        blocks.forEach((code) => {
-            const diagram = document.createElement("div");
-            diagram.className = "mermaid";
-            diagram.textContent = code.textContent;
-            code.parentElement.replaceWith(diagram);
-        });
-
-        mermaid.initialize({
-            startOnLoad: false,
-            securityLevel: "loose",
-            theme: "@mermaidTheme"
-        });
-        await mermaid.run({ querySelector: ".mermaid" });
-    }
-});
-</script>
-</head>
-<body>@body</body>
-</html>)");
-    html.replace("@fore", g_globalManager->foreGet());
-    html.replace("@back", g_globalManager->backGet());
-    html.replace("@link", g_globalManager->brandLinkGet());
-    html.replace("@hover", g_globalManager->backHoverGet());
-    html.replace("@stroke", g_globalManager->strokeGet());
-    html.replace("@selected", g_globalManager->backSelectedGet());
-    html.replace("@mermaidTheme", g_globalManager->themeGet() == Theme::Light ? "default" : "dark");
-    html.replace("@highlightTheme", g_globalManager->themeGet() == Theme::Light ? "highlight-light.min.css" : "highlight-dark.min.css");
-    html.replace("@body", uni_cast<QHtmlString>(text));
-    return html;
 }

@@ -30,8 +30,6 @@ signals:
 private:
     void savepointChange(bool status);
 
-    [[nodiscard]] static QString pageGenerate(const QString &text);
-
     EditorWidget *m_editorWidget{};
     WebviewWidget *m_webviewWidget{};
     QObject *m_saveDialog{};

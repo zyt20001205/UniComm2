@@ -33,6 +33,12 @@ struct QHtmlString {
     operator QString() const { return value; }
 };
 
+struct QFullHtmlString {
+    QString value;
+    QFullHtmlString(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
 struct VTermButton {
     int value;
     VTermButton(int s) : value(s) {}
@@ -90,6 +96,9 @@ template<>
 
 template<>
 [[nodiscard]] QHtmlString uni_cast<QHtmlString, QString>(const QString &s, int depth);
+
+template<>
+[[nodiscard]] QFullHtmlString uni_cast<QFullHtmlString, QString>(const QString &s, int depth);
 
 // vterm -> qt
 template<>
