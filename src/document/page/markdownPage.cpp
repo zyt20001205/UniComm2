@@ -105,10 +105,21 @@ a {
 pre, code {
     font-family: Consolas, monospace;
 }
+code {
+    padding: 2px 4px;
+    border: 1px solid @stroke;
+    border-radius: 4px;
+    background: @hover;
+}
 pre {
     overflow: auto;
     padding: 8px;
     background: @hover;
+}
+pre code {
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 table {
     border-collapse: collapse;
@@ -134,26 +145,39 @@ img {
 .mermaid svg {
     max-width: 100%;
 }
+.hljs {
+    background: transparent;
+}
 </style>
+<link rel="stylesheet" href="http://unicomm/@highlightTheme">
 <script src="http://unicomm/mermaid.min.js"></script>
+<script src="http://unicomm/highlight.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
     const blocks = document.querySelectorAll("pre > code.language-mermaid, pre > code.mermaid");
-    if (!window.mermaid || blocks.length === 0) return;
 
-    blocks.forEach((code) => {
-        const diagram = document.createElement("div");
-        diagram.className = "mermaid";
-        diagram.textContent = code.textContent;
-        code.parentElement.replaceWith(diagram);
-    });
+    if (window.hljs) {
+        document.querySelectorAll("pre > code").forEach((code) => {
+            if (code.classList.contains("language-mermaid") || code.classList.contains("mermaid")) return;
+            hljs.highlightElement(code);
+        });
+    }
 
-    mermaid.initialize({
-        startOnLoad: false,
-        securityLevel: "loose",
-        theme: "@mermaidTheme"
-    });
-    await mermaid.run({ querySelector: ".mermaid" });
+    if (window.mermaid && blocks.length > 0) {
+        blocks.forEach((code) => {
+            const diagram = document.createElement("div");
+            diagram.className = "mermaid";
+            diagram.textContent = code.textContent;
+            code.parentElement.replaceWith(diagram);
+        });
+
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: "loose",
+            theme: "@mermaidTheme"
+        });
+        await mermaid.run({ querySelector: ".mermaid" });
+    }
 });
 </script>
 </head>
@@ -166,6 +190,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     html.replace("@stroke", g_globalManager->strokeGet());
     html.replace("@selected", g_globalManager->backSelectedGet());
     html.replace("@mermaidTheme", g_globalManager->themeGet() == Theme::Light ? "default" : "dark");
+    html.replace("@highlightTheme", g_globalManager->themeGet() == Theme::Light ? "highlight-light.min.css" : "highlight-dark.min.css");
     html.replace("@body", uni_cast<QHtmlString>(text));
     return html;
 }

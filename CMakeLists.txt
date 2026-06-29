@@ -125,6 +125,8 @@ set(DRMINGW_INCLUDE "${DRMINGW_DIR}/include")
 file(GLOB DRMINGW_LIB "${DRMINGW_DIR}/lib/*.a")
 set(DRMINGW_BIN "${DRMINGW_DIR}/bin")
 
+set(HIGHLIGHT_DIR "${CMAKE_SOURCE_DIR}/3rd/highlight")
+
 set(ICU_DIR "${CMAKE_SOURCE_DIR}/3rd/icu")
 set(ICU_INCLUDE "${ICU_DIR}/include")
 file(GLOB ICU_LIB "${ICU_DIR}/lib/*.a")
@@ -275,6 +277,12 @@ else ()
             "${THEME_DIR}"
             "${CMAKE_BINARY_DIR}/theme"
             COMMENT "THEME DIR COPIED")
+    #highlight-11.11.1
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${HIGHLIGHT_DIR}"
+            "${CMAKE_BINARY_DIR}/javascript"
+            COMMENT "HIGHLIGHT COPIED")
     #lua-language-server-3.18.2
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
