@@ -956,6 +956,16 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
             luaPage->handler()->indicatorClear(ScintillaIndicator::Read);
             luaPage->handler()->indicatorClear(ScintillaIndicator::Write);
         }
+    } else if (const auto *markdown = qobject_cast<MarkdownPage *>(basePage)) {
+        if (status) {
+            markdown->handler()->focusSet(true);
+            m_focusedUrl = basePage->documentUrl();
+            const QVariantHash session = {
+                {"codePage", markdown->handler()->codePageGet()},
+                {"eolMode", markdown->handler()->eolModeGet()}
+            };
+            emit focusDocument(m_focusedUrl, session);
+        }
     } else if (const auto *textPage = qobject_cast<TextPage *>(basePage)) {
         if (status) {
             textPage->handler()->focusSet(true);
