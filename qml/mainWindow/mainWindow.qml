@@ -3774,10 +3774,9 @@ Item {
             onClosed: widgetCount -= 1
 
             MenuItem {
-                text: qsTr("Settings")
+                text: qsTr("Manage")
 
-                onTriggered: {
-                }
+                onTriggered: terminalModule.terminalManage()
             }
 
             MenuSeparator {

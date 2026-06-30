@@ -4,6 +4,8 @@
 #include <QJsonObject>
 #include <QStandardItemModel>
 
+class QQuickView;
+
 class TerminalModel;
 class TerminalPage;
 
@@ -19,10 +21,16 @@ public:
 
     void terminalConfigSave() const;
 
+    Q_INVOKABLE void terminalManage() const;
+
+    Q_INVOKABLE void terminalSave();
+
     Q_INVOKABLE void terminalOpen(const QString &name, const QVariantHash &session);
 
 private:
     QJsonObject m_config{};
+    QQuickView *m_manageWindow{};
+
     TerminalModel *m_terminalModel{};
     QHash<int, TerminalPage *> m_terminalHash{};
 };

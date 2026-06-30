@@ -17,7 +17,7 @@ Item {
 
         RowLayout {
             id: toolBar
-            Layout.fillWidth: true; Layout.fillHeight: false
+            Layout.fillWidth: true
             spacing: 0
 
             Item {

@@ -100,7 +100,7 @@ void TerminalPage::closeEvent(QCloseEvent *event) {
 void TerminalPage::start() {
     if (!m_conptyWidget || !m_vtermWidget) return;
     const bool started = m_conptyWidget->start(
-        m_session["program"].toString(),
+        m_session["program"].toUrl(),
         m_session["arguments"].toString(),
         g_workspaceUrl.toLocalFile(),
         m_rows,

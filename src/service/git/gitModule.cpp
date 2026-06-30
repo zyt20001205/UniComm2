@@ -27,7 +27,7 @@ GitModule::GitModule()
       m_indexWatcherTimer(new QTimer(this)),
       m_branchWatcher(new QFileSystemWatcher(this)),
       m_branchWatcherTimer(new QTimer(this)),
-m_gitConfig(new GitConfig(this)),
+      m_gitConfig(new GitConfig(this)),
       m_branchModel(new BranchModel(this)),
       m_logModel(new LogModel(this)),
       m_showModel(new ShowModel(this)),

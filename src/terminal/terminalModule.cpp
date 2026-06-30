@@ -1,6 +1,10 @@
 #include "terminal/terminalModule.h"
 
+#include <QQmlContext>
+#include <QQuickView>
+
 #include "globals.h"
+#include "core/globalManager.h"
 #include "terminal/logModule.h"
 #include "terminal/terminalPage.h"
 
@@ -8,6 +12,7 @@
 TerminalModule::TerminalModule(QWidget *parent)
     : QObject(parent)
       , m_config(g_workspaceConfig["terminalConfig"].toObject()),
+      m_manageWindow(new QQuickView()),
       m_terminalModel(new TerminalModel(this)) {
 }
 
@@ -28,10 +33,36 @@ void TerminalModule::propertySet(const QVariantHash &objects) {
         item->setData(session, Qt::UserRole + 1);
         m_terminalModel->appendRow(item);
     }
+
+    // manage window
+    m_manageWindow->setTitle(tr("Manage Terminal"));
+    m_manageWindow->setTransientParent(g_mainWindow->windowHandle());
+
+    m_manageWindow->rootContext()->setContextProperty("terminalModule", this);
+    m_manageWindow->rootContext()->setContextProperty("global", g_globalManager);
+    m_manageWindow->rootContext()->setContextProperty("terminalModel", QVariant::fromValue(m_terminalModel));
+
+    m_manageWindow->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_manageWindow->setSource(QUrl("qrc:/qml/terminal/terminalManageWindow.qml"));
 }
 
 void TerminalModule::terminalConfigSave() const {
     g_workspaceConfig["terminalConfig"] = m_config;
+}
+
+void TerminalModule::terminalManage() const {
+    m_manageWindow->resize(1080, 720);
+    m_manageWindow->show();
+}
+
+void TerminalModule::terminalSave() {
+    QJsonObject config{};
+    for (int i = 0; i < m_terminalModel->rowCount(); ++i) {
+        const auto &name = m_terminalModel->item(i, 0)->text();
+        const auto &session = m_terminalModel->item(i, 0)->data(Qt::UserRole + 1).toHash();
+        config[name] = QJsonObject::fromVariantHash(session);
+    }
+    m_config = config;
 }
 
 void TerminalModule::terminalOpen(const QString &name, const QVariantHash &session) {

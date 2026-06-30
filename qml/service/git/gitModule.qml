@@ -263,10 +263,11 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    topLeftRadius: column === 0 ? 6 : 0
-                    bottomLeftRadius: column === 0 ? 6 : 0
-                    topRightRadius: column === tableView.columns - 1 ? 6 : 0
-                    bottomRightRadius: column === tableView.columns - 1 ? 6 : 0
+                    radius: 6
+                    topLeftRadius: column === 0 ? radius : 0
+                    bottomLeftRadius: column === 0 ? radius : 0
+                    topRightRadius: column === tableView.columns - 1 ? radius : 0
+                    bottomRightRadius: column === tableView.columns - 1 ? radius : 0
                     color: tableView.selectedRow === row ? global.backSelected : "transparent"
                 }
 
@@ -401,7 +402,7 @@ Item {
 
             RowLayout {
                 id: showToolBar
-                Layout.fillWidth: true; Layout.fillHeight: false
+                Layout.fillWidth: true
                 spacing: 0
 
                 Item {

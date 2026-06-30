@@ -16,7 +16,7 @@ public:
 
     ~ConptyWidget() override;
 
-    [[nodiscard]] bool start(const QString &program, const QString &arguments, const QString &workingDirectory, int rows, int cols);
+    [[nodiscard]] bool start(const QUrl &program, const QString &arguments, const QString &workingDirectory, int rows, int cols);
 
     void inputWrite(const QByteArray &bytes) const;
 

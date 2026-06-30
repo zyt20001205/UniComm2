@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QMetaObject>
+#include <QUrl>
 #include <windows.h>
 
 #ifndef PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE
@@ -15,7 +16,7 @@ ConptyWidget::~ConptyWidget() {
     stop();
 }
 
-bool ConptyWidget::start(const QString &program, const QString &arguments, const QString &workingDirectory, const int rows, const int cols) {
+bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QString &workingDirectory, const int rows, const int cols) {
     if (program.isEmpty() || rows < 1 || cols < 1) return false;
 
     HANDLE h_inputRead{};
@@ -72,10 +73,11 @@ bool ConptyWidget::start(const QString &program, const QString &arguments, const
     startupInfo.StartupInfo.cb = sizeof(startupInfo);
     startupInfo.lpAttributeList = attributeList;
 
-    const QString commandLine = QString("\"%1\" %2").arg(program, arguments);
-    const std::wstring applicationName = program.toStdWString();
-    std::wstring command = commandLine.toStdWString();
-    const std::wstring directory = QDir::toNativeSeparators(workingDirectory).toStdWString();
+    const auto &_program = program.toLocalFile();
+    const auto &commandLine = QString("\"%1\" %2").arg(_program, arguments);
+    const auto &applicationName = _program.toStdWString();
+    auto command = commandLine.toStdWString();
+    const auto &directory = QDir::toNativeSeparators(workingDirectory).toStdWString();
 
     PROCESS_INFORMATION processInfo{};
     const BOOL created = CreateProcessW(
