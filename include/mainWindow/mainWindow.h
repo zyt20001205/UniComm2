@@ -27,7 +27,6 @@ class MenuModule;
 class NuspellModule;
 class PortModule;
 class DocumentModule;
-class SendModule;
 class StatusModule;
 class StructureModule;
 class TerminalModule;

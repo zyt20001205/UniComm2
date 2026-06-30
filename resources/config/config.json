@@ -33,8 +33,6 @@
   },
   "portConfig": [
   ],
-  "sendConfig": [
-  ],
   "shortcutConfig": {
     "openWorkspace": "Ctrl+O",
     "saveWorkspace": "Ctrl+S",

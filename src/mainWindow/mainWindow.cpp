@@ -41,7 +41,6 @@
 #include "mainWindow/menuModule.h"
 #include "mainWindow/statusModule.h"
 #include "port/portModule.h"
-#include "port/sendModule.h"
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
 #include "service/luaLanguageServer.h"

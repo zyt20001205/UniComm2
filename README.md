@@ -79,8 +79,8 @@ gantt
         file property dialog: done, 04-10, 3d
         dark theme: done, 05-01, 7d
         port session monitor: crit, 05-01, 7d
-        cli integration: done, 05-08, 12d
-        git integration: active, 05-20, 12d
+        cli integration: done, 05-08, 48d
+        git integration: done, 05-20, 42d
         custom settings: 07-01, 31d
         i18n: 08-01, 31d
 ```

@@ -3655,14 +3655,6 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Send")
-            checkable: true
-            checked: sendModuleAction ? sendModuleAction.checked : false
-
-            onTriggered: sendModuleAction.toggle()
-        }
-
-        MenuItem {
             text: qsTr("Threadpool")
             checkable: true
             checked: threadpoolModuleAction ? threadpoolModuleAction.checked : false
