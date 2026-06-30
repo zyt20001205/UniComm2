@@ -130,16 +130,6 @@ Item {
                     }
                 }
             }
-
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-
-                onTapped: {
-                    tableView.selectedRow = -1
-                    programTextField.clear()
-                    argumentsTextField.clear()
-                }
-            }
         }
 
         ColumnLayout {
@@ -188,6 +178,13 @@ Item {
             TextField {
                 id: argumentsTextField
                 Layout.fillWidth: true
+
+                onEditingFinished: {
+                    const index = terminalModel.index(tableView.selectedRow, 0)
+                    const session = terminalModel.data(index, Qt.UserRole + 1)
+                    session.arguments = argumentsTextField.text
+                    terminalModel.setData(index, session, Qt.UserRole + 1)
+                }
             }
         }
 
@@ -197,14 +194,12 @@ Item {
 
             Button {
                 text: qsTr("Apply")
-
-                onClicked: console.log("apply")
             }
 
             Button {
                 text: qsTr("Save and Exit")
 
-                onClicked: console.log("save and exit")
+                onClicked: terminalModule.terminalSave()
             }
         }
     }

@@ -56,13 +56,14 @@ void TerminalModule::terminalManage() const {
 }
 
 void TerminalModule::terminalSave() {
+    m_manageWindow->close();
     QJsonObject config{};
     for (int i = 0; i < m_terminalModel->rowCount(); ++i) {
         const auto &name = m_terminalModel->item(i, 0)->text();
         const auto &session = m_terminalModel->item(i, 0)->data(Qt::UserRole + 1).toHash();
         config[name] = QJsonObject::fromVariantHash(session);
     }
-    m_config = config;
+    m_config["terminals"] = config;
 }
 
 void TerminalModule::terminalOpen(const QString &name, const QVariantHash &session) {
