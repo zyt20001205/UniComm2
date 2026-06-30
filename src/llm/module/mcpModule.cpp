@@ -36,7 +36,7 @@ void McpModule::initialize() {
                 {
                     "clientInfo", QJsonObject{
                         {"name", "UniComm"},
-                        {"version", "0.2.0-alpha2"},
+                        {"version", "0.2.0-alpha3"},
                     }
                 },
             }

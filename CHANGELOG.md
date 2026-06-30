@@ -6,6 +6,7 @@
 - Introduced a new terminal experience based on vterm/ConPTY, with ANSI/true-color rendering, UTF-8 support, cursor handling, mouse scroll, middle-click paste, and OSC 52 clipboard support.
 - Added WebView and Markdown page support on top of the DocumentModule foundation.
 - Added BigModel provider support.
+- Added terminal session management and Markdown syntax highlighting support.
 - Improved the desktop UI with better docking and split handles, a tree view toolbar, theme fixes, and explorer fixes.
 
 ## Git
@@ -22,6 +23,7 @@
 - Added ANSI color and true-color rendering.
 - Added UTF-8 support, cursor rendering/blinking, resize behavior, scroll handling, mouse/key/modifier event routing, middle-click paste, bell callback, and OSC 52 clipboard support.
 - Added configurable terminal sessions and batch/PowerShell icons.
+- Added a terminal management window and persisted terminal configuration back to `config.json`.
 
 ## Document
 
@@ -29,6 +31,8 @@
 - Added WebView widget support.
 - Added document navigation integration with status callbacks.
 - Added conflict page/widget support for Git conflict resolution.
+- Added Highlight.js-backed Markdown code highlighting.
+- Improved Markdown HTML rendering and fixed several Markdown page issues.
 
 ## Coding
 
@@ -38,12 +42,14 @@
 ## UI
 
 - Improved menu bar, status bar, tree view, split handles, docking visuals, file property dialog, and executable icon.
+- Added tooltips to background task/status models.
 - Fixed several layout, margin, overlay, theme, and explorer issues.
 
 ## Infrastructure
 
 - Added background task infrastructure and status callbacks.
 - Reorganized Git-related files under `service/git`.
+- Added `QHtmlString` and `QFullHtmlString` conversions to `uni_cast`.
 - Optimized CMake configuration and internal signal/property handling.
 
 # v0.2.0-alpha2

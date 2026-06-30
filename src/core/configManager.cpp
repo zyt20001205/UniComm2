@@ -207,7 +207,7 @@ void ConfigManager::mainConfigGenerate() {
     if (QFile mainConfig(QDir::current().filePath("config.json")); mainConfig.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{
             {"theme", 0},
-            {"version", "0.2.0-alpha2"},
+            {"version", "0.2.0-alpha3"},
             {"workspace", ""}
         };
         const QJsonDocument doc(json);

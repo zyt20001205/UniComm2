@@ -110,7 +110,6 @@ private:
     NuspellModule *m_nuspellModule{};
     PortModule *m_portModule{};
     DocumentModule *m_documentModule{};
-    SendModule *m_sendModule{};
     StatusModule *m_statusModule{};
     StructureModule *m_structureModule{};
     TerminalModule *m_terminalModule{};

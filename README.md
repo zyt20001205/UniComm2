@@ -45,7 +45,7 @@ gantt
         v0.2.0(Infrastructure Construction): active, 02-11, 140d
         v0.2.0-alpha1: done, 02-11, 49d
         v0.2.0-alpha2: done, 04-01, 54d
-        v0.2.0-alpha3: 05-25, 37d
+        v0.2.0-alpha3: done, 05-25, 37d
         v0.3.0(Interface Optimization): 07-01, 62d
         v0.3.0-alpha1: 07-01, 31d
         v0.3.0-alpha2: 08-01, 31d

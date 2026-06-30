@@ -256,6 +256,7 @@ target_link_libraries(UniComm PRIVATE
 target_compile_definitions(UniComm PRIVATE
         KDDW_FRONTEND_QT
         KDDW_FRONTEND_QTWIDGETS
+        $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
 )
 
 target_compile_options(UniComm PRIVATE

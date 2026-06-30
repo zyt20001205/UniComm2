@@ -100,7 +100,6 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
     m_overlay->rootContext()->setContextProperty("statusModule", m_statusModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
-    // m_overlay->rootContext()->setContextProperty("sendModule", m_sendModule);
     m_overlay->rootContext()->setContextProperty("fileModule", m_fileModule);
     m_overlay->rootContext()->setContextProperty("terminalModule", m_terminalModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
@@ -114,7 +113,6 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("diagnosticsModuleAction", QVariant::fromValue(m_diagnosticsModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("explorerModuleAction", QVariant::fromValue(m_explorerModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("portModuleAction", QVariant::fromValue(m_portModule->toggleAction()));
-    m_overlay->rootContext()->setContextProperty("sendModuleAction", QVariant::fromValue(m_sendModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("structureModuleAction", QVariant::fromValue(m_structureModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("threadpoolModuleAction", QVariant::fromValue(m_threadpoolModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("watchModuleAction", QVariant::fromValue(m_watchModule->toggleAction()));
@@ -247,11 +245,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
     };
     m_portModule->propertySet(portObjects);
-
-    const QVariantHash sendObjects = {
-        //
-    };
-    m_sendModule->propertySet(sendObjects);
 
     const QVariantHash statusObjects = {
         {"statusModuleEolModeMenu", objects["statusModuleEolModeMenu"]},
@@ -386,7 +379,6 @@ void MainWindow::workspaceSave(const QUrl &configUrl) {
     m_llmModule->llmConfigSave();
     m_logModule->logConfigSave();
     m_portModule->portConfigSave();
-    m_sendModule->sendConfigSave();
     m_terminalModule->terminalConfigSave();
     WatchModule::watchConfigSave();
     mainConfigSave();
@@ -439,7 +431,6 @@ void MainWindow::moduleInit() {
     m_menuModule = new MenuModule(this);
     m_nuspellModule = new NuspellModule(this);
     m_portModule = new PortModule();
-    m_sendModule = new SendModule();
     m_statusModule = new StatusModule(this);
     m_structureModule = new StructureModule();
     m_terminalModule = new TerminalModule(this);
@@ -623,8 +614,7 @@ void MainWindow::layoutInit() {
     addDockWidget(m_documentModule->welcomePage(), KDDockWidgets::Location_OnRight);
     // left
     addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(400, 0)));
-    addDockWidget(m_sendModule, KDDockWidgets::Location_OnBottom, m_portModule);
-    addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_sendModule);
+    addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
     addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
     // right
     addDockWidget(m_breakpointModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(300, 0)));
