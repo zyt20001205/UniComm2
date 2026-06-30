@@ -146,6 +146,13 @@ Item {
                 TextField {
                     id: programTextField
                     Layout.fillWidth: true
+
+                    onEditingFinished: {
+                        const index = terminalModel.index(tableView.selectedRow, 0)
+                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        session.program = programTextField.text
+                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                    }
                 }
 
                 Button {
@@ -166,7 +173,13 @@ Item {
                     id: fileDialog
                     fileMode: FileDialog.OpenFile
                     nameFilters: ["Executable files (*.exe)", "All files (*)"]
-                    onAccepted: programTextField.text = selectedFile
+                    onAccepted: {
+                        programTextField.text = selectedFile
+                        const index = terminalModel.index(tableView.selectedRow, 0)
+                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        session.program = programTextField.text
+                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                    }
                 }
             }
 
