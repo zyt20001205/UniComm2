@@ -32,8 +32,8 @@ PortSetting::PortSetting(QWidget *parent)
       m_localHostStandardItemModel(new QStandardItemModel(this)),
       m_videoStreamStandardItemModel(new QStandardItemModel(this)),
       m_mediaCaptureSession(new QMediaCaptureSession(this)),
-      m_roiStandardItemModel(new QStandardItemModel(this)),
-      m_pipelineStandardItemModel(new QStandardItemModel(this)),
+      m_roiModel(new RoiModel(this)),
+      m_pipelineModel(new PipelineModel(this)),
       m_imageProvider(new ImageProvider()) {
 }
 
@@ -53,8 +53,8 @@ void PortSetting::propertySet(const QVariantHash &objects) {
     m_window->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
     m_window->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
     m_window->rootContext()->setContextProperty("videoStreamStandardItemModel", m_videoStreamStandardItemModel);
-    m_window->rootContext()->setContextProperty("roiStandardItemModel", m_roiStandardItemModel);
-    m_window->rootContext()->setContextProperty("pipelineStandardItemModel", m_pipelineStandardItemModel);
+    m_window->rootContext()->setContextProperty("roiModel", m_roiModel);
+    m_window->rootContext()->setContextProperty("pipelineModel", m_pipelineModel);
 
     m_window->setResizeMode(QQuickView::SizeRootObjectToView);
     m_window->setSource(QUrl("qrc:/qml/port/portSetting.qml"));
@@ -333,13 +333,13 @@ void PortSetting::portSettingExport() {
                 m_cameraCapture = nullptr;
             }
             QJsonArray roiArray{};
-            for (int i = 0; i < m_roiStandardItemModel->rowCount(); ++i) {
-                const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
+            for (int i = 0; i < m_roiModel->rowCount(); ++i) {
+                const QJsonArray roi = QJsonArray::fromVariantList(m_roiModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
                 roiArray.append(roi);
             }
             QJsonArray pipelineArray{};
-            for (int i = 0; i < m_pipelineStandardItemModel->rowCount(); ++i) {
-                const QJsonObject session = QJsonObject::fromVariantHash(m_pipelineStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toHash());
+            for (int i = 0; i < m_pipelineModel->rowCount(); ++i) {
+                const QJsonObject session = QJsonObject::fromVariantHash(m_pipelineModel->item(i, 0)->data(Qt::WhatsThisRole).toHash());
                 pipelineArray.append(session);
             }
             portConfig = {
@@ -399,22 +399,18 @@ void PortSetting::videoCapture() {
 }
 
 void PortSetting::previewLoad(const int index) const {
-    if (index == -1) return;
-    if (!m_roiStandardItemModel->item(index, 0)) {
-        m_imageProvider->null();
-        m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-        m_previewImage->setProperty("currentIndex", -1);
+    if (index == -1 || !m_roiModel->item(index, 0)) {
+        m_previewImage->setProperty("source", "qrc:/icon/null.svg");
         return;
     }
-    const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(index, 0)->data(Qt::WhatsThisRole).toList());
+    const QJsonArray roi = QJsonArray::fromVariantList(m_roiModel->item(index, 0)->data(Qt::WhatsThisRole).toList());
     QJsonArray pipeline{};
-    for (int i = 0; i < m_pipelineStandardItemModel->rowCount(); ++i) {
-        const QJsonObject session = QJsonObject::fromVariantHash(m_pipelineStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toHash());
+    for (int i = 0; i < m_pipelineModel->rowCount(); ++i) {
+        const QJsonObject session = QJsonObject::fromVariantHash(m_pipelineModel->item(i, 0)->data(Qt::WhatsThisRole).toHash());
         pipeline.append(session);
     }
     m_imageProvider->preview(m_videoSink, roi, pipeline);
     m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-    m_previewImage->setProperty("currentIndex", index);
 }
 
 void PortSetting::roiInsert(const QVariantList &roi) const {
@@ -429,19 +425,19 @@ void PortSetting::roiInsert(const QVariantList &roi) const {
         text = "Quadrilateral";
     }
     auto *item = new QStandardItem(text); // NOLINT
-    m_roiStandardItemModel->appendRow(item);
+    m_roiModel->appendRow(item);
     item->setData(roi, Qt::WhatsThisRole);
     QMetaObject::invokeMethod(m_root, "indicatorReload");
 }
 
 void PortSetting::roiRemove(const int index) const {
-    m_roiStandardItemModel->removeRow(index);
+    m_roiModel->removeRow(index);
     QMetaObject::invokeMethod(m_root, "indicatorReload");
 }
 
 void PortSetting::roiSwap(const int src, const int dst) const {
-    const auto tmp = m_roiStandardItemModel->takeRow(src);
-    m_roiStandardItemModel->insertRow(dst, tmp);
+    const auto tmp = m_roiModel->takeRow(src);
+    m_roiModel->insertRow(dst, tmp);
     QMetaObject::invokeMethod(m_root, "roiReload");
     QMetaObject::invokeMethod(m_root, "indicatorReload");
 }
@@ -451,13 +447,13 @@ void PortSetting::pipelineInsert(const QVariantHash &session) const {
     switch (type) {
         case ImagePipeline::Scale: {
             auto *item = new QStandardItem("Scale"); // NOLINT
-            m_pipelineStandardItemModel->appendRow(item);
+            m_pipelineModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }
         break;
         case ImagePipeline::Threshold: {
             auto *item = new QStandardItem("Threshold"); // NOLINT
-            m_pipelineStandardItemModel->appendRow(item);
+            m_pipelineModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }
         break;
@@ -466,12 +462,12 @@ void PortSetting::pipelineInsert(const QVariantHash &session) const {
 }
 
 void PortSetting::pipelineRemove(const int index) const {
-    m_pipelineStandardItemModel->removeRow(index);
+    m_pipelineModel->removeRow(index);
 }
 
 void PortSetting::pipelineSwap(const int src, const int dst) const {
-    const auto tmp = m_pipelineStandardItemModel->takeRow(src);
-    m_pipelineStandardItemModel->insertRow(dst, tmp);
+    const auto tmp = m_pipelineModel->takeRow(src);
+    m_pipelineModel->insertRow(dst, tmp);
     QMetaObject::invokeMethod(m_root, "pipelineReload");
 }
 
@@ -559,8 +555,8 @@ void PortSetting::videoStreamRefresh() const {
 }
 
 void PortSetting::processRefresh(const QJsonObject &portConfig) const {
-    m_roiStandardItemModel->clear();
-    m_pipelineStandardItemModel->clear();
+    m_roiModel->clear();
+    m_pipelineModel->clear();
     QMetaObject::invokeMethod(m_root, "indicatorReload");
     m_whitelistSwitch->setProperty("checked", false);
     m_whitelistTextField->setProperty("text", "");
@@ -586,16 +582,10 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
 // public
 ImageProvider::ImageProvider()
     : QQuickImageProvider(Pixmap) {
-    m_null.load(":/icon/null.svg");
-    null();
 }
 
 QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
     return m_preview;
-}
-
-void ImageProvider::null() {
-    m_preview = m_null;
 }
 
 void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, const QJsonArray &pipeline) {
@@ -634,4 +624,20 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, 
         cropped = QPixmap::fromImage(result);
     }
     m_preview = pipelineProcess(cropped, pipeline);
+}
+
+// public
+RoiModel::RoiModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &RoiModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &RoiModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &RoiModel::emptyChanged);
+}
+
+// public
+PipelineModel::PipelineModel(QObject *parent)
+    : QStandardItemModel(parent) {
+    connect(this, &QAbstractItemModel::rowsInserted, this, &PipelineModel::emptyChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &PipelineModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &PipelineModel::emptyChanged);
 }

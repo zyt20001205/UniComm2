@@ -12,8 +12,6 @@ Item {
         "ipv4": /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
         "ipv6": /[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){3}/
     }
-    property bool roiModelVisible: roiStandardItemModel ? roiStandardItemModel.rowCount() > 0 : false
-    property bool pipelineModelVisible: pipelineStandardItemModel ? pipelineStandardItemModel.rowCount() > 0 : false
 
     Rectangle {
         anchors.fill: parent
@@ -63,14 +61,22 @@ Item {
 
                         function sourceGet() {
                             switch (rootItem.portType) {
-                                case 0: return "qrc:/icon/serialPort.svg"
-                                case 1: return ""
-                                case 2: return "qrc:/icon/tcpClient.svg"
-                                case 3: return ""
-                                case 4: return "qrc:/icon/tcpServer.svg"
-                                case 5: return "qrc:/icon/udpSocket.svg"
-                                case 6: return "qrc:/icon/video.svg"
-                                default: return ""
+                                case 0:
+                                    return "qrc:/icon/serialPort.svg"
+                                case 1:
+                                    return ""
+                                case 2:
+                                    return "qrc:/icon/tcpClient.svg"
+                                case 3:
+                                    return ""
+                                case 4:
+                                    return "qrc:/icon/tcpServer.svg"
+                                case 5:
+                                    return "qrc:/icon/udpSocket.svg"
+                                case 6:
+                                    return "qrc:/icon/video.svg"
+                                default:
+                                    return ""
                             }
                         }
                     }
@@ -84,14 +90,22 @@ Item {
 
                         function textGet() {
                             switch (rootItem.portType) {
-                                case 0: return qsTr("A serial communication interface through which information transfers in or out sequentially one bit at a time.")
-                                case 1: return qsTr("A widely used application programming interface (API) in the test and measurement (T&M) industry for communicating with instruments from a computer.")
-                                case 2: return qsTr("A device that initiates a connection with a TCP server to send and receive reliable, ordered data over a network.")
-                                case 3: return qsTr("A secure client that establishes encrypted connections with SSL/TLS servers to ensure data confidentiality and integrity during transmission.")
-                                case 4: return qsTr("A device that listens on a network port, accepts incoming connections from TCP clients, and manages reliable, ordered data exchange.")
-                                case 5: return qsTr("A device that uses the User Datagram Protocol to send independent, connectionless messages (datagrams) over an IP network.")
-                                case 6: return qsTr("Video stream for image processing and OCR text recognition.")
-                                default: return ""
+                                case 0:
+                                    return qsTr("A serial communication interface through which information transfers in or out sequentially one bit at a time.")
+                                case 1:
+                                    return qsTr("A widely used application programming interface (API) in the test and measurement (T&M) industry for communicating with instruments from a computer.")
+                                case 2:
+                                    return qsTr("A device that initiates a connection with a TCP server to send and receive reliable, ordered data over a network.")
+                                case 3:
+                                    return qsTr("A secure client that establishes encrypted connections with SSL/TLS servers to ensure data confidentiality and integrity during transmission.")
+                                case 4:
+                                    return qsTr("A device that listens on a network port, accepts incoming connections from TCP clients, and manages reliable, ordered data exchange.")
+                                case 5:
+                                    return qsTr("A device that uses the User Datagram Protocol to send independent, connectionless messages (datagrams) over an IP network.")
+                                case 6:
+                                    return qsTr("Video stream for image processing and OCR text recognition.")
+                                default:
+                                    return ""
                             }
                         }
                     }
@@ -636,7 +650,6 @@ Item {
                         SplitView.fillWidth: true; SplitView.fillHeight: true
 
                         Flickable {
-                            id: videoFlickable
                             clip: true
                             contentWidth: videoOutput.width
                             contentHeight: videoOutput.height
@@ -666,8 +679,8 @@ Item {
                                 id: roiSelection
                                 anchors.fill: videoOutput
                                 color: global.stroke
-                                opacity: 0.5
-                                visible: false
+                                opacity: 0.2
+                                visible: step !== 0
                                 property int step: 0
                                 property var roiList: []
 
@@ -681,16 +694,31 @@ Item {
                                     }
                                 }
 
-                                TapHandler {
-                                    acceptedButtons: Qt.RightButton
+                                Shortcut {
                                     enabled: roiSelection.visible
+                                    sequence: "Esc"
 
-                                    onTapped: roiSelection.roiStop()
+                                    onActivated: roiSelection.roiStop()
+                                }
+
+                                HoverHandler {
+                                    onHoveredChanged: {
+                                        if (!hovered) {
+                                            mainToolTip.text = ""
+                                        }
+                                    }
+                                    onPointChanged: {
+                                        mainToolTip.position = parent.mapToGlobal(point.position)
+                                        mainToolTip.text = qsTr("%1, %2\nSelect %3/%4  Esc: Exit")
+                                            .arg(Math.round(point.position.x))
+                                            .arg(Math.round(point.position.y))
+                                            .arg(roiSelection.roiList.length + 1)
+                                            .arg(roiSelection.step)
+                                    }
                                 }
 
                                 function roiRecord(position) {
                                     roiList.push(position)
-                                    hintLabel.text = qsTr("Select " + roiList.length + "/" + step)
                                     if (roiList.length === step) {
                                         if (step === 2) {
                                             let ix = Math.round(Math.min(roiList[0].x, roiList[1].x))
@@ -714,66 +742,13 @@ Item {
                                 }
 
                                 function roiStart(step) {
-                                    roiSelection.visible = true
                                     roiSelection.step = step
-                                    hintLabel.text = qsTr("Select 0/" + step)
                                 }
 
                                 function roiStop() {
-                                    roiSelection.visible = false
                                     roiSelection.step = 0
                                     roiSelection.roiList = []
-                                    hintLabel.text = ""
-                                }
-                            }
-
-                            // preview
-                            Popup {
-                                id: previewPopup
-                                closePolicy: Popup.NoAutoClose
-                                padding: 0
-
-                                Image {
-                                    id: previewImage
-                                    property int currentIndex: -1
-
-                                    onStatusChanged: {
-                                        if (status === Image.Ready) {
-                                            previewPopup.width = implicitWidth + 30
-                                            previewPopup.height = implicitHeight + 30
-                                        }
-                                    }
-                                }
-
-                                TapHandler {
-                                    acceptedButtons: Qt.RightButton
-
-                                    onTapped: previewPopup.close()
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    preventStealing: true
-                                    property real lastX
-                                    property real lastY
-
-                                    onPressed: (mouse) => {
-                                        lastX = mouse.x
-                                        lastY = mouse.y
-                                    }
-
-                                    onPositionChanged: (mouse) => {
-                                        previewPopup.x += mouse.x - lastX
-                                        previewPopup.y += mouse.y - lastY
-                                    }
-                                }
-
-                                Timer {
-                                    interval: 16 // 60Hz
-                                    repeat: true
-                                    running: previewPopup.visible
-
-                                    onTriggered: portSetting.previewLoad(previewImage.currentIndex)
+                                    mainToolTip.text = ""
                                 }
                             }
                         }
@@ -828,618 +803,735 @@ Item {
                             Item {
                                 Layout.fillWidth: true
                             }
-
-                            Label {
-                                id: hintLabel
-                                font.pixelSize: 20
-                            }
                         }
                     }
 
-                    ColumnLayout {
+                    SplitView {
                         SplitView.preferredWidth: 300; SplitView.fillHeight: true
-                        Layout.alignment: Qt.AlignTop
+                        orientation: Qt.Vertical
+                        handle: Item {
+                            implicitHeight: 5
 
-                        // roi area
-                        RowLayout {
-
-                            Label {
-                                text: qsTr("Region of Interest")
-                                font.pixelSize: 20
-                            }
-
-                            Image {
-                                source: "qrc:/icon/roi.svg"
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                height: 1
+                                color: global.stroke
                             }
                         }
 
-                        Component {
-                            id: roiTableComponent
+                        // roi
+                        ColumnLayout {
+                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
+
+                            Label {
+                                leftPadding: 6
+                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 20
+                                text: qsTr("ROI")
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
 
                             Item {
-                                anchors.fill: parent
-                                visible: roiModelVisible
+                                Layout.fillWidth: true; Layout.fillHeight: true
 
-                                VerticalHeaderView {
-                                    id: roiVerticalHeaderView
-                                    anchors.left: parent.left
-                                    width: 24; height: parent.height
-                                    syncView: roiTableView
-                                    clip: true
-                                    interactive: false
-                                    movableRows: true
-                                    delegate: VerticalHeaderViewDelegate {
-                                        id: roiVerticalHeaderViewDelegate
-                                        implicitWidth: roiVerticalHeaderView.width; implicitHeight: 24
-                                        padding: 0
+                                Item {
+                                    anchors.fill: parent
+                                    visible: roiModel.empty
 
-                                        contentItem: Rectangle {
-                                            width: 24; height: 24
-                                            color: global.back
-
-                                            IconImage {
-                                                anchors.centerIn: parent
-                                                width: 16; height: 16
-                                                color: global.fore
-                                                source: "qrc:/icon/drag.svg"
-                                            }
-                                        }
-
-                                        HoverHandler {
-                                            onHoveredChanged: cursorShape = Qt.OpenHandCursor
-                                        }
-                                    }
-                                    property var moves: []
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        color: global.stroke
-                                    }
-
-                                    Timer {
-                                        id: timer
-                                        interval: 10
-                                        onTriggered: {
-                                            let index = -1
-                                            let distance = -1
-                                            let currentDistance;
-                                            for (let i = 0; i < roiVerticalHeaderView.moves.length; ++i) {
-                                                let move = roiVerticalHeaderView.moves[i]
-                                                currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
-                                                if (currentDistance > distance) {
-                                                    distance = currentDistance
-                                                    index = i
-                                                }
-                                            }
-                                            let move = roiVerticalHeaderView.moves[index]
-                                            portSetting.roiSwap(move.oldVisualIndex, move.newVisualIndex)
-                                            roiVerticalHeaderView.moves = []
-                                        }
-                                    }
-
-                                    onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
-                                        moves.push({oldVisualIndex, newVisualIndex})
-                                        timer.restart()
-                                    }
-                                }
-
-                                TableView {
-                                    id: roiTableView
-                                    anchors.left: roiVerticalHeaderView.right; anchors.right: parent.right
-                                    height: parent.height
-                                    alternatingRows: false
-                                    clip: true
-                                    editTriggers: TableView.NoEditTriggers
-                                    rowSpacing: 1
-                                    model: roiStandardItemModel
-                                    contentWidth: width
-
-                                    ScrollBar.vertical: ScrollBar {
-                                        policy: ScrollBar.AsNeeded
-                                        palette {
-                                            mid: global.stroke
-                                            dark: global.strokePressed
-                                        }
-                                    }
-
-                                    delegate: Item {
-                                        implicitWidth: parent.width; implicitHeight: 24
-                                        required property int row
-
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            color: global.back
-                                        }
-
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            radius: 6
-                                            color: global.backHover
-                                            opacity: {
-                                                if (column === 0 && hoverHandler.hovered) {
-                                                    return 1
-                                                } else if (column === 1 && valueChanged) {
-                                                    return 1
-                                                } else {
-                                                    return 0
-                                                }
-                                            }
-                                            Behavior on opacity {
-                                                NumberAnimation {
-                                                    duration: 150
-                                                }
-                                            }
-                                        }
+                                    RowLayout {
+                                        anchors.centerIn: parent
 
                                         Label {
-                                            id: label
-                                            anchors.fill: parent
-                                            leftPadding: 6
-                                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                                            text: model.display || ""
-                                            elide: Text.ElideRight
+                                            text: qsTr("Create ROI first.")
+                                            font.pixelSize: 16
+                                            Layout.alignment: Qt.AlignVCenter
                                         }
 
-                                        HoverHandler {
-                                            id: hoverHandler
+                                        IconImage {
+                                            source: "qrc:/icon/rectangle.svg"
+                                            color: global.fore
+                                            Layout.alignment: Qt.AlignVCenter
+                                        }
+                                    }
+                                }
+
+                                Loader {
+                                    id: roiTableLoader
+                                    anchors.fill: parent
+                                    sourceComponent: roiTableComponent
+                                }
+
+                                Component {
+                                    id: roiTableComponent
+
+                                    Item {
+                                        anchors.fill: parent
+                                        visible: !roiModel.empty
+
+                                        VerticalHeaderView {
+                                            id: roiVerticalHeaderView
+                                            anchors.left: parent.left
+                                            width: 24; height: parent.height
+                                            syncView: roiTableView
+                                            clip: true
+                                            interactive: false
+                                            movableRows: true
+                                            delegate: VerticalHeaderViewDelegate {
+                                                id: roiVerticalHeaderViewDelegate
+                                                implicitWidth: roiVerticalHeaderView.width; implicitHeight: 24
+                                                padding: 0
+
+                                                contentItem: Rectangle {
+                                                    width: 24; height: 24
+                                                    color: global.back
+
+                                                    IconImage {
+                                                        anchors.centerIn: parent
+                                                        width: 16; height: 16
+                                                        color: global.fore
+                                                        source: "qrc:/icon/drag.svg"
+                                                    }
+                                                }
+
+                                                HoverHandler {
+                                                    onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                                                }
+                                            }
+                                            property var moves: []
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                color: global.stroke
+                                            }
+
+                                            Timer {
+                                                id: timer
+                                                interval: 10
+                                                onTriggered: {
+                                                    let index = -1
+                                                    let distance = -1
+                                                    let currentDistance;
+                                                    for (let i = 0; i < roiVerticalHeaderView.moves.length; ++i) {
+                                                        let move = roiVerticalHeaderView.moves[i]
+                                                        currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                                                        if (currentDistance > distance) {
+                                                            distance = currentDistance
+                                                            index = i
+                                                        }
+                                                    }
+                                                    let move = roiVerticalHeaderView.moves[index]
+                                                    portSetting.roiSwap(move.oldVisualIndex, move.newVisualIndex)
+                                                    roiVerticalHeaderView.moves = []
+                                                }
+                                            }
+
+                                            onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                                                moves.push({oldVisualIndex, newVisualIndex})
+                                                timer.restart()
+                                            }
                                         }
 
-                                        TapHandler {
-                                            acceptedButtons: Qt.RightButton
-                                            gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                        TableView {
+                                            id: roiTableView
+                                            anchors.left: roiVerticalHeaderView.right; anchors.right: parent.right
+                                            height: parent.height
+                                            alternatingRows: false
+                                            clip: true
+                                            editTriggers: TableView.NoEditTriggers
+                                            rowSpacing: 1
+                                            model: roiModel
+                                            contentWidth: width
+                                            property int hoveredRow: -1
+                                            property int selectedRow: -1
 
-                                            onSingleTapped: {
-                                                roiMenu.roiIndex = model.row
-                                                roiMenu.popup()
+                                            ScrollBar.vertical: ScrollBar {
+                                                policy: ScrollBar.AsNeeded
+                                                palette {
+                                                    mid: global.stroke
+                                                    dark: global.strokePressed
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                color: global.stroke
+                                            }
+
+                                            delegate: Item {
+                                                implicitWidth: parent.width; implicitHeight: 24
+                                                required property int row
+
+                                                Rectangle {
+                                                    anchors.fill: parent
+                                                    color: global.back
+                                                }
+
+                                                Rectangle {
+                                                    anchors.fill: parent
+                                                    radius: 6
+                                                    color: global.backHover
+                                                    opacity: roiTableView.hoveredRow === row ? 1 : 0
+                                                    Behavior on opacity {
+                                                        NumberAnimation {
+                                                            duration: 150
+                                                        }
+                                                    }
+                                                }
+
+                                                Rectangle {
+                                                    anchors.fill: parent
+                                                    radius: 6
+                                                    color: roiTableView.selectedRow === row ? global.backSelected : "transparent"
+                                                }
+
+                                                Label {
+                                                    id: label
+                                                    anchors.fill: parent
+                                                    leftPadding: 6
+                                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                                    text: model.display || ""
+                                                    elide: Text.ElideRight
+                                                }
+
+                                                HoverHandler {
+                                                    id: hoverHandler
+                                                }
+
+                                                TapHandler {
+                                                    acceptedButtons: Qt.LeftButton
+                                                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                                    onTapped: {
+                                                        roiTableView.selectedRow = row
+                                                        previewImage.selectedRow = row
+                                                    }
+                                                }
+
+                                                TapHandler {
+                                                    acceptedButtons: Qt.RightButton
+                                                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                                    onSingleTapped: {
+                                                        roiMenu.roiIndex = model.row
+                                                        roiMenu.popup()
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Menu {
+                                            id: roiMenu
+                                            property int roiIndex
+
+                                            MenuItem {
+                                                text: qsTr("Delete")
+                                                icon.source: "qrc:/icon/delete.svg"
+                                                icon.width: 16; icon.height: 16
+
+                                                onTriggered: portSetting.roiRemove(roiMenu.roiIndex)
                                             }
                                         }
                                     }
                                 }
-
-                                Menu {
-                                    id: roiMenu
-                                    property int roiIndex
-
-                                    MenuItem {
-                                        text: qsTr("Delete")
-                                        icon.source: "qrc:/icon/delete.svg"
-                                        icon.width: 16; icon.height: 16
-
-                                        onTriggered: portSetting.roiRemove(roiMenu.roiIndex)
-                                    }
-                                }
                             }
                         }
 
-                        Item {
-                            Layout.fillWidth: true; Layout.preferredHeight: 100
+                        // pipeline
+                        ColumnLayout {
+                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
+
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                Label {
+                                    leftPadding: 6
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 20
+                                    text: qsTr("Image Pipeline")
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+
+                                Button {
+                                    flat: true
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    icon.source: "qrc:/icon/add.svg"
+                                    icon.width: 24; icon.height: 24
+                                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                    onClicked: pipelineMenu.popup()
+
+                                    HoverHandler {
+                                        onHoveredChanged: {
+                                            if (!hovered) {
+                                                mainToolTip.text = ""
+                                            }
+                                        }
+                                        onPointChanged: {
+                                            mainToolTip.position = parent.mapToGlobal(point.position)
+                                            mainToolTip.text = qsTr("Add Pipeline")
+                                        }
+                                    }
+                                }
+                            }
 
                             Item {
-                                anchors.fill: parent
-                                visible: !roiModelVisible
+                                Layout.fillWidth: true; Layout.fillHeight: true
 
-                                RowLayout {
-                                    anchors.centerIn: parent
+                                Item {
+                                    anchors.fill: parent
+                                    visible: pipelineModel.empty
 
-                                    Label {
-                                        text: qsTr("Create ROI first.")
-                                        font.pixelSize: 16
-                                        Layout.alignment: Qt.AlignVCenter
+                                    RowLayout {
+                                        anchors.centerIn: parent
+
+                                        Label {
+                                            text: qsTr("Raw output.")
+                                            font.pixelSize: 16
+                                            Layout.alignment: Qt.AlignVCenter
+                                        }
                                     }
+                                }
 
-                                    IconImage {
-                                        source: "qrc:/icon/rectangle.svg"
-                                        color: global.fore
-                                        Layout.alignment: Qt.AlignVCenter
+                                Loader {
+                                    id: pipelineTableLoader
+                                    anchors.fill: parent
+                                    sourceComponent: pipelineTableComponent
+                                }
+
+                                Component {
+                                    id: pipelineTableComponent
+
+                                    Item {
+                                        anchors.fill: parent
+                                        visible: !pipelineModel.empty
+
+                                        VerticalHeaderView {
+                                            id: pipelineVerticalHeaderView
+                                            anchors.left: parent.left
+                                            width: 24; height: parent.height
+                                            syncView: pipelineTableView
+                                            clip: true
+                                            interactive: false
+                                            movableRows: true
+                                            delegate: VerticalHeaderViewDelegate {
+                                                id: pipelineVerticalHeaderViewDelegate
+                                                implicitWidth: pipelineVerticalHeaderView.width; implicitHeight: 24
+                                                padding: 0
+
+                                                contentItem: Rectangle {
+                                                    width: 24; height: 24
+                                                    color: global.back
+
+                                                    IconImage {
+                                                        anchors.centerIn: parent
+                                                        width: 16; height: 16
+                                                        color: global.fore
+                                                        source: "qrc:/icon/drag.svg"
+                                                    }
+                                                }
+
+                                                HoverHandler {
+                                                    onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                                                }
+                                            }
+                                            property var moves: []
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                color: global.stroke
+                                            }
+
+                                            Timer {
+                                                id: timer
+                                                interval: 10
+                                                onTriggered: {
+                                                    let index = -1
+                                                    let distance = -1
+                                                    let currentDistance;
+                                                    for (let i = 0; i < pipelineVerticalHeaderView.moves.length; ++i) {
+                                                        let move = pipelineVerticalHeaderView.moves[i]
+                                                        currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                                                        if (currentDistance > distance) {
+                                                            distance = currentDistance
+                                                            index = i
+                                                        }
+                                                    }
+                                                    let move = pipelineVerticalHeaderView.moves[index]
+                                                    portSetting.pipelineSwap(move.oldVisualIndex, move.newVisualIndex)
+                                                    pipelineVerticalHeaderView.moves = []
+                                                }
+                                            }
+
+                                            onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                                                moves.push({oldVisualIndex, newVisualIndex})
+                                                timer.restart()
+                                            }
+                                        }
+
+                                        TableView {
+                                            id: pipelineTableView
+                                            anchors.left: pipelineVerticalHeaderView.right; anchors.right: parent.right
+                                            height: parent.height
+                                            alternatingRows: false
+                                            clip: true
+                                            editTriggers: TableView.NoEditTriggers
+                                            rowSpacing: 1
+                                            model: pipelineModel
+                                            contentWidth: width
+
+                                            ScrollBar.vertical: ScrollBar {
+                                                policy: ScrollBar.AsNeeded
+                                                palette {
+                                                    mid: global.stroke
+                                                    dark: global.strokePressed
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                color: global.stroke
+                                            }
+
+                                            delegate: DelegateChooser {
+                                                role: "display"
+
+                                                DelegateChoice {
+                                                    roleValue: qsTr("Scale")
+                                                    delegate: scaleDelegate
+                                                }
+
+                                                DelegateChoice {
+                                                    roleValue: qsTr("Threshold")
+                                                    delegate: thresholdDelegate
+                                                }
+                                            }
+
+                                            Component {
+                                                id: scaleDelegate
+
+                                                Item {
+                                                    id: scaleItem
+                                                    implicitWidth: parent.width; implicitHeight: 80
+                                                    property var session: model.whatsThis
+
+                                                    Rectangle {
+                                                        anchors.fill: parent
+                                                        color: global.back
+                                                    }
+
+                                                    ColumnLayout {
+                                                        anchors.fill: parent
+                                                        anchors.leftMargin: 10
+
+                                                        RowLayout {
+
+                                                            Label {
+                                                                leftPadding: 6
+                                                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                                                text: model.display || ""
+                                                                elide: Text.ElideRight
+                                                                Layout.fillWidth: true
+                                                            }
+
+                                                            ComboBox {
+                                                                id: scaleComboBox
+                                                                currentIndex: session.interpolation
+                                                                model: ListModel {
+                                                                    ListElement {
+                                                                        text: qsTr("Nearest")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Linear")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Cubic")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Area")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Lanczos4")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Linear Exact")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Nearest Exact")
+                                                                    }
+                                                                }
+                                                                textRole: "text"
+                                                                property bool initialized: false
+
+                                                                Component.onCompleted: {
+                                                                    initialized = true
+                                                                }
+
+                                                                onCurrentTextChanged: {
+                                                                    if (!scaleComboBox.initialized) return
+                                                                    scaleItem.session.interpolation = scaleComboBox.currentIndex
+                                                                    const index = pipelineModel.index(row, 0);
+                                                                    pipelineModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
+                                                                }
+                                                            }
+                                                        }
+
+                                                        Slider {
+                                                            id: scaleSlider
+                                                            value: session.ratio
+                                                            from: -5
+                                                            to: 5
+                                                            stepSize: 1
+                                                            snapMode: Slider.SnapOnRelease
+                                                            Layout.fillWidth: true
+                                                            ToolTip.text: "x" + ratio.toString()
+                                                            ToolTip.visible: hovered
+                                                            property real ratio: 1
+
+                                                            onMoved: {
+                                                                switch (value) {
+                                                                    case -5:
+                                                                        ratio = 0.1
+                                                                        break
+                                                                    case -4:
+                                                                        ratio = 0.25
+                                                                        break
+                                                                    case -3:
+                                                                        ratio = 0.3
+                                                                        break
+                                                                    case -2:
+                                                                        ratio = 0.5
+                                                                        break
+                                                                    case -1:
+                                                                        ratio = 0.75
+                                                                        break
+                                                                    case 0:
+                                                                        ratio = 1
+                                                                        break
+                                                                    case 1:
+                                                                        ratio = 1.5
+                                                                        break
+                                                                    case 2:
+                                                                        ratio = 2
+                                                                        break
+                                                                    case 3:
+                                                                        ratio = 3
+                                                                        break
+                                                                    case 4:
+                                                                        ratio = 5
+                                                                        break
+                                                                    case 5:
+                                                                        ratio = 10
+                                                                        break
+                                                                }
+                                                                scaleItem.session.ratio = scaleSlider.value
+                                                                const index = pipelineModel.index(row, 0);
+                                                                pipelineModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
+                                                            }
+                                                        }
+                                                    }
+
+                                                    TapHandler {
+                                                        acceptedButtons: Qt.RightButton
+                                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                                        onSingleTapped: {
+                                                            pipelineMenu.pipelineIndex = model.row
+                                                            pipelineMenu.popup()
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Component {
+                                                id: thresholdDelegate
+
+                                                Item {
+                                                    id: thresholdItem
+                                                    implicitWidth: parent.width; implicitHeight: 80
+                                                    property var session: model.whatsThis
+
+                                                    Rectangle {
+                                                        anchors.fill: parent
+                                                        color: global.back
+                                                    }
+
+                                                    ColumnLayout {
+                                                        anchors.fill: parent
+                                                        anchors.leftMargin: 10
+
+                                                        RowLayout {
+
+                                                            Label {
+                                                                leftPadding: 6
+                                                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                                                text: model.display || ""
+                                                                elide: Text.ElideRight
+                                                                Layout.fillWidth: true
+                                                            }
+
+                                                            ComboBox {
+                                                                id: thresholdComboBox
+                                                                currentIndex: session.mode
+                                                                model: ListModel {
+                                                                    ListElement {
+                                                                        text: qsTr("Binary")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Binary Inv")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("Trunc")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("To Zero")
+                                                                    }
+                                                                    ListElement {
+                                                                        text: qsTr("To Zero Inv")
+                                                                    }
+                                                                }
+                                                                textRole: "text"
+                                                                property bool initialized: false
+
+                                                                Component.onCompleted: {
+                                                                    initialized = true
+                                                                }
+
+                                                                onCurrentTextChanged: {
+                                                                    if (!thresholdComboBox.initialized) return
+                                                                    thresholdItem.session.mode = thresholdComboBox.currentIndex
+                                                                    const index = pipelineModel.index(row, 0);
+                                                                    pipelineModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
+                                                                }
+                                                            }
+                                                        }
+
+                                                        Slider {
+                                                            id: thresholdSlider
+                                                            value: session.thresh
+                                                            from: 0
+                                                            to: 255
+                                                            Layout.fillWidth: true
+                                                            ToolTip.text: value.toFixed(0)
+                                                            ToolTip.visible: hovered
+
+                                                            onMoved: {
+                                                                thresholdItem.session.thresh = Math.round(thresholdSlider.value)
+                                                                const index = pipelineModel.index(row, 0);
+                                                                pipelineModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
+                                                            }
+                                                        }
+                                                    }
+
+                                                    TapHandler {
+                                                        acceptedButtons: Qt.RightButton
+                                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                                        onSingleTapped: {
+                                                            pipelineMenu.pipelineIndex = model.row
+                                                            pipelineMenu.popup()
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Menu {
+                                            id: pipelineMenu
+                                            property int pipelineIndex
+
+                                            MenuItem {
+                                                text: qsTr("Delete")
+                                                icon.source: "qrc:/icon/delete.svg"
+                                                icon.width: 16; icon.height: 16
+
+                                                onTriggered: portSetting.pipelineRemove(pipelineMenu.pipelineIndex)
+                                            }
+                                        }
                                     }
                                 }
                             }
-
-                            Loader {
-                                id: roiTableLoader
-                                anchors.fill: parent
-                                sourceComponent: roiTableComponent
-                            }
                         }
 
-                        // pipeline area
-                        RowLayout {
+                        // preview
+                        ColumnLayout {
+                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
 
                             Label {
-                                text: qsTr("Image Pipeline")
+                                leftPadding: 6
+                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                                 font.pixelSize: 20
+                                text: qsTr("Image Preview")
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
                             }
 
-                            Button {
-                                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                icon.source: "qrc:/icon/add.svg"
-                                flat: true
-                                icon.width: 24; icon.height: 24
-                                ToolTip.text: qsTr("Add Pipeline")
-                                ToolTip.visible: hovered
+                            Flickable {
+                                clip: true
+                                contentWidth: previewImage.width
+                                contentHeight: previewImage.height
+                                Layout.fillWidth: true; Layout.fillHeight: true
 
-                                onClicked: pipelineMenu.popup()
-                            }
-                        }
-
-                        Component {
-                            id: pipelineTableComponent
-
-                            Item {
-                                anchors.fill: parent
-                                visible: pipelineModelVisible
-
-                                VerticalHeaderView {
-                                    id: pipelineVerticalHeaderView
-                                    anchors.left: parent.left
-                                    width: 24; height: parent.height
-                                    syncView: pipelineTableView
-                                    clip: true
-                                    interactive: false
-                                    movableRows: true
-                                    delegate: VerticalHeaderViewDelegate {
-                                        id: pipelineVerticalHeaderViewDelegate
-                                        implicitWidth: pipelineVerticalHeaderView.width; implicitHeight: 24
-                                        padding: 0
-
-                                        contentItem: Rectangle {
-                                            width: 24; height: 24
-                                            color: global.back
-
-                                            IconImage {
-                                                anchors.centerIn: parent
-                                                width: 16; height: 16
-                                                color: global.fore
-                                                source: "qrc:/icon/drag.svg"
-                                            }
-                                        }
-
-                                        HoverHandler {
-                                            onHoveredChanged: cursorShape = Qt.OpenHandCursor
-                                        }
+                                ScrollBar.vertical: ScrollBar {
+                                    policy: ScrollBar.AsNeeded
+                                    palette {
+                                        mid: global.stroke
+                                        dark: global.strokePressed
                                     }
-                                    property var moves: []
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        color: global.stroke
-                                    }
-
-                                    Timer {
-                                        id: timer
-                                        interval: 10
-                                        onTriggered: {
-                                            let index = -1
-                                            let distance = -1
-                                            let currentDistance;
-                                            for (let i = 0; i < pipelineVerticalHeaderView.moves.length; ++i) {
-                                                let move = pipelineVerticalHeaderView.moves[i]
-                                                currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
-                                                if (currentDistance > distance) {
-                                                    distance = currentDistance
-                                                    index = i
-                                                }
-                                            }
-                                            let move = pipelineVerticalHeaderView.moves[index]
-                                            portSetting.pipelineSwap(move.oldVisualIndex, move.newVisualIndex)
-                                            pipelineVerticalHeaderView.moves = []
-                                        }
-                                    }
-
-                                    onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
-                                        moves.push({oldVisualIndex, newVisualIndex})
-                                        timer.restart()
+                                }
+                                ScrollBar.horizontal: ScrollBar {
+                                    policy: ScrollBar.AsNeeded
+                                    palette {
+                                        mid: global.stroke
+                                        dark: global.strokePressed
                                     }
                                 }
 
-                                TableView {
-                                    id: pipelineTableView
-                                    anchors.left: pipelineVerticalHeaderView.right; anchors.right: parent.right
-                                    height: parent.height
-                                    alternatingRows: false
-                                    clip: true
-                                    editTriggers: TableView.NoEditTriggers
-                                    rowSpacing: 1
-                                    model: pipelineStandardItemModel
-                                    contentWidth: width
-                                    delegate: DelegateChooser {
-                                        role: "display"
-
-                                        DelegateChoice {
-                                            roleValue: qsTr("Scale")
-                                            delegate: scaleDelegate
-                                        }
-
-                                        DelegateChoice {
-                                            roleValue: qsTr("Threshold")
-                                            delegate: thresholdDelegate
-                                        }
-                                    }
-
-                                    Component {
-                                        id: scaleDelegate
-
-                                        ItemDelegate {
-                                            id: scaleItem
-                                            implicitWidth: parent.width; implicitHeight: 80
-                                            property var session: model.whatsThis
-                                            background: Rectangle {
-                                                color: "white"
-                                            }
-                                            contentItem: ColumnLayout {
-                                                anchors.fill: parent
-                                                anchors.leftMargin: 10
-
-                                                RowLayout {
-
-                                                    Label {
-                                                        font.pixelSize: 16
-                                                        text: model.display
-                                                        Layout.fillWidth: true
-                                                    }
-
-                                                    ComboBox {
-                                                        id: scaleComboBox
-                                                        currentIndex: session.interpolation
-                                                        model: ListModel {
-                                                            ListElement {
-                                                                text: qsTr("Nearest")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Linear")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Cubic")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Area")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Lanczos4")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Linear Exact")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Nearest Exact")
-                                                            }
-                                                        }
-                                                        textRole: "text"
-                                                        property bool initialized: false
-
-                                                        Component.onCompleted: {
-                                                            initialized = true
-                                                        }
-
-                                                        onCurrentTextChanged: {
-                                                            if (!scaleComboBox.initialized) return
-                                                            scaleItem.session.interpolation = scaleComboBox.currentIndex
-                                                            const index = pipelineStandardItemModel.index(row, 0);
-                                                            pipelineStandardItemModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
-                                                        }
-                                                    }
-                                                }
-
-                                                Slider {
-                                                    id: scaleSlider
-                                                    value: session.ratio
-                                                    from: -5
-                                                    to: 5
-                                                    stepSize: 1
-                                                    snapMode: Slider.SnapOnRelease
-                                                    Layout.fillWidth: true
-                                                    ToolTip.text: "x" + ratio.toString()
-                                                    ToolTip.visible: hovered
-                                                    property real ratio: 1
-
-                                                    onMoved: {
-                                                        switch (value) {
-                                                            case -5:
-                                                                ratio = 0.1
-                                                                break
-                                                            case -4:
-                                                                ratio = 0.25
-                                                                break
-                                                            case -3:
-                                                                ratio = 0.3
-                                                                break
-                                                            case -2:
-                                                                ratio = 0.5
-                                                                break
-                                                            case -1:
-                                                                ratio = 0.75
-                                                                break
-                                                            case 0:
-                                                                ratio = 1
-                                                                break
-                                                            case 1:
-                                                                ratio = 1.5
-                                                                break
-                                                            case 2:
-                                                                ratio = 2
-                                                                break
-                                                            case 3:
-                                                                ratio = 3
-                                                                break
-                                                            case 4:
-                                                                ratio = 5
-                                                                break
-                                                            case 5:
-                                                                ratio = 10
-                                                                break
-                                                        }
-                                                        scaleItem.session.ratio = scaleSlider.value
-                                                        const index = pipelineStandardItemModel.index(row, 0);
-                                                        pipelineStandardItemModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
-                                                    }
-                                                }
-                                            }
-
-                                            TapHandler {
-                                                acceptedButtons: Qt.RightButton
-                                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                                                onSingleTapped: {
-                                                    pipelineMenu.pipelineIndex = model.row
-                                                    pipelineMenu.popup()
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    Component {
-                                        id: thresholdDelegate
-
-                                        ItemDelegate {
-                                            id: thresholdItem
-                                            implicitWidth: parent.width; implicitHeight: 80
-                                            property var session: model.whatsThis
-                                            background: Rectangle {
-                                                color: "white"
-                                            }
-                                            contentItem: ColumnLayout {
-                                                anchors.fill: parent
-                                                anchors.leftMargin: 10
-
-                                                RowLayout {
-
-                                                    Label {
-                                                        font.pixelSize: 16
-                                                        text: model.display
-                                                        Layout.fillWidth: true
-                                                    }
-
-                                                    ComboBox {
-                                                        id: thresholdComboBox
-                                                        currentIndex: session.mode
-                                                        model: ListModel {
-                                                            ListElement {
-                                                                text: qsTr("Binary")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Binary Inv")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("Trunc")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("To Zero")
-                                                            }
-                                                            ListElement {
-                                                                text: qsTr("To Zero Inv")
-                                                            }
-                                                        }
-                                                        textRole: "text"
-                                                        property bool initialized: false
-
-                                                        Component.onCompleted: {
-                                                            initialized = true
-                                                        }
-
-                                                        onCurrentTextChanged: {
-                                                            if (!thresholdComboBox.initialized) return
-                                                            thresholdItem.session.mode = thresholdComboBox.currentIndex
-                                                            const index = pipelineStandardItemModel.index(row, 0);
-                                                            pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
-                                                        }
-                                                    }
-                                                }
-
-                                                Slider {
-                                                    id: thresholdSlider
-                                                    value: session.thresh
-                                                    from: 0
-                                                    to: 255
-                                                    Layout.fillWidth: true
-                                                    ToolTip.text: value.toFixed(0)
-                                                    ToolTip.visible: hovered
-
-                                                    onMoved: {
-                                                        thresholdItem.session.thresh = Math.round(thresholdSlider.value)
-                                                        const index = pipelineStandardItemModel.index(row, 0);
-                                                        pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
-                                                    }
-                                                }
-                                            }
-
-                                            TapHandler {
-                                                acceptedButtons: Qt.RightButton
-                                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                                                onSingleTapped: {
-                                                    pipelineMenu.pipelineIndex = model.row
-                                                    pipelineMenu.popup()
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        color: "#e0e0e0"
-                                        z: -1
-                                    }
+                                Image {
+                                    id: previewImage
+                                    property int selectedRow: -1
                                 }
 
-                                Menu {
-                                    id: pipelineMenu
-                                    property int pipelineIndex
+                                Timer {
+                                    interval: 16 // 60Hz
+                                    repeat: true
+                                    running: !roiModel.empty
 
-                                    MenuItem {
-                                        text: qsTr("Delete")
-                                        icon.source: "qrc:/icon/delete.svg"
-                                        icon.width: 16; icon.height: 16
-
-                                        onTriggered: portSetting.pipelineRemove(pipelineMenu.pipelineIndex)
-                                    }
+                                    onTriggered: portSetting.previewLoad(previewImage.selectedRow)
                                 }
                             }
                         }
 
+                        // post
+                        ColumnLayout {
+                            SplitView.fillWidth: true
+
+                            RowLayout {
+
+                                Label {
+                                    text: qsTr("Whitelist")
+                                    font.pixelSize: 20
+                                }
+
+                                Switch {
+                                    id: whitelistSwitch
+                                }
+                            }
+
+                            TextField {
+                                id: whitelistTextField
+                                placeholderText: "e.g. 0123456789"
+                                visible: whitelistSwitch.checked
+                                Layout.fillWidth: true
+                            }
+                        }
+
+                        // spring
                         Item {
-                            Layout.fillWidth: true; Layout.preferredHeight: 300
-
-                            Item {
-                                anchors.fill: parent
-                                visible: !pipelineModelVisible
-
-                                RowLayout {
-                                    anchors.centerIn: parent
-
-                                    Label {
-                                        text: qsTr("Raw output.")
-                                        font.pixelSize: 16
-                                        Layout.alignment: Qt.AlignVCenter
-                                    }
-                                }
-                            }
-
-                            Loader {
-                                id: pipelineTableLoader
-                                anchors.fill: parent
-                                sourceComponent: pipelineTableComponent
-                            }
-                        }
-
-                        // whitelist
-                        RowLayout {
-
-                            Label {
-                                text: qsTr("Whitelist")
-                                font.pixelSize: 20
-                            }
-
-                            Switch {
-                                id: whitelistSwitch
-                            }
-                        }
-
-                        TextField {
-                            id: whitelistTextField
-                            placeholderText: "e.g. 0123456789"
-                            visible: whitelistSwitch.checked
-                            Layout.fillWidth: true
+                            SplitView.fillWidth: true; SplitView.fillHeight: true
                         }
                     }
                 }
@@ -1606,22 +1698,6 @@ Item {
         roiTableLoader.active = true
     }
 
-    Connections {
-        target: roiStandardItemModel
-
-        function onRowsInserted() {
-            roiModelVisible = true
-        }
-
-        function onRowsRemoved() {
-            roiModelVisible = roiStandardItemModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            roiModelVisible = false
-        }
-    }
-
     // pipeline
     Menu {
         id: pipelineMenu
@@ -1658,22 +1734,6 @@ Item {
     function pipelineReload() {
         pipelineTableLoader.active = false
         pipelineTableLoader.active = true
-    }
-
-    Connections {
-        target: pipelineStandardItemModel
-
-        function onRowsInserted() {
-            pipelineModelVisible = true
-        }
-
-        function onRowsRemoved() {
-            pipelineModelVisible = pipelineStandardItemModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            pipelineModelVisible = false
-        }
     }
 
     // indicator
@@ -1779,9 +1839,9 @@ Item {
             videoOutput.indicatorList[i].destroy()
         }
         videoOutput.indicatorList = []
-        for (let row = 0; row < roiStandardItemModel.rowCount(); ++row) {
-            const index = roiStandardItemModel.index(row, 0)
-            const roi = roiStandardItemModel.data(index, Qt.WhatsThisRole)
+        for (let row = 0; row < roiModel.rowCount(); ++row) {
+            const index = roiModel.index(row, 0)
+            const roi = roiModel.data(index, Qt.WhatsThisRole)
             var indicator
             if (roi.length === 4) {
                 // rect roi

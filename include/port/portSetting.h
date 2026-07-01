@@ -1,19 +1,21 @@
 #ifndef UNICOMM_PORTSETTING_H
 #define UNICOMM_PORTSETTING_H
 
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonObject>
 #include <QQuickImageProvider>
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <QStandardItemModel>
 
 class QQuickView;
 class QCamera;
 class QMediaCaptureSession;
 class QQuickItem;
 class QScreenCapture;
-class QStandardItemModel;
 class QVideoSink;
 
 class ImageProvider;
+class RoiModel;
+class PipelineModel;
 
 class PortSetting final : public QObject {
     Q_OBJECT
@@ -73,8 +75,8 @@ private:
     QMediaCaptureSession *m_mediaCaptureSession{};
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};
-    QStandardItemModel *m_roiStandardItemModel{};
-    QStandardItemModel *m_pipelineStandardItemModel{};
+    RoiModel *m_roiModel{};
+    PipelineModel *m_pipelineModel{};
     ImageProvider *m_imageProvider{};
     QString m_oldPortName{};
 
@@ -130,13 +132,40 @@ public:
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 
-    void null();
-
     void preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline);
 
 private:
-    QPixmap m_null{};
     QPixmap m_preview{};
+};
+
+class RoiModel final : public QStandardItemModel {
+    Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
+
+public:
+    explicit RoiModel(QObject *parent = nullptr);
+
+    [[nodiscard]] bool emptyGet() const {
+        return rowCount() == 0;
+    }
+
+    signals:
+        void emptyChanged();
+};
+
+class PipelineModel final : public QStandardItemModel {
+    Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
+
+public:
+    explicit PipelineModel(QObject *parent = nullptr);
+
+    [[nodiscard]] bool emptyGet() const {
+        return rowCount() == 0;
+    }
+
+    signals:
+        void emptyChanged();
 };
 
 #endif //UNICOMM_PORTSETTING_H
