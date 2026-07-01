@@ -1409,17 +1409,24 @@ Item {
                                                             }
                                                         }
 
-                                                        Slider {
+                                                        RangeSlider {
                                                             id: thresholdSlider
-                                                            value: session.thresh
+                                                            first.value: session.thresh
+                                                            second.value: session.maxval
                                                             from: 0
                                                             to: 255
                                                             Layout.fillWidth: true
-                                                            ToolTip.text: value.toFixed(0)
+                                                            ToolTip.text: first.value.toFixed(0) + " ~ " + second.value.toFixed(0)
                                                             ToolTip.visible: hovered
 
-                                                            onMoved: {
-                                                                thresholdItem.session.thresh = Math.round(thresholdSlider.value)
+                                                            first.onMoved: {
+                                                                thresholdItem.session.thresh = Math.round(thresholdSlider.first.value)
+                                                                const index = pipelineModel.index(row, 0);
+                                                                pipelineModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
+                                                            }
+
+                                                            second.onMoved: {
+                                                                thresholdItem.session.maxval = Math.round(thresholdSlider.second.value)
                                                                 const index = pipelineModel.index(row, 0);
                                                                 pipelineModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
                                                             }

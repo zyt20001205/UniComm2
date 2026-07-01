@@ -71,8 +71,9 @@ QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline) {
             break;
             case ImagePipeline::Threshold: {
                 const int thresh = session["thresh"].toInt();
+                const int maxval = session["maxval"].toInt();
                 const int mode = session["mode"].toInt();
-                frame = threshold(frame, thresh, mode);
+                frame = threshold(frame, thresh, maxval, mode);
             }
             break;
             default: break;
@@ -91,14 +92,14 @@ cv::Mat scale(const cv::Mat &input, const float ratio, const int interpolation) 
     return output;
 }
 
-cv::Mat threshold(const cv::Mat &input, const int thresh, const int mode) {
+cv::Mat threshold(const cv::Mat &input, const int thresh, const int maxval, const int mode) {
     cv::Mat output{};
     if (input.channels() != 1) {
         cv::Mat gray{};
         cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
-        cv::threshold(gray, output, thresh, 255, mode);
+        cv::threshold(gray, output, thresh, maxval, mode);
     } else {
-        cv::threshold(input, output, thresh, 255, mode);
+        cv::threshold(input, output, thresh, maxval, mode);
     }
 
     return output;

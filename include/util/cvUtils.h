@@ -15,6 +15,6 @@ QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline);
 
 cv::Mat scale(const cv::Mat &input, float ratio, int interpolation);
 
-cv::Mat threshold(const cv::Mat &input, int thresh, int mode);
+cv::Mat threshold(const cv::Mat &input, int thresh, int maxval, int mode);
 
 #endif //UNICOMM_CVUTILS_H
