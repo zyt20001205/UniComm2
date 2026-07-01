@@ -1311,8 +1311,6 @@ Item {
                                                         pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
                                                     }
                                                 }
-
-
                                             }
 
                                             TapHandler {

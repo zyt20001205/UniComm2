@@ -48,6 +48,7 @@ void PortSetting::propertySet(const QVariantHash &objects) {
 
     m_window->rootContext()->setContextProperty("portSetting", this);
     m_window->rootContext()->setContextProperty("global", g_globalManager);
+    m_window->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_window->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
     m_window->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
     m_window->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
@@ -449,13 +450,13 @@ void PortSetting::pipelineInsert(const QVariantHash &session) const {
     const int type = session["type"].toInt();
     switch (type) {
         case ImagePipeline::Scale: {
-            auto *item = new QStandardItem(tr("ImagePipeline::Scale")); // NOLINT
+            auto *item = new QStandardItem("Scale"); // NOLINT
             m_pipelineStandardItemModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }
         break;
         case ImagePipeline::Threshold: {
-            auto *item = new QStandardItem(tr("ImagePipeline::Threshold")); // NOLINT
+            auto *item = new QStandardItem("Threshold"); // NOLINT
             m_pipelineStandardItemModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }

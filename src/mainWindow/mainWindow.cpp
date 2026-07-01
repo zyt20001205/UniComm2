@@ -240,6 +240,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_menuModule->propertySet(menuObjects);
 
     const QVariantHash portObjects = {
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"portModuleTableMenu", objects["portModuleTableMenu"]},
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
     };
