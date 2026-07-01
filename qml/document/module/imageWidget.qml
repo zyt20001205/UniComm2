@@ -20,9 +20,17 @@ Item {
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
             }
             ScrollBar.horizontal: ScrollBar {
                 policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
             }
             Behavior on ratio {
                 NumberAnimation {

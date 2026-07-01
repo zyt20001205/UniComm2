@@ -617,15 +617,45 @@ Item {
                 }
 
                 // image
-                RowLayout {
+                SplitView {
                     Layout.fillWidth: true; Layout.fillHeight: true
+                    orientation: Qt.Horizontal
+                    handle: Item {
+                        implicitWidth: 5
+
+                        Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: 1
+                            color: global.stroke
+                        }
+                    }
 
                     ColumnLayout {
-                        Layout.fillWidth: true; Layout.fillHeight: true
+                        SplitView.fillWidth: true; SplitView.fillHeight: true
 
-                        ScrollView {
+                        Flickable {
+                            id: videoFlickable
+                            clip: true
+                            contentWidth: videoOutput.width
+                            contentHeight: videoOutput.height
                             Layout.fillWidth: true; Layout.fillHeight: true
-                            contentWidth: videoOutput.width; contentHeight: videoOutput.height
+
+                            ScrollBar.vertical: ScrollBar {
+                                policy: ScrollBar.AsNeeded
+                                palette {
+                                    mid: global.stroke
+                                    dark: global.strokePressed
+                                }
+                            }
+                            ScrollBar.horizontal: ScrollBar {
+                                policy: ScrollBar.AsNeeded
+                                palette {
+                                    mid: global.stroke
+                                    dark: global.strokePressed
+                                }
+                            }
 
                             VideoOutput {
                                 id: videoOutput
@@ -749,34 +779,54 @@ Item {
                         }
 
                         RowLayout {
+                            Layout.fillWidth: true
 
-                            ToolBar {
-                                Layout.fillWidth: true; Layout.fillHeight: false
+                            Button {
+                                flat: true
+                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                icon.source: "qrc:/icon/rectangle.svg"
+                                icon.width: 32; icon.height: 32
+                                Layout.preferredWidth: 48; Layout.preferredHeight: 48
 
-                                RowLayout {
+                                onClicked: roiSelection.roiStart(2)
 
-                                    ToolButton {
-                                        Layout.preferredWidth: 48; Layout.preferredHeight: 48
-                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                        icon.source: "qrc:/icon/rectangle.svg"
-                                        icon.width: 32; icon.height: 32
-                                        ToolTip.text: qsTr("Rectangular")
-                                        ToolTip.visible: hovered
-
-                                        onClicked: roiSelection.roiStart(2)
+                                HoverHandler {
+                                    onHoveredChanged: {
+                                        if (!hovered) {
+                                            mainToolTip.text = ""
+                                        }
                                     }
-
-                                    ToolButton {
-                                        Layout.preferredWidth: 48; Layout.preferredHeight: 48
-                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                        icon.source: "qrc:/icon/quadrilateral.svg"
-                                        icon.width: 32; icon.height: 32
-                                        ToolTip.text: qsTr("Quadrilateral")
-                                        ToolTip.visible: hovered
-
-                                        onClicked: roiSelection.roiStart(4)
+                                    onPointChanged: {
+                                        mainToolTip.position = parent.mapToGlobal(point.position)
+                                        mainToolTip.text = qsTr("Rectangular")
                                     }
                                 }
+                            }
+
+                            Button {
+                                flat: true
+                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                icon.source: "qrc:/icon/quadrilateral.svg"
+                                icon.width: 32; icon.height: 32
+                                Layout.preferredWidth: 48; Layout.preferredHeight: 48
+
+                                onClicked: roiSelection.roiStart(4)
+
+                                HoverHandler {
+                                    onHoveredChanged: {
+                                        if (!hovered) {
+                                            mainToolTip.text = ""
+                                        }
+                                    }
+                                    onPointChanged: {
+                                        mainToolTip.position = parent.mapToGlobal(point.position)
+                                        mainToolTip.text = qsTr("Quadrilateral")
+                                    }
+                                }
+                            }
+
+                            Item {
+                                Layout.fillWidth: true
                             }
 
                             Label {
@@ -787,7 +837,7 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.preferredWidth: 300; Layout.fillHeight: true
+                        SplitView.preferredWidth: 300; SplitView.fillHeight: true
                         Layout.alignment: Qt.AlignTop
 
                         // roi area

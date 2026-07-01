@@ -56,6 +56,7 @@ void PortModule::propertySet(const QVariantHash &objects) {
     m_root = m_widget->rootObject();
 
     m_portSetting->propertySet(QVariantHash{
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
 }
 
