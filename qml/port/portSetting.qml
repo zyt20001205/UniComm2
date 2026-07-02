@@ -1891,6 +1891,36 @@ Item {
 
                     onTapped: previewImage.index = index
                 }
+
+                DragHandler {
+                    target: indicatorQuadShape
+
+                    onActiveChanged: {
+                        if (active) {
+                            previewImage.index = index
+                        } else {
+                            const dx = Math.round(indicatorQuadShape.x)
+                            const dy = Math.round(indicatorQuadShape.y)
+                            indicatorQuadShape.x = 0
+                            indicatorQuadShape.y = 0
+                            indicatorQuadShape.x0 += dx
+                            indicatorQuadShape.y0 += dy
+                            indicatorQuadShape.x1 += dx
+                            indicatorQuadShape.y1 += dy
+                            indicatorQuadShape.x2 += dx
+                            indicatorQuadShape.y2 += dy
+                            indicatorQuadShape.x3 += dx
+                            indicatorQuadShape.y3 += dy
+                            const modelIndex = roiModel.index(index, 0)
+                            roiModel.setData(modelIndex, [
+                                indicatorQuadShape.x0, indicatorQuadShape.y0,
+                                indicatorQuadShape.x1, indicatorQuadShape.y1,
+                                indicatorQuadShape.x2, indicatorQuadShape.y2,
+                                indicatorQuadShape.x3, indicatorQuadShape.y3
+                            ], Qt.WhatsThisRole)
+                        }
+                    }
+                }
             }
         }
     }
