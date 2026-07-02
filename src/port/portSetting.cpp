@@ -654,7 +654,7 @@ QString ImageProvider::recognition(const int mode) const {
         }
             break;
         case Recognition::CornerHarris: {
-            const QPoint point = harris(m_preview);
+            const QPoint point = cornerHarris(m_preview);
             result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
         }
             break;

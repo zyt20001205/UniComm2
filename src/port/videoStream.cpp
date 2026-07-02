@@ -204,7 +204,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
             }
             break;
             case Recognition::CornerHarris: {
-                const QPoint point = harris(processed);
+                const QPoint point = cornerHarris(processed);
                 resultList.append(point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y()));
             }
             break;

@@ -20,6 +20,6 @@ cv::Mat threshold(const cv::Mat &input, int thresh, int maxval, int mode);
 
 QPoint goodFeaturesToTrack(const QPixmap &pixmap);
 
-QPoint harris(const QPixmap &pixmap);
+QPoint cornerHarris(const QPixmap &pixmap);
 
 #endif //UNICOMM_CVUTILS_H

@@ -125,7 +125,7 @@ QPoint goodFeaturesToTrack(const QPixmap &pixmap) {
     return QPoint(qRound(corners.front().x), qRound(corners.front().y));
 }
 
-QPoint harris(const QPixmap &pixmap) {
+QPoint cornerHarris(const QPixmap &pixmap) {
     const cv::Mat gray = pixmapToGrayMat(pixmap);
     cv::Mat response{};
     cv::cornerHarris(gray, response, 2, 3, 0.04);
