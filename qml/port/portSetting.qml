@@ -869,6 +869,41 @@ Item {
                                 Image {
                                     id: previewImage
                                     property int selectedRow: -1
+                                    property string recognitionText: ""
+                                    property point recognitionPoint: recognitionPointGet()
+
+                                    function recognitionPointGet() {
+                                        const values = recognitionText.split(",")
+                                        if (values.length !== 2) return Qt.point(-1, -1)
+                                        const x = Number(values[0])
+                                        const y = Number(values[1])
+                                        if (!Number.isFinite(x) || !Number.isFinite(y)) return Qt.point(-1, -1)
+                                        return Qt.point(x, y)
+                                    }
+
+                                    Item {
+                                        x: previewImage.recognitionPoint.x
+                                        y: previewImage.recognitionPoint.y
+                                        width: 1
+                                        height: 1
+                                        visible: previewImage.recognitionPoint.x >= 0 && previewImage.recognitionPoint.y >= 0
+
+                                        Rectangle {
+                                            x: -8
+                                            y: -1
+                                            width: 16
+                                            height: 2
+                                            color: "#c50f1f"
+                                        }
+
+                                        Rectangle {
+                                            x: -1
+                                            y: -8
+                                            width: 2
+                                            height: 16
+                                            color: "#c50f1f"
+                                        }
+                                    }
                                 }
 
                                 Timer {

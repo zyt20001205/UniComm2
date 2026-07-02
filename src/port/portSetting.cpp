@@ -406,6 +406,7 @@ void PortSetting::videoCapture() {
 void PortSetting::previewLoad(const int index, const int mode) const {
     if (index == -1 || !m_roiModel->item(index, 0)) {
         m_previewImage->setProperty("source", "qrc:/icon/null.svg");
+        m_previewImage->setProperty("recognitionText", "");
         return;
     }
     const QJsonArray roi = QJsonArray::fromVariantList(m_roiModel->item(index, 0)->data(Qt::WhatsThisRole).toList());
@@ -416,10 +417,7 @@ void PortSetting::previewLoad(const int index, const int mode) const {
     }
     m_imageProvider->preview(m_videoSink, roi, pipeline);
     m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-
-    qDebug() << m_imageProvider->recognition(mode);
-
-
+    m_previewImage->setProperty("recognitionText", m_imageProvider->recognition(mode));
 }
 
 void PortSetting::roiInsert(const QVariantList &roi) const {
