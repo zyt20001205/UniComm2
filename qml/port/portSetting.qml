@@ -907,7 +907,7 @@ Item {
                                 }
 
                                 Timer {
-                                    interval: 200 // 5Hz
+                                    interval: recognitionComboBox.currentIndex === 0 ? 200 : 16 // 5Hz OCR : 60Hz Corner
                                     repeat: true
                                     running: rootItem.Window.window.visible && !roiModel.empty
 

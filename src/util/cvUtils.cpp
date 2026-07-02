@@ -6,14 +6,6 @@
 
 #include "globals.h"
 
-namespace {
-    cv::Mat pixmapToGrayMat(const QPixmap &pixmap) {
-        const QImage image = pixmap.toImage().convertToFormat(QImage::Format_Grayscale8);
-        const cv::Mat gray(image.height(), image.width(), CV_8UC1, const_cast<uchar *>(image.bits()), image.bytesPerLine());
-        return gray.clone();
-    }
-}
-
 QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline) {
     QImage image = pixmap.toImage();
     cv::Mat frame(image.height(), image.width(),
@@ -115,27 +107,24 @@ cv::Mat threshold(const cv::Mat &input, const int thresh, const int maxval, cons
 }
 
 QPoint goodFeaturesToTrack(const QPixmap &pixmap) {
-    const cv::Mat gray = pixmapToGrayMat(pixmap);
+    const QImage image = pixmap.toImage().convertToFormat(QImage::Format_Grayscale8);
+    const cv::Mat gray(image.height(), image.width(), CV_8UC1, const_cast<uchar *>(image.bits()), image.bytesPerLine());
+
     std::vector<cv::Point2f> corners{};
     cv::goodFeaturesToTrack(gray, corners, 1, 0.01, 10);
-    if (corners.empty()) {
-        return QPoint(-1, -1);
-    }
-
+    if (corners.empty()) return QPoint(-1, -1);
     return QPoint(qRound(corners.front().x), qRound(corners.front().y));
 }
 
 QPoint cornerHarris(const QPixmap &pixmap) {
-    const cv::Mat gray = pixmapToGrayMat(pixmap);
+    const QImage image = pixmap.toImage().convertToFormat(QImage::Format_Grayscale8);
+    const cv::Mat gray(image.height(), image.width(), CV_8UC1, const_cast<uchar *>(image.bits()), image.bytesPerLine());
+
     cv::Mat response{};
     cv::cornerHarris(gray, response, 2, 3, 0.04);
-
     double maxValue = 0;
     cv::Point maxLocation{};
     cv::minMaxLoc(response, nullptr, &maxValue, nullptr, &maxLocation);
-    if (maxValue <= 0) {
-        return QPoint(-1, -1);
-    }
-
+    if (maxValue <= 0) return QPoint(-1, -1);
     return QPoint(maxLocation.x, maxLocation.y);
 }
