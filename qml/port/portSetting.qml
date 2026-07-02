@@ -1798,8 +1798,8 @@ Item {
         id: indicatorRectComponent
 
         Rectangle {
-            color: previewImage.index === index ? global.brandBackSelected : "transparent"
-            opacity: 0.3
+            id: indicatorRect
+            color: previewImage.index === index ? Qt.alpha(global.brandBackSelected, 0.3) : "transparent"
             border.color: global.brandStroke
             border.width: 1
             property int index
@@ -1813,25 +1813,111 @@ Item {
                 }
             }
 
-            TapHandler {
+            MouseArea {
+                anchors.fill: parent
                 acceptedButtons: Qt.LeftButton
+                cursorShape: Qt.SizeAllCursor
+                preventStealing: true
+                property point lastPos: Qt.point(0, 0)
 
-                onTapped: previewImage.index = index
+                onPressed: (mouse) => {
+                    previewImage.index = index
+                    lastPos = mapToItem(videoOutput, mouse.x, mouse.y)
+                }
+
+                onPositionChanged: (mouse) => {
+                    const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                    indicatorRect.x += pos.x - lastPos.x
+                    indicatorRect.y += pos.y - lastPos.y
+                    lastPos = pos
+                }
+
+                onReleased: indicatorRect.roiSet()
             }
 
-            DragHandler {
-                onActiveChanged: {
-                    if (active) {
+            Rectangle {
+                id: topLeftHandle
+                visible: previewImage.index === index
+                x: -width / 2
+                y: -height / 2
+                width: 10
+                height: 10
+                radius: width / 2
+                color: global.brandBackSelected
+                border.color: global.brandStroke
+                border.width: 1
+                z: 1
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.SizeFDiagCursor
+                    preventStealing: true
+                    property point lastPos: Qt.point(0, 0)
+
+                    onPressed: (mouse) => {
                         previewImage.index = index
-                    } else {
-                        const ix = Math.round(parent.x)
-                        const iy = Math.round(parent.y)
-                        const iw = Math.round(parent.width)
-                        const ih = Math.round(parent.height)
-                        const modelIndex = roiModel.index(index, 0)
-                        roiModel.setData(modelIndex, [ix, iy, iw, ih], Qt.WhatsThisRole)
+                        lastPos = mapToItem(videoOutput, mouse.x, mouse.y)
                     }
+
+                    onPositionChanged: (mouse) => {
+                        const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        const dx = pos.x - lastPos.x
+                        const dy = pos.y - lastPos.y
+                        indicatorRect.x += dx
+                        indicatorRect.y += dy
+                        indicatorRect.width -= dx
+                        indicatorRect.height -= dy
+                        lastPos = pos
+                    }
+
+                    onReleased: indicatorRect.roiSet()
                 }
+            }
+
+            Rectangle {
+                id: bottomRightHandle
+                visible: previewImage.index === index
+                x: parent.width - width / 2
+                y: parent.height - height / 2
+                width: 10
+                height: 10
+                radius: width / 2
+                color: global.brandBackSelected
+                border.color: global.brandStroke
+                border.width: 1
+                z: 1
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.SizeFDiagCursor
+                    preventStealing: true
+                    property point lastPos: Qt.point(0, 0)
+
+                    onPressed: (mouse) => {
+                        previewImage.index = index
+                        lastPos = mapToItem(videoOutput, mouse.x, mouse.y)
+                    }
+
+                    onPositionChanged: (mouse) => {
+                        const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        indicatorRect.width += pos.x - lastPos.x
+                        indicatorRect.height += pos.y - lastPos.y
+                        lastPos = pos
+                    }
+
+                    onReleased: indicatorRect.roiSet()
+                }
+            }
+
+            function roiSet() {
+                const ix = Math.round(indicatorRect.x)
+                const iy = Math.round(indicatorRect.y)
+                const iw = Math.round(indicatorRect.width)
+                const ih = Math.round(indicatorRect.height)
+                const modelIndex = roiModel.index(index, 0)
+                roiModel.setData(modelIndex, [ix, iy, iw, ih], Qt.WhatsThisRole)
             }
         }
     }
