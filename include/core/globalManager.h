@@ -22,7 +22,11 @@ class GlobalManager final : public QObject {
     Q_PROPERTY(QString strokePressed READ strokePressedGet CONSTANT)
 
     Q_PROPERTY(QString brandFore READ brandForeGet CONSTANT)
+
     Q_PROPERTY(QString brandBack READ brandBackGet CONSTANT)
+    Q_PROPERTY(QString brandBackSelected READ brandBackSelectedGet CONSTANT)
+
+    Q_PROPERTY(QString brandStroke READ brandStrokeGet CONSTANT)
     Q_PROPERTY(QString brandLink READ brandLinkGet CONSTANT)
 
     Q_PROPERTY(QString successFore2 READ successFore2Get CONSTANT)
@@ -108,6 +112,14 @@ public:
 
     [[nodiscard]] QString brandBackGet() const {
         return m_theme == Theme::Light ? m_palette["lightBrandBack"] : m_palette["darkBrandBack"];
+    }
+
+    [[nodiscard]] QString brandBackSelectedGet() const {
+        return m_theme == Theme::Light ? m_palette["lightBrandBackSelected"] : m_palette["darkBrandBackSelected"];
+    }
+
+    [[nodiscard]] QString brandStrokeGet() const {
+        return m_theme == Theme::Light ? m_palette["lightBrandStroke"] : m_palette["darkBrandStroke"];
     }
 
     [[nodiscard]] QString brandLinkGet() const {

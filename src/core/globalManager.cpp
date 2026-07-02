@@ -37,8 +37,14 @@ GlobalManager::GlobalManager(QObject *parent)
 
           {"lightBrandFore", "#ffffff"},
           {"darkBrandFore", "#ffffff"},
+
           {"lightBrandBack", "#0f6cbd"},
           {"darkBrandBack", "#115ea3"},
+          {"lightBrandBackSelected", "##0f548c"},
+          {"darkBrandBackSelected", "##0f548c"},
+
+          {"lightBrandStroke", "#0f6cbd"},
+          {"darkBrandStroke", "#479ef5"},
           {"lightBrandLink", "#115ea3"},
           {"darkBrandLink", "#479ef5"},
 

@@ -690,7 +690,7 @@ Item {
                                 id: roiSelection
                                 anchors.fill: videoOutput
                                 color: global.stroke
-                                opacity: 0.2
+                                opacity: 0.3
                                 visible: step !== 0
                                 property int step: 0
                                 property var roiList: []
@@ -868,7 +868,7 @@ Item {
 
                                 Image {
                                     id: previewImage
-                                    property int selectedRow: -1
+                                    property int index: -1
                                     property string recognitionText: ""
                                     property point recognitionPoint: recognitionPointGet()
 
@@ -893,7 +893,7 @@ Item {
                                             y: -1
                                             width: 16
                                             height: 2
-                                            color: "#c50f1f"
+                                            color: global.dangerFore3
                                         }
 
                                         Rectangle {
@@ -901,7 +901,7 @@ Item {
                                             y: -8
                                             width: 2
                                             height: 16
-                                            color: "#c50f1f"
+                                            color: global.dangerFore3
                                         }
                                     }
                                 }
@@ -911,7 +911,7 @@ Item {
                                     repeat: true
                                     running: rootItem.Window.window.visible && !roiModel.empty
 
-                                    onTriggered: portSetting.previewLoad(previewImage.selectedRow, recognitionComboBox.currentIndex)
+                                    onTriggered: portSetting.previewLoad(previewImage.index, recognitionComboBox.currentIndex)
                                 }
                             }
                         }
@@ -1040,7 +1040,7 @@ Item {
                                             model: roiModel
                                             contentWidth: width
                                             property int hoveredRow: -1
-                                            property int selectedRow: -1
+                                            property int selectedRow: previewImage.index
 
                                             ScrollBar.vertical: ScrollBar {
                                                 policy: ScrollBar.AsNeeded
@@ -1099,10 +1099,7 @@ Item {
                                                     acceptedButtons: Qt.LeftButton
                                                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                                                    onTapped: {
-                                                        roiTableView.selectedRow = row
-                                                        previewImage.selectedRow = row
-                                                    }
+                                                    onTapped: previewImage.index = row
                                                 }
 
                                                 TapHandler {
@@ -1120,10 +1117,7 @@ Item {
                                                 acceptedButtons: Qt.LeftButton
                                                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                                                onTapped: {
-                                                    roiTableView.selectedRow = -1
-                                                    previewImage.selectedRow = -1
-                                                }
+                                                onTapped: previewImage.index = -1
                                             }
                                         }
 
@@ -1804,9 +1798,10 @@ Item {
         id: indicatorRectComponent
 
         Rectangle {
-            color: "#a9d3f2"
-            opacity: 0.5
-            border.color: "#0078d4"; border.width: 1
+            color: previewImage.index === index ? global.brandBackSelected : "transparent"
+            opacity: 0.3
+            border.color: global.brandStroke
+            border.width: 1
             property int index
 
             Label {
@@ -1821,13 +1816,7 @@ Item {
             TapHandler {
                 acceptedButtons: Qt.LeftButton
 
-                onTapped: {
-                    const pos = mapToItem(previewPopup.parent, width, 0)
-                    previewPopup.x = pos.x
-                    previewPopup.y = pos.y
-                    previewImage.currentIndex = index
-                    previewPopup.open()
-                }
+                onTapped: previewImage.index = index
             }
         }
     }
@@ -1848,9 +1837,9 @@ Item {
             property int index
 
             ShapePath {
-                strokeColor: "#0078d4"
+                fillColor: previewImage.index === index ? Qt.alpha(global.brandBackSelected, 0.3) : "transparent"
+                strokeColor: global.brandStroke
                 strokeWidth: 1
-                fillColor: "#80a9d3f2"
                 startX: x0; startY: y0
 
                 PathLine {
@@ -1885,13 +1874,7 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
 
-                    onTapped: {
-                        const pos = mapToItem(previewPopup.parent, width, 0)
-                        previewPopup.x = pos.x
-                        previewPopup.y = pos.y
-                        previewImage.currentIndex = index
-                        previewPopup.open()
-                    }
+                    onTapped: previewImage.index = index
                 }
             }
         }
