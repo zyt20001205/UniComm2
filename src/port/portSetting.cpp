@@ -227,6 +227,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             break;
             case PortType::VideoStream: {
                 m_videoStreamNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
+                m_recognitionComboBox->setProperty("currentIndex", portConfig["recognition"].toObject()["mode"].toInt());
             }
             break;
             default: break;

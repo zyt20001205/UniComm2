@@ -874,7 +874,7 @@ Item {
                                 Timer {
                                     interval: 200 // 5Hz
                                     repeat: true
-                                    running: !roiModel.empty
+                                    running: rootItem.Window.window.visible && !roiModel.empty
 
                                     onTriggered: portSetting.previewLoad(previewImage.selectedRow, recognitionComboBox.currentIndex)
                                 }
