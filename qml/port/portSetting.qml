@@ -1805,12 +1805,11 @@ Item {
             property int index
 
             Label {
+                x: parent.width / 2 - implicitWidth / 2
+                y: parent.height / 2 - implicitHeight / 2
                 text: index.toString()
                 font.bold: true
                 font.pixelSize: 20
-                background: Rectangle {
-                    color: "#0078d4"
-                }
             }
 
             MouseArea {
@@ -1955,15 +1954,14 @@ Item {
                 PathLine {
                     x: x0; y: y0
                 }
+            }
 
-                // Label {
-                //     text: index.toString()
-                //     font.bold: true
-                //     font.pixelSize: 20
-                //     background: Rectangle {
-                //         color: "#0078d4"
-                //     }
-                // }
+            Label {
+                x: indicatorQuadShape.boundingRect.x + indicatorQuadShape.boundingRect.width / 2 - implicitWidth / 2
+                y: indicatorQuadShape.boundingRect.y + indicatorQuadShape.boundingRect.height / 2 - implicitHeight / 2
+                text: index.toString()
+                font.bold: true
+                font.pixelSize: 20
             }
 
             Item {
@@ -1972,41 +1970,212 @@ Item {
                 width: indicatorQuadShape.boundingRect.width
                 height: indicatorQuadShape.boundingRect.height
 
-                TapHandler {
+                MouseArea {
+                    anchors.fill: parent
                     acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.SizeAllCursor
+                    preventStealing: true
+                    property point startPos: Qt.point(0, 0)
+                    property int startX0
+                    property int startY0
+                    property int startX1
+                    property int startY1
+                    property int startX2
+                    property int startY2
+                    property int startX3
+                    property int startY3
 
-                    onTapped: previewImage.index = index
-                }
-
-                DragHandler {
-                    target: indicatorQuadShape
-
-                    onActiveChanged: {
-                        if (active) {
-                            previewImage.index = index
-                        } else {
-                            const dx = Math.round(indicatorQuadShape.x)
-                            const dy = Math.round(indicatorQuadShape.y)
-                            indicatorQuadShape.x = 0
-                            indicatorQuadShape.y = 0
-                            indicatorQuadShape.x0 += dx
-                            indicatorQuadShape.y0 += dy
-                            indicatorQuadShape.x1 += dx
-                            indicatorQuadShape.y1 += dy
-                            indicatorQuadShape.x2 += dx
-                            indicatorQuadShape.y2 += dy
-                            indicatorQuadShape.x3 += dx
-                            indicatorQuadShape.y3 += dy
-                            const modelIndex = roiModel.index(index, 0)
-                            roiModel.setData(modelIndex, [
-                                indicatorQuadShape.x0, indicatorQuadShape.y0,
-                                indicatorQuadShape.x1, indicatorQuadShape.y1,
-                                indicatorQuadShape.x2, indicatorQuadShape.y2,
-                                indicatorQuadShape.x3, indicatorQuadShape.y3
-                            ], Qt.WhatsThisRole)
-                        }
+                    onPressed: (mouse) => {
+                        previewImage.index = index
+                        startPos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        startX0 = indicatorQuadShape.x0
+                        startY0 = indicatorQuadShape.y0
+                        startX1 = indicatorQuadShape.x1
+                        startY1 = indicatorQuadShape.y1
+                        startX2 = indicatorQuadShape.x2
+                        startY2 = indicatorQuadShape.y2
+                        startX3 = indicatorQuadShape.x3
+                        startY3 = indicatorQuadShape.y3
                     }
+
+                    onPositionChanged: (mouse) => {
+                        const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        const dx = pos.x - startPos.x
+                        const dy = pos.y - startPos.y
+                        indicatorQuadShape.x0 = Math.round(startX0 + dx)
+                        indicatorQuadShape.y0 = Math.round(startY0 + dy)
+                        indicatorQuadShape.x1 = Math.round(startX1 + dx)
+                        indicatorQuadShape.y1 = Math.round(startY1 + dy)
+                        indicatorQuadShape.x2 = Math.round(startX2 + dx)
+                        indicatorQuadShape.y2 = Math.round(startY2 + dy)
+                        indicatorQuadShape.x3 = Math.round(startX3 + dx)
+                        indicatorQuadShape.y3 = Math.round(startY3 + dy)
+                    }
+
+                    onReleased: indicatorQuadShape.roiSet()
                 }
+            }
+
+            Rectangle {
+                visible: previewImage.index === index
+                x: indicatorQuadShape.x0 - width / 2
+                y: indicatorQuadShape.y0 - height / 2
+                width: 10
+                height: 10
+                radius: width / 2
+                color: global.brandBackSelected
+                border.color: global.brandStroke
+                border.width: 1
+                z: 1
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.SizeFDiagCursor
+                    preventStealing: true
+                    property point startPos: Qt.point(0, 0)
+                    property int startX
+                    property int startY
+
+                    onPressed: (mouse) => {
+                        previewImage.index = index
+                        startPos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        startX = indicatorQuadShape.x0
+                        startY = indicatorQuadShape.y0
+                    }
+
+                    onPositionChanged: (mouse) => {
+                        const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        indicatorQuadShape.x0 = Math.round(startX + pos.x - startPos.x)
+                        indicatorQuadShape.y0 = Math.round(startY + pos.y - startPos.y)
+                    }
+
+                    onReleased: indicatorQuadShape.roiSet()
+                }
+            }
+
+            Rectangle {
+                visible: previewImage.index === index
+                x: indicatorQuadShape.x1 - width / 2
+                y: indicatorQuadShape.y1 - height / 2
+                width: 10
+                height: 10
+                radius: width / 2
+                color: global.brandBackSelected
+                border.color: global.brandStroke
+                border.width: 1
+                z: 1
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.SizeFDiagCursor
+                    preventStealing: true
+                    property point startPos: Qt.point(0, 0)
+                    property int startX
+                    property int startY
+
+                    onPressed: (mouse) => {
+                        previewImage.index = index
+                        startPos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        startX = indicatorQuadShape.x1
+                        startY = indicatorQuadShape.y1
+                    }
+
+                    onPositionChanged: (mouse) => {
+                        const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        indicatorQuadShape.x1 = Math.round(startX + pos.x - startPos.x)
+                        indicatorQuadShape.y1 = Math.round(startY + pos.y - startPos.y)
+                    }
+
+                    onReleased: indicatorQuadShape.roiSet()
+                }
+            }
+
+            Rectangle {
+                visible: previewImage.index === index
+                x: indicatorQuadShape.x2 - width / 2
+                y: indicatorQuadShape.y2 - height / 2
+                width: 10
+                height: 10
+                radius: width / 2
+                color: global.brandBackSelected
+                border.color: global.brandStroke
+                border.width: 1
+                z: 1
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.SizeFDiagCursor
+                    preventStealing: true
+                    property point startPos: Qt.point(0, 0)
+                    property int startX
+                    property int startY
+
+                    onPressed: (mouse) => {
+                        previewImage.index = index
+                        startPos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        startX = indicatorQuadShape.x2
+                        startY = indicatorQuadShape.y2
+                    }
+
+                    onPositionChanged: (mouse) => {
+                        const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        indicatorQuadShape.x2 = Math.round(startX + pos.x - startPos.x)
+                        indicatorQuadShape.y2 = Math.round(startY + pos.y - startPos.y)
+                    }
+
+                    onReleased: indicatorQuadShape.roiSet()
+                }
+            }
+
+            Rectangle {
+                visible: previewImage.index === index
+                x: indicatorQuadShape.x3 - width / 2
+                y: indicatorQuadShape.y3 - height / 2
+                width: 10
+                height: 10
+                radius: width / 2
+                color: global.brandBackSelected
+                border.color: global.brandStroke
+                border.width: 1
+                z: 1
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.SizeFDiagCursor
+                    preventStealing: true
+                    property point startPos: Qt.point(0, 0)
+                    property int startX
+                    property int startY
+
+                    onPressed: (mouse) => {
+                        previewImage.index = index
+                        startPos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        startX = indicatorQuadShape.x3
+                        startY = indicatorQuadShape.y3
+                    }
+
+                    onPositionChanged: (mouse) => {
+                        const pos = mapToItem(videoOutput, mouse.x, mouse.y)
+                        indicatorQuadShape.x3 = Math.round(startX + pos.x - startPos.x)
+                        indicatorQuadShape.y3 = Math.round(startY + pos.y - startPos.y)
+                    }
+
+                    onReleased: indicatorQuadShape.roiSet()
+                }
+            }
+
+            function roiSet() {
+                const modelIndex = roiModel.index(index, 0)
+                roiModel.setData(modelIndex, [
+                    indicatorQuadShape.x0, indicatorQuadShape.y0,
+                    indicatorQuadShape.x1, indicatorQuadShape.y1,
+                    indicatorQuadShape.x2, indicatorQuadShape.y2,
+                    indicatorQuadShape.x3, indicatorQuadShape.y3
+                ], Qt.WhatsThisRole)
             }
         }
     }
