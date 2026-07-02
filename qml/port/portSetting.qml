@@ -834,7 +834,7 @@ Item {
 
                         // preview
                         ColumnLayout {
-                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
+                            SplitView.fillWidth: true; SplitView.fillHeight: true
 
                             Label {
                                 leftPadding: 6
@@ -913,6 +913,15 @@ Item {
 
                                     onTriggered: portSetting.previewLoad(previewImage.index, recognitionComboBox.currentIndex)
                                 }
+                            }
+
+                            Label {
+                                leftPadding: 6
+                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 20
+                                text: previewImage.recognitionText
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
                             }
                         }
 
@@ -1594,11 +1603,6 @@ Item {
                                     textRole: "text"
                                 }
                             }
-                        }
-
-                        // spring
-                        Item {
-                            SplitView.fillWidth: true; SplitView.fillHeight: true
                         }
                     }
                 }
