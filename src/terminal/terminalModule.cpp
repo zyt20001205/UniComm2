@@ -17,6 +17,7 @@ TerminalModule::TerminalModule(QWidget *parent)
 }
 
 TerminalModule::~TerminalModule() {
+    delete m_manageWindow;
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] terminal module destructed").arg(timestamp);
 }

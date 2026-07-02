@@ -195,7 +195,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
                 QString text = QString::fromUtf8(result);
                 text = text.trimmed();
                 resultList.append(text.isEmpty() ? "null" : text);
-                delete result;
+                delete[] result;
             }
             break;
             case Recognition::CornerShiTomasi: {

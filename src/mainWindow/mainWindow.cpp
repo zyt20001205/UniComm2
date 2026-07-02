@@ -77,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 }
 
 MainWindow::~MainWindow() {
+    delete m_overlay;
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] main window destructed").arg(timestamp);
 }

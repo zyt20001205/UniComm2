@@ -39,7 +39,7 @@ PortSetting::PortSetting(QWidget *parent)
 }
 
 PortSetting::~PortSetting() {
-    // delete m_imageProvider;
+    delete m_window;
 }
 
 void PortSetting::propertySet(const QVariantHash &objects) {
@@ -645,7 +645,7 @@ QString ImageProvider::recognition(const int mode) const {
             m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 1, image.bytesPerLine());
             char *_result = m_ocrEngine->GetUTF8Text();
             result = QString::fromUtf8(_result).trimmed();
-            delete _result;
+            delete[] _result;
         }
             break;
         case Recognition::CornerShiTomasi: {

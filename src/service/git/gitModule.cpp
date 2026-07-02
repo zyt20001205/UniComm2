@@ -57,6 +57,8 @@ GitModule::GitModule()
 }
 
 GitModule::~GitModule() {
+    delete m_commitWindow;
+    delete m_pushWindow;
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
