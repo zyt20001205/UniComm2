@@ -1818,6 +1818,21 @@ Item {
 
                 onTapped: previewImage.index = index
             }
+
+            DragHandler {
+                onActiveChanged: {
+                    if (active) {
+                        previewImage.index = index
+                    } else {
+                        const ix = Math.round(parent.x)
+                        const iy = Math.round(parent.y)
+                        const iw = Math.round(parent.width)
+                        const ih = Math.round(parent.height)
+                        const modelIndex = roiModel.index(index, 0)
+                        roiModel.setData(modelIndex, [ix, iy, iw, ih], Qt.WhatsThisRole)
+                    }
+                }
+            }
         }
     }
 

@@ -423,11 +423,7 @@ void PortSetting::previewLoad(const int index, const int mode) const {
 void PortSetting::roiInsert(const QVariantList &roi) const {
     QString text{};
     if (roi.size() == 4) {
-        const int x = roi[0].toInt();
-        const int y = roi[1].toInt();
-        const int w = roi[2].toInt();
-        const int h = roi[3].toInt();
-        text = QString::number(x) + " " + QString::number(y) + " " + QString::number(w) + " " + QString::number(h);
+        text = "Rectangle";
     } else if (roi.size() == 8) {
         text = "Quadrilateral";
     }
