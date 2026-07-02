@@ -65,9 +65,9 @@ bool VideoStream::open() {
         // const QByteArray charsetBytes = charset.toUtf8();
         const char *charsetChar = charsetBytes.constData();
         m_ocrEngine->Init(nullptr, charsetChar);
-        const QByteArray whitelistBytes = m_portConfig["whitelist"].toString().toUtf8();
-        const char *whitelistChar = whitelistBytes.constData();
-        m_ocrEngine->SetVariable("tessedit_char_whitelist", whitelistChar);
+        // const QByteArray whitelistBytes = m_portConfig["whitelist"].toString().toUtf8();
+        // const char *whitelistChar = whitelistBytes.constData();
+        // m_ocrEngine->SetVariable("tessedit_char_whitelist", whitelistChar);
         // m_ocrEngine->SetVariable("load_system_dawg", "0");
         // m_ocrEngine->SetVariable("load_freq_dawg", "0");
     }
@@ -140,6 +140,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
 
     QStringList resultList{};
     for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
+        // roi
         QPixmap cropped{};
         QJsonArray roi = value.toArray();
         if (roi.size() == 4) {
@@ -173,8 +174,8 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
             painter.drawImage(0, 0, rawImage);
             cropped = QPixmap::fromImage(result);
         }
+        // pipeline
         const QPixmap processed = pipelineProcess(cropped, m_portConfig["pipeline"].toArray());
-
         // for testing
         // QMetaObject::invokeMethod(g_mainWindow, [processed] {
         //     auto *label = new QLabel(g_mainWindow); // NOLINT
@@ -183,14 +184,32 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
         //     label->setPixmap(processed);
         //     label->show();
         // });
-
         const QImage image = processed.toImage().convertToFormat(QImage::Format_Grayscale8);
         m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 1, image.bytesPerLine());
-        char *result = m_ocrEngine->GetUTF8Text();
-        QString text = QString::fromUtf8(result);
-        text = text.trimmed();
-        resultList.append(text.isEmpty() ? "null" : text);
-        delete result;
+        // recognition
+        const auto recognition = m_portConfig["recognition"].toObject();
+        const auto mode = recognition["mode"].toInt();
+        switch (mode) {
+            case Recognition::OCR: {
+                char *result = m_ocrEngine->GetUTF8Text();
+                QString text = QString::fromUtf8(result);
+                text = text.trimmed();
+                resultList.append(text.isEmpty() ? "null" : text);
+                delete result;
+            }
+            break;
+            case Recognition::CornerShiTomasi: {
+                const QPoint point = goodFeaturesToTrack(processed);
+                resultList.append(point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y()));
+            }
+            break;
+            case Recognition::CornerHarris: {
+                const QPoint point = harris(processed);
+                resultList.append(point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y()));
+            }
+            break;
+            default: break;
+        }
     }
     return resultList.join("\x1E").toUtf8();
 }

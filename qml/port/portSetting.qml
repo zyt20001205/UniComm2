@@ -48,6 +48,17 @@ Item {
                     }
                 }
 
+                Component {
+                    id: delegateComponent
+
+                    Label {
+                        horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                        opacity: 1.0 - Math.abs(Tumbler.displacement) / (Tumbler.tumbler.visibleItemCount / 2)
+                        text: modelData
+                        font.pointSize: 16
+                    }
+                }
+
                 ColumnLayout {
                     Layout.fillWidth: true; Layout.fillHeight: false
 
@@ -821,6 +832,55 @@ Item {
                             }
                         }
 
+                        // preview
+                        ColumnLayout {
+                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
+
+                            Label {
+                                leftPadding: 6
+                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 20
+                                text: qsTr("Image Preview")
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+
+                            Flickable {
+                                clip: true
+                                contentWidth: previewImage.width
+                                contentHeight: previewImage.height
+                                Layout.fillWidth: true; Layout.fillHeight: true
+
+                                ScrollBar.vertical: ScrollBar {
+                                    policy: ScrollBar.AsNeeded
+                                    palette {
+                                        mid: global.stroke
+                                        dark: global.strokePressed
+                                    }
+                                }
+                                ScrollBar.horizontal: ScrollBar {
+                                    policy: ScrollBar.AsNeeded
+                                    palette {
+                                        mid: global.stroke
+                                        dark: global.strokePressed
+                                    }
+                                }
+
+                                Image {
+                                    id: previewImage
+                                    property int selectedRow: -1
+                                }
+
+                                Timer {
+                                    interval: 200 // 5Hz
+                                    repeat: true
+                                    running: !roiModel.empty
+
+                                    onTriggered: portSetting.previewLoad(previewImage.selectedRow, recognitionComboBox.currentIndex)
+                                }
+                            }
+                        }
+
                         // roi
                         ColumnLayout {
                             SplitView.fillWidth: true; SplitView.preferredHeight: 200
@@ -1018,6 +1078,16 @@ Item {
                                                         roiMenu.roiIndex = model.row
                                                         roiMenu.popup()
                                                     }
+                                                }
+                                            }
+
+                                            TapHandler {
+                                                acceptedButtons: Qt.LeftButton
+                                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                                onTapped: {
+                                                    roiTableView.selectedRow = -1
+                                                    previewImage.selectedRow = -1
                                                 }
                                             }
                                         }
@@ -1463,76 +1533,37 @@ Item {
                             }
                         }
 
-                        // preview
-                        ColumnLayout {
-                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
-
-                            Label {
-                                leftPadding: 6
-                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                                font.pixelSize: 20
-                                text: qsTr("Image Preview")
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                            }
-
-                            Flickable {
-                                clip: true
-                                contentWidth: previewImage.width
-                                contentHeight: previewImage.height
-                                Layout.fillWidth: true; Layout.fillHeight: true
-
-                                ScrollBar.vertical: ScrollBar {
-                                    policy: ScrollBar.AsNeeded
-                                    palette {
-                                        mid: global.stroke
-                                        dark: global.strokePressed
-                                    }
-                                }
-                                ScrollBar.horizontal: ScrollBar {
-                                    policy: ScrollBar.AsNeeded
-                                    palette {
-                                        mid: global.stroke
-                                        dark: global.strokePressed
-                                    }
-                                }
-
-                                Image {
-                                    id: previewImage
-                                    property int selectedRow: -1
-                                }
-
-                                Timer {
-                                    interval: 16 // 60Hz
-                                    repeat: true
-                                    running: !roiModel.empty
-
-                                    onTriggered: portSetting.previewLoad(previewImage.selectedRow)
-                                }
-                            }
-                        }
-
-                        // post
+                        // recognition
                         ColumnLayout {
                             SplitView.fillWidth: true
 
                             RowLayout {
+                                Layout.fillWidth: true
 
                                 Label {
-                                    text: qsTr("Whitelist")
+                                    leftPadding: 6
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                                     font.pixelSize: 20
+                                    text: qsTr("Recognition")
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
                                 }
 
-                                Switch {
-                                    id: whitelistSwitch
+                                ComboBox {
+                                    id: recognitionComboBox
+                                    model: ListModel {
+                                        ListElement {
+                                            text: qsTr("OCR")
+                                        }
+                                        ListElement {
+                                            text: qsTr("Corner ShiTomasi")
+                                        }
+                                        ListElement {
+                                            text: qsTr("Corner Harris")
+                                        }
+                                    }
+                                    textRole: "text"
                                 }
-                            }
-
-                            TextField {
-                                id: whitelistTextField
-                                placeholderText: "e.g. 0123456789"
-                                visible: whitelistSwitch.checked
-                                Layout.fillWidth: true
                             }
                         }
 
@@ -1688,17 +1719,6 @@ Item {
         }
     }
 
-    Component {
-        id: delegateComponent
-
-        Label {
-            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            opacity: 1.0 - Math.abs(Tumbler.displacement) / (Tumbler.tumbler.visibleItemCount / 2)
-            text: modelData
-            font.pointSize: 16
-        }
-    }
-
     // roi
     function roiReload() {
         roiTableLoader.active = false
@@ -1731,7 +1751,8 @@ Item {
             onTriggered: {
                 let session = {}
                 session.type = 1
-                session.thresh = 128
+                session.thresh = 0
+                session.maxval = 255
                 session.mode = 0
                 portSetting.pipelineInsert(session)
             }
@@ -1917,8 +1938,7 @@ Item {
             // image
             "videoSink": videoOutput.videoSink,
             "previewImage": previewImage,
-            "whitelistSwitch": whitelistSwitch,
-            "whitelistTextField": whitelistTextField
+            "recognitionComboBox": recognitionComboBox
         };
         portSetting.propertyGet(objects)
     }

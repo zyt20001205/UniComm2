@@ -6,6 +6,10 @@
 #include <QQuickImageProvider>
 #include <QStandardItemModel>
 
+namespace tesseract {
+    class TessBaseAPI;
+}
+
 class QQuickView;
 class QCamera;
 class QMediaCaptureSession;
@@ -37,7 +41,7 @@ public:
 
     Q_INVOKABLE void videoCapture();
 
-    Q_INVOKABLE void previewLoad(int index) const;
+    Q_INVOKABLE void previewLoad(int index, int mode) const;
 
     Q_INVOKABLE void roiInsert(const QVariantList &roi) const;
 
@@ -118,8 +122,7 @@ private:
     // image
     QVideoSink *m_videoSink{};
     QObject *m_previewImage{};
-    QObject *m_whitelistSwitch{};
-    QObject *m_whitelistTextField{};
+    QObject *m_recognitionComboBox{};
 };
 
 class ImageProvider final: public QQuickImageProvider {
@@ -128,14 +131,17 @@ class ImageProvider final: public QQuickImageProvider {
 public:
     explicit ImageProvider();
 
-    ~ImageProvider() override = default;
+    ~ImageProvider() override;
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 
     void preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline);
 
+    [[nodiscard]] QString recognition(int mode) const;
+
 private:
     QPixmap m_preview{};
+    tesseract::TessBaseAPI *m_ocrEngine{};
 };
 
 class RoiModel final : public QStandardItemModel {

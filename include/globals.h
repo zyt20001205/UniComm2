@@ -88,6 +88,14 @@ namespace ImagePipeline {
     };
 }
 
+namespace Recognition {
+    enum {
+        OCR,
+        CornerShiTomasi,
+        CornerHarris
+    };
+}
+
 namespace InterpreterMode {
     enum {
         Run,

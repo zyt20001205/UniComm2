@@ -21,6 +21,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "tesseract/baseapi.h"
 #include "util/cvUtils.h"
 
 // public
@@ -100,8 +101,7 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_videoSink = objects["videoSink"].value<QVideoSink *>();
     m_mediaCaptureSession->setVideoSink(m_videoSink);
     m_previewImage = qvariant_cast<QObject *>(objects["previewImage"]);
-    m_whitelistSwitch = qvariant_cast<QObject *>(objects["whitelistSwitch"]);
-    m_whitelistTextField = qvariant_cast<QObject *>(objects["whitelistTextField"]);
+    m_recognitionComboBox = qvariant_cast<QObject *>(objects["recognitionComboBox"]);
 }
 
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
@@ -347,7 +347,11 @@ void PortSetting::portSettingExport() {
                 {"portName", m_videoStreamNameComboBox->property("currentValue").toString()},
                 {"roi", roiArray},
                 {"pipeline", pipelineArray},
-                {"whitelist", m_whitelistTextField->property("text").toString()}
+                {
+                    "recognition", QJsonObject{
+                        {"mode", m_recognitionComboBox->property("currentIndex").toInt()}
+                    }
+                }
             };
         }
         break;
@@ -398,7 +402,7 @@ void PortSetting::videoCapture() {
     }
 }
 
-void PortSetting::previewLoad(const int index) const {
+void PortSetting::previewLoad(const int index, const int mode) const {
     if (index == -1 || !m_roiModel->item(index, 0)) {
         m_previewImage->setProperty("source", "qrc:/icon/null.svg");
         return;
@@ -411,6 +415,10 @@ void PortSetting::previewLoad(const int index) const {
     }
     m_imageProvider->preview(m_videoSink, roi, pipeline);
     m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+
+    qDebug() << m_imageProvider->recognition(mode);
+
+
 }
 
 void PortSetting::roiInsert(const QVariantList &roi) const {
@@ -558,8 +566,7 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
     m_roiModel->clear();
     m_pipelineModel->clear();
     QMetaObject::invokeMethod(m_root, "indicatorReload");
-    m_whitelistSwitch->setProperty("checked", false);
-    m_whitelistTextField->setProperty("text", "");
+    m_recognitionComboBox->setProperty("currentIndex", 0);
     if (!portConfig.isEmpty()) {
         // roi
         for (const auto &value: portConfig["roi"].toArray()) {
@@ -570,18 +577,23 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
             QVariantHash session = value.toObject().toVariantHash();
             pipelineInsert(session);
         }
-        // whitelist
-        const QString whitelist = portConfig["whitelist"].toString();
-        if (!whitelist.isEmpty()) {
-            m_whitelistSwitch->setProperty("checked", true);
-            m_whitelistTextField->setProperty("text", whitelist);
-        }
     }
 }
 
 // public
 ImageProvider::ImageProvider()
     : QQuickImageProvider(Pixmap) {
+    m_ocrEngine = new tesseract::TessBaseAPI();
+    const QByteArray charsetBytes = "eng";
+    const char *charsetChar = charsetBytes.constData();
+    m_ocrEngine->Init(nullptr, charsetChar);
+}
+
+ImageProvider::~ImageProvider() {
+    if (m_ocrEngine) {
+        m_ocrEngine->End();
+        delete m_ocrEngine;
+    }
 }
 
 QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
@@ -624,6 +636,32 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, 
         cropped = QPixmap::fromImage(result);
     }
     m_preview = pipelineProcess(cropped, pipeline);
+}
+
+QString ImageProvider::recognition(const int mode) const {
+    QString result{};
+    switch (mode) {
+        case Recognition::OCR: {
+            const QImage image = m_preview.toImage().convertToFormat(QImage::Format_Grayscale8);
+            m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 1, image.bytesPerLine());
+            char *_result = m_ocrEngine->GetUTF8Text();
+            result = QString::fromUtf8(_result).trimmed();
+            delete _result;
+        }
+            break;
+        case Recognition::CornerShiTomasi: {
+            const QPoint point = goodFeaturesToTrack(m_preview);
+            result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
+        }
+            break;
+        case Recognition::CornerHarris: {
+            const QPoint point = harris(m_preview);
+            result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
+        }
+            break;
+        default: break;
+    }
+    return result;
 }
 
 // public
