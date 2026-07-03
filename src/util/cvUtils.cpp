@@ -143,5 +143,5 @@ QPoint templateMatch(const QPixmap &pixmap, const QPixmap &t_pixmap) {
     cv::Point maxLocation{};
     cv::minMaxLoc(response, nullptr, &maxValue, nullptr, &maxLocation);
     if (maxValue <= 0.8) return {-1, -1};
-    return {maxLocation.x, maxLocation.y};
+    return {maxLocation.x + t_gray.cols / 2, maxLocation.y + t_gray.rows / 2};
 }
