@@ -138,7 +138,7 @@ public:
 
     void preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline);
 
-    [[nodiscard]] QString recognition(const QJsonObject &session);
+    [[nodiscard]] QString recognition(const QJsonObject &recognition);
 
 private:
     QPixmap m_preview{};

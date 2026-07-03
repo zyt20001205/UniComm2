@@ -228,7 +228,25 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             break;
             case PortType::VideoStream: {
                 m_videoStreamNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
-                m_recognitionComboBox->setProperty("currentIndex", portConfig["recognition"].toObject()["mode"].toInt());
+                const auto &recognition = portConfig["recognition"].toObject();
+                const auto mode = recognition["mode"].toInt();
+                m_recognitionComboBox->setProperty("currentIndex", mode);
+                switch (mode) {
+                    case Recognition::OCR: {
+                    }
+                        break;
+                    case Recognition::CornerShiTomasi: {
+                    }
+                        break;
+                    case Recognition::CornerHarris: {
+                    }
+                        break;
+                    case Recognition::TemplateMatch: {
+                        m_templateTextField->setProperty("text", recognition["template"].toString());
+                    }
+                        break;
+                    default: return;
+                }
             }
             break;
             default: break;
@@ -348,13 +366,31 @@ void PortSetting::portSettingExport() {
                 {"portType", portType},
                 {"portName", m_videoStreamNameComboBox->property("currentValue").toString()},
                 {"roi", roiArray},
-                {"pipeline", pipelineArray},
-                {
-                    "recognition", QJsonObject{
-                        {"mode", m_recognitionComboBox->property("currentIndex").toInt()}
-                    }
-                }
+                {"pipeline", pipelineArray}
             };
+            // recognition
+            QJsonObject recognition{};
+            const auto mode = m_recognitionComboBox->property("currentIndex").toInt();
+            recognition["mode"] = mode;
+            switch (mode) {
+                case Recognition::OCR: {
+                }
+                    break;
+                case Recognition::CornerShiTomasi: {
+                }
+                    break;
+                case Recognition::CornerHarris: {
+                }
+                    break;
+                case Recognition::TemplateMatch: {
+                    const auto templateUrl = m_templateTextField->property("text").toString();
+                    if (templateUrl.isEmpty()) return;
+                    recognition["template"] = m_templateTextField->property("text").toString();
+                }
+                    break;
+                default: return;
+            }
+            portConfig["recognition"] = recognition;
         }
         break;
         default: break;
@@ -418,9 +454,9 @@ void PortSetting::previewLoad(const int index) const {
     }
     m_imageProvider->preview(m_videoSink, roi, pipeline);
     m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-    QJsonObject session{};
+    QJsonObject recognition{};
     const auto mode = m_recognitionComboBox->property("currentIndex").toInt();
-    session["mode"] = mode;
+    recognition["mode"] = mode;
     switch (mode) {
         case Recognition::OCR: {
         }
@@ -434,12 +470,12 @@ void PortSetting::previewLoad(const int index) const {
         case Recognition::TemplateMatch: {
             const auto templateUrl = m_templateTextField->property("text").toString();
             if (templateUrl.isEmpty()) return;
-            session["template"] = m_templateTextField->property("text").toString();
+            recognition["template"] = m_templateTextField->property("text").toString();
         }
         break;
         default: return;
     }
-    m_previewImage->setProperty("recognitionText", m_imageProvider->recognition(session));
+    m_previewImage->setProperty("recognitionText", m_imageProvider->recognition(recognition));
 }
 
 void PortSetting::roiInsert(const QVariantList &roi) const {
@@ -655,9 +691,9 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, 
     m_preview = pipelineProcess(cropped, pipeline);
 }
 
-QString ImageProvider::recognition(const QJsonObject &session) {
+QString ImageProvider::recognition(const QJsonObject &recognition) {
     QString result{};
-    const auto mode = session["mode"].toInt();
+    const auto mode = recognition["mode"].toInt();
     switch (mode) {
         case Recognition::OCR: {
             const QImage image = m_preview.toImage().convertToFormat(QImage::Format_Grayscale8);
@@ -678,7 +714,7 @@ QString ImageProvider::recognition(const QJsonObject &session) {
         }
         break;
         case Recognition::TemplateMatch: {
-            const auto templateUrl = session["template"].toString();
+            const auto templateUrl = recognition["template"].toString();
             if (m_templateUrl != templateUrl) {
                 m_templateUrl = templateUrl;
                 m_template = QPixmap(QUrl(templateUrl).toLocalFile());

@@ -18,6 +18,8 @@
 #include <QTimer>
 #include <QToolBar>
 #include <kddockwidgets/LayoutSaver.h>
+#include <kddockwidgets/core/DockRegistry.h>
+#include <kddockwidgets/core/FloatingWindow.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
@@ -339,8 +341,7 @@ void MainWindow::themeSet(const int theme) {
     mainConfig.close();
     // restart main process
     QProcess::startDetached(QCoreApplication::applicationFilePath());
-    g_terminating = true;
-    QApplication::quit();
+    terminate();
 }
 
 void MainWindow::workspaceOpen() {
@@ -368,8 +369,7 @@ void MainWindow::workspaceOpen() {
     mainConfig.close();
     // restart main process
     QProcess::startDetached(QCoreApplication::applicationFilePath());
-    g_terminating = true;
-    QApplication::quit();
+    terminate();
 }
 
 void MainWindow::workspaceSave(const QUrl &configUrl) {
