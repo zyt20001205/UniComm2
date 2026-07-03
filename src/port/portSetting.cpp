@@ -432,6 +432,8 @@ void PortSetting::previewLoad(const int index) const {
         }
         break;
         case Recognition::TemplateMatch: {
+            const auto templateUrl = m_templateTextField->property("text").toString();
+            if (templateUrl.isEmpty()) return;
             session["template"] = m_templateTextField->property("text").toString();
         }
         break;
