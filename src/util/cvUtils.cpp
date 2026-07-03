@@ -112,8 +112,8 @@ QPoint goodFeaturesToTrack(const QPixmap &pixmap) {
 
     std::vector<cv::Point2f> corners{};
     cv::goodFeaturesToTrack(gray, corners, 1, 0.01, 10);
-    if (corners.empty()) return QPoint(-1, -1);
-    return QPoint(qRound(corners.front().x), qRound(corners.front().y));
+    if (corners.empty()) return {-1, -1};
+    return {qRound(corners.front().x), qRound(corners.front().y)};
 }
 
 QPoint cornerHarris(const QPixmap &pixmap) {
@@ -125,6 +125,6 @@ QPoint cornerHarris(const QPixmap &pixmap) {
     double maxValue = 0;
     cv::Point maxLocation{};
     cv::minMaxLoc(response, nullptr, &maxValue, nullptr, &maxLocation);
-    if (maxValue <= 0) return QPoint(-1, -1);
-    return QPoint(maxLocation.x, maxLocation.y);
+    if (maxValue <= 0) return {-1, -1};
+    return {maxLocation.x, maxLocation.y};
 }
