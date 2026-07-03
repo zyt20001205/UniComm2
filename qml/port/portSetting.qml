@@ -1599,8 +1599,66 @@ Item {
                                         ListElement {
                                             text: qsTr("Corner Harris")
                                         }
+                                        ListElement {
+                                            text: qsTr("Template Match")
+                                        }
                                     }
                                     textRole: "text"
+                                }
+                            }
+
+                            StackLayout {
+                                Layout.fillWidth: true
+                                currentIndex: recognitionComboBox.currentIndex
+
+                                // OCR
+                                ColumnLayout {
+                                    Layout.fillWidth: true; Layout.fillHeight: true
+                                }
+
+                                // Corner ShiTomasi
+                                ColumnLayout {
+                                    Layout.fillWidth: true; Layout.fillHeight: true
+                                }
+
+                                // Corner Harris
+                                ColumnLayout {
+                                    Layout.fillWidth: true; Layout.fillHeight: true
+                                }
+
+                                // Template Match
+                                ColumnLayout {
+                                    Layout.fillWidth: true; Layout.fillHeight: true
+
+                                    RowLayout {
+                                        Layout.fillWidth: true
+
+                                        TextField {
+                                            id: templateTextField
+                                            Layout.fillWidth: true
+                                        }
+
+                                        Button {
+                                            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                            icon.source: "qrc:/icon/folder.svg"
+                                            icon.width: 16; icon.height: 16
+                                            Layout.preferredWidth: 32; Layout.preferredHeight: 32
+
+                                            onClicked: {
+                                                const url = templateTextField.text
+                                                fileDialog.selectedFile = url
+                                                fileDialog.currentFolder = url.substring(0, url.lastIndexOf('/'))
+                                                fileDialog.open()
+                                            }
+                                        }
+
+                                        FileDialog {
+                                            id: fileDialog
+                                            fileMode: FileDialog.OpenFile
+                                            nameFilters: ["Image files (*.png)"]
+                                            onAccepted: templateTextField.text = selectedFile
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2260,7 +2318,8 @@ Item {
             // image
             "videoSink": videoOutput.videoSink,
             "previewImage": previewImage,
-            "recognitionComboBox": recognitionComboBox
+            "recognitionComboBox": recognitionComboBox,
+            "templateTextField": templateTextField
         };
         portSetting.propertyGet(objects)
     }

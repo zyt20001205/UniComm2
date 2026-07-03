@@ -92,7 +92,8 @@ namespace Recognition {
     enum {
         OCR,
         CornerShiTomasi,
-        CornerHarris
+        CornerHarris,
+        TemplateMatch
     };
 }
 

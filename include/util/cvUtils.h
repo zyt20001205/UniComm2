@@ -5,10 +5,6 @@
 
 #include <opencv2/imgproc.hpp>
 
-namespace cv {
-    class Mat;
-}
-
 class QJsonArray;
 
 QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline);

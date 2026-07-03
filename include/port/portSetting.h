@@ -41,7 +41,7 @@ public:
 
     Q_INVOKABLE void videoCapture();
 
-    Q_INVOKABLE void previewLoad(int index, int mode) const;
+    Q_INVOKABLE void previewLoad(int index) const;
 
     Q_INVOKABLE void roiInsert(const QVariantList &roi) const;
 
@@ -123,6 +123,7 @@ private:
     QVideoSink *m_videoSink{};
     QObject *m_previewImage{};
     QObject *m_recognitionComboBox{};
+    QObject *m_templateTextField{};
 };
 
 class ImageProvider final: public QQuickImageProvider {
@@ -137,10 +138,12 @@ public:
 
     void preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline);
 
-    [[nodiscard]] QString recognition(int mode) const;
+    [[nodiscard]] QString recognition(const QJsonObject &session);
 
 private:
     QPixmap m_preview{};
+    QUrl m_templateUrl{};
+    QPixmap m_template{};
     tesseract::TessBaseAPI *m_ocrEngine{};
 };
 

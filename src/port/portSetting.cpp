@@ -102,6 +102,7 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_mediaCaptureSession->setVideoSink(m_videoSink);
     m_previewImage = qvariant_cast<QObject *>(objects["previewImage"]);
     m_recognitionComboBox = qvariant_cast<QObject *>(objects["recognitionComboBox"]);
+    m_templateTextField = qvariant_cast<QObject *>(objects["templateTextField"]);
 }
 
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
@@ -403,7 +404,7 @@ void PortSetting::videoCapture() {
     }
 }
 
-void PortSetting::previewLoad(const int index, const int mode) const {
+void PortSetting::previewLoad(const int index) const {
     if (index == -1 || !m_roiModel->item(index, 0)) {
         m_previewImage->setProperty("source", "qrc:/icon/null.svg");
         m_previewImage->setProperty("recognitionText", "");
@@ -417,7 +418,26 @@ void PortSetting::previewLoad(const int index, const int mode) const {
     }
     m_imageProvider->preview(m_videoSink, roi, pipeline);
     m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-    m_previewImage->setProperty("recognitionText", m_imageProvider->recognition(mode));
+    QJsonObject session{};
+    const auto mode = m_recognitionComboBox->property("currentIndex").toInt();
+    session["mode"] = mode;
+    switch (mode) {
+        case Recognition::OCR: {
+        }
+        break;
+        case Recognition::CornerShiTomasi: {
+        }
+        break;
+        case Recognition::CornerHarris: {
+        }
+        break;
+        case Recognition::TemplateMatch: {
+            session["template"] = m_templateTextField->property("text").toString();
+        }
+        break;
+        default: return;
+    }
+    m_previewImage->setProperty("recognitionText", m_imageProvider->recognition(session));
 }
 
 void PortSetting::roiInsert(const QVariantList &roi) const {
@@ -633,8 +653,9 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, 
     m_preview = pipelineProcess(cropped, pipeline);
 }
 
-QString ImageProvider::recognition(const int mode) const {
+QString ImageProvider::recognition(const QJsonObject &session) {
     QString result{};
+    const auto mode = session["mode"].toInt();
     switch (mode) {
         case Recognition::OCR: {
             const QImage image = m_preview.toImage().convertToFormat(QImage::Format_Grayscale8);
@@ -643,17 +664,27 @@ QString ImageProvider::recognition(const int mode) const {
             result = QString::fromUtf8(_result).trimmed();
             delete[] _result;
         }
-            break;
+        break;
         case Recognition::CornerShiTomasi: {
             const QPoint point = goodFeaturesToTrack(m_preview);
             result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
         }
-            break;
+        break;
         case Recognition::CornerHarris: {
             const QPoint point = cornerHarris(m_preview);
             result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
         }
-            break;
+        break;
+        case Recognition::TemplateMatch: {
+            const auto templateUrl = session["template"].toString();
+            if (m_templateUrl != templateUrl) {
+                m_templateUrl = templateUrl;
+                m_template = QPixmap(QUrl(templateUrl).toLocalFile());
+            }
+            const QPoint point = templateMatch(m_preview, m_template);
+            result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
+        }
+        break;
         default: break;
     }
     return result;
