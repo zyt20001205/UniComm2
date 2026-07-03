@@ -128,3 +128,20 @@ QPoint cornerHarris(const QPixmap &pixmap) {
     if (maxValue <= 0) return {-1, -1};
     return {maxLocation.x, maxLocation.y};
 }
+
+QPoint templateMatch(const QPixmap &pixmap, const QPixmap &t_pixmap) {
+    const QImage image = pixmap.toImage().convertToFormat(QImage::Format_Grayscale8);
+    const cv::Mat gray(image.height(), image.width(), CV_8UC1, const_cast<uchar *>(image.bits()), image.bytesPerLine());
+
+    const QImage t_image = t_pixmap.toImage().convertToFormat(QImage::Format_Grayscale8);
+    const cv::Mat t_gray(t_image.height(), t_image.width(), CV_8UC1, const_cast<uchar *>(t_image.bits()), t_image.bytesPerLine());
+
+    cv::Mat response{};
+    cv::matchTemplate(gray, t_gray, response, cv::TM_CCOEFF_NORMED);
+
+    double maxValue = 0;
+    cv::Point maxLocation{};
+    cv::minMaxLoc(response, nullptr, &maxValue, nullptr, &maxLocation);
+    if (maxValue <= 0.8) return {-1, -1};
+    return {maxLocation.x, maxLocation.y};
+}
