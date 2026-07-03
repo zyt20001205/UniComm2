@@ -911,7 +911,7 @@ Item {
                                     repeat: true
                                     running: rootItem.Window.window.visible && !roiModel.empty
 
-                                    onTriggered: portSetting.previewLoad(previewImage.index, recognitionComboBox.currentIndex)
+                                    onTriggered: portSetting.previewLoad(previewImage.index)
                                 }
                             }
 
