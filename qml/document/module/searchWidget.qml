@@ -9,6 +9,7 @@ Item {
         anchors.fill: parent
         color: global.back
     }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 6

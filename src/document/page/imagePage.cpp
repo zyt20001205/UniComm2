@@ -3,6 +3,9 @@
 #include <QQmlContext>
 #include <QQuickWidget>
 
+#include "globals.h"
+#include "core/globalManager.h"
+
 // public
 ImagePage::ImagePage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
@@ -12,6 +15,7 @@ ImagePage::ImagePage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 
 void ImagePage::propertySet(const QVariantHash &objects) {
     m_imageWidget->rootContext()->setContextProperty("imagePage", this);
+    m_imageWidget->rootContext()->setContextProperty("global", g_globalManager);
     m_imageWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_imageWidget->setSource(QUrl("qrc:/qml/document/module/imageWidget.qml"));
 }
