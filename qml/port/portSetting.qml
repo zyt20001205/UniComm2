@@ -2,6 +2,7 @@ import QtMultimedia
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.impl
+import QtQuick.Dialogs
 import QtQuick.Layouts
 import QtQuick.Shapes
 
