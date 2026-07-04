@@ -145,7 +145,7 @@ QString ImageProcess::recognition(const QImage &pipelineFrame, const QJsonObject
             const auto templateUrl = recognition["template"].toString();
             if (m_templateUrl != templateUrl) {
                 m_templateUrl = templateUrl;
-                m_template = QImage(QUrl(templateUrl).toLocalFile());
+                m_template = QImage(QUrl(templateUrl).toLocalFile()).convertToFormat(QImage::Format_Grayscale8);
             }
             const QPoint point = templateMatch(pipelineFrame, m_template);
             result = point == QPoint(-1, -1) ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
@@ -201,8 +201,8 @@ QPoint ImageProcess::cornerHarris(const QImage &image) {
 
 QPoint ImageProcess::templateMatch(const QImage &image, const QImage &t_image) {
     const cv::Mat gray(image.height(), image.width(), CV_8UC1, const_cast<uchar *>(image.bits()), image.bytesPerLine());
-
     const cv::Mat t_gray(t_image.height(), t_image.width(), CV_8UC1, const_cast<uchar *>(t_image.bits()), t_image.bytesPerLine());
+    if (t_image.width() > image.width() || t_image.height() > image.height()) return {-1, -1};
 
     cv::Mat response{};
     cv::matchTemplate(gray, t_gray, response, cv::TM_CCOEFF_NORMED);

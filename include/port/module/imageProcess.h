@@ -28,20 +28,8 @@ public:
 
     ~ImageProcess() override;
 
-    void configSetGlobal(const QJsonObject &config) {
+    void configSet(const QJsonObject &config) {
         m_config = config;
-    }
-
-    void configSetRoi(const QJsonArray &roi) {
-        m_config["roi"] = roi;
-    }
-
-    void configSetPipeline(const QJsonArray &pipeline) {
-        m_config["pipeline"] = pipeline;
-    }
-
-    void configSetRecognition(const QJsonObject &recognition) {
-        m_config["recognition"] = recognition;
     }
 
     [[nodiscard]] QStringList process(const QImage &frame);

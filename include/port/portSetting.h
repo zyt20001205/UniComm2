@@ -3,13 +3,11 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonObject>
+#include <QPixmap>
 #include <QQuickImageProvider>
 #include <QStandardItemModel>
 
-namespace tesseract {
-    class TessBaseAPI;
-}
-
+class ImageProcess;
 class QQuickView;
 class QCamera;
 class QMediaCaptureSession;
@@ -136,15 +134,14 @@ public:
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 
-    void preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline);
+    void preview(const QVideoSink *videoSink, const QJsonObject &config);
 
-    [[nodiscard]] QString recognition(const QJsonObject &recognition);
+    [[nodiscard]] QString recognition() const;
 
 private:
     QPixmap m_preview{};
-    QUrl m_templateUrl{};
-    QPixmap m_template{};
-    tesseract::TessBaseAPI *m_ocrEngine{};
+    QString m_recognition{};
+    ImageProcess *m_imageProcess{};
 };
 
 class RoiModel final : public QStandardItemModel {

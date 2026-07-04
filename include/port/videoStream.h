@@ -2,10 +2,10 @@
 #define UNICOMM_VIDEOSTREAM_H
 
 #include <QJsonObject>
-#include <tesseract/baseapi.h>
 
 #include "port/basePort.h"
 
+class ImageProcess;
 class QCamera;
 class QEventLoop;
 class QImageCapture;
@@ -42,9 +42,9 @@ private:
     QVideoSink *m_videoSink{};
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};
-    tesseract::TessBaseAPI *m_ocrEngine{};
     // port config
     QJsonObject m_portConfig{};
+    ImageProcess *m_imageProcess{};
 };
 
 #endif //UNICOMM_VIDEOSTREAM_H

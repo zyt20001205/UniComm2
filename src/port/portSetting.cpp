@@ -8,7 +8,6 @@
 #include <QJsonObject>
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
-#include <QPainter>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
@@ -21,8 +20,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
-#include "tesseract/baseapi.h"
-#include "util/cvUtils.h"
+#include "port/module/imageProcess.h"
 
 // public
 PortSetting::PortSetting(QWidget *parent)
@@ -446,14 +444,14 @@ void PortSetting::previewLoad(const int index) const {
         m_previewImage->setProperty("recognitionText", "");
         return;
     }
+    QJsonArray roiArray{};
     const QJsonArray roi = QJsonArray::fromVariantList(m_roiModel->item(index, 0)->data(Qt::WhatsThisRole).toList());
+    roiArray.append(roi);
     QJsonArray pipeline{};
     for (int i = 0; i < m_pipelineModel->rowCount(); ++i) {
         const QJsonObject session = QJsonObject::fromVariantHash(m_pipelineModel->item(i, 0)->data(Qt::WhatsThisRole).toHash());
         pipeline.append(session);
     }
-    m_imageProvider->preview(m_videoSink, roi, pipeline);
-    m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
     QJsonObject recognition{};
     const auto mode = m_recognitionComboBox->property("currentIndex").toInt();
     recognition["mode"] = mode;
@@ -475,7 +473,14 @@ void PortSetting::previewLoad(const int index) const {
         break;
         default: return;
     }
-    m_previewImage->setProperty("recognitionText", m_imageProvider->recognition(recognition));
+    const QJsonObject config{
+        {"roi", roiArray},
+        {"pipeline", pipeline},
+        {"recognition", recognition}
+    };
+    m_imageProvider->preview(m_videoSink, config);
+    m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+    m_previewImage->setProperty("recognitionText", m_imageProvider->recognition());
 }
 
 void PortSetting::roiInsert(const QVariantList &roi) const {
@@ -635,97 +640,40 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
 
 // public
 ImageProvider::ImageProvider()
-    : QQuickImageProvider(Pixmap) {
-    m_ocrEngine = new tesseract::TessBaseAPI();
-    const QByteArray charsetBytes = "eng";
-    const char *charsetChar = charsetBytes.constData();
-    m_ocrEngine->Init(nullptr, charsetChar);
+    : QQuickImageProvider(Pixmap),
+      m_imageProcess(new ImageProcess()) {
 }
 
 ImageProvider::~ImageProvider() {
-    if (m_ocrEngine) {
-        m_ocrEngine->End();
-        delete m_ocrEngine;
-    }
+    delete m_imageProcess;
 }
 
 QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
     return m_preview;
 }
 
-void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, const QJsonArray &pipeline) {
+void ImageProvider::preview(const QVideoSink *videoSink, const QJsonObject &config) {
+    m_preview = {};
+    m_recognition = {};
+    if (!videoSink) {
+        return;
+    }
     const auto videoFrame = videoSink->videoFrame();
     const auto image = videoFrame.toImage();
-    QPixmap cropped{};
-    if (roi.size() == 4) {
-        const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
-        cropped = QPixmap::fromImage(image.copy(rect));
-    } else if (roi.size() == 8) {
-        // src poly
-        QPolygon src({
-            QPoint(roi[0].toInt(), roi[1].toInt()),
-            QPoint(roi[2].toInt(), roi[3].toInt()),
-            QPoint(roi[4].toInt(), roi[5].toInt()),
-            QPoint(roi[6].toInt(), roi[7].toInt())
-        });
-        // dst poly
-        const int w = qRound(qMax(QLineF(src[0], src[1]).length(), QLineF(src[2], src[3]).length()));
-        const int h = qRound(qMax(QLineF(src[0], src[3]).length(), QLineF(src[1], src[2]).length()));
-        const QPolygon dst({
-            QPoint(0, 0),
-            QPoint(w, 0),
-            QPoint(w, h),
-            QPoint(0, h)
-        });
-        // perform transform
-        QTransform transform;
-        QTransform::quadToQuad(src, dst, transform);
-        QImage result(w, h, image.format());
-        QPainter painter(&result);
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setRenderHint(QPainter::SmoothPixmapTransform);
-        painter.setTransform(transform);
-        painter.drawImage(0, 0, image);
-        cropped = QPixmap::fromImage(result);
+    if (image.isNull()) {
+        return;
     }
-    m_preview = pipelineProcess(cropped, pipeline);
+    m_imageProcess->configSet(config);
+    const auto results = m_imageProcess->detail(image);
+    if (results.isEmpty()) {
+        return;
+    }
+    m_preview = QPixmap::fromImage(results.first().pipelineFrame);
+    m_recognition = results.first().result;
 }
 
-QString ImageProvider::recognition(const QJsonObject &recognition) {
-    QString result{};
-    const auto mode = recognition["mode"].toInt();
-    switch (mode) {
-        case Recognition::OCR: {
-            const QImage image = m_preview.toImage().convertToFormat(QImage::Format_Grayscale8);
-            m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 1, image.bytesPerLine());
-            char *_result = m_ocrEngine->GetUTF8Text();
-            result = QString::fromUtf8(_result).trimmed();
-            delete[] _result;
-        }
-        break;
-        case Recognition::CornerShiTomasi: {
-            const QPoint point = goodFeaturesToTrack(m_preview);
-            result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
-        }
-        break;
-        case Recognition::CornerHarris: {
-            const QPoint point = cornerHarris(m_preview);
-            result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
-        }
-        break;
-        case Recognition::TemplateMatch: {
-            const auto templateUrl = recognition["template"].toString();
-            if (m_templateUrl != templateUrl) {
-                m_templateUrl = templateUrl;
-                m_template = QPixmap(QUrl(templateUrl).toLocalFile());
-            }
-            const QPoint point = templateMatch(m_preview, m_template);
-            result = point.x() < 0 || point.y() < 0 ? "null" : QString("%1,%2").arg(point.x()).arg(point.y());
-        }
-        break;
-        default: break;
-    }
-    return result;
+QString ImageProvider::recognition() const {
+    return m_recognition;
 }
 
 // public

@@ -869,6 +869,7 @@ Item {
 
                                 Image {
                                     id: previewImage
+                                    source: "qrc:/icon/null.svg"
                                     property int index: -1
                                     property string recognitionText: ""
                                     property point recognitionPoint: recognitionPointGet()
@@ -905,24 +906,72 @@ Item {
                                             color: global.dangerFore3
                                         }
                                     }
+
+                                    onIndexChanged: previewLoader.start()
                                 }
 
-                                Timer {
-                                    interval: recognitionComboBox.currentIndex === 0 ? 200 : 16 // 5Hz OCR : 60Hz Corner
-                                    repeat: true
-                                    running: rootItem.Window.window.visible && !roiModel.empty
+                                Item {
+                                    id: previewLoader
+                                    property bool enabled: false
+                                    property int framerate: 0
+                                    property int frames: 0
+                                    property double timestamp: 0
 
-                                    onTriggered: portSetting.previewLoad(previewImage.index)
+                                    function start() {
+                                        if (enabled) return
+                                        enabled = true
+                                        frames = 0
+                                        timestamp = Date.now()
+                                        next()
+                                    }
+
+                                    function stop() {
+                                        previewImage.source = "qrc:/icon/null.svg"
+                                        enabled = false
+                                        framerate = 0
+                                    }
+
+                                    function next() {
+                                        if (!enabled) return
+                                        if (!rootItem.Window.window.visible || roiModel.empty || previewImage.index === -1) {
+                                            stop()
+                                            return
+                                        }
+                                        portSetting.previewLoad(previewImage.index)
+                                        ++frames
+                                        const now = Date.now()
+                                        if (now - timestamp >= 1000) {
+                                            framerate = Math.round(frames * 1000 / (now - timestamp))
+                                            frames = 0
+                                            timestamp = now
+                                        }
+                                        Qt.callLater(next)
+                                    }
                                 }
                             }
 
-                            Label {
-                                leftPadding: 6
-                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                                font.pixelSize: 20
-                                text: previewImage.recognitionText
-                                elide: Text.ElideRight
+                            RowLayout {
                                 Layout.fillWidth: true
+
+                                Label {
+                                    leftPadding: 6
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 20
+                                    text: previewImage.recognitionText
+                                    elide: Text.ElideRight
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    rightPadding: 6
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 20
+                                    text: previewLoader.framerate + " fps"
+                                    elide: Text.ElideLeft
+                                }
                             }
                         }
 
@@ -1388,55 +1437,16 @@ Item {
                                                             }
                                                         }
 
-                                                        Slider {
-                                                            id: scaleSlider
+                                                        DoubleSpinBox {
                                                             value: session.ratio
-                                                            from: -5
-                                                            to: 5
-                                                            stepSize: 1
-                                                            snapMode: Slider.SnapOnRelease
+                                                            from: 0.1
+                                                            to: 10
+                                                            stepSize: 0.1
+                                                            editable: true
                                                             Layout.fillWidth: true
-                                                            ToolTip.text: "x" + ratio.toString()
-                                                            ToolTip.visible: hovered
-                                                            property real ratio: 1
 
-                                                            onMoved: {
-                                                                switch (value) {
-                                                                    case -5:
-                                                                        ratio = 0.1
-                                                                        break
-                                                                    case -4:
-                                                                        ratio = 0.25
-                                                                        break
-                                                                    case -3:
-                                                                        ratio = 0.3
-                                                                        break
-                                                                    case -2:
-                                                                        ratio = 0.5
-                                                                        break
-                                                                    case -1:
-                                                                        ratio = 0.75
-                                                                        break
-                                                                    case 0:
-                                                                        ratio = 1
-                                                                        break
-                                                                    case 1:
-                                                                        ratio = 1.5
-                                                                        break
-                                                                    case 2:
-                                                                        ratio = 2
-                                                                        break
-                                                                    case 3:
-                                                                        ratio = 3
-                                                                        break
-                                                                    case 4:
-                                                                        ratio = 5
-                                                                        break
-                                                                    case 5:
-                                                                        ratio = 10
-                                                                        break
-                                                                }
-                                                                scaleItem.session.ratio = scaleSlider.value
+                                                            onValueModified: {
+                                                                scaleItem.session.ratio = value
                                                                 const index = pipelineModel.index(row, 0);
                                                                 pipelineModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
                                                             }
@@ -1829,7 +1839,7 @@ Item {
             onTriggered: {
                 let session = {}
                 session.type = 0
-                session.ratio = 0
+                session.ratio = 1.0
                 session.interpolation = 1
                 portSetting.pipelineInsert(session)
             }
