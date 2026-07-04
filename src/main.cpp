@@ -8,6 +8,8 @@
 
 #include "core/configManager.h"
 #include "document/module/webviewWidget.h"
+#include "globals.h"
+#include "mainWindow/kddwCustom.h"
 
 int main(int argc, char *argv[]) {
     // crash handler init
@@ -28,6 +30,7 @@ int main(int argc, char *argv[]) {
     KDDockWidgets::Config::self().setSeparatorThickness(5);
     // config init
     if (ConfigManager::mainConfigLoad()) return 1;
+    KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(g_mainConfig["theme"].toInt()));
     auto *mainWindow = new MainWindow();
     mainWindow->show();
     // application exec

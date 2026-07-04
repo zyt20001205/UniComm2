@@ -5,6 +5,8 @@
 #include <kddockwidgets/qtwidgets/Stack.h>
 #include <kddockwidgets/qtwidgets/ViewFactory.h>
 
+#include <QString>
+
 static int f_theme{};
 
 class CustomWidgetFactory final : public KDDockWidgets::QtWidgets::ViewFactory {
@@ -16,6 +18,8 @@ public:
     KDDockWidgets::Core::View *createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const override;
 
     KDDockWidgets::Core::View *createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent = nullptr) const override;
+
+    // [[nodiscard]] QString classicIndicatorsPath() const override;
 };
 
 class MyStack final : public KDDockWidgets::QtWidgets::Stack {

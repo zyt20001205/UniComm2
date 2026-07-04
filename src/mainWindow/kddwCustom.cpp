@@ -16,6 +16,9 @@ KDDockWidgets::Core::View *CustomWidgetFactory::createSeparator(KDDockWidgets::C
     return new MySeparator(controller, parent);
 }
 
+// QString CustomWidgetFactory::classicIndicatorsPath() const {
+// }
+
 MyStack::MyStack(KDDockWidgets::Core::Stack *controller, QWidget *parent)
     : Stack(controller, parent) {
 }

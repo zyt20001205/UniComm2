@@ -56,6 +56,7 @@ qt_add_resources(UniComm "qml_resources"
 
 file(GLOB_RECURSE UNICOMM_ICON CONFIGURE_DEPENDS
         "${CMAKE_SOURCE_DIR}/resources/*.ico"
+        "${CMAKE_SOURCE_DIR}/resources/*.png"
         "${CMAKE_SOURCE_DIR}/resources/*.svg"
 )
 
