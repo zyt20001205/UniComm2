@@ -1688,14 +1688,14 @@ Item {
 
                                 Item {
                                     id: previewLoader
-                                    property bool enabled: false
+                                    property bool running: false
                                     property int framerate: 0
                                     property int frames: 0
                                     property double timestamp: 0
 
                                     function start() {
-                                        if (enabled) return
-                                        enabled = true
+                                        if (running) return
+                                        running = true
                                         frames = 0
                                         timestamp = Date.now()
                                         next()
@@ -1703,12 +1703,12 @@ Item {
 
                                     function stop() {
                                         previewImage.source = "qrc:/icon/null.svg"
-                                        enabled = false
+                                        running = false
                                         framerate = 0
                                     }
 
                                     function next() {
-                                        if (!enabled) return
+                                        if (!running) return
                                         if (!rootItem.Window.window.visible || roiModel.empty || previewImage.index === -1) {
                                             stop()
                                             return
