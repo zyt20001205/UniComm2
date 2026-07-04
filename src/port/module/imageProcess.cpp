@@ -18,6 +18,7 @@ ImageProcess::ImageProcess(QObject *parent)
 
 ImageProcess::~ImageProcess() {
     if (m_ocrEngine) {
+        m_ocrEngine->Clear();
         m_ocrEngine->End();
         delete m_ocrEngine;
     }

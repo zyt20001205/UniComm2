@@ -19,9 +19,9 @@
 #include <QToolBar>
 #include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/core/DockRegistry.h>
-#include <kddockwidgets/core/FloatingWindow.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
+#include <tesseract/baseapi.h>
 
 #include "globals.h"
 #include "analysis/diagnosticsModule.h"
@@ -79,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 }
 
 MainWindow::~MainWindow() {
-    delete m_overlay;
+    // delete m_overlay;
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] main window destructed").arg(timestamp);
 }
@@ -326,6 +326,7 @@ void MainWindow::quit() {
 
 void MainWindow::terminate() {
     g_terminating = true;
+    KDDockWidgets::DockRegistry::self()->clear();
     close();
 }
 
