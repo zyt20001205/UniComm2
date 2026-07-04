@@ -4,7 +4,7 @@
 #include <QJsonObject>
 
 #include "basePort.h"
-#include "util/ringBuffer.h"
+#include "port/module/ringBuffer.h"
 
 class QTcpSocket;
 
