@@ -833,162 +833,41 @@ Item {
                             }
                         }
 
-                        // preview
+                        // roi
                         ColumnLayout {
-                            SplitView.fillWidth: true; SplitView.fillHeight: true
-
-                            Label {
-                                leftPadding: 6
-                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                                font.pixelSize: 20
-                                text: qsTr("Image Preview")
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                            }
-
-                            Flickable {
-                                clip: true
-                                contentWidth: previewImage.width
-                                contentHeight: previewImage.height
-                                Layout.fillWidth: true; Layout.fillHeight: true
-
-                                ScrollBar.vertical: ScrollBar {
-                                    policy: ScrollBar.AsNeeded
-                                    palette {
-                                        mid: global.stroke
-                                        dark: global.strokePressed
-                                    }
-                                }
-                                ScrollBar.horizontal: ScrollBar {
-                                    policy: ScrollBar.AsNeeded
-                                    palette {
-                                        mid: global.stroke
-                                        dark: global.strokePressed
-                                    }
-                                }
-
-                                Image {
-                                    id: previewImage
-                                    source: "qrc:/icon/null.svg"
-                                    property int index: -1
-                                    property string recognitionText: ""
-                                    property point recognitionPoint: recognitionPointGet()
-
-                                    function recognitionPointGet() {
-                                        const values = recognitionText.split(",")
-                                        if (values.length !== 2) return Qt.point(-1, -1)
-                                        const x = Number(values[0])
-                                        const y = Number(values[1])
-                                        if (!Number.isFinite(x) || !Number.isFinite(y)) return Qt.point(-1, -1)
-                                        return Qt.point(x, y)
-                                    }
-
-                                    Item {
-                                        x: previewImage.recognitionPoint.x
-                                        y: previewImage.recognitionPoint.y
-                                        width: 1
-                                        height: 1
-                                        visible: previewImage.recognitionPoint.x >= 0 && previewImage.recognitionPoint.y >= 0
-
-                                        Rectangle {
-                                            x: -8
-                                            y: -1
-                                            width: 16
-                                            height: 2
-                                            color: global.dangerFore3
-                                        }
-
-                                        Rectangle {
-                                            x: -1
-                                            y: -8
-                                            width: 2
-                                            height: 16
-                                            color: global.dangerFore3
-                                        }
-                                    }
-
-                                    onIndexChanged: previewLoader.start()
-                                }
-
-                                Item {
-                                    id: previewLoader
-                                    property bool enabled: false
-                                    property int framerate: 0
-                                    property int frames: 0
-                                    property double timestamp: 0
-
-                                    function start() {
-                                        if (enabled) return
-                                        enabled = true
-                                        frames = 0
-                                        timestamp = Date.now()
-                                        next()
-                                    }
-
-                                    function stop() {
-                                        previewImage.source = "qrc:/icon/null.svg"
-                                        enabled = false
-                                        framerate = 0
-                                    }
-
-                                    function next() {
-                                        if (!enabled) return
-                                        if (!rootItem.Window.window.visible || roiModel.empty || previewImage.index === -1) {
-                                            stop()
-                                            return
-                                        }
-                                        portSetting.previewLoad(previewImage.index)
-                                        ++frames
-                                        const now = Date.now()
-                                        if (now - timestamp >= 1000) {
-                                            framerate = Math.round(frames * 1000 / (now - timestamp))
-                                            frames = 0
-                                            timestamp = now
-                                        }
-                                        Qt.callLater(next)
-                                    }
-                                }
-                            }
+                            id: roiLayout
+                            SplitView.fillWidth: true
+                            SplitView.minimumHeight: roiHeader.implicitHeight
+                            SplitView.preferredHeight: expanded ? 150 : roiHeader.implicitHeight
+                            SplitView.maximumHeight: expanded ? 1000000 : roiHeader.implicitHeight
+                            property bool expanded: false
 
                             RowLayout {
+                                id: roiHeader
                                 Layout.fillWidth: true
+
+                                Button {
+                                    flat: true
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    icon.source: roiLayout.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                    icon.width: 16; icon.height: 16
+                                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                    onClicked: roiLayout.expanded = !roiLayout.expanded
+                                }
 
                                 Label {
                                     leftPadding: 6
                                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                                     font.pixelSize: 20
-                                    text: previewImage.recognitionText
+                                    text: qsTr("ROI")
                                     elide: Text.ElideRight
-                                }
-
-                                Item {
                                     Layout.fillWidth: true
                                 }
-
-                                Label {
-                                    rightPadding: 6
-                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                                    font.pixelSize: 20
-                                    text: previewLoader.framerate + " fps"
-                                    elide: Text.ElideLeft
-                                }
-                            }
-                        }
-
-                        // roi
-                        ColumnLayout {
-                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
-
-                            Label {
-                                leftPadding: 6
-                                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                                font.pixelSize: 20
-                                text: qsTr("ROI")
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
                             }
 
                             Item {
+                                visible: roiLayout.expanded
                                 Layout.fillWidth: true; Layout.fillHeight: true
 
                                 Item {
@@ -1199,10 +1078,26 @@ Item {
 
                         // pipeline
                         ColumnLayout {
-                            SplitView.fillWidth: true; SplitView.preferredHeight: 200
+                            id: pipelineLayout
+                            SplitView.fillWidth: true
+                            SplitView.minimumHeight: pipelineHeader.implicitHeight
+                            SplitView.preferredHeight: expanded ? 200 : pipelineHeader.implicitHeight
+                            SplitView.maximumHeight: expanded ? 1000000 : pipelineHeader.implicitHeight
+                            property bool expanded: false
 
                             RowLayout {
+                                id: pipelineHeader
                                 Layout.fillWidth: true
+
+                                Button {
+                                    flat: true
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    icon.source: pipelineLayout.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                    icon.width: 16; icon.height: 16
+                                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                    onClicked: pipelineLayout.expanded = !pipelineLayout.expanded
+                                }
 
                                 Label {
                                     leftPadding: 6
@@ -1237,6 +1132,7 @@ Item {
                             }
 
                             Item {
+                                visible: pipelineLayout.expanded
                                 Layout.fillWidth: true; Layout.fillHeight: true
 
                                 Item {
@@ -1584,10 +1480,26 @@ Item {
 
                         // recognition
                         ColumnLayout {
+                            id: recognitionLayout
                             SplitView.fillWidth: true
+                            SplitView.minimumHeight: recognitionHeader.implicitHeight
+                            SplitView.preferredHeight: expanded ? 100 : recognitionHeader.implicitHeight
+                            SplitView.maximumHeight: expanded ? 1000000 : recognitionHeader.implicitHeight
+                            property bool expanded: false
 
                             RowLayout {
+                                id: recognitionHeader
                                 Layout.fillWidth: true
+
+                                Button {
+                                    flat: true
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    icon.source: recognitionLayout.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                    icon.width: 16; icon.height: 16
+                                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                    onClicked: recognitionLayout.expanded = !recognitionLayout.expanded
+                                }
 
                                 Label {
                                     leftPadding: 6
@@ -1619,6 +1531,7 @@ Item {
                             }
 
                             StackLayout {
+                                visible: recognitionLayout.expanded
                                 Layout.fillWidth: true
                                 currentIndex: recognitionComboBox.currentIndex
 
@@ -1670,6 +1583,171 @@ Item {
                                             onAccepted: templateTextField.text = selectedFile
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        // preview
+                        ColumnLayout {
+                            id: previewLayout
+                            SplitView.fillWidth: true; SplitView.fillHeight: true
+                            SplitView.minimumHeight: previewHeader.implicitHeight
+                            SplitView.preferredHeight: expanded ? 300 : previewHeader.implicitHeight
+                            SplitView.maximumHeight: expanded ? 1000000 : previewHeader.implicitHeight
+                            property bool expanded: false
+
+                            RowLayout {
+                                id: previewHeader
+                                Layout.fillWidth: true
+                                property int previousHeight
+
+                                Button {
+                                    flat: true
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    icon.source: previewLayout.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                    icon.width: 16; icon.height: 16
+                                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                    onClicked: previewLayout.expanded = !previewLayout.expanded
+                                }
+
+                                Label {
+                                    leftPadding: 6
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 20
+                                    text: qsTr("Image Preview")
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                            }
+
+                            Flickable {
+                                visible: previewLayout.expanded
+                                clip: true
+                                contentWidth: previewImage.width
+                                contentHeight: previewImage.height
+                                Layout.fillWidth: true; Layout.fillHeight: true
+
+                                ScrollBar.vertical: ScrollBar {
+                                    policy: ScrollBar.AsNeeded
+                                    palette {
+                                        mid: global.stroke
+                                        dark: global.strokePressed
+                                    }
+                                }
+                                ScrollBar.horizontal: ScrollBar {
+                                    policy: ScrollBar.AsNeeded
+                                    palette {
+                                        mid: global.stroke
+                                        dark: global.strokePressed
+                                    }
+                                }
+
+                                Image {
+                                    id: previewImage
+                                    source: "qrc:/icon/null.svg"
+                                    property int index: -1
+                                    property string recognitionText: ""
+                                    property point recognitionPoint: recognitionPointGet()
+
+                                    function recognitionPointGet() {
+                                        const values = recognitionText.split(",")
+                                        if (values.length !== 2) return Qt.point(-1, -1)
+                                        const x = Number(values[0])
+                                        const y = Number(values[1])
+                                        if (!Number.isFinite(x) || !Number.isFinite(y)) return Qt.point(-1, -1)
+                                        return Qt.point(x, y)
+                                    }
+
+                                    Item {
+                                        x: previewImage.recognitionPoint.x
+                                        y: previewImage.recognitionPoint.y
+                                        width: 1
+                                        height: 1
+                                        visible: previewImage.recognitionPoint.x >= 0 && previewImage.recognitionPoint.y >= 0
+
+                                        Rectangle {
+                                            x: -8
+                                            y: -1
+                                            width: 16
+                                            height: 2
+                                            color: global.dangerFore3
+                                        }
+
+                                        Rectangle {
+                                            x: -1
+                                            y: -8
+                                            width: 2
+                                            height: 16
+                                            color: global.dangerFore3
+                                        }
+                                    }
+
+                                    onIndexChanged: previewLoader.start()
+                                }
+
+                                Item {
+                                    id: previewLoader
+                                    property bool enabled: false
+                                    property int framerate: 0
+                                    property int frames: 0
+                                    property double timestamp: 0
+
+                                    function start() {
+                                        if (enabled) return
+                                        enabled = true
+                                        frames = 0
+                                        timestamp = Date.now()
+                                        next()
+                                    }
+
+                                    function stop() {
+                                        previewImage.source = "qrc:/icon/null.svg"
+                                        enabled = false
+                                        framerate = 0
+                                    }
+
+                                    function next() {
+                                        if (!enabled) return
+                                        if (!rootItem.Window.window.visible || roiModel.empty || previewImage.index === -1) {
+                                            stop()
+                                            return
+                                        }
+                                        portSetting.previewLoad(previewImage.index)
+                                        ++frames
+                                        const now = Date.now()
+                                        if (now - timestamp >= 1000) {
+                                            framerate = Math.round(frames * 1000 / (now - timestamp))
+                                            frames = 0
+                                            timestamp = now
+                                        }
+                                        Qt.callLater(next)
+                                    }
+                                }
+                            }
+
+                            RowLayout {
+                                visible: previewLayout.expanded
+                                Layout.fillWidth: true
+
+                                Label {
+                                    leftPadding: 6
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 20
+                                    text: previewImage.recognitionText
+                                    elide: Text.ElideRight
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    rightPadding: 6
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 20
+                                    text: previewLoader.framerate + " fps"
+                                    elide: Text.ElideLeft
                                 }
                             }
                         }
