@@ -403,7 +403,7 @@ void EditorWidget::lexerInit() const {
         m_scintillaWidget->send(SCI_COLOURISE, 0, -1); // NOLINT
     }
     // md
-    else if (suffix == "md" || suffix == "markdown") {
+    else if (suffix == "md") {
         m_scintillaWidget->lexerSet("markdown");
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_DEFAULT,
