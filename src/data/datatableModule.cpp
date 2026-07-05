@@ -5,8 +5,6 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <QStandardItemModel>
-#include <QStringListModel>
 #include <QTransposeProxyModel>
 #include <QVariantList>
 
