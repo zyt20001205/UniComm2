@@ -1341,6 +1341,14 @@ Item {
                                                             editable: true
                                                             Layout.fillWidth: true
 
+                                                            textFromValue: function(value, locale) {
+                                                                return "x" + value.toFixed(2)
+                                                            }
+
+                                                            valueFromText: function(text, locale) {
+                                                                return Number(text.replace("x", ""))
+                                                            }
+
                                                             onValueModified: {
                                                                 scaleItem.session.ratio = value
                                                                 const index = pipelineModel.index(row, 0);
