@@ -1125,14 +1125,6 @@ Item {
             onTriggered: debugModule.stateSet("", 6)
         }
 
-        MenuItem {
-            text: qsTr("Assembly")
-            icon.source: "qrc:/icon/assembly.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: documentModule.assemblyToggle(documentModuleEditorMenu.menuSession.documentUrl, !documentModuleEditorMenu.menuSession.assembly)
-        }
-
         MenuSeparator {
         }
 

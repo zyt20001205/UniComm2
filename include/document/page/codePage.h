@@ -1,18 +1,18 @@
-#ifndef UNICOMM_LUAPAGE_H
-#define UNICOMM_LUAPAGE_H
+#ifndef UNICOMM_CODEPAGE_H
+#define UNICOMM_CODEPAGE_H
 
 #include "basePage.h"
 #include "document/module/codeWidget.h"
 
 class SymbolWidget;
 
-class LuaPage final : public BasePage {
+class CodePage final : public BasePage {
     Q_OBJECT
 
 public:
-    explicit LuaPage(const QJsonObject &documentConfig = QJsonObject(), const QUrl &documentUrl = QUrl());
+    explicit CodePage(const QJsonObject &documentConfig = QJsonObject(), const QUrl &documentUrl = QUrl());
 
-    ~LuaPage() override = default;
+    ~CodePage() override = default;
 
     void propertySet(const QVariantHash &objects);
 
@@ -99,4 +99,4 @@ private:
     QJsonArray m_symbol{};
 };
 
-#endif //UNICOMM_LUAPAGE_H
+#endif //UNICOMM_CODEPAGE_H

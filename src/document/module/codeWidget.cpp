@@ -222,7 +222,6 @@ void CodeWidget::menuCall(const QString &name) const {
 
 // public: lsp
 void CodeWidget::diagnosticsNotification(const QJsonArray &diagnostics) {
-    if (!m_documentUrl.toString().endsWith(".lua")) return;
     m_diagnostic = diagnostics;
     // clear
     m_scintillaWidget->indicatorClear(ScintillaIndicator::Password);
@@ -485,9 +484,6 @@ void CodeWidget::contentChange() {
     semanticTokensRequest();
     // nuspell request
     spellCheckRequest();
-    // assembly request
-    // TODO: assembly interaction
-    // assemblyToggle(m_assemblyWidget->isVisible());
 }
 
 bool CodeWidget::symbolPair(const QChar ch) {
@@ -782,12 +778,16 @@ void CodeWidget::regionGet() const {
 
 // private: lsp
 void CodeWidget::didOpenNotification() {
-    // did open notification to lua language server
+    const QString suffix = QFileInfo(m_documentUrl.toLocalFile()).suffix().toLower();
+    QString languageId{};
+    if (suffix == "md") languageId = "markdown";
+    else languageId = suffix;
+    // did open notification to lsp manager
     const QJsonObject didOpenParams{
         {
             "textDocument", QJsonObject{
                 {"uri", m_documentUrl.toString()},
-                {"languageId", "lua"},
+                {"languageId", languageId},
                 {"version", m_version++},
                 {"text", m_scintillaWidget->textGet()}
             }
@@ -797,7 +797,7 @@ void CodeWidget::didOpenNotification() {
 }
 
 void CodeWidget::didChangeNotification() {
-    // did change notification to lua language server
+    // did change notification to lsp manager
     const auto content = m_scintillaWidget->textGet();
     const QJsonObject didChangeParams{
         {
@@ -818,7 +818,7 @@ void CodeWidget::didChangeNotification() {
 }
 
 void CodeWidget::didSaveNotification() {
-    // did save notification to lua language server
+    // did save notification to lsp manager
     const QJsonObject didSaveParams{
         {
             "textDocument", QJsonObject{
@@ -830,7 +830,7 @@ void CodeWidget::didSaveNotification() {
 }
 
 void CodeWidget::didCloseNotification() {
-    // did close notification to lua language server
+    // did close notification to lsp manager
     const QJsonObject didCloseParams{
         {
             "textDocument", QJsonObject{
@@ -988,7 +988,6 @@ void CodeWidget::typeDefinitionRequest() {
 
 // private: typo
 void CodeWidget::spellCheckRequest() {
-    if (!m_documentUrl.toString().endsWith(".lua")) return;
     // spell check request to script module
     emit requestSpellCheck(m_documentUrl, m_scintillaWidget->textGet());
 }

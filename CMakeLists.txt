@@ -150,6 +150,8 @@ set(LUA_BIN "${LUA_DIR}/bin")
 
 set(LUALS_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server")
 
+set(MDLS_DIR "${CMAKE_SOURCE_DIR}/3rd/marksman")
+
 set(MERMAID_DIR "${CMAKE_SOURCE_DIR}/3rd/mermaid")
 
 set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell")

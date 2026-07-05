@@ -14,7 +14,7 @@ class QTextBrowser;
 
 class BasePage;
 class CodeAssistant;
-class LuaPage;
+class CodePage;
 class EditorWidget;
 class SignatureWidget;
 
@@ -73,8 +73,6 @@ public:
     Q_INVOKABLE void navigationPrev();
 
     Q_INVOKABLE void navigationNext();
-
-    Q_INVOKABLE void assemblyToggle(const QUrl &documentUrl, bool status);
 
     void focusSet(const QUrl &documentUrl, bool status);
 
