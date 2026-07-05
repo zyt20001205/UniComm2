@@ -20,8 +20,6 @@ public:
 
     void documentSave() override;
 
-    void themeLoad(int theme) const;
-
     [[nodiscard]] QVariantHash menuLoad(const QString &name) const;
 
     void menuCall(const QString &name) const;
@@ -101,6 +99,8 @@ protected:
     void marginInit() const override;
 
     void markerInit() const override;
+
+    void lexerInit() const override;
 
 private:
     void charAdd(int ch);

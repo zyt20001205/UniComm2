@@ -143,6 +143,11 @@ set(LEPTONICA_INCLUDE "${LEPTONICA_DIR}/include")
 file(GLOB LEPTONICA_LIB "${LEPTONICA_DIR}/lib/*.a")
 set(LEPTONICA_BIN "${LEPTONICA_DIR}/bin")
 
+set(LEXILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/lexilla")
+set(LEXILLA_INCLUDE "${LEXILLA_DIR}/include")
+file(GLOB LEXILLA_LIB "${LEXILLA_DIR}/lib/*.a")
+set(LEXILLA_BIN "${LEXILLA_DIR}/bin")
+
 set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua")
 set(LUA_INCLUDE "${LUA_DIR}/include")
 file(GLOB LUA_LIB "${LUA_DIR}/lib/*.a")
@@ -208,6 +213,7 @@ target_include_directories(UniComm PRIVATE
         ${ICU_INCLUDE}
         ${KDDW_INCLUDE}
         ${LEPTONICA_INCLUDE}
+        ${LEXILLA_INCLUDE}
         ${LUA_INCLUDE}
         ${NUSPELL_INCLUDE}
         ${OPENCV_INCLUDE}
@@ -242,6 +248,7 @@ target_link_libraries(UniComm PRIVATE
         ${ICU_LIB}
         ${KDDW_LIB}
         ${LEPTONICA_LIB}
+        ${LEXILLA_LIB}
         ${LUA_LIB}
         ${NUSPELL_LIB}
         ${QTKEYCHAIN_LIB}
@@ -365,6 +372,12 @@ else ()
             "${LEPTONICA_BIN}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "LEPTONICA BIN COPIED")
+    #lexilla-5.5.0
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${LEXILLA_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "LEXILLA BIN COPIED")
     #lua-5.5.0-1
     add_custom_command(TARGET UniComm POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory

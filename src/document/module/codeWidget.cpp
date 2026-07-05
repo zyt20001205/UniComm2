@@ -2,6 +2,8 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
 #include <QShortcut>
 #include <QTimer>
 
@@ -30,7 +32,6 @@ void CodeWidget::propertySet(const QVariantHash &objects) {
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
     EditorWidget::propertySet(objects);
-    themeLoad(g_mainConfig["theme"].toInt());
     QTimer::singleShot(0, [this] {
         didOpenNotification();
         contentChange();
@@ -40,112 +41,6 @@ void CodeWidget::propertySet(const QVariantHash &objects) {
 void CodeWidget::documentSave() {
     EditorWidget::documentSave();
     didSaveNotification();
-}
-
-void CodeWidget::themeLoad(const int theme) const {
-    auto themeFile = QFile(QDir::current().filePath(QString("theme/%1.json").arg(QString::number(theme))));
-    if (!themeFile.open(QIODevice::ReadOnly | QIODevice::Text)) return;
-    const auto themeData = themeFile.readAll();
-    themeFile.close();
-    const auto themeDoc = QJsonDocument::fromJson(themeData);
-    const auto themeConfig = themeDoc.object();
-    const auto styleConfig = themeConfig["style"].toObject();
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Namespace,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["namespace"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Class,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["class"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Type,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["type"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Parameter,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["parameter"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Variable,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["variable"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Property,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["property"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::EnumMember,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["enumMember"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::FunctionCall,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["functionCall"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::FunctionDeclaration,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["functionDeclaration"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Method,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["method"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Macro,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["macro"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Keyword,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["keyword"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Comment,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["comment"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::String,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["string"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Number,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["number"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->styleDefine(
-        ScintillaStyle::Operator,
-        QVariantHash{
-            {"fore", ScintillaWidget::colorGet(styleConfig["operator"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
 }
 
 QVariantHash CodeWidget::menuLoad(const QString &name) const {
@@ -684,6 +579,112 @@ void CodeWidget::markerInit() const {
         QVariantHash{
             {"symbol", SC_MARK_BACKGROUND},
             {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
+        });
+}
+
+void CodeWidget::lexerInit() const {
+    auto themeFile = QFile(QDir::current().filePath(QString("theme/%1.json").arg(QString::number(g_mainConfig["theme"].toInt()))));
+    if (!themeFile.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+    const auto themeData = themeFile.readAll();
+    themeFile.close();
+    const auto themeDoc = QJsonDocument::fromJson(themeData);
+    const auto themeConfig = themeDoc.object();
+    const auto styleConfig = themeConfig["style"].toObject();
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Namespace,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["namespace"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Class,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["class"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Type,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["type"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Parameter,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["parameter"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Variable,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["variable"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Property,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["property"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::EnumMember,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["enumMember"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::FunctionCall,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["functionCall"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::FunctionDeclaration,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["functionDeclaration"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Method,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["method"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Macro,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["macro"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Keyword,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["keyword"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Comment,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["comment"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::String,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["string"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Number,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["number"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->styleDefine(
+        ScintillaStyle::Operator,
+        QVariantHash{
+            {"fore", ScintillaWidget::colorGet(styleConfig["operator"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
 }
 

@@ -53,6 +53,8 @@ protected:
 
     void styleInit() const;
 
+    virtual void lexerInit() const;
+
     void searchShow() const;
 
     void replaceShow() const;

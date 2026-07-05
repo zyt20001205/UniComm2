@@ -1,5 +1,7 @@
 #include "document/module/scintillaWidget.h"
 
+#include <ILexer.h>
+#include <Lexilla.h>
 #include <QFile>
 #include <QTimer>
 
@@ -184,6 +186,13 @@ int ScintillaWidget::indicatorGet(const Position position) const {
 // public: length
 Position ScintillaWidget::lengthGet() const {
     return send(SCI_GETLENGTH);
+}
+
+// lexer
+void ScintillaWidget::lexerSet(const char *name) const {
+    auto *lexer = CreateLexer(name);
+    if (!lexer) return;
+    send(SCI_SETILEXER, 0, reinterpret_cast<sptr_t>(lexer));
 }
 
 // public: line

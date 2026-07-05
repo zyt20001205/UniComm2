@@ -73,6 +73,8 @@ public:
 
     [[nodiscard]] Scintilla::Position lengthGet() const;
 
+    void lexerSet(const char *name) const;
+
     [[nodiscard]] int lineCountGet() const;
 
     void lineDuplicate() const;
