@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QMediaDevices>
 #include <QNetworkAccessManager>
+#include <QProcess>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
@@ -44,9 +45,9 @@
 #include "port/portModule.h"
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
-#include "service/luaLanguageServer.h"
 #include "service/ripgrep.h"
 #include "service/git/gitModule.h"
+#include "service/lsp/lspManager.h"
 #include "terminal/logModule.h"
 #include "terminal/terminalModule.h"
 
@@ -124,11 +125,6 @@ void MainWindow::propertySet() {
 void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
     m_quitDialog = qvariant_cast<QObject *>(objects["mainWindowQuitDialog"]);
-
-    const QVariantHash lualsObjects = {
-        {"lualsProgressDialog", objects["lualsProgressDialog"]}
-    };
-    m_luals->propertySet(lualsObjects);
 
     const QVariantHash breakpointObjects = {
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
@@ -317,7 +313,7 @@ void MainWindow::quit() {
     current++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for lua language server module..."));
     m_quitDialog->setProperty("primaryProgress", static_cast<float>(current) / total);
-    m_luals->quit();
+    m_lspManager->shutdown();
 
     terminate();
 }
@@ -411,7 +407,7 @@ void MainWindow::moduleInit() {
     g_networkAccessManager = new QNetworkAccessManager(qApp);
     m_configManager = new ConfigManager(this);
     m_globalManager = new GlobalManager(this);
-    m_luals = new LuaLanguageServer(this);
+    m_lspManager = new LSPManager(this);
     m_ripgrep = new Ripgrep(this);
     g_globalManager = m_globalManager;
     g_ripgrep = m_ripgrep;
@@ -454,24 +450,24 @@ void MainWindow::moduleInit() {
 
     connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
 
-    connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_documentModule, &DocumentModule::diagnosticsNotification);
-    connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
-    connect(m_luals, &LuaLanguageServer::responseCodeAction, m_documentModule, &DocumentModule::responseCodeAction);
-    connect(m_luals, &LuaLanguageServer::responseCompletion, m_documentModule, &DocumentModule::completionResponse);
-    connect(m_luals, &LuaLanguageServer::responseDefinition, m_documentModule, &DocumentModule::definitionResponse);
-    connect(m_luals, &LuaLanguageServer::responseDocumentHighlight, m_documentModule, &DocumentModule::documentHighlightResponse);
-    connect(m_luals, &LuaLanguageServer::responseDocumentSymbol, m_documentModule, &DocumentModule::documentSymbolResponse);
-    connect(m_luals, &LuaLanguageServer::responseDocumentSymbol, m_structureModule, &StructureModule::documentSymbolResponse);
-    connect(m_luals, &LuaLanguageServer::responseFoldingRange, m_documentModule, &DocumentModule::foldingRangeResponse);
-    connect(m_luals, &LuaLanguageServer::responseFormatting, m_documentModule, &DocumentModule::formattingResponse);
-    connect(m_luals, &LuaLanguageServer::responseHover, m_documentModule, &DocumentModule::hoverResponse);
-    connect(m_luals, &LuaLanguageServer::responseImplementation, m_documentModule, &DocumentModule::implementationResponse);
-    connect(m_luals, &LuaLanguageServer::responseOnTypeFormatting, m_documentModule, &DocumentModule::onTypeFormattingResponse);
-    connect(m_luals, &LuaLanguageServer::responseRangeFormatting, m_documentModule, &DocumentModule::rangeFormattingResponse);
-    connect(m_luals, &LuaLanguageServer::responseReferences, m_documentModule, &DocumentModule::referencesResponse);
-    connect(m_luals, &LuaLanguageServer::responseSemanticTokens, m_documentModule, &DocumentModule::semanticTokensResponse);
-    connect(m_luals, &LuaLanguageServer::responseSignatureHelp, m_documentModule, &DocumentModule::signatureHelpResponse);
-    connect(m_luals, &LuaLanguageServer::responseTypeDefinition, m_documentModule, &DocumentModule::typeDefinitionResponse);
+    connect(m_lspManager, &LSPManager::notificationDiagnostics, m_documentModule, &DocumentModule::diagnosticsNotification);
+    connect(m_lspManager, &LSPManager::notificationDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
+    connect(m_lspManager, &LSPManager::responseCodeAction, m_documentModule, &DocumentModule::responseCodeAction);
+    connect(m_lspManager, &LSPManager::responseCompletion, m_documentModule, &DocumentModule::completionResponse);
+    connect(m_lspManager, &LSPManager::responseDefinition, m_documentModule, &DocumentModule::definitionResponse);
+    connect(m_lspManager, &LSPManager::responseDocumentHighlight, m_documentModule, &DocumentModule::documentHighlightResponse);
+    connect(m_lspManager, &LSPManager::responseDocumentSymbol, m_documentModule, &DocumentModule::documentSymbolResponse);
+    connect(m_lspManager, &LSPManager::responseDocumentSymbol, m_structureModule, &StructureModule::documentSymbolResponse);
+    connect(m_lspManager, &LSPManager::responseFoldingRange, m_documentModule, &DocumentModule::foldingRangeResponse);
+    connect(m_lspManager, &LSPManager::responseFormatting, m_documentModule, &DocumentModule::formattingResponse);
+    connect(m_lspManager, &LSPManager::responseHover, m_documentModule, &DocumentModule::hoverResponse);
+    connect(m_lspManager, &LSPManager::responseImplementation, m_documentModule, &DocumentModule::implementationResponse);
+    connect(m_lspManager, &LSPManager::responseOnTypeFormatting, m_documentModule, &DocumentModule::onTypeFormattingResponse);
+    connect(m_lspManager, &LSPManager::responseRangeFormatting, m_documentModule, &DocumentModule::rangeFormattingResponse);
+    connect(m_lspManager, &LSPManager::responseReferences, m_documentModule, &DocumentModule::referencesResponse);
+    connect(m_lspManager, &LSPManager::responseSemanticTokens, m_documentModule, &DocumentModule::semanticTokensResponse);
+    connect(m_lspManager, &LSPManager::responseSignatureHelp, m_documentModule, &DocumentModule::signatureHelpResponse);
+    connect(m_lspManager, &LSPManager::responseTypeDefinition, m_documentModule, &DocumentModule::typeDefinitionResponse);
 
     connect(m_breakpointModule, &BreakpointModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_breakpointModule, &BreakpointModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
@@ -488,8 +484,8 @@ void MainWindow::moduleInit() {
     connect(m_diagnosticsModule, &DiagnosticsModule::setIndex, m_documentModule, &DocumentModule::indexSet);
     connect(m_diagnosticsModule, &DiagnosticsModule::fillIndicator, m_documentModule, &DocumentModule::indicatorFill);
 
-    connect(m_documentModule, &DocumentModule::requestJson, m_luals, &LuaLanguageServer::jsonRequest);
-    connect(m_documentModule, &DocumentModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
+    connect(m_documentModule, &DocumentModule::requestJson, m_lspManager, &LSPManager::jsonRequest);
+    connect(m_documentModule, &DocumentModule::notificationJson, m_lspManager, &LSPManager::jsonNotification);
     connect(m_documentModule, &DocumentModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
     connect(m_documentModule, &DocumentModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_documentModule, &DocumentModule::openWorkspace, this, &MainWindow::workspaceOpen);
@@ -512,7 +508,7 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::appendBackground, m_statusModule, &StatusModule::backgroundAppend);
     connect(m_fileModule, &FileModule::removeBackground, m_statusModule, &StatusModule::backgroundRemove);
     connect(m_fileModule, &FileModule::refreshBackground, m_statusModule, &StatusModule::backgroundRefresh);
-    connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
+    connect(m_fileModule, &FileModule::notificationJson, m_lspManager, &LSPManager::jsonNotification);
 
     connect(m_gitModule, &GitModule::updateIndex, m_explorerModule, &ExplorerModule::indexUpdate);
     connect(m_gitModule, &GitModule::openDocument, m_documentModule, &DocumentModule::documentOpen);

@@ -137,7 +137,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         if (!newPage) {
             const auto documentPath = documentUrl.toLocalFile();
             const QFileInfo documentInfo(documentPath);
-            const auto suffix = documentInfo.suffix();
+            const auto suffix = documentInfo.suffix().toLower();
             // image page
             const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
             if (imageType.contains(suffix)) {

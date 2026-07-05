@@ -292,49 +292,6 @@ Item {
         }
     }
 
-    // luals
-    Dialog {
-        id: lualsProgressDialog
-        parent: Overlay.overlay
-        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
-        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
-        width: 600
-        closePolicy: Popup.NoAutoClose
-        modal: true
-        title: qsTr("Lua language server initializing...")
-        topPadding: 30; bottomPadding: 20
-        visible: false
-        // visible: !(done2 && done3)
-        property real create2
-        property real create3
-        property bool done2: false
-        property bool done3: false
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        ColumnLayout {
-            width: parent.width
-
-            ProgressBar {
-                value: lualsProgressDialog.create2
-                Layout.fillWidth: true
-            }
-
-            Item {
-                Layout.fillWidth: true; Layout.preferredHeight: 10
-            }
-
-            ProgressBar {
-                value: lualsProgressDialog.create3
-                Layout.fillWidth: true
-            }
-        }
-    }
-
     // breakpoint module
     Dialog {
         id: breakpointModuleEditDialog
@@ -4860,8 +4817,6 @@ Item {
             "mainWindowQuitDialog": mainWindowQuitDialog,
             "mainWindowTextView": mainWindowTextView,
             "mainWindowToolTip": mainWindowToolTip,
-
-            "lualsProgressDialog": lualsProgressDialog,
 
             "breakpointModuleEditDialog": breakpointModuleEditDialog,
             "breakpointModuleLineMenu": breakpointModuleLineMenu,

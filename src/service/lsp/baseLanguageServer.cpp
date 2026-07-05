@@ -1,44 +1,55 @@
-#include "service/luaLanguageServer.h"
+#include "service/lsp/baseLanguageServer.h"
 
 #include <QJsonArray>
+#include <QProcess>
 
 #include "globals.h"
 #include "util/uniCast.h"
 
 // public
-LuaLanguageServer::LuaLanguageServer(QWidget *parent)
+BaseLanguageServer::BaseLanguageServer(const QString &program, QObject *parent)
     : QObject(parent),
       m_process(new QProcess(this)) {
-    m_process->start(QCoreApplication::applicationDirPath() + "/lua-language-server/bin/lua-language-server.exe", {});
-    connect(m_process, &QProcess::readyRead, this, &LuaLanguageServer::jsonParser);
-    if (!m_process->waitForStarted()) {
-        qDebug() << "failed to start process";
-    }
-    initializeNotification();
+    m_process->start(program);
+    connect(m_process, &QProcess::readyRead, this, &BaseLanguageServer::parser);
+    if (!m_process->waitForStarted()) qDebug() << "failed to start process";
+    else initialize();
 }
 
-LuaLanguageServer::~LuaLanguageServer() {
-    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] luals module destructed").arg(timestamp);
+BaseLanguageServer::~BaseLanguageServer() {
 }
 
-void LuaLanguageServer::propertySet(const QVariantHash &objects) {
-    m_progressDialog = qvariant_cast<QObject *>(objects["lualsProgressDialog"]);
+void BaseLanguageServer::initialize() {
+    const QString rootUriStr = g_workspaceUrl.toString();
+    const QJsonObject initializeParams{
+            {"processId", QCoreApplication::applicationPid()},
+            {"rootUri", rootUriStr},
+            {"capabilities", QJsonObject{}}
+    };
+    jsonRequest("initialize", initializeParams);
+    // wait for lsp initialized notification
+    QEventLoop loop{};
+    connect(this, &BaseLanguageServer::initialized, &loop, &QEventLoop::quit);
+    loop.exec();
+    jsonNotification("initialized", QJsonObject{});
 }
 
-void LuaLanguageServer::quit() {
-    if (m_process->state() != QProcess::NotRunning) {
-        exitNotification();
-        QEventLoop eventLoop{};
-        connect(m_process, &QProcess::finished, this, [&eventLoop] { eventLoop.quit(); });
-        eventLoop.exec();
-    }
+void BaseLanguageServer::shutdown() {
+    QEventLoop loop{};
+    if (m_process->state() == QProcess::NotRunning) return;
+    // wait for lsp exit notification
+    connect(this, &BaseLanguageServer::shutdowned, &loop, &QEventLoop::quit);
+    jsonRequest("shutdown", QJsonObject{});
+    loop.exec();
+    // wait for process exit
+    connect(m_process, &QProcess::finished, this, [&loop] { loop.quit(); });
+    jsonNotification("exit", QJsonObject{});
+    loop.exec();
 }
 
-void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
+void BaseLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
     const QJsonObject textDocument = params["textDocument"].toObject();
     const auto url = QUrl(textDocument["uri"].toString());
-    if (method != "initialize" && method != "shutdown" && !textDocument["uri"].toString().endsWith(".lua")) return;
     m_methods.insert(m_id, method);
     m_urls.insert(m_id, url);
     const QJsonObject msg = {
@@ -56,7 +67,7 @@ void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &pa
     // qDebug() << msg;
 }
 
-void LuaLanguageServer::jsonNotification(const QString &method, const QJsonObject &params) const {
+void BaseLanguageServer::jsonNotification(const QString &method, const QJsonObject &params) const {
     const QJsonObject msg = {
         {"jsonrpc", "2.0"},
         {"method", method},
@@ -70,34 +81,7 @@ void LuaLanguageServer::jsonNotification(const QString &method, const QJsonObjec
 }
 
 // private
-void LuaLanguageServer::initializeNotification() {
-    const QString rootUriStr = g_workspaceUrl.toString();
-    const QJsonObject initializeParams{
-        {"processId", QCoreApplication::applicationPid()},
-        {"rootUri", rootUriStr},
-        {"capabilities", QJsonObject{}}
-    };
-    jsonRequest("initialize", initializeParams);
-    // wait until lls initialized
-    QEventLoop eventLoop;
-    connect(this, &LuaLanguageServer::initialized, &eventLoop, &QEventLoop::quit);
-    eventLoop.exec();
-    jsonNotification("initialized", QJsonObject{});
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
-}
-
-void LuaLanguageServer::exitNotification() {
-    jsonRequest("shutdown", QJsonObject{});
-    // wait until lls showdowned
-    QEventLoop eventLoop;
-    connect(this, &LuaLanguageServer::shutdowned, &eventLoop, &QEventLoop::quit);
-    eventLoop.exec();
-    jsonNotification("exit", QJsonObject{});
-}
-
-void LuaLanguageServer::jsonParser() {
+void BaseLanguageServer::parser() {
     // append to buffer
     m_buffer.append(m_process->readAllStandardOutput());
     while (true) {
@@ -121,7 +105,7 @@ void LuaLanguageServer::jsonParser() {
                 const auto diagnostics = params["diagnostics"].toArray();
                 const LUrl uri = params["uri"].toString();
                 const auto documentUrl = uni_cast<QUrl>(uri);
-                emit notificationPublishDiagnostics(documentUrl, diagnostics);
+                emit notificationDiagnostics(documentUrl, diagnostics);
             } else if (method == "$/hello") {
                 // hello notification
                 // qDebug() << json;
@@ -141,12 +125,6 @@ void LuaLanguageServer::jsonParser() {
             } else if (method == "window/logMessage") {
                 // log message notification
                 // qDebug() << json;
-                const auto params = json["params"].toObject();
-                const LUrl message = params["message"].toString().remove("Log path: ");
-                const auto url = uni_cast<QUrl>(message);
-                // logging
-                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] Log path: %2").arg(timestamp, url.toString());
             } else if (method == "window/workDoneProgress/create") {
                 // work done progress notification
                 // qDebug() << json;

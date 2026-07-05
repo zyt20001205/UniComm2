@@ -1,23 +1,25 @@
-#ifndef UNICOMM_LUALANGUAGESERVER_H
-#define UNICOMM_LUALANGUAGESERVER_H
+#ifndef UNICOMM_BASELANGUAGESERVER_H
+#define UNICOMM_BASELANGUAGESERVER_H
 
-#include <QCoreApplication>
-#include <QFileInfo>
+#include <QHash>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
-#include <QProcess>
+#include <QUrl>
 
-class LuaLanguageServer final : public QObject {
+class QProcess;
+
+class BaseLanguageServer : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaLanguageServer(QWidget *parent = nullptr);
+    explicit BaseLanguageServer(const QString &program, QObject *parent = nullptr);
 
-    ~LuaLanguageServer() override;
+    ~BaseLanguageServer() override;
 
-    void propertySet(const QVariantHash &objects);
+    void initialize();
 
-    void quit();
+    void shutdown();
 
     void jsonRequest(const QString &method, const QJsonObject &params);
 
@@ -28,7 +30,7 @@ signals:
 
     void shutdowned();
 
-    void notificationPublishDiagnostics(const QUrl &documentUrl, const QJsonArray &diagnostics);
+    void notificationDiagnostics(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
     void responseCodeAction(const QUrl &documentUrl, const QJsonArray &result);
 
@@ -61,18 +63,13 @@ signals:
     void responseTypeDefinition(const QUrl &documentUrl, const QJsonArray &ranges);
 
 private:
-    void initializeNotification();
+    void parser();
 
-    void exitNotification();
-
-    void jsonParser();
-
-    QObject* m_progressDialog{};
     QProcess *m_process{};
     QByteArray m_buffer{};
-    int m_id = 0;
+    int m_id{0};
     QHash<int, QString> m_methods{};
     QHash<int, QUrl> m_urls{};
 };
 
-#endif //UNICOMM_LUALANGUAGESERVER_H
+#endif //UNICOMM_BASELANGUAGESERVER_H
