@@ -333,7 +333,6 @@ void EditorWidget::styleInit() const {
 void EditorWidget::lexerInit() const {
     const QFileInfo documentInfo(m_documentUrl.toLocalFile());
     const QString suffix = documentInfo.suffix().toLower();
-    const auto lspTheme = m_theme["lsp"].toObject();
     // json
     if (suffix == "json") {
         const auto jsonTheme = m_theme["json"].toObject();
