@@ -21,6 +21,7 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 void TextPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorWidget->propertySet(QVariantHash{
+        {"theme", objects["theme"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
         {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]}

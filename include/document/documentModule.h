@@ -195,6 +195,7 @@ private:
     void navigationRecord(const QUrl &documentUrl, int line, int character);
 
     QJsonObject m_config{};
+    QJsonObject m_theme{};
     QObject *m_messageDialog{};
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};

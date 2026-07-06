@@ -1,5 +1,6 @@
 #include "document/documentModule.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QProcess>
@@ -32,6 +33,15 @@ DocumentModule::DocumentModule(QWidget *parent)
         {"index", -1},
         {"list", QVariantList{}}
     };
+    const auto themeDir = QDir(QCoreApplication::applicationDirPath());
+    auto themeFile = QFile(themeDir.filePath(QString("theme/%1.json").arg(QString::number(g_mainConfig["theme"].toInt()))));
+    if (themeFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        const auto themeData = themeFile.readAll();
+        themeFile.close();
+        const auto themeDoc = QJsonDocument::fromJson(themeData);
+        m_theme = themeDoc.object();
+    }
+
     connect(m_watcher, &QFileSystemWatcher::fileChanged, this, &DocumentModule::documentReload);
     m_watcherTimer->setSingleShot(true);
     m_watcherTimer->setInterval(1000);
@@ -125,6 +135,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new ConflictPage(m_config, documentUrl);
                 auto *conflictPage = qobject_cast<ConflictPage *>(newPage);
                 conflictPage->propertySet(QVariantHash{
+                    {"theme", m_theme},
                     {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                     {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                     {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
@@ -153,6 +164,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new CodePage(m_config, documentUrl);
                 auto *codePage = qobject_cast<CodePage *>(newPage);
                 codePage->propertySet(QVariantHash{
+                    {"theme", m_theme},
                     {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                     {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
                     {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
@@ -189,6 +201,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new MarkdownPage(m_config, documentUrl);
                 auto *markdownPage = qobject_cast<MarkdownPage *>(newPage);
                 markdownPage->propertySet(QVariantHash{
+                    {"theme", m_theme},
                     {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                     {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                     {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
@@ -209,6 +222,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new TextPage(m_config, documentUrl);
                 auto *textPage = qobject_cast<TextPage *>(newPage);
                 textPage->propertySet(QVariantHash{
+                    {"theme", m_theme},
                     {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                     {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                     {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},

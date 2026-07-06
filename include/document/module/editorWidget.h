@@ -60,6 +60,7 @@ protected:
     void replaceShow() const;
 
     QUrl m_documentUrl{};
+    QJsonObject m_theme{};
     ScintillaWidget *m_scintillaWidget{};
     QHash<QString, int> m_selection{};
 

@@ -129,7 +129,7 @@ void SearchWindow::searchFlagsSet(const bool matchCase, const bool wholeWord, co
 
 void SearchWindow::searchNavigate(const QUrl &documentUrl, const int line) {
     emit setIndex(documentUrl, line, 0);
-    emit addMarker(documentUrl, ScintillaMarker::Hint, line, 3000);
+    emit addMarker(documentUrl, ScintillaMarker::Hint, line, 1000);
 }
 
 // public
