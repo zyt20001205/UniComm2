@@ -19,13 +19,12 @@ Item {
             id: searchBar
 
             Item {
-                Layout.preferredWidth: 600; Layout.preferredHeight: 24
+                Layout.preferredWidth: 400; Layout.preferredHeight: 24
 
                 TextField {
                     id: searchTextField
                     anchors.fill: parent
                     rightPadding: 120
-                    KeyNavigation.tab: replaceTextField
 
                     onTextChanged: searchWindow.searchRequest()
                 }
@@ -155,52 +154,8 @@ Item {
                 }
             }
 
-            Button {
-                id: searchPrevButton
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: false
-                flat: true
-                icon.source: "qrc:/icon/arrowUp.svg"
-                icon.width: 16; icon.height: 16
-
-                onClicked: searchWindow.searchPrev()
-
-                HoverHandler {
-                    onHoveredChanged: {
-                        if (!hovered) {
-                            mainToolTip.text = ""
-                        }
-                    }
-                    onPointChanged: {
-                        mainToolTip.position = parent.mapToGlobal(point.position)
-                        mainToolTip.text = qsTr("Search Previous")
-                    }
-                }
-            }
-
-            Button {
-                id: searchNextButton
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: false
-                flat: true
-                icon.source: "qrc:/icon/arrowDown.svg"
-                icon.width: 16; icon.height: 16
-
-                onClicked: searchWindow.searchNext()
-
-                HoverHandler {
-                    onHoveredChanged: {
-                        if (!hovered) {
-                            mainToolTip.text = ""
-                        }
-                    }
-                    onPointChanged: {
-                        mainToolTip.position = parent.mapToGlobal(point.position)
-                        mainToolTip.text = qsTr("Search Next")
-                    }
-                }
+            Item {
+                Layout.fillWidth: true
             }
 
             Label {
@@ -209,94 +164,6 @@ Item {
                 text: searchModel.empty ? "0/0" : (tableView.selectedRow + 1) + "/" + matchCount
                 Layout.preferredWidth: 80; Layout.preferredHeight: 24
                 property int matchCount
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-        }
-
-        RowLayout {
-            id: replaceBar
-
-            Item {
-                Layout.preferredWidth: 600; Layout.preferredHeight: 24
-
-                TextField {
-                    id: replaceTextField
-                    anchors.fill: parent
-                    rightPadding: 24
-
-                    KeyNavigation.tab: matchCaseButton
-                }
-
-                RowLayout {
-                    anchors.right: parent.right
-                    spacing: 0
-
-                    Button {
-                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                        flat: true
-                        // focusPolicy: Qt.NoFocus
-                        icon.source: "qrc:/icon/dismiss.svg"
-                        icon.width: 12; icon.height: 12
-
-                        onClicked: replaceTextField.clear()
-                    }
-                }
-            }
-
-            Button {
-                id: replaceTextButton
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: false
-                flat: true
-                icon.source: "qrc:/icon/replace.svg"
-                icon.width: 16; icon.height: 16
-
-                onClicked: searchWindow.textReplace()
-
-                HoverHandler {
-                    onHoveredChanged: {
-                        if (!hovered) {
-                            mainToolTip.text = ""
-                        }
-                    }
-                    onPointChanged: {
-                        mainToolTip.position = parent.mapToGlobal(point.position)
-                        mainToolTip.text = qsTr("Replace")
-                    }
-                }
-            }
-
-            Button {
-                id: replaceAllButton
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: false
-                flat: true
-                icon.source: "qrc:/icon/replaceAll.svg"
-                icon.width: 16; icon.height: 16
-
-                onClicked: searchWindow.allReplace()
-
-                HoverHandler {
-                    onHoveredChanged: {
-                        if (!hovered) {
-                            mainToolTip.text = ""
-                        }
-                    }
-                    onPointChanged: {
-                        mainToolTip.position = parent.mapToGlobal(point.position)
-                        mainToolTip.text = qsTr("Replace All")
-                    }
-                }
-            }
-
-            Item {
-                Layout.fillWidth: true
             }
         }
 
@@ -403,13 +270,9 @@ Item {
                         acceptedButtons: Qt.LeftButton
                         gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                        onSingleTapped: {
-                            tableView.selectedRow = row
-                        }
+                        onSingleTapped: tableView.selectedRow = row
 
-                        onDoubleTapped: {
-                            console.log(model.documentUrl || "")
-                        }
+                        onDoubleTapped: searchWindow.indicatorInsert(model.documentUrl, model.line, 0, model.line, -1)
                     }
                 }
 
@@ -426,13 +289,7 @@ Item {
         const objects = {
             "searchBar": searchBar,
             "searchTextField": searchTextField,
-            "searchPrevButton": searchPrevButton,
-            "searchNextButton": searchNextButton,
-            "searchStatLabel": searchStatLabel,
-            "replaceBar": replaceBar,
-            "replaceTextField": replaceTextField,
-            "replaceTextButton": replaceTextButton,
-            "replaceAllButton": replaceAllButton
+            "searchStatLabel": searchStatLabel
         };
         searchWindow.propertyGet(objects)
     }

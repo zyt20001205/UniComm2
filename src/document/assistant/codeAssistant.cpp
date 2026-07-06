@@ -30,6 +30,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
     connect(m_navigationWidget, &NavigationWidget::recordNavigation, this, &CodeAssistant::recordNavigation);
     connect(m_positionWidget, &PositionWidget::setText, this, &CodeAssistant::setText);
+    connect(m_searchWindow, &SearchWindow::insertIndicator, this, &CodeAssistant::insertIndicator);
     connect(m_signatureWidget, &SignatureWidget::addChar, this, &CodeAssistant::addChar);
     connect(m_signatureWidget, &SignatureWidget::setTextSelected, this, &CodeAssistant::setTextSelected);
 }

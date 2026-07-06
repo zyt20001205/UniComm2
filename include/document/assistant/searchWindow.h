@@ -3,9 +3,7 @@
 
 #include <QStandardItemModel>
 
-class QQuickWidget;
-class QVBoxLayout;
-class QWidget;
+class QQuickView;
 
 class SearchModel;
 
@@ -21,11 +19,16 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void searchRequest() const;
-
     void open() const;
 
+    Q_INVOKABLE void searchRequest() const;
+
     Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
+
+    Q_INVOKABLE void indicatorInsert(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+
+signals:
+    void insertIndicator(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
     struct SearchFlags {
@@ -35,18 +38,10 @@ private:
         bool regExp;
     };
 
-    QWidget *m_widget{};
-    QVBoxLayout *m_columnLayout{};
-    QQuickWidget *m_searchWidget{};
+    QQuickView *m_searchWindow{};
     QObject *m_searchBar{};
     QObject *m_searchTextField{};
-    QObject *m_searchPrevButton{};
-    QObject *m_searchNextButton{};
     QObject *m_searchStatLabel{};
-    QObject *m_replaceBar{};
-    QObject *m_replaceTextField{};
-    QObject *m_replaceTextButton{};
-    QObject *m_replaceAllButton{};
 
     SearchModel *m_searchModel{};
     SearchFlags m_searchFlags{};

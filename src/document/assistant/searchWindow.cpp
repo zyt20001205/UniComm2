@@ -1,19 +1,10 @@
 #include "document/assistant/searchWindow.h"
 
-#include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
-#include <QFileInfo>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QQmlContext>
 #include <QProcess>
-#include <QQuickWidget>
-#include <QRegularExpression>
-#include <QStringList>
+#include <QQuickView>
 #include <QUrl>
-#include <QVBoxLayout>
-#include <QWidget>
 
 #include "core/globalManager.h"
 #include "globals.h"
@@ -21,42 +12,37 @@
 // public
 SearchWindow::SearchWindow(QObject *parent)
     : QObject(parent),
-      m_widget(new QWidget()),
-      m_columnLayout(new QVBoxLayout(m_widget)),
-      m_searchWidget(new QQuickWidget(m_widget)),
+      m_searchWindow(new QQuickView()),
       m_searchModel(new SearchModel(this)) {
-    m_widget->setWindowTitle("Search");
-    m_columnLayout->setContentsMargins(0, 0, 0, 0);
-    m_columnLayout->setSpacing(0);
-    m_columnLayout->addWidget(m_searchWidget);
-    m_widget->resize(800, 600);
+    m_searchWindow->setTitle("Search");
 }
 
 SearchWindow::~SearchWindow() {
-    delete m_widget;
+    delete m_searchWindow;
 }
 
 void SearchWindow::propertySet(const QVariantHash &objects) {
-    m_searchWidget->rootContext()->setContextProperty("searchWindow", this);
-    m_searchWidget->rootContext()->setContextProperty("global", g_globalManager);
-    m_searchWidget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
-    m_searchWidget->rootContext()->setContextProperty("searchModel", m_searchModel);
+    m_searchWindow->setTransientParent(g_mainWindow->windowHandle());
+    m_searchWindow->rootContext()->setContextProperty("searchWindow", this);
+    m_searchWindow->rootContext()->setContextProperty("global", g_globalManager);
+    m_searchWindow->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
+    m_searchWindow->rootContext()->setContextProperty("searchModel", m_searchModel);
 
-    m_searchWidget->setFixedHeight(300);
-    m_searchWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_searchWidget->setSource(QUrl("qrc:/qml/document/assistant/searchWindow.qml"));
+    m_searchWindow->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_searchWindow->setSource(QUrl("qrc:/qml/document/assistant/searchWindow.qml"));
 }
 
 void SearchWindow::propertyGet(const QVariantMap &objects) {
     m_searchBar = qvariant_cast<QObject *>(objects["searchBar"]);
     m_searchTextField = qvariant_cast<QObject *>(objects["searchTextField"]);
-    m_searchPrevButton = qvariant_cast<QObject *>(objects["searchPrevButton"]);
-    m_searchNextButton = qvariant_cast<QObject *>(objects["searchNextButton"]);
     m_searchStatLabel = qvariant_cast<QObject *>(objects["searchStatLabel"]);
-    m_replaceBar = qvariant_cast<QObject *>(objects["replaceBar"]);
-    m_replaceTextField = qvariant_cast<QObject *>(objects["replaceTextField"]);
-    m_replaceTextButton = qvariant_cast<QObject *>(objects["replaceTextButton"]);
-    m_replaceAllButton = qvariant_cast<QObject *>(objects["replaceAllButton"]);
+}
+
+void SearchWindow::open() const {
+    m_searchWindow->resize(600, 600);
+    m_searchWindow->show();
+    m_searchWindow->raise();
+    m_searchWindow->requestActivate();
 }
 
 void SearchWindow::searchRequest() const {
@@ -101,6 +87,9 @@ void SearchWindow::searchRequest() const {
         pathItem->setData(documentUrl, Qt::UserRole + 1);
         lineItem->setData(documentUrl, Qt::UserRole + 1);
         textItem->setData(documentUrl, Qt::UserRole + 1);
+        pathItem->setData(_line - 1, Qt::UserRole + 2);
+        lineItem->setData(_line - 1, Qt::UserRole + 2);
+        textItem->setData(_line - 1, Qt::UserRole + 2);
 
         m_searchModel->appendRow({pathItem, lineItem, textItem});
         ++matchCount;
@@ -108,17 +97,15 @@ void SearchWindow::searchRequest() const {
     m_searchStatLabel->setProperty("matchCount", matchCount);
 }
 
-void SearchWindow::open() const {
-    m_widget->show();
-    m_widget->raise();
-    m_widget->activateWindow();
-}
-
 void SearchWindow::searchFlagsSet(const bool matchCase, const bool wholeWord, const bool wordStart, const bool regExp) {
     m_searchFlags.matchCase = matchCase;
     m_searchFlags.wholeWord = wholeWord;
     m_searchFlags.wordStart = wordStart;
     m_searchFlags.regExp = regExp;
+}
+
+void SearchWindow::indicatorInsert(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    emit insertIndicator(documentUrl, ScintillaIndicator::Current, startLine, startCharacter, endLine, endCharacter, 1000);
 }
 
 // public
@@ -132,5 +119,6 @@ SearchModel::SearchModel(QObject *parent)
 QHash<int, QByteArray> SearchModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "documentUrl";
+    roles[Qt::UserRole + 2] = "line";
     return roles;
 }
