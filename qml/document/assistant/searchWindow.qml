@@ -395,12 +395,7 @@ Item {
                                 tableView.hoveredRow = row
                             } else if (tableView.hoveredRow === row) {
                                 tableView.hoveredRow = -1
-                                mainToolTip.text = ""
                             }
-                        }
-                        onPointChanged: {
-                            mainToolTip.position = parent.mapToGlobal(point.position)
-                            mainToolTip.text = model.documentUrl || ""
                         }
                     }
 
