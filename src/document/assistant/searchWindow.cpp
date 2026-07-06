@@ -1,9 +1,15 @@
 #include "document/assistant/searchWindow.h"
 
+#include <QCoreApplication>
 #include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QQmlContext>
 #include <QProcess>
 #include <QQuickView>
+#include <QRegularExpression>
+#include <QStringList>
 #include <QUrl>
 
 #include "core/globalManager.h"
@@ -78,11 +84,28 @@ void SearchWindow::searchRequest() const {
         const auto path = data.value("path").toObject().value("text").toString();
         const auto relativePath = QDir(g_workspaceUrl.toLocalFile()).relativeFilePath(path);
         const auto _line = data.value("line_number").toInt();
-        const auto _text = data.value("lines").toObject().value("text").toString().trimmed();
+        auto _text = data.value("lines").toObject().value("text").toString();
+        _text.remove('\r');
+        _text.remove('\n');
+        const auto submatches = data.value("submatches").toArray();
+        const auto bytes = _text.toUtf8();
+        QString richText{};
+        int offset = 0;
+        for (const auto &value: submatches) {
+            const auto submatch = value.toObject();
+            const int startByte = submatch.value("start").toInt(0);
+            const int endByte = submatch.value("end").toInt(-1);
+            if (startByte < offset || endByte <= startByte || endByte > bytes.size()) continue;
+            richText += QString::fromUtf8(bytes.mid(offset, startByte - offset)).toHtmlEscaped();
+            richText += QString("<span style=\"background-color:%1;\">%2</span>")
+                .arg(g_globalManager->warningBack2Get(), QString::fromUtf8(bytes.mid(startByte, endByte - startByte)).toHtmlEscaped());
+            offset = endByte;
+        }
+        richText += QString::fromUtf8(bytes.mid(offset)).toHtmlEscaped();
 
         auto *pathItem = new QStandardItem(relativePath); // NOLINT
         auto *lineItem = new QStandardItem(QString::number(_line)); // NOLINT
-        auto *textItem = new QStandardItem(_text); // NOLINT
+        auto *textItem = new QStandardItem(richText); // NOLINT
         const auto documentUrl = QUrl::fromLocalFile(path).toString();
         pathItem->setData(documentUrl, Qt::UserRole + 1);
         lineItem->setData(documentUrl, Qt::UserRole + 1);
@@ -104,8 +127,9 @@ void SearchWindow::searchFlagsSet(const bool matchCase, const bool wholeWord, co
     m_searchFlags.regExp = regExp;
 }
 
-void SearchWindow::indicatorInsert(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
-    emit insertIndicator(documentUrl, ScintillaIndicator::Current, startLine, startCharacter, endLine, endCharacter, 1000);
+void SearchWindow::searchNavigate(const QUrl &documentUrl, const int line) {
+    emit setIndex(documentUrl, line, 0);
+    emit addMarker(documentUrl, ScintillaMarker::Hint, line, 3000);
 }
 
 // public

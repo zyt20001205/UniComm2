@@ -161,7 +161,6 @@ void BaseLanguageServer::parser() {
                 emit responseCodeAction(documentUrl, result);
             } else if (method == "textDocument/completion") {
                 // completion response
-                qDebug() << json["result"];
                 if (!json["result"].isObject()) return; // null result
                 const auto result = json["result"].toObject();
                 const auto items = result["items"].toArray();

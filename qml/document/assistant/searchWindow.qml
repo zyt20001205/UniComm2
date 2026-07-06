@@ -162,7 +162,7 @@ Item {
                 id: searchStatLabel
                 horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
                 text: searchModel.empty ? "0/0" : (tableView.selectedRow + 1) + "/" + matchCount
-                Layout.preferredWidth: 80; Layout.preferredHeight: 24
+                Layout.preferredHeight: 24
                 property int matchCount
             }
         }
@@ -253,6 +253,7 @@ Item {
                         leftPadding: 6
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                         text: model.display || ""
+                        textFormat: column === 2 ? Text.RichText : Text.PlainText
                         elide: Text.ElideRight
                     }
 
@@ -272,7 +273,7 @@ Item {
 
                         onSingleTapped: tableView.selectedRow = row
 
-                        onDoubleTapped: searchWindow.indicatorInsert(model.documentUrl, model.line, 0, model.line, -1)
+                        onDoubleTapped: searchWindow.searchNavigate(model.documentUrl, model.line)
                     }
                 }
 

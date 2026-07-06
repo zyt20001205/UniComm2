@@ -44,6 +44,7 @@ DocumentModule::DocumentModule(QWidget *parent)
     connect(m_codeAssistant, &CodeAssistant::getText, this, &DocumentModule::textGet);
     connect(m_codeAssistant, &CodeAssistant::setText, this, &DocumentModule::textSet);
     connect(m_codeAssistant, &CodeAssistant::setTextSelected, this, &DocumentModule::textSetSelected);
+    connect(m_codeAssistant, &CodeAssistant::addMarker, this, &DocumentModule::markerAdd);
     connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &DocumentModule::indicatorFill);
     connect(m_codeAssistant, &CodeAssistant::requestCodeAction, this, &DocumentModule::codeActionRequest);
     connect(m_codeAssistant, &CodeAssistant::recordNavigation, this, &DocumentModule::navigationRecord);

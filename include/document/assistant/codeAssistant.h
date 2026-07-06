@@ -55,6 +55,8 @@ signals:
 
     void getText(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
+    void addMarker(const QUrl &documentUrl, int type, int line, int time);
+
     void insertIndicator(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
     void requestCodeAction(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);

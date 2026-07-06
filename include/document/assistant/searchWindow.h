@@ -25,10 +25,12 @@ public:
 
     Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
-    Q_INVOKABLE void indicatorInsert(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    Q_INVOKABLE void searchNavigate(const QUrl &documentUrl, int line);
 
 signals:
-    void insertIndicator(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void setIndex(const QUrl &documentUrl, int startLine, int startCharacter);
+
+    void addMarker(const QUrl &documentUrl, int type, int line, int time);
 
 private:
     struct SearchFlags {
