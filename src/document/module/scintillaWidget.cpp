@@ -383,7 +383,7 @@ void ScintillaWidget::styleDefine(const int type, const QVariantHash &session) c
     // if (session.contains("weight")) send(SCI_STYLESETWEIGHT, type, session["weight"].toInt()); // NOLINT
     // if (session.contains("stretch")) send(SCI_STYLESETSTRETCH, type, session["stretch"].toInt()); // NOLINT
     // if (session.contains("italic")) send(SCI_STYLESETITALIC, type, session["italic"].toBool()); // NOLINT
-    // if (session.contains("underline")) send(SCI_STYLESETUNDERLINE, type, session["underline"].toBool()); // NOLINT
+    if (session.contains("underline")) send(SCI_STYLESETUNDERLINE, type, session["underline"].toBool()); // NOLINT
     if (session.contains("fore")) send(SCI_STYLESETFORE, type, session["fore"].toInt()); // NOLINT    if (session.contains("fore")) send(SCI_STYLESETFORE, type, session["fore"].toInt()); // NOLINT
     if (session.contains("back")) send(SCI_STYLESETBACK, type, session["back"].toInt()); // NOLINT
     // if (session.contains("eolFilled")) send(SCI_STYLESETEOLFILLED, type, session["eolFilled"].toBool()); // NOLINT

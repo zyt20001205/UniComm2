@@ -48,5 +48,106 @@
     "operator": {
       "fore": "#bcbec4"
     }
+  },
+  "json": {
+    "number": {
+      "fore": "#2aacb8"
+    },
+    "string": {
+      "fore": "#6aab73"
+    },
+    "stringEol": {
+      "fore": "#f75464"
+    },
+    "propertyName": {
+      "fore": "#c77dbb"
+    },
+    "escapeSequence": {
+      "fore": "#cf8e6d"
+    },
+    "lineComment": {
+      "fore": "#7a7e85"
+    },
+    "blockComment": {
+      "fore": "#7a7e85"
+    },
+    "operator": {
+      "fore": "#bcbec4"
+    },
+    "uri": {
+      "fore": "#479ef5",
+      "underline": true
+    },
+    "compactIri": {
+      "fore": "#c77dbb"
+    },
+    "keyword": {
+      "fore": "#cf8e6d"
+    },
+    "ldKeyword": {
+      "fore": "#cf8e6d"
+    },
+    "error": {
+      "fore": "#f75464"
+    }
+  },
+  "markdown": {
+    "strong1": {
+      "fore": "#cf8e6d"
+    },
+    "strong2": {
+      "fore": "#cf8e6d"
+    },
+    "em1": {
+      "fore": "#cf8e6d"
+    },
+    "em2": {
+      "fore": "#cf8e6d"
+    },
+    "header1": {
+      "fore": "#c77dbb"
+    },
+    "header2": {
+      "fore": "#c77dbb"
+    },
+    "header3": {
+      "fore": "#c77dbb"
+    },
+    "header4": {
+      "fore": "#c77dbb"
+    },
+    "header5": {
+      "fore": "#c77dbb"
+    },
+    "header6": {
+      "fore": "#c77dbb"
+    },
+    "ulistItem": {
+      "fore": "#ffffff"
+    },
+    "olistItem": {
+      "fore": "#ffffff"
+    },
+    "blockquote": {
+      "fore": "#cf8e6d"
+    },
+    "strikeout": {
+      "fore": "#7a7e85"
+    },
+    "hRule": {
+      "fore": "#cf8e6d"
+    },
+    "link": {
+      "fore": "#479ef5"
+    },
+    "code": {
+      "fore": "#6aab73"
+    },
+    "code2": {
+      "fore": "#6aab73"
+    },
+    "codeBk": {
+      "fore": "#6aab73"
+    }
   }
 }

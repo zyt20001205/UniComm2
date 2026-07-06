@@ -336,202 +336,177 @@ void EditorWidget::lexerInit() const {
     const auto lspTheme = m_theme["lsp"].toObject();
     // json
     if (suffix == "json") {
+        const auto jsonTheme = m_theme["json"].toObject();
         m_scintillaWidget->lexerSet("json");
-        m_scintillaWidget->styleDefine(
-            SCE_JSON_DEFAULT,
-            QVariantHash{
-                {"fore", ScintillaWidget::colorGet(g_globalManager->foreGet())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-            });
+        m_scintillaWidget->send(SCI_SETKEYWORDS, 0, reinterpret_cast<sptr_t>("true false null"));
+        m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.json.escape.sequence"), reinterpret_cast<sptr_t>("1"));
+        m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.json.allow.comments"), reinterpret_cast<sptr_t>("1"));
         m_scintillaWidget->styleDefine(
             SCE_JSON_NUMBER,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["number"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["number"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_JSON_STRING,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["string"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["string"].toObject()["fore"].toString())}
             });
-
+        m_scintillaWidget->styleDefine(
+            SCE_JSON_STRINGEOL,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(jsonTheme["stringEol"].toObject()["fore"].toString())}
+            });
         m_scintillaWidget->styleDefine(
             SCE_JSON_PROPERTYNAME,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["property"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["propertyName"].toObject()["fore"].toString())}
             });
-
+        m_scintillaWidget->styleDefine(
+            SCE_JSON_ESCAPESEQUENCE,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(jsonTheme["escapeSequence"].toObject()["fore"].toString())}
+            });
         m_scintillaWidget->styleDefine(
             SCE_JSON_LINECOMMENT,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["comment"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["lineComment"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_JSON_BLOCKCOMMENT,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["comment"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["blockComment"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_JSON_OPERATOR,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["operator"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["operator"].toObject()["fore"].toString())}
             });
-
-
+        m_scintillaWidget->styleDefine(
+            SCE_JSON_URI,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(jsonTheme["uri"].toObject()["fore"].toString())},
+                {"underline", jsonTheme["uri"].toObject()["underline"].toBool()}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_JSON_COMPACTIRI,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(jsonTheme["compactIri"].toObject()["fore"].toString())}
+            });
         m_scintillaWidget->styleDefine(
             SCE_JSON_KEYWORD,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["keyword"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["keyword"].toObject()["fore"].toString())}
             });
-
+        m_scintillaWidget->styleDefine(
+            SCE_JSON_LDKEYWORD,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(jsonTheme["ldKeyword"].toObject()["fore"].toString())}
+            });
         m_scintillaWidget->styleDefine(
             SCE_JSON_ERROR,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(g_globalManager->dangerFore2Get())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["error"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->send(SCI_COLOURISE, 0, -1); // NOLINT
     }
     // md
     else if (suffix == "md") {
+        const auto markdownTheme = m_theme["markdown"].toObject();
         m_scintillaWidget->lexerSet("markdown");
-        m_scintillaWidget->styleDefine(
-            SCE_MARKDOWN_DEFAULT,
-            QVariantHash{
-                {"fore", ScintillaWidget::colorGet(g_globalManager->foreGet())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-            });
-        m_scintillaWidget->styleDefine(
-            SCE_MARKDOWN_LINE_BEGIN,
-            QVariantHash{
-                {"fore", ScintillaWidget::colorGet(g_globalManager->foreGet())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-            });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_STRONG1,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["keyword"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["strong1"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_STRONG2,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["keyword"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["strong2"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_EM1,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["string"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["em1"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_EM2,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["string"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["em2"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_HEADER1,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["header1"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_HEADER2,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["header2"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_HEADER3,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["header3"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_HEADER4,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["header4"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_HEADER5,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["header5"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_HEADER6,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-            });
-        m_scintillaWidget->styleDefine(
-            SCE_MARKDOWN_PRECHAR,
-            QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["operator"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["header6"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_ULIST_ITEM,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["operator"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["ulistItem"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_OLIST_ITEM,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["operator"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["olistItem"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_BLOCKQUOTE,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["comment"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["blockquote"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_STRIKEOUT,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["comment"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["strikeout"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_HRULE,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["operator"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["hRule"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_LINK,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["functionCall"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["link"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_CODE,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["macro"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["code"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_CODE2,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["macro"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["code2"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_MARKDOWN_CODEBK,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(lspTheme["macro"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+                {"fore", ScintillaWidget::colorGet(markdownTheme["codeBk"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->send(SCI_COLOURISE, 0, -1); // NOLINT
     }

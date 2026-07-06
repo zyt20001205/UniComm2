@@ -48,5 +48,105 @@
     "operator": {
       "fore": "#000000"
     }
+  },
+  "json": {
+    "number": {
+      "fore": "#1750eb"
+    },
+    "string": {
+      "fore": "#067d17"
+    },
+    "stringEol": {
+      "fore": "#ffcccc"
+    },
+    "propertyName": {
+      "fore": "#871094"
+    },
+    "escapeSequence": {
+      "fore": "#0037a6"
+    },
+    "lineComment": {
+      "fore": "#8c8c8c"
+    },
+    "blockComment": {
+      "fore": "#8c8c8c"
+    },
+    "operator": {
+      "fore": "#000000"
+    },
+    "uri": {
+      "fore": "#115ea3"
+    },
+    "compactIri": {
+      "fore": "#871094"
+    },
+    "keyword": {
+      "fore": "#0033b3"
+    },
+    "ldKeyword": {
+      "fore": "#0033b3"
+    },
+    "error": {
+      "fore": "#ffcccc"
+    }
+  },
+  "markdown": {
+    "strong1": {
+      "fore": "#0033b3"
+    },
+    "strong2": {
+      "fore": "#0033b3"
+    },
+    "em1": {
+      "fore": "#0033b3"
+    },
+    "em2": {
+      "fore": "#0033b3"
+    },
+    "header1": {
+      "fore": "#871094"
+    },
+    "header2": {
+      "fore": "#871094"
+    },
+    "header3": {
+      "fore": "#871094"
+    },
+    "header4": {
+      "fore": "#871094"
+    },
+    "header5": {
+      "fore": "#871094"
+    },
+    "header6": {
+      "fore": "#871094"
+    },
+    "ulistItem": {
+      "fore": "#242424"
+    },
+    "olistItem": {
+      "fore": "#242424"
+    },
+    "blockquote": {
+      "fore": "#0033b3"
+    },
+    "strikeout": {
+      "fore": "#8c8c8c"
+    },
+    "hRule": {
+      "fore": "#0033b3"
+    },
+    "link": {
+      "fore": "#115ea3"
+    },
+    "code": {
+      "fore": "#067d17"
+    },
+    "code2": {
+      "fore": "#067d17"
+    },
+    "codeBk": {
+      "fore": "#067d17"
+    }
   }
 }

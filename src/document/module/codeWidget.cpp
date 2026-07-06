@@ -585,98 +585,82 @@ void CodeWidget::lexerInit() const {
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Namespace,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["namespace"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["namespace"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Class,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["class"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["class"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Type,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["type"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["type"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Parameter,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["parameter"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["parameter"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Variable,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["variable"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["variable"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Property,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["property"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["property"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::EnumMember,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["enumMember"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["enumMember"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::FunctionCall,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["functionCall"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["functionCall"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::FunctionDeclaration,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["functionDeclaration"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Method,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["method"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["method"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Macro,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["macro"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["macro"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Keyword,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["keyword"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["keyword"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Comment,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["comment"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["comment"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::String,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["string"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["string"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Number,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["number"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["number"].toObject()["fore"].toString())}
         });
     m_scintillaWidget->styleDefine(
         ScintillaStyle::Operator,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(lspTheme["operator"].toObject()["fore"].toString())},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            {"fore", ScintillaWidget::colorGet(lspTheme["operator"].toObject()["fore"].toString())}
         });
 }
 
