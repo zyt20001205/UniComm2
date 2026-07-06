@@ -10,7 +10,7 @@ class PositionWidget final : public QObject {
     Q_OBJECT
 
 public:
-    explicit PositionWidget(QWidget *parent = nullptr);
+    explicit PositionWidget(QObject *parent = nullptr);
 
     ~PositionWidget() override = default;
 

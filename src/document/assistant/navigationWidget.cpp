@@ -8,7 +8,7 @@
 #include "util/uniCast.h"
 
 // public
-NavigationWidget::NavigationWidget(QWidget *parent)
+NavigationWidget::NavigationWidget(QObject *parent)
     : QObject(parent),
       m_navigationModel(new QStandardItemModel(this)) {
 }

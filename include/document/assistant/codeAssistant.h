@@ -7,6 +7,7 @@ class CompletionWidget;
 class DwellWidget;
 class NavigationWidget;
 class PositionWidget;
+class SearchWindow;
 class SignatureWidget;
 
 class CodeAssistant final: public QObject {
@@ -65,6 +66,7 @@ private:
     DwellWidget *m_dwellWidget{};
     NavigationWidget *m_navigationWidget{};
     PositionWidget *m_positionWidget{};
+    SearchWindow *m_searchWindow{};
     SignatureWidget *m_signatureWidget{};
 };
 

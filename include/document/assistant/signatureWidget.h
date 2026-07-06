@@ -7,7 +7,7 @@ class SignatureWidget final : public QObject {
     Q_OBJECT
 
 public:
-    explicit SignatureWidget(QWidget *parent = nullptr);
+    explicit SignatureWidget(QObject *parent = nullptr);
 
     ~SignatureWidget() override = default;
 

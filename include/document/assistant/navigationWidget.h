@@ -12,7 +12,7 @@ class NavigationWidget final : public QObject {
     Q_OBJECT
 
 public:
-    explicit NavigationWidget(QWidget *parent = nullptr);
+    explicit NavigationWidget(QObject *parent = nullptr);
 
     ~NavigationWidget() override = default;
 

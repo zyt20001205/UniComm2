@@ -12,7 +12,7 @@ class CompletionWidget final : public QObject {
     Q_OBJECT
 
 public:
-    explicit CompletionWidget(QWidget *parent = nullptr);
+    explicit CompletionWidget(QObject *parent = nullptr);
 
     ~CompletionWidget() override = default;
 

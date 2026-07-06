@@ -6,6 +6,7 @@
 #include "document/assistant/dwellWidget.h"
 #include "document/assistant/navigationWidget.h"
 #include "document/assistant/positionWidget.h"
+#include "document/assistant/searchWindow.h"
 #include "document/assistant/signatureWidget.h"
 
 // public
@@ -15,6 +16,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
       m_dwellWidget(new DwellWidget(parent)),
       m_navigationWidget(new NavigationWidget(parent)),
       m_positionWidget(new PositionWidget(parent)),
+      m_searchWindow(new SearchWindow(parent)),
       m_signatureWidget(new SignatureWidget(parent)) {
     connect(m_completionWidget, &CompletionWidget::appendLog, this, &CodeAssistant::appendLog);
     connect(m_completionWidget, &CompletionWidget::addChar, this, &CodeAssistant::addChar);
@@ -52,6 +54,8 @@ void CodeAssistant::propertySet(const QVariantHash &objects) const {
     });
     m_positionWidget->propertySet(QVariantHash{
         {"documentModulePositionTooltip", objects["documentModulePositionTooltip"]}
+    });
+    m_searchWindow->propertySet(QVariantHash{
     });
     m_signatureWidget->propertySet(QVariantHash{
         {"documentModuleSignatureToolTip", objects["documentModuleSignatureToolTip"]},
@@ -104,6 +108,10 @@ void CodeAssistant::signatureShow(const QVariantHash &signatureSession, const QJ
 bool CodeAssistant::eventFilter(QObject *watched, QEvent *event) {
     if (event->type() == QEvent::KeyPress) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->key() == Qt::Key_F && keyEvent->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
+            m_searchWindow->open();
+            return true;
+        }
         switch (keyEvent->key()) {
             // hide keys
             case Qt::Key_Escape:

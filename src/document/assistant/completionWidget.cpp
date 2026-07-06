@@ -11,7 +11,7 @@
 #include "globals.h"
 
 // public
-CompletionWidget::CompletionWidget(QWidget *parent)
+CompletionWidget::CompletionWidget(QObject *parent)
     : QObject(parent),
       m_placeholderSet({
           "\"__PLACEHOLDER__PORTNAME__\"",

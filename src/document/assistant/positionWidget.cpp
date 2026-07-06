@@ -6,7 +6,7 @@
 #include "globals.h"
 
 // public
-PositionWidget::PositionWidget(QWidget *parent)
+PositionWidget::PositionWidget(QObject *parent)
     : QObject(parent),
       m_timer(new QTimer(this)) {
     m_timer->setInterval(16); // 60Hz

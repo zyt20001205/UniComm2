@@ -7,7 +7,7 @@
 #include "util/uniCast.h"
 
 // public
-SignatureWidget::SignatureWidget(QWidget *parent)
+SignatureWidget::SignatureWidget(QObject *parent)
     : QObject(parent) {
 }
 

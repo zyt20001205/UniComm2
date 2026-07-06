@@ -10,7 +10,7 @@ class DwellWidget final : public QObject {
     Q_OBJECT
 
 public:
-    explicit DwellWidget(QWidget *parent = nullptr);
+    explicit DwellWidget(QObject *parent = nullptr);
 
     ~DwellWidget() override = default;
 

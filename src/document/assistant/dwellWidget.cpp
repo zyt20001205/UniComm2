@@ -7,7 +7,7 @@
 #include "util/uniCast.h"
 
 // public
-DwellWidget::DwellWidget(QWidget *parent)
+DwellWidget::DwellWidget(QObject *parent)
     : QObject(parent) {
 }
 
