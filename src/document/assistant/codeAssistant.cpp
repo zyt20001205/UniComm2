@@ -56,6 +56,7 @@ void CodeAssistant::propertySet(const QVariantHash &objects) const {
         {"documentModulePositionTooltip", objects["documentModulePositionTooltip"]}
     });
     m_searchWindow->propertySet(QVariantHash{
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
     m_signatureWidget->propertySet(QVariantHash{
         {"documentModuleSignatureToolTip", objects["documentModuleSignatureToolTip"]},
