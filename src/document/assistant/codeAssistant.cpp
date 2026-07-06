@@ -1,12 +1,12 @@
-#include "analysis/codeAssistant.h"
+#include "document/assistant/codeAssistant.h"
 
 #include <QKeyEvent>
 
-#include "analysis/completionWidget.h"
-#include "analysis/dwellWidget.h"
-#include "analysis/navigationWidget.h"
-#include "analysis/positionWidget.h"
-#include "analysis/signatureWidget.h"
+#include "document/assistant/completionWidget.h"
+#include "document/assistant/dwellWidget.h"
+#include "document/assistant/navigationWidget.h"
+#include "document/assistant/positionWidget.h"
+#include "document/assistant/signatureWidget.h"
 
 // public
 CodeAssistant::CodeAssistant(QWidget *parent)

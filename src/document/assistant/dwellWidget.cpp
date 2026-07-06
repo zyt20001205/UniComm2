@@ -1,4 +1,4 @@
-#include "analysis/dwellWidget.h"
+#include "document/assistant/dwellWidget.h"
 
 #include <QJsonArray>
 

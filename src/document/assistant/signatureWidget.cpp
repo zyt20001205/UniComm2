@@ -1,4 +1,4 @@
-#include "analysis/signatureWidget.h"
+#include "document/assistant/signatureWidget.h"
 
 #include <QJsonArray>
 #include <QJsonObject>

@@ -8,9 +8,9 @@
 #include <QTimer>
 
 #include "globals.h"
-#include "analysis/codeAssistant.h"
 #include "core/fileModule.h"
 #include "core/globalManager.h"
+#include "document/assistant/codeAssistant.h"
 #include "document/module/scintillaWidget.h"
 #include "document/page/imagePage.h"
 #include "document/page/codePage.h"

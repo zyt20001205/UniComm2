@@ -3,8 +3,8 @@
 #include <QVBoxLayout>
 
 #include "globals.h"
-#include "analysis/symbolWidget.h"
 #include "document/module/scintillaWidget.h"
+#include "document/module/symbolWidget.h"
 
 // public
 CodePage::CodePage(const QJsonObject &documentConfig, const QUrl &documentUrl)

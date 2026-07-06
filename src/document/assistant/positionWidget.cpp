@@ -1,4 +1,4 @@
-#include "analysis/positionWidget.h"
+#include "document/assistant/positionWidget.h"
 
 #include <QTimer>
 #include <windows.h>

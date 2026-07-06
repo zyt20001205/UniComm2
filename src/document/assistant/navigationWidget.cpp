@@ -1,4 +1,4 @@
-#include "analysis/navigationWidget.h"
+#include "document/assistant/navigationWidget.h"
 
 #include <QJsonArray>
 #include <QStandardItemModel>

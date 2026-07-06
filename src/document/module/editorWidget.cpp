@@ -353,9 +353,9 @@ void EditorWidget::lexerInit() const {
                 {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
             });
         m_scintillaWidget->styleDefine(
-            SCE_JSON_PROPERTYNAME,
+            SCE_JSON_NUMBER,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(styleConfig["property"].toObject()["fore"].toString())},
+                {"fore", ScintillaWidget::colorGet(styleConfig["number"].toObject()["fore"].toString())},
                 {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
             });
         m_scintillaWidget->styleDefine(
@@ -364,24 +364,14 @@ void EditorWidget::lexerInit() const {
                 {"fore", ScintillaWidget::colorGet(styleConfig["string"].toObject()["fore"].toString())},
                 {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
             });
+
         m_scintillaWidget->styleDefine(
-            SCE_JSON_NUMBER,
+            SCE_JSON_PROPERTYNAME,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(styleConfig["number"].toObject()["fore"].toString())},
+                {"fore", ScintillaWidget::colorGet(styleConfig["property"].toObject()["fore"].toString())},
                 {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
             });
-        m_scintillaWidget->styleDefine(
-            SCE_JSON_KEYWORD,
-            QVariantHash{
-                {"fore", ScintillaWidget::colorGet(styleConfig["keyword"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-            });
-        m_scintillaWidget->styleDefine(
-            SCE_JSON_OPERATOR,
-            QVariantHash{
-                {"fore", ScintillaWidget::colorGet(styleConfig["operator"].toObject()["fore"].toString())},
-                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-            });
+
         m_scintillaWidget->styleDefine(
             SCE_JSON_LINECOMMENT,
             QVariantHash{
@@ -394,6 +384,21 @@ void EditorWidget::lexerInit() const {
                 {"fore", ScintillaWidget::colorGet(styleConfig["comment"].toObject()["fore"].toString())},
                 {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
             });
+        m_scintillaWidget->styleDefine(
+            SCE_JSON_OPERATOR,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(styleConfig["operator"].toObject()["fore"].toString())},
+                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            });
+
+
+        m_scintillaWidget->styleDefine(
+            SCE_JSON_KEYWORD,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(styleConfig["keyword"].toObject()["fore"].toString())},
+                {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+            });
+
         m_scintillaWidget->styleDefine(
             SCE_JSON_ERROR,
             QVariantHash{

@@ -1,4 +1,4 @@
-#include "analysis/symbolWidget.h"
+#include "document/module/symbolWidget.h"
 
 #include <QJsonArray>
 #include <QQmlContext>
@@ -19,7 +19,7 @@ void SymbolWidget::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
     setResizeMode(SizeRootObjectToView);
-    setSource(QUrl("qrc:/qml/analysis/symbolWidget.qml"));
+    setSource(QUrl("qrc:/qml/document/module/symbolWidget.qml"));
     m_root = rootObject();
 }
 
