@@ -1,11 +1,7 @@
 #ifndef UNICOMM_LSPMANAGER_H
 #define UNICOMM_LSPMANAGER_H
 
-#include <QHash>
-#include <QJsonObject>
-#include <QObject>
-
-class BaseLanguageServer;
+#include "languageServer.h"
 
 class LSPManager final : public QObject {
     Q_OBJECT
@@ -55,9 +51,16 @@ signals:
     void responseTypeDefinition(const QUrl &documentUrl, const QJsonArray &ranges);
 
 private:
+    struct LanguageServerSession {
+        LanguageServer *server{};
+        QSet<QChar> completionTrigger{};
+        QSet<QChar> formattingTrigger{};
+        QSet<QChar> signatureHelpTrigger{};
+    };
+
     void serverAdd(const QString &suffix, const QString &process);
 
-    QHash<QString, BaseLanguageServer *> m_server{};
+    QHash<QString, LanguageServerSession> m_session{};
 };
 
 #endif //UNICOMM_LSPMANAGER_H

@@ -1,4 +1,4 @@
-#include "service/lsp/baseLanguageServer.h"
+#include "service/lsp/languageServer.h"
 
 #include <QJsonArray>
 #include <QProcess>
@@ -7,19 +7,22 @@
 #include "util/uniCast.h"
 
 // public
-BaseLanguageServer::BaseLanguageServer(const QString &program, QObject *parent)
+LanguageServer::LanguageServer(const QString &program, QObject *parent)
     : QObject(parent),
       m_process(new QProcess(this)) {
-    m_process->start(program);
-    connect(m_process, &QProcess::readyRead, this, &BaseLanguageServer::parser);
-    if (!m_process->waitForStarted()) qDebug() << "failed to start process";
-    else initialize();
+    m_process->setProgram(program);
+    connect(m_process, &QProcess::readyRead, this, &LanguageServer::parser);
 }
 
-BaseLanguageServer::~BaseLanguageServer() {
+LanguageServer::~LanguageServer() {
 }
 
-void BaseLanguageServer::initialize() {
+void LanguageServer::initialize() {
+    m_process->start();
+    if (!m_process->waitForStarted()) {
+        qDebug() << "failed to start language server";
+        return;
+    }
     const QString rootUriStr = g_workspaceUrl.toString();
     const QJsonObject initializeParams{
             {"processId", QCoreApplication::applicationPid()},
@@ -29,16 +32,16 @@ void BaseLanguageServer::initialize() {
     jsonRequest("initialize", initializeParams);
     // wait for lsp initialized notification
     QEventLoop loop{};
-    connect(this, &BaseLanguageServer::initialized, &loop, &QEventLoop::quit);
+    connect(this, &LanguageServer::initialized, &loop, &QEventLoop::quit);
     loop.exec();
     jsonNotification("initialized", QJsonObject{});
 }
 
-void BaseLanguageServer::shutdown() {
+void LanguageServer::shutdown() {
     QEventLoop loop{};
     if (m_process->state() == QProcess::NotRunning) return;
     // wait for lsp exit notification
-    connect(this, &BaseLanguageServer::shutdowned, &loop, &QEventLoop::quit);
+    connect(this, &LanguageServer::shutdowned, &loop, &QEventLoop::quit);
     jsonRequest("shutdown", QJsonObject{});
     loop.exec();
     // wait for process exit
@@ -47,7 +50,7 @@ void BaseLanguageServer::shutdown() {
     loop.exec();
 }
 
-void BaseLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
+void LanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
     const QJsonObject textDocument = params["textDocument"].toObject();
     const auto url = QUrl(textDocument["uri"].toString());
     m_methods.insert(m_id, method);
@@ -67,7 +70,7 @@ void BaseLanguageServer::jsonRequest(const QString &method, const QJsonObject &p
     // qDebug() << msg;
 }
 
-void BaseLanguageServer::jsonNotification(const QString &method, const QJsonObject &params) const {
+void LanguageServer::jsonNotification(const QString &method, const QJsonObject &params) const {
     const QJsonObject msg = {
         {"jsonrpc", "2.0"},
         {"method", method},
@@ -81,7 +84,7 @@ void BaseLanguageServer::jsonNotification(const QString &method, const QJsonObje
 }
 
 // private
-void BaseLanguageServer::parser() {
+void LanguageServer::parser() {
     // append to buffer
     m_buffer.append(m_process->readAllStandardOutput());
     while (true) {
@@ -149,7 +152,7 @@ void BaseLanguageServer::parser() {
             if (method == "initialize") {
                 // initialize response
                 // qDebug() << json;
-                emit initialized();
+                emit initialized(json);
             } else if (method == "shutdown") {
                 // shutdown response
                 // qDebug() << json;

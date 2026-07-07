@@ -13,9 +13,9 @@
 CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUrl, QWidget *parent)
     : EditorWidget(documentConfig, documentUrl, parent),
       m_dwellTimer(new QTimer(this)),
-      m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
-      m_signatureHelpSet{'(', ','},
-      m_onTypeFormattingSet{'\n'} {
+      m_completionTrigger{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
+      m_formattingTrigger{'\n'},
+      m_signatureHelpTrigger{'(', ','} {
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
     m_scintillaWidget->viewport()->installEventFilter(this);
     // 1000ms debounce for dwell change
@@ -670,14 +670,14 @@ void CodeWidget::charAdd(const int ch) {
     m_dwellTimer->stop();
     selectionChange();
     const QChar character(ch);
-    if (character.isLetter() || m_completionSet.contains(character)) {
+    if (character.isLetter() || m_completionTrigger.contains(character)) {
         didChangeNotification();
         completionRequest();
-    } else if (m_signatureHelpSet.contains(character)) {
+    } else if (m_signatureHelpTrigger.contains(character)) {
         didChangeNotification();
         completionRequest();
         signatureHelpRequest();
-    } else if (m_onTypeFormattingSet.contains(character)) {
+    } else if (m_formattingTrigger.contains(character)) {
         didChangeNotification();
         onTypeFormattingRequest();
     }

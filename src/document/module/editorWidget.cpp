@@ -187,7 +187,6 @@ void EditorWidget::miscInit() const {
     m_scintillaWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
     m_scintillaWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
     // folding
-    m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
     m_scintillaWidget->send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
     m_scintillaWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_globalManager->backGet())); // NOLINT
     m_scintillaWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_globalManager->backGet())); // NOLINT
@@ -241,6 +240,15 @@ void EditorWidget::marginInit() const {
         });
     m_scintillaWidget->marginDefine(
         1,
+        QVariantHash{
+            {"type", SC_MARGIN_SYMBOL},
+            {"width", 16},
+            {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+            {"sensitive", true},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->marginDefine(
+        2,
         QVariantHash{
             {"type", SC_MARGIN_SYMBOL},
             {"width", 4},
@@ -337,9 +345,10 @@ void EditorWidget::lexerInit() const {
     if (suffix == "json") {
         const auto jsonTheme = m_theme["json"].toObject();
         m_scintillaWidget->lexerSet("json");
-        m_scintillaWidget->send(SCI_SETKEYWORDS, 0, reinterpret_cast<sptr_t>("true false null"));
+        m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1"));
         m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.json.escape.sequence"), reinterpret_cast<sptr_t>("1"));
         m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.json.allow.comments"), reinterpret_cast<sptr_t>("1"));
+        m_scintillaWidget->send(SCI_SETKEYWORDS, 0, reinterpret_cast<sptr_t>("true false null"));
         m_scintillaWidget->styleDefine(
             SCE_JSON_NUMBER,
             QVariantHash{

@@ -1,21 +1,19 @@
-#ifndef UNICOMM_BASELANGUAGESERVER_H
-#define UNICOMM_BASELANGUAGESERVER_H
+#ifndef UNICOMM_LANGUAGESERVER_H
+#define UNICOMM_LANGUAGESERVER_H
 
-#include <QHash>
-#include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
 #include <QUrl>
 
 class QProcess;
 
-class BaseLanguageServer : public QObject {
+class LanguageServer : public QObject {
     Q_OBJECT
 
 public:
-    explicit BaseLanguageServer(const QString &program, QObject *parent = nullptr);
+    explicit LanguageServer(const QString &program, QObject *parent = nullptr);
 
-    ~BaseLanguageServer() override;
+    ~LanguageServer() override;
 
     void initialize();
 
@@ -26,7 +24,7 @@ public:
     void jsonNotification(const QString &method, const QJsonObject &params) const;
 
 signals:
-    void initialized();
+    void initialized(const QJsonObject &params);
 
     void shutdowned();
 
@@ -72,4 +70,4 @@ private:
     QHash<int, QUrl> m_urls{};
 };
 
-#endif //UNICOMM_BASELANGUAGESERVER_H
+#endif //UNICOMM_LANGUAGESERVER_H

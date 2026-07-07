@@ -166,9 +166,9 @@ private:
     QObject *m_editorMenu{};
 
     QTimer *m_dwellTimer{};
-    QSet<QChar> m_completionSet{};
-    QSet<QChar> m_signatureHelpSet{};
-    QSet<QChar> m_onTypeFormattingSet{};
+    QSet<QChar> m_completionTrigger{};
+    QSet<QChar> m_formattingTrigger{};
+    QSet<QChar> m_signatureHelpTrigger{};
 
     int m_version = 1;
     QJsonArray m_diagnostic{};
