@@ -9,8 +9,7 @@
 
 TerminalWidget::TerminalWidget(QQuickItem *parent)
     : QQuickPaintedItem(parent),
-      m_blinkTimer(new QTimer(this)),
-      m_cursorShowTimer(new QTimer(this)) {
+      m_blinkTimer(new QTimer(this)) {
     setAntialiasing(false);
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
@@ -25,15 +24,6 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
         update(cursorRect());
     });
     m_blinkTimer->start();
-
-    m_cursorShowTimer->setSingleShot(true);
-    m_cursorShowTimer->setInterval(50);
-    connect(m_cursorShowTimer, &QTimer::timeout, this, [this] {
-        if (!m_requestedVisible || m_visible) return;
-        m_visible = true;
-        m_movedWhileHidden = false;
-        update(cursorRect());
-    });
 }
 
 void TerminalWidget::paint(QPainter *painter) {
@@ -111,32 +101,23 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Termi
 void TerminalWidget::cursorPositionSet(const QPoint &position, const QPoint &oldPosition) {
     if (m_position == position) return;
     m_position = position;
-    if (!m_visible) m_movedWhileHidden = true;
-    const bool repaint = m_atBottom && m_visible && m_blinkPhase;
-    if (!repaint) return;
+    if (!(m_atBottom && m_visible && m_blinkPhase)) return;
     update(cursorRect(oldPosition));
     update(cursorRect(position));
 }
 
 void TerminalWidget::cursorVisibleSet(const bool visible) {
-    m_requestedVisible = visible;
-    if (!visible) {
-        m_cursorShowTimer->stop();
-        m_movedWhileHidden = false;
-        if (!m_visible) return;
-        m_visible = false;
+    if (visible) {
+        m_visible = true;
+        m_blinkPhase = false;
+        m_blinkTimer->start();
         update(cursorRect());
-        return;
+    } else {
+        m_blinkTimer->stop();
+        m_visible = false;
+        m_blinkPhase = true;
+        update(cursorRect());
     }
-
-    if (m_visible) return;
-    if (m_movedWhileHidden) {
-        m_cursorShowTimer->start();
-        return;
-    }
-
-    m_visible = true;
-    update(cursorRect());
 }
 
 void TerminalWidget::cursorBlinkSet(const bool blink) {
