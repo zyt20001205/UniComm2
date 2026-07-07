@@ -69,6 +69,8 @@ protected:
 private:
     void metricsUpdate();
 
+    [[nodiscard]] QRect cursorRect() const;
+
     QFont m_font{};
     QList<TerminalCell> m_cells{};
     // cursor

@@ -22,7 +22,7 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
     m_blinkTimer->setInterval(500);
     connect(m_blinkTimer, &QTimer::timeout, this, [this] {
         m_blinkPhase = !m_blinkPhase;
-        update();
+        update(cursorRect());
     });
     m_blinkTimer->start();
 }
@@ -123,14 +123,7 @@ void TerminalWidget::cursorModeSet(const int mode) {
 }
 
 QVariant TerminalWidget::inputMethodQuery(const Qt::InputMethodQuery query) const {
-    if (query == Qt::ImCursorRectangle) {
-        return QRectF(
-            m_position.y() * m_cellWidth,
-            m_position.x() * m_cellHeight,
-            m_cellWidth,
-            m_cellHeight
-        );
-    }
+    if (query == Qt::ImCursorRectangle) return cursorRect();
     return QQuickPaintedItem::inputMethodQuery(query);
 }
 
@@ -239,4 +232,16 @@ void TerminalWidget::metricsUpdate() {
     m_requestedRows = rows;
     m_requestedCols = cols;
     emit resize(rows, cols);
+}
+
+QRect TerminalWidget::cursorRect() const {
+    if (m_rows < 1 || m_cols < 1) return {};
+    const int row = qBound(0, m_position.x(), m_rows - 1);
+    const int col = qBound(0, m_position.y(), m_cols - 1);
+    return QRect(
+        qFloor(col * m_cellWidth),
+        qFloor(row * m_cellHeight),
+        qCeil(m_cellWidth),
+        qCeil(m_cellHeight)
+    );
 }
