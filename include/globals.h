@@ -293,6 +293,10 @@ struct TerminalCell {
     QColor foreground{};
     QColor background{};
     QString hyperlink{};
+    bool bold{};
+    bool italic{};
+    bool underline{};
+    bool strike{};
 };
 
 #endif //UNICOMM_GLOBALS_H

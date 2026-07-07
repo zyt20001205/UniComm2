@@ -38,6 +38,7 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
 
 void TerminalWidget::paint(QPainter *painter) {
     painter->setFont(m_font);
+    QFont currentFont = m_font;
 
     for (int row = 0; row < m_rows; ++row) {
         const qreal y = row * m_cellHeight + m_ascent;
@@ -54,6 +55,15 @@ void TerminalWidget::paint(QPainter *painter) {
             painter->fillRect(rect, cell.background);
             // draw cell
             if (!cell.text.isEmpty()) {
+                QFont cellFont = m_font;
+                cellFont.setBold(cell.bold);
+                cellFont.setItalic(cell.italic);
+                cellFont.setUnderline(cell.underline);
+                cellFont.setStrikeOut(cell.strike);
+                if (cellFont != currentFont) {
+                    currentFont = cellFont;
+                    painter->setFont(currentFont);
+                }
                 painter->setPen(cell.foreground);
                 painter->drawText(QPointF(rect.left(), y), cell.text);
             }
