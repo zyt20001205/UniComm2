@@ -44,7 +44,7 @@ signals:
 
     void setScreen(int row, int col, const QList<TerminalCell> &cells, bool atBottom);
 
-    void setCursorPosition(const QPoint &position);
+    void setCursorPosition(const QPoint &position, const QPoint &oldPosition);
 
     void setCursorVisible(bool visible);
 
@@ -85,6 +85,7 @@ private:
     VTermScreenCallbacks m_callbacks{};
     VTermStateFallbacks m_fallbacks{};
     VTermSelectionCallbacks m_selectionCallbacks{};
+    QPoint m_cursorPosition{};
     bool m_cursorVisible{true};
     QList<QList<TerminalCell> > m_scrollback{};
     int m_scrollOffset{};

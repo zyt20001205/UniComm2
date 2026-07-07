@@ -20,7 +20,7 @@ public:
 
     void screenSet(int rows, int cols, const QList<TerminalCell> &cells, bool atBottom);
 
-    void cursorPositionSet(const QPoint &position);
+    void cursorPositionSet(const QPoint &position, const QPoint &oldPosition);
 
     void cursorVisibleSet(bool visible);
 
@@ -71,12 +71,17 @@ private:
 
     [[nodiscard]] QRect cursorRect() const;
 
+    [[nodiscard]] QRect cursorRect(const QPoint &position) const;
+
     QFont m_font{};
     QList<TerminalCell> m_cells{};
     // cursor
     QPoint m_position{};
     bool m_visible{true};
+    bool m_requestedVisible{true};
+    bool m_movedWhileHidden{};
     QTimer *m_blinkTimer{};
+    QTimer *m_cursorShowTimer{};
     bool m_blinkPhase{true};
     int m_shape{VTERM_PROP_CURSORSHAPE_BAR_LEFT};
     int m_mode{VTERM_PROP_MOUSE_NONE};

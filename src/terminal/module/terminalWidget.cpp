@@ -9,7 +9,8 @@
 
 TerminalWidget::TerminalWidget(QQuickItem *parent)
     : QQuickPaintedItem(parent),
-      m_blinkTimer(new QTimer(this)) {
+      m_blinkTimer(new QTimer(this)),
+      m_cursorShowTimer(new QTimer(this)) {
     setAntialiasing(false);
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
@@ -24,6 +25,15 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
         update(cursorRect());
     });
     m_blinkTimer->start();
+
+    m_cursorShowTimer->setSingleShot(true);
+    m_cursorShowTimer->setInterval(50);
+    connect(m_cursorShowTimer, &QTimer::timeout, this, [this] {
+        if (!m_requestedVisible || m_visible) return;
+        m_visible = true;
+        m_movedWhileHidden = false;
+        update(cursorRect());
+    });
 }
 
 void TerminalWidget::paint(QPainter *painter) {
@@ -88,16 +98,35 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Termi
     update();
 }
 
-void TerminalWidget::cursorPositionSet(const QPoint &position) {
+void TerminalWidget::cursorPositionSet(const QPoint &position, const QPoint &oldPosition) {
     if (m_position == position) return;
     m_position = position;
-    update();
+    if (!m_visible) m_movedWhileHidden = true;
+    const bool repaint = m_atBottom && m_visible && m_blinkPhase;
+    if (!repaint) return;
+    update(cursorRect(oldPosition));
+    update(cursorRect(position));
 }
 
 void TerminalWidget::cursorVisibleSet(const bool visible) {
-    if (m_visible == visible) return;
-    m_visible = visible;
-    update();
+    m_requestedVisible = visible;
+    if (!visible) {
+        m_cursorShowTimer->stop();
+        m_movedWhileHidden = false;
+        if (!m_visible) return;
+        m_visible = false;
+        update(cursorRect());
+        return;
+    }
+
+    if (m_visible) return;
+    if (m_movedWhileHidden) {
+        m_cursorShowTimer->start();
+        return;
+    }
+
+    m_visible = true;
+    update(cursorRect());
 }
 
 void TerminalWidget::cursorBlinkSet(const bool blink) {
@@ -106,14 +135,14 @@ void TerminalWidget::cursorBlinkSet(const bool blink) {
     } else {
         m_blinkTimer->stop();
         m_blinkPhase = true;
-        update();
+        update(cursorRect());
     }
 }
 
 void TerminalWidget::cursorShapeSet(const int shape) {
     if (m_shape == shape) return;
     m_shape = shape;
-    update();
+    update(cursorRect());
 }
 
 void TerminalWidget::cursorModeSet(const int mode) {
@@ -234,9 +263,13 @@ void TerminalWidget::metricsUpdate() {
 }
 
 QRect TerminalWidget::cursorRect() const {
+    return cursorRect(m_position);
+}
+
+QRect TerminalWidget::cursorRect(const QPoint &position) const {
     if (m_rows < 1 || m_cols < 1) return {};
-    const int row = qBound(0, m_position.x(), m_rows - 1);
-    const int col = qBound(0, m_position.y(), m_cols - 1);
+    const int row = qBound(0, position.x(), m_rows - 1);
+    const int col = qBound(0, position.y(), m_cols - 1);
     return QRect(
         qFloor(col * m_cellWidth),
         qFloor(row * m_cellHeight),

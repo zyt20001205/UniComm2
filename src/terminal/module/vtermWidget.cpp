@@ -14,6 +14,7 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
       m_screen(vterm_obtain_screen(m_vterm)),
       m_selectionBuffer(1024 * 1024, '\0') {
     vterm_set_utf8(m_vterm, 1);
+    vterm_state_set_bold_highbright(m_state, 1);
 
     m_callbacks.movecursor = [](const VTermPos pos, const VTermPos oldPos, const int visible, void *user) -> int {
         return static_cast<VtermWidget *>(user)->cursorMove(pos, oldPos, visible);
@@ -168,15 +169,18 @@ void VtermWidget::outputRead() {
 }
 
 int VtermWidget::cursorMove(const VTermPos pos, const VTermPos oldPos, const int visible) {
-    Q_UNUSED(oldPos);
     Q_UNUSED(visible);
-    emit setCursorPosition({pos.row, pos.col});
+    const QPoint oldPosition{oldPos.row, oldPos.col};
+    m_cursorPosition = {pos.row, pos.col};
+    emit setCursorPosition(m_cursorPosition, oldPosition);
     return 1;
 }
 
 int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
     switch (static_cast<int>(prop)) {
-        case VTERM_PROP_CURSORVISIBLE: emit setCursorVisible(value->boolean);
+        case VTERM_PROP_CURSORVISIBLE:
+            m_cursorVisible = value->boolean;
+            emit setCursorVisible(value->boolean);
             break;
         case VTERM_PROP_CURSORBLINK: emit setCursorBlink(value->boolean);
             break;
