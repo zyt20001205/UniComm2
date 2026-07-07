@@ -180,6 +180,18 @@ int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
             break;
         case VTERM_PROP_CURSORBLINK: emit setCursorBlink(value->boolean);
             break;
+        case VTERM_PROP_TITLE: {
+            const auto frag = value->string;
+            emit setTitle(QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len)));
+        }
+        break;
+        case VTERM_PROP_ICONNAME: {
+            // ignored
+            // const auto frag = value->string;
+            // const auto &iconname = QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len));
+            // qDebug() << iconname;
+        }
+        break;
         case VTERM_PROP_CURSORSHAPE: emit setCursorShape(value->number);
             break;
         case VTERM_PROP_MOUSE: emit setCursorMode(value->number);

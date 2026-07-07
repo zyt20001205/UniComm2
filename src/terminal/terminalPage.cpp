@@ -62,6 +62,7 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     connect(m_vtermWidget, &VtermWidget::setCursorPosition, m_terminalWidget, &TerminalWidget::cursorPositionSet);
     connect(m_vtermWidget, &VtermWidget::setCursorVisible, m_terminalWidget, &TerminalWidget::cursorVisibleSet);
     connect(m_vtermWidget, &VtermWidget::setCursorBlink, m_terminalWidget, &TerminalWidget::cursorBlinkSet);
+    connect(m_vtermWidget, &VtermWidget::setTitle, this, &TerminalPage::titleSet);
     connect(m_vtermWidget, &VtermWidget::setCursorShape, m_terminalWidget, &TerminalWidget::cursorShapeSet);
     connect(m_vtermWidget, &VtermWidget::setCursorMode, m_terminalWidget, &TerminalWidget::cursorModeSet);
 
@@ -119,4 +120,8 @@ void TerminalPage::_resize(const int rows, const int cols) {
 
 void TerminalPage::stop() const {
     if (m_conptyWidget) m_conptyWidget->stop();
+}
+
+void TerminalPage::titleSet(const QString &title) {
+    setTitle(title);
 }

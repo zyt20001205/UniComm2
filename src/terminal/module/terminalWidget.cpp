@@ -2,7 +2,6 @@
 
 #include <QClipboard>
 #include <QInputMethodEvent>
-#include <QKeyEvent>
 #include <QPainter>
 #include <QTimer>
 

@@ -50,6 +50,8 @@ signals:
 
     void setCursorBlink(bool blink);
 
+    void setTitle(const QString &title);
+
     void setCursorShape(int shape);
 
     void setCursorMode(int mode);

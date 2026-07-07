@@ -34,6 +34,8 @@ private:
 
     void stop() const;
 
+    void titleSet(const QString &title);
+
     QJsonObject m_config{};
     QVariantHash m_session{};
     QQuickWidget *m_widget{};
