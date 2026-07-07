@@ -30,6 +30,8 @@ public:
 
     void cursorModeSet(int mode);
 
+    QVariant inputMethodQuery(Qt::InputMethodQuery query) const override;
+
 signals:
     void resize(int rows, int cols);
 
@@ -47,6 +49,8 @@ signals:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+
+    void inputMethodEvent(QInputMethodEvent *event) override;
 
     void mousePressEvent(QMouseEvent *event) override;
 

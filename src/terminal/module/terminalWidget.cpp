@@ -1,6 +1,7 @@
 #include "terminal/module/terminalWidget.h"
 
 #include <QClipboard>
+#include <QInputMethodEvent>
 #include <QKeyEvent>
 #include <QPainter>
 #include <QTimer>
@@ -13,6 +14,7 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
     setAntialiasing(false);
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
+    setFlag(ItemAcceptsInputMethod, true);
     setAcceptedMouseButtons(Qt::AllButtons);
     forceActiveFocus();
     metricsUpdate();
@@ -120,8 +122,27 @@ void TerminalWidget::cursorModeSet(const int mode) {
     m_mode = mode;
 }
 
+QVariant TerminalWidget::inputMethodQuery(const Qt::InputMethodQuery query) const {
+    if (query == Qt::ImCursorRectangle) {
+        return QRectF(
+            m_position.y() * m_cellWidth,
+            m_position.x() * m_cellHeight,
+            m_cellWidth,
+            m_cellHeight
+        );
+    }
+    return QQuickPaintedItem::inputMethodQuery(query);
+}
+
+// protected
 void TerminalWidget::keyPressEvent(QKeyEvent *event) {
     emit keyPressed(event->key(), event->modifiers(), event->text());
+    event->accept();
+}
+
+void TerminalWidget::inputMethodEvent(QInputMethodEvent *event) {
+    const QString commit = event->commitString();
+    if (!commit.isEmpty()) emit keyPressed(0, Qt::NoModifier, commit);
     event->accept();
 }
 
