@@ -340,12 +340,12 @@ void EditorWidget::styleInit() const {
 
 void EditorWidget::lexerInit() const {
     const QFileInfo documentInfo(m_documentUrl.toLocalFile());
-    const QString suffix = documentInfo.suffix().toLower();
+    const auto suffix = documentInfo.suffix().toLower();
+    const auto fileName = documentInfo.fileName().toLower();
     // json
     if (suffix == "json") {
         const auto jsonTheme = m_theme["json"].toObject();
         m_scintillaWidget->lexerSet("json");
-        m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1"));
         m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.json.escape.sequence"), reinterpret_cast<sptr_t>("1"));
         m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.json.allow.comments"), reinterpret_cast<sptr_t>("1"));
         m_scintillaWidget->send(SCI_SETKEYWORDS, 0, reinterpret_cast<sptr_t>("true false null"));
@@ -415,9 +415,8 @@ void EditorWidget::lexerInit() const {
             QVariantHash{
                 {"fore", ScintillaWidget::colorGet(jsonTheme["error"].toObject()["fore"].toString())}
             });
-        m_scintillaWidget->send(SCI_COLOURISE, 0, -1); // NOLINT
     }
-    // md
+    // markdown
     else if (suffix == "md") {
         const auto markdownTheme = m_theme["markdown"].toObject();
         m_scintillaWidget->lexerSet("markdown");
@@ -516,8 +515,299 @@ void EditorWidget::lexerInit() const {
             QVariantHash{
                 {"fore", ScintillaWidget::colorGet(markdownTheme["codeBk"].toObject()["fore"].toString())}
             });
-        m_scintillaWidget->send(SCI_COLOURISE, 0, -1); // NOLINT
     }
+
+    // abaqus
+    else if (suffix == "aba" || suffix == "inp") {
+        m_scintillaWidget->lexerSet("abaqus");
+    }
+    // ada
+    else if (suffix == "adb" || suffix == "ads") {
+        m_scintillaWidget->lexerSet("ada");
+    }
+    // apdl
+    else if (suffix == "ans" || suffix == "mac") {
+        m_scintillaWidget->lexerSet("apdl");
+    }
+    // asciidoc
+    else if (suffix == "adoc" || suffix == "asciidoc") {
+        m_scintillaWidget->lexerSet("asciidoc");
+    }
+    // asm
+    else if (suffix == "asm" || suffix == "s" || suffix == "sx" || suffix == "a51") {
+        m_scintillaWidget->lexerSet("asm");
+    }
+    // asn1
+    else if (suffix == "asn" || suffix == "asn1") {
+        m_scintillaWidget->lexerSet("asn1");
+    }
+    // asy
+    else if (suffix == "asy") {
+        m_scintillaWidget->lexerSet("asy");
+    }
+    // au3
+    else if (suffix == "au3") {
+        m_scintillaWidget->lexerSet("au3");
+    }
+    // bash
+    else if (suffix == "sh" || suffix == "bash" || suffix == "zsh" || suffix == "ksh" || fileName == ".bashrc" || fileName == ".profile") {
+        m_scintillaWidget->lexerSet("bash");
+    }
+    // batch
+    else if (suffix == "bat" || suffix == "cmd" || suffix == "nt") {
+        m_scintillaWidget->lexerSet("batch");
+    }
+    // bib
+    else if (suffix == "bib") {
+        m_scintillaWidget->lexerSet("bib");
+    }
+    // blitzbasic
+    else if (suffix == "bb") {
+        m_scintillaWidget->lexerSet("blitzbasic");
+    }
+    // caml
+    else if (suffix == "ml" || suffix == "mli") {
+        m_scintillaWidget->lexerSet("caml");
+    }
+    // cil
+    else if (suffix == "il") {
+        m_scintillaWidget->lexerSet("cil");
+    }
+    // cmake
+    else if (suffix == "cmake" || fileName == "cmakelists.txt") {
+        m_scintillaWidget->lexerSet("cmake");
+    }
+    // COBOL
+    else if (suffix == "cob" || suffix == "cbl") {
+        m_scintillaWidget->lexerSet("COBOL");
+    }
+    // coffeescript
+    else if (suffix == "coffee" || suffix == "litcoffee") {
+        m_scintillaWidget->lexerSet("coffeescript");
+    }
+    // conf
+    else if (suffix == "cfg" || suffix == "conf") {
+        m_scintillaWidget->lexerSet("conf");
+    }
+    // cpp
+    else if (suffix == "c" || suffix == "cc" || suffix == "cpp" || suffix == "cxx" || suffix == "h" || suffix == "hh" || suffix == "hpp" || suffix == "hxx" || suffix == "inl" || suffix == "ino" || suffix == "js" || suffix == "ts") {
+        m_scintillaWidget->lexerSet("cpp");
+    }
+    // csound
+    else if (suffix == "csd" || suffix == "orc" || suffix == "sco") {
+        m_scintillaWidget->lexerSet("csound");
+    }
+    // css
+    else if (suffix == "css" || suffix == "scss" || suffix == "less") {
+        m_scintillaWidget->lexerSet("css");
+    }
+    // d
+    else if (suffix == "d") {
+        m_scintillaWidget->lexerSet("d");
+    }
+    // dart
+    else if (suffix == "dart") {
+        m_scintillaWidget->lexerSet("dart");
+    }
+    // diff
+    else if (suffix == "diff" || suffix == "patch") {
+        m_scintillaWidget->lexerSet("diff");
+    }
+    // eiffel
+    else if (suffix == "e") {
+        m_scintillaWidget->lexerSet("eiffel");
+    }
+    // erlang
+    else if (suffix == "erl" || suffix == "hrl") {
+        m_scintillaWidget->lexerSet("erlang");
+    }
+    // fsharp
+    else if (suffix == "fs" || suffix == "fsi" || suffix == "fsx") {
+        m_scintillaWidget->lexerSet("fsharp");
+    }
+    // fortran
+    else if (suffix == "f" || suffix == "for" || suffix == "f90" || suffix == "f95" || suffix == "f03" || suffix == "f08") {
+        m_scintillaWidget->lexerSet("fortran");
+    }
+    // forth
+    else if (suffix == "forth" || suffix == "fth") {
+        m_scintillaWidget->lexerSet("forth");
+    }
+    // gdscript
+    else if (suffix == "gd") {
+        m_scintillaWidget->lexerSet("gdscript");
+    }
+    // haskell
+    else if (suffix == "hs" || suffix == "lhs") {
+        m_scintillaWidget->lexerSet("haskell");
+    }
+    // hypertext
+    else if (suffix == "html" || suffix == "htm" || suffix == "xhtml" || suffix == "shtml" || suffix == "php") {
+        m_scintillaWidget->lexerSet("hypertext");
+    }
+    // ihex
+    else if (suffix == "hex") {
+        m_scintillaWidget->lexerSet("ihex");
+    }
+    // inno
+    else if (suffix == "iss") {
+        m_scintillaWidget->lexerSet("inno");
+    }
+    // julia
+    else if (suffix == "jl") {
+        m_scintillaWidget->lexerSet("julia");
+    }
+    // latex
+    else if (suffix == "tex" || suffix == "sty" || suffix == "ltx") {
+        m_scintillaWidget->lexerSet("latex");
+    }
+    // lisp
+    else if (suffix == "lisp" || suffix == "lsp" || suffix == "cl" || suffix == "el") {
+        m_scintillaWidget->lexerSet("lisp");
+    }
+    // lua
+    else if (suffix == "lua") {
+        m_scintillaWidget->lexerSet("lua");
+    }
+    // makefile
+    else if (suffix == "mak" || suffix == "mk" || fileName == "makefile") {
+        m_scintillaWidget->lexerSet("makefile");
+    }
+    // matlab
+    else if (suffix == "m") {
+        m_scintillaWidget->lexerSet("matlab");
+    }
+    // maxima
+    else if (suffix == "wxm") {
+        m_scintillaWidget->lexerSet("maxima");
+    }
+    // metapost
+    else if (suffix == "mp") {
+        m_scintillaWidget->lexerSet("metapost");
+    }
+    // nim
+    else if (suffix == "nim" || suffix == "nims") {
+        m_scintillaWidget->lexerSet("nim");
+    }
+    // nix
+    else if (suffix == "nix") {
+        m_scintillaWidget->lexerSet("nix");
+    }
+    // nsis
+    else if (suffix == "nsi" || suffix == "nsh") {
+        m_scintillaWidget->lexerSet("nsis");
+    }
+    // null
+    else if (suffix == "") {
+        m_scintillaWidget->lexerSet("null");
+    }
+    // pascal
+    else if (suffix == "pas" || suffix == "pp" || suffix == "inc") {
+        m_scintillaWidget->lexerSet("pascal");
+    }
+    // perl
+    else if (suffix == "pl" || suffix == "pm" || suffix == "pod") {
+        m_scintillaWidget->lexerSet("perl");
+    }
+    // po
+    else if (suffix == "po" || suffix == "pot") {
+        m_scintillaWidget->lexerSet("po");
+    }
+    // powershell
+    else if (suffix == "ps1" || suffix == "psm1" || suffix == "psd1") {
+        m_scintillaWidget->lexerSet("powershell");
+    }
+    // props
+    else if (suffix == "properties" || suffix == "ini" || suffix == "inf") {
+        m_scintillaWidget->lexerSet("props");
+    }
+    // ps
+    else if (suffix == "ps" || suffix == "eps") {
+        m_scintillaWidget->lexerSet("ps");
+    }
+    // python
+    else if (suffix == "py" || suffix == "pyw" || suffix == "pyi") {
+        m_scintillaWidget->lexerSet("python");
+    }
+    // r
+    else if (suffix == "r" || suffix == "rprofile" || suffix == "rmd") {
+        m_scintillaWidget->lexerSet("r");
+    }
+    // registry
+    else if (suffix == "reg") {
+        m_scintillaWidget->lexerSet("registry");
+    }
+    // ruby
+    else if (suffix == "rb" || suffix == "rbw" || fileName == "rakefile" || fileName == "gemfile") {
+        m_scintillaWidget->lexerSet("ruby");
+    }
+    // rust
+    else if (suffix == "rs") {
+        m_scintillaWidget->lexerSet("rust");
+    }
+    // sas
+    else if (suffix == "sas") {
+        m_scintillaWidget->lexerSet("sas");
+    }
+    // SML
+    else if (suffix == "sml" || suffix == "sig") {
+        m_scintillaWidget->lexerSet("SML");
+    }
+    // sql
+    else if (suffix == "sql") {
+        m_scintillaWidget->lexerSet("sql");
+    }
+    // stata
+    else if (suffix == "do" || suffix == "ado") {
+        m_scintillaWidget->lexerSet("stata");
+    }
+    // tcl
+    else if (suffix == "tcl" || suffix == "tk") {
+        m_scintillaWidget->lexerSet("tcl");
+    }
+    // toml
+    else if (suffix == "toml") {
+        m_scintillaWidget->lexerSet("toml");
+    }
+    // troff
+    else if (suffix == "man" || suffix == "me" || suffix == "ms" || suffix == "roff" || suffix == "tmac") {
+        m_scintillaWidget->lexerSet("troff");
+    }
+    // vb
+    else if (suffix == "vb" || suffix == "bas" || suffix == "frm" || suffix == "cls" || suffix == "ctl") {
+        m_scintillaWidget->lexerSet("vb");
+    }
+    // vbscript
+    else if (suffix == "vbs") {
+        m_scintillaWidget->lexerSet("vbscript");
+    }
+    // verilog
+    else if (suffix == "v" || suffix == "vh" || suffix == "sv" || suffix == "svh") {
+        m_scintillaWidget->lexerSet("verilog");
+    }
+    // vhdl
+    else if (suffix == "vhd" || suffix == "vhdl") {
+        m_scintillaWidget->lexerSet("vhdl");
+    }
+    // xml
+    else if (suffix == "xml" || suffix == "xsd" || suffix == "xsl" || suffix == "xslt" || suffix == "svg" || suffix == "ui" || suffix == "qrc") {
+        m_scintillaWidget->lexerSet("xml");
+    }
+    // yaml
+    else if (suffix == "yaml" || suffix == "yml") {
+        m_scintillaWidget->lexerSet("yaml");
+    }
+    // zig
+    else if (suffix == "zig") {
+        m_scintillaWidget->lexerSet("zig");
+    }
+    // automatic
+    else {
+        const auto lexerName = suffix.toUtf8();
+        m_scintillaWidget->lexerSet(lexerName.constData());
+    }
+    m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1"));
+    m_scintillaWidget->send(SCI_COLOURISE, 0, -1); // NOLINT
 }
 
 void EditorWidget::searchShow() const {

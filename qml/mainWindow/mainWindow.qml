@@ -3234,14 +3234,51 @@ Item {
         onClosed: widgetCount -= 1
 
         MenuItem {
-            id: menuModuleFileMenuOpenWorkspaceItem
+            id: menuModuleOpenFileItem
 
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
                 IconImage {
-                    source: "qrc:/icon/open.svg"
+                    source: "qrc:/icon/document.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    color: global.fore
+                }
+
+                Label {
+                    text: qsTr("Open File")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: ""
+                }
+            }
+
+            onTriggered: menuModuleOpenFileItemDialog.open()
+
+            FileDialog {
+                id: menuModuleOpenFileItemDialog
+                fileMode: FileDialog.OpenFile
+                nameFilters: ["All files (*)"]
+                onAccepted: documentModule.documentOpen(selectedFile)
+            }
+        }
+
+        MenuItem {
+            id: menuModuleOpenWorkspaceItem
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                IconImage {
+                    source: "qrc:/icon/home.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
                     color: global.fore
@@ -3262,14 +3299,14 @@ Item {
 
             Shortcut {
                 sequence: "Ctrl+O"
-                onActivated: menuModuleFileMenuOpenWorkspaceItem.triggered()
+                onActivated: menuModuleOpenWorkspaceItem.triggered()
             }
 
             onTriggered: Qt.callLater(() => mainWindow.workspaceOpen())
         }
 
         MenuItem {
-            id: menuModuleFileMenuSaveWorkspaceItem
+            id: menuModuleSaveWorkspaceItem
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -3297,14 +3334,14 @@ Item {
 
             Shortcut {
                 sequence: "Ctrl+S"
-                onActivated: menuModuleFileMenuSaveWorkspaceItem.triggered()
+                onActivated: menuModuleSaveWorkspaceItem.triggered()
             }
 
             onTriggered: mainWindow.workspaceSave("")
         }
 
         MenuItem {
-            id: menuModuleFileMenuSaveWorkspaceAsItem
+            id: menuModuleSaveWorkspaceAsItem
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -3332,13 +3369,13 @@ Item {
 
             Shortcut {
                 sequence: "Ctrl+Shift+S"
-                onActivated: menuModuleFileMenuSaveWorkspaceAsItem.triggered()
+                onActivated: menuModuleSaveWorkspaceAsItem.triggered()
             }
 
-            onTriggered: menuModuleFileMenuSaveDialog.open()
+            onTriggered: menuModuleSaveDialog.open()
 
             FileDialog {
-                id: menuModuleFileMenuSaveDialog
+                id: menuModuleSaveDialog
                 currentFolder: StandardPaths.standardLocations(StandardPaths.DesktopLocation)[0]
                 fileMode: FileDialog.SaveFile
                 nameFilters: ["Json (*.json)"]
