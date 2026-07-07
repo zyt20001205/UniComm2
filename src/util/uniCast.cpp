@@ -496,11 +496,19 @@ TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, con
     d.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
 
     d.bold = s.attrs.bold;
+    d.faint = s.attrs.blink;
     d.italic = s.attrs.italic;
     d.underline = s.attrs.underline != VTERM_UNDERLINE_OFF;
     d.strike = s.attrs.strike;
 
     if (s.attrs.reverse) std::swap(d.foreground, d.background);
+    if (d.faint) {
+        d.foreground = QColor(
+            (d.foreground.red() * 55 + d.background.red() * 45) / 100,
+            (d.foreground.green() * 55 + d.background.green() * 45) / 100,
+            (d.foreground.blue() * 55 + d.background.blue() * 45) / 100
+        );
+    }
     if (s.attrs.conceal) d.foreground = d.background;
 
     return d;

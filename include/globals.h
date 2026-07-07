@@ -294,6 +294,7 @@ struct TerminalCell {
     QColor background{};
     QString hyperlink{};
     bool bold{};
+    bool faint{};
     bool italic{};
     bool underline{};
     bool strike{};
