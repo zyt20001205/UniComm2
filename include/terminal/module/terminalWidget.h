@@ -78,6 +78,7 @@ private:
     // cursor
     QPoint m_position{};
     bool m_visible{true};
+    bool m_blink{true};
     QTimer *m_blinkTimer{};
     bool m_blinkPhase{true};
     int m_shape{VTERM_PROP_CURSORSHAPE_BAR_LEFT};

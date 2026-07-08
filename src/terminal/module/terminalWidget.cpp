@@ -107,27 +107,34 @@ void TerminalWidget::cursorPositionSet(const QPoint &position, const QPoint &old
 }
 
 void TerminalWidget::cursorVisibleSet(const bool visible) {
+    if (m_visible == visible) return;
+    m_visible = visible;
     if (visible) {
-        m_visible = true;
-        m_blinkPhase = false;
-        m_blinkTimer->start();
-        update(cursorRect());
+        if (m_blink) {
+            m_blinkPhase = false;
+            m_blinkTimer->start();
+        } else {
+            m_blinkPhase = true;
+        }
     } else {
         m_blinkTimer->stop();
-        m_visible = false;
         m_blinkPhase = true;
-        update(cursorRect());
     }
+    update(cursorRect());
 }
 
 void TerminalWidget::cursorBlinkSet(const bool blink) {
+    if (m_blink == blink) return;
+    m_blink = blink;
+    if (!m_visible) return;
     if (blink) {
+        m_blinkPhase = false;
         m_blinkTimer->start();
     } else {
         m_blinkTimer->stop();
         m_blinkPhase = true;
-        update(cursorRect());
     }
+    update(cursorRect());
 }
 
 void TerminalWidget::cursorShapeSet(const int shape) {
