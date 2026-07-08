@@ -60,18 +60,18 @@ void TerminalWidget::paint(QPainter *painter) {
             // draw cursor
             if (m_atBottom && m_visible && m_blinkPhase && row == m_position.x() && col == m_position.y()) {
                 switch (m_shape) {
-                    case VTERM_PROP_CURSORSHAPE_BLOCK: {
+                    case TerminalCursorShape::Block: {
                         painter->fillRect(rect, cell.foreground);
                         painter->setPen(cell.background);
                         painter->drawText(QPointF(rect.left(), y), cell.text);
                     }
                     break;
-                    case VTERM_PROP_CURSORSHAPE_UNDERLINE: {
+                    case TerminalCursorShape::Underline: {
                         const qreal thickness = qMax<qreal>(1, m_cellHeight / 10);
                         painter->fillRect(QRectF(rect.left(), rect.bottom() - thickness, rect.width(), thickness), cell.foreground);
                     }
                     break;
-                    case VTERM_PROP_CURSORSHAPE_BAR_LEFT: {
+                    case TerminalCursorShape::BarLeft: {
                         const qreal thickness = qMax<qreal>(1, m_cellWidth / 8);
                         painter->fillRect(QRectF(rect.left(), rect.top(), thickness, rect.height()), cell.foreground);
                     }
@@ -98,8 +98,9 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Termi
     update();
 }
 
-void TerminalWidget::cursorPositionSet(const QPoint &position, const QPoint &oldPosition) {
+void TerminalWidget::cursorPositionSet(const QPoint &position) {
     if (m_position == position) return;
+    const QPoint oldPosition = m_position;
     m_position = position;
     if (!(m_atBottom && m_visible && m_blinkPhase)) return;
     update(cursorRect(oldPosition));
@@ -167,7 +168,7 @@ void TerminalWidget::inputMethodEvent(QInputMethodEvent *event) {
 
 void TerminalWidget::mousePressEvent(QMouseEvent *event) {
     forceActiveFocus();
-    if (m_mode >= VTERM_PROP_MOUSE_CLICK) {
+    if (m_mode >= TerminalMouseMode::Click) {
         emit mousePressed(
             event->position().y() / m_cellHeight,
             event->position().x() / m_cellWidth,
@@ -184,7 +185,7 @@ void TerminalWidget::mousePressEvent(QMouseEvent *event) {
 }
 
 void TerminalWidget::mouseReleaseEvent(QMouseEvent *event) {
-    if (m_mode >= VTERM_PROP_MOUSE_CLICK) {
+    if (m_mode >= TerminalMouseMode::Click) {
         emit mouseReleased(
             event->position().y() / m_cellHeight,
             event->position().x() / m_cellWidth,
@@ -196,7 +197,7 @@ void TerminalWidget::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void TerminalWidget::mouseMoveEvent(QMouseEvent *event) {
-    if (m_mode == VTERM_PROP_MOUSE_MOVE || (m_mode == VTERM_PROP_MOUSE_DRAG && event->buttons() != Qt::NoButton)) {
+    if (m_mode == TerminalMouseMode::Move || (m_mode == TerminalMouseMode::Drag && event->buttons() != Qt::NoButton)) {
         emit mouseMoved(
             event->position().y() / m_cellHeight,
             event->position().x() / m_cellWidth,
@@ -217,7 +218,7 @@ void TerminalWidget::wheelEvent(QWheelEvent *event) {
         return;
     }
 
-    if (m_mode >= VTERM_PROP_MOUSE_CLICK) {
+    if (m_mode >= TerminalMouseMode::Click) {
         emit mouseWheeled(
             event->position().y() / m_cellHeight,
             event->position().x() / m_cellWidth,

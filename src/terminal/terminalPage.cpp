@@ -19,7 +19,7 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
       m_session(session),
       m_widget(new QQuickWidget()),
       m_conptyWidget(new ConptyWidget(this)),
-      m_vtermWidget(new GhosttyWidget(1, 1, this)) {
+      m_ghosttyWidget(new GhosttyWidget(1, 1, this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 }
@@ -50,21 +50,21 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalWidget = new TerminalWidget(terminalItem);
     m_terminalWidget->setParentItem(terminalItem);
 
-    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &GhosttyWidget::keyPressed);
-    connect(m_terminalWidget, &TerminalWidget::mousePressed, m_vtermWidget, &GhosttyWidget::mousePressed);
-    connect(m_terminalWidget, &TerminalWidget::mouseReleased, m_vtermWidget, &GhosttyWidget::mouseReleased);
-    connect(m_terminalWidget, &TerminalWidget::mouseMoved, m_vtermWidget, &GhosttyWidget::mouseMoved);
-    connect(m_terminalWidget, &TerminalWidget::mouseWheeled, m_vtermWidget, &GhosttyWidget::mouseWheeled);
-    connect(m_terminalWidget, &TerminalWidget::mouseScrolled, m_vtermWidget, &GhosttyWidget::mouseScrolled);
-    connect(m_vtermWidget, &GhosttyWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
-    connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &GhosttyWidget::inputWrite);
-    connect(m_vtermWidget, &GhosttyWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
-    connect(m_vtermWidget, &GhosttyWidget::setCursorPosition, m_terminalWidget, &TerminalWidget::cursorPositionSet);
-    connect(m_vtermWidget, &GhosttyWidget::setCursorVisible, m_terminalWidget, &TerminalWidget::cursorVisibleSet);
-    connect(m_vtermWidget, &GhosttyWidget::setCursorBlink, m_terminalWidget, &TerminalWidget::cursorBlinkSet);
-    connect(m_vtermWidget, &GhosttyWidget::setTitle, this, &TerminalPage::titleSet);
-    connect(m_vtermWidget, &GhosttyWidget::setCursorShape, m_terminalWidget, &TerminalWidget::cursorShapeSet);
-    connect(m_vtermWidget, &GhosttyWidget::setCursorMode, m_terminalWidget, &TerminalWidget::cursorModeSet);
+    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_ghosttyWidget, &GhosttyWidget::keyPressed);
+    connect(m_terminalWidget, &TerminalWidget::mousePressed, m_ghosttyWidget, &GhosttyWidget::mousePressed);
+    connect(m_terminalWidget, &TerminalWidget::mouseReleased, m_ghosttyWidget, &GhosttyWidget::mouseReleased);
+    connect(m_terminalWidget, &TerminalWidget::mouseMoved, m_ghosttyWidget, &GhosttyWidget::mouseMoved);
+    connect(m_terminalWidget, &TerminalWidget::mouseWheeled, m_ghosttyWidget, &GhosttyWidget::mouseWheeled);
+    connect(m_terminalWidget, &TerminalWidget::mouseScrolled, m_ghosttyWidget, &GhosttyWidget::mouseScrolled);
+    connect(m_ghosttyWidget, &GhosttyWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
+    connect(m_conptyWidget, &ConptyWidget::outputWrite, m_ghosttyWidget, &GhosttyWidget::inputWrite);
+    connect(m_ghosttyWidget, &GhosttyWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
+    connect(m_ghosttyWidget, &GhosttyWidget::setCursorPosition, m_terminalWidget, &TerminalWidget::cursorPositionSet);
+    connect(m_ghosttyWidget, &GhosttyWidget::setCursorVisible, m_terminalWidget, &TerminalWidget::cursorVisibleSet);
+    connect(m_ghosttyWidget, &GhosttyWidget::setCursorBlink, m_terminalWidget, &TerminalWidget::cursorBlinkSet);
+    connect(m_ghosttyWidget, &GhosttyWidget::setTitle, this, &TerminalPage::titleSet);
+    connect(m_ghosttyWidget, &GhosttyWidget::setCursorShape, m_terminalWidget, &TerminalWidget::cursorShapeSet);
+    connect(m_ghosttyWidget, &GhosttyWidget::setCursorMode, m_terminalWidget, &TerminalWidget::cursorModeSet);
 
     connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
 
@@ -83,7 +83,7 @@ bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_widget && event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab) {
-            if (m_vtermWidget) m_vtermWidget->keyPressed(keyEvent->key(), keyEvent->modifiers(), "\t");
+            if (m_ghosttyWidget) m_ghosttyWidget->keyPressed(keyEvent->key(), keyEvent->modifiers(), "\t");
             return true;
         }
     }
@@ -99,7 +99,7 @@ void TerminalPage::closeEvent(QCloseEvent *event) {
 
 // private
 void TerminalPage::start() {
-    if (!m_conptyWidget || !m_vtermWidget) return;
+    if (!m_conptyWidget || !m_ghosttyWidget) return;
     const bool started = m_conptyWidget->start(
         m_session["program"].toUrl(),
         m_session["arguments"].toString(),
@@ -114,7 +114,7 @@ void TerminalPage::_resize(const int rows, const int cols) {
     if (m_rows == rows && m_cols == cols) return;
     m_rows = rows;
     m_cols = cols;
-    if (m_vtermWidget) m_vtermWidget->resize(rows, cols);
+    if (m_ghosttyWidget) m_ghosttyWidget->resize(rows, cols);
     if (m_conptyWidget) m_conptyWidget->resize(rows, cols);
 }
 

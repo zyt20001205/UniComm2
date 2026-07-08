@@ -201,11 +201,6 @@ set(VISA_INCLUDE "${VISA_DIR}/include")
 file(GLOB VISA_LIB "${VISA_DIR}/bin/*.dll")
 set(VISA_BIN "${VISA_DIR}/bin")
 
-set(VTERM_DIR "${CMAKE_SOURCE_DIR}/3rd/vterm")
-set(VTERM_INCLUDE "${VTERM_DIR}/include")
-file(GLOB VTERM_LIB "${VTERM_DIR}/lib/*.a")
-set(VTERM_BIN "${VTERM_DIR}/bin")
-
 set(WEBVIEW2_DIR "${CMAKE_SOURCE_DIR}/3rd/webview2")
 set(WEBVIEW2_INCLUDE "${WEBVIEW2_DIR}/include")
 file(GLOB WEBVIEW2_LIB "${WEBVIEW2_DIR}/lib/*.dll")
@@ -228,7 +223,6 @@ target_include_directories(UniComm PRIVATE
         ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
         ${VISA_INCLUDE}
-        ${VTERM_INCLUDE}
         ${WEBVIEW2_INCLUDE}
 )
 
@@ -262,7 +256,6 @@ target_link_libraries(UniComm PRIVATE
         ${SCINTILLA_LIB}
         ${TESSERACT_LIB}
         ${VISA_LIB}
-        ${VTERM_LIB}
         ${WEBVIEW2_LIB}
         ole32
         -Wl,--start-group
@@ -433,12 +426,6 @@ else ()
             "${VISA_BIN}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "VISA BIN COPIED")
-    #vterm-0.3.3-1
-    add_custom_command(TARGET UniComm POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${VTERM_BIN}"
-            "${CMAKE_BINARY_DIR}"
-            COMMENT "VTERM BIN COPIED")
     #webview2
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory

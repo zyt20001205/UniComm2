@@ -1,7 +1,7 @@
 #ifndef UNICOMM_TERMINALWIDGET_H
 #define UNICOMM_TERMINALWIDGET_H
 
-#include "terminal/module/vtermWidget.h"
+#include "terminal/module/terminalTypes.h"
 
 #include <QList>
 #include <QQuickPaintedItem>
@@ -20,7 +20,7 @@ public:
 
     void screenSet(int rows, int cols, const QList<TerminalCell> &cells, bool atBottom);
 
-    void cursorPositionSet(const QPoint &position, const QPoint &oldPosition);
+    void cursorPositionSet(const QPoint &position);
 
     void cursorVisibleSet(bool visible);
 
@@ -81,8 +81,8 @@ private:
     bool m_blink{true};
     QTimer *m_blinkTimer{};
     bool m_blinkPhase{true};
-    int m_shape{VTERM_PROP_CURSORSHAPE_BAR_LEFT};
-    int m_mode{VTERM_PROP_MOUSE_NONE};
+    int m_shape{TerminalCursorShape::BarLeft};
+    int m_mode{TerminalMouseMode::None};
     bool m_atBottom{true};
 
     int m_rows{};

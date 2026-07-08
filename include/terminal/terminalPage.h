@@ -44,7 +44,7 @@ private:
     QObject *m_terminalItem{};
     ConptyWidget *m_conptyWidget{};
     TerminalWidget *m_terminalWidget{};
-    GhosttyWidget *m_vtermWidget{};
+    GhosttyWidget *m_ghosttyWidget{};
     int m_rows{1};
     int m_cols{1};
 };

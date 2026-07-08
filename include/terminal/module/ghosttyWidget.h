@@ -9,10 +9,17 @@
 #include <cstddef>
 #include <cstdint>
 
-typedef struct GhosttyTerminalImpl *GhosttyTerminal;
-typedef struct GhosttyRenderStateImpl *GhosttyRenderState;
-typedef struct GhosttyRenderStateRowIteratorImpl *GhosttyRenderStateRowIterator;
-typedef struct GhosttyRenderStateRowCellsImpl *GhosttyRenderStateRowCells;
+#ifdef emit
+#pragma push_macro("emit")
+#undef emit
+#define UNICOMM_GHOSTTYWIDGET_RESTORE_QT_EMIT
+#endif
+#include <ghostty/vt/terminal.h>
+#ifdef UNICOMM_GHOSTTYWIDGET_RESTORE_QT_EMIT
+#pragma pop_macro("emit")
+#undef UNICOMM_GHOSTTYWIDGET_RESTORE_QT_EMIT
+#endif
+
 typedef struct GhosttyKeyEncoderImpl *GhosttyKeyEncoder;
 typedef struct GhosttyKeyEventImpl *GhosttyKeyEvent;
 typedef struct GhosttyMouseEncoderImpl *GhosttyMouseEncoder;
@@ -51,7 +58,7 @@ signals:
 
     void setScreen(int row, int col, const QList<TerminalCell> &cells, bool atBottom);
 
-    void setCursorPosition(const QPoint &position, const QPoint &oldPosition);
+    void setCursorPosition(const QPoint &position);
 
     void setCursorVisible(bool visible);
 
@@ -64,12 +71,6 @@ signals:
     void setCursorMode(int mode);
 
 private:
-    static void writePtyCallback(GhosttyTerminal terminal, void *userdata, const uint8_t *data, size_t len);
-
-    static void titleChangedCallback(GhosttyTerminal terminal, void *userdata);
-
-    static void bellCallback(GhosttyTerminal terminal, void *userdata);
-
     void renderScreen();
 
     void updateCursor();
@@ -82,25 +83,28 @@ private:
 
     void writePty(const uint8_t *data, size_t len);
 
+    static void bell();
+
+    [[nodiscard]] static GhosttyString enquiry();
+
+    [[nodiscard]] static GhosttyString xtversion();
+
     void titleChanged();
 
-    void bell();
+    [[nodiscard]] bool sizeReport(GhosttySizeReportSize *size) const;
+
+    [[nodiscard]] static bool colorScheme(GhosttyColorScheme *scheme);
+
+    [[nodiscard]] static bool deviceAttributes(GhosttyDeviceAttributes *attributes);
 
     int m_rows{};
     int m_cols{};
     GhosttyTerminal m_terminal{};
     GhosttyRenderState m_renderState{};
-    GhosttyRenderStateRowIterator m_rowIterator{};
-    GhosttyRenderStateRowCells m_rowCells{};
     GhosttyKeyEncoder m_keyEncoder{};
     GhosttyKeyEvent m_keyEvent{};
     GhosttyMouseEncoder m_mouseEncoder{};
     GhosttyMouseEvent m_mouseEvent{};
-    QPoint m_cursorPosition{};
-    bool m_cursorVisible{true};
-    bool m_cursorBlink{true};
-    int m_cursorShape{};
-    int m_cursorMode{};
     bool m_mouseButtonPressed{};
 };
 

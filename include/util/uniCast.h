@@ -1,11 +1,27 @@
 #ifndef UNICOMM_UNICAST_H
 #define UNICOMM_UNICAST_H
 
+#include <QColor>
+#include <QIcon>
 #include <QUrl>
 #include <QVariant>
 #include <sol/object.hpp>
-#include <vterm.h>
-#include <vterm_keycodes.h>
+
+#ifdef emit
+#pragma push_macro("emit")
+#undef emit
+#define UNICOMM_UNICAST_RESTORE_QT_EMIT
+#endif
+#include <ghostty/vt/color.h>
+#include <ghostty/vt/grid_ref.h>
+#include <ghostty/vt/key/event.h>
+#include <ghostty/vt/mouse/event.h>
+#include <ghostty/vt/render.h>
+#include <ghostty/vt/types.h>
+#ifdef UNICOMM_UNICAST_RESTORE_QT_EMIT
+#pragma pop_macro("emit")
+#undef UNICOMM_UNICAST_RESTORE_QT_EMIT
+#endif
 
 struct TerminalCell;
 
@@ -39,10 +55,17 @@ struct QFullHtmlString {
     operator QString() const { return value; }
 };
 
-struct VTermButton {
-    int value;
-    VTermButton(int s) : value(s) {}
-    operator int() const { return value; }
+struct GhosttyCellRef {
+    const GhosttyGridRef *ref{};
+    GhosttyColorRgb foreground{};
+    GhosttyColorRgb background{};
+    const GhosttyColorRgb *palette{};
+};
+
+struct GhosttyStaticString {
+    const char *value{};
+    GhosttyStaticString(const char *s) : value(s) {}
+    operator const char *() const { return value; }
 };
 
 template<typename D, typename S>
@@ -50,9 +73,6 @@ template<typename D, typename S>
 
 template<typename D, typename S>
 [[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
-
-template<typename D, typename S>
-[[nodiscard]] D uni_cast(const VTermScreen *vts, const S& s, int depth = 0);
 
 // lua -> qt
 template<>
@@ -100,18 +120,33 @@ template<>
 template<>
 [[nodiscard]] QFullHtmlString uni_cast<QFullHtmlString, QString>(const QString &s, int depth);
 
-// vterm -> qt
+// ghostty -> qt
 template<>
-[[nodiscard]] TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, const VTermScreenCell &s, int depth);
-
-// qt-> vterm
-template<>
-[[nodiscard]] VTermButton uni_cast<VTermButton, int>(const int &s, int depth);
+[[nodiscard]] QColor uni_cast<QColor, GhosttyColorRgb>(const GhosttyColorRgb &s, int depth);
 
 template<>
-[[nodiscard]] VTermKey uni_cast<VTermKey, int>(const int &s, int depth);
+[[nodiscard]] int uni_cast<int, GhosttyRenderStateCursorVisualStyle>(const GhosttyRenderStateCursorVisualStyle &s, int depth);
 
 template<>
-[[nodiscard]] VTermModifier uni_cast<VTermModifier, int>(const int &s, int depth);
+[[nodiscard]] int uni_cast<int, GhosttyTerminal>(const GhosttyTerminal &s, int depth);
+
+template<>
+[[nodiscard]] TerminalCell uni_cast<TerminalCell, GhosttyCellRef>(const GhosttyCellRef &s, int depth);
+
+template<>
+[[nodiscard]] QString uni_cast<QString, GhosttyString>(const GhosttyString &s, int depth);
+
+// qt -> ghostty
+template<>
+[[nodiscard]] GhosttyMods uni_cast<GhosttyMods, int>(const int &s, int depth);
+
+template<>
+[[nodiscard]] GhosttyKey uni_cast<GhosttyKey, int>(const int &s, int depth);
+
+template<>
+[[nodiscard]] GhosttyMouseButton uni_cast<GhosttyMouseButton, int>(const int &s, int depth);
+
+template<>
+[[nodiscard]] GhosttyString uni_cast<GhosttyString, GhosttyStaticString>(const GhosttyStaticString &s, int depth);
 
 #endif //UNICOMM_UNICAST_H

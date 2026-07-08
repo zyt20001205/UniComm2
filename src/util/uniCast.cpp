@@ -1,16 +1,36 @@
 #include "util/uniCast.h"
 
+#include <QByteArray>
 #include <QDir>
+#include <QVector>
 #include <sol/state_view.hpp>
 #include <sol/table_core.hpp>
 #include <sol/variadic_args.hpp>
 #include <sol/userdata.hpp>
+
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <cstring>
+
+#ifdef emit
+#pragma push_macro("emit")
+#undef emit
+#define UNICOMM_UNICAST_CPP_RESTORE_QT_EMIT
+#endif
+#include <ghostty/vt/render.h>
+#include <ghostty/vt/terminal.h>
+#ifdef UNICOMM_UNICAST_CPP_RESTORE_QT_EMIT
+#pragma pop_macro("emit")
+#undef UNICOMM_UNICAST_CPP_RESTORE_QT_EMIT
+#endif
 
 #include "cmark-gfm.h"
 #include "cmark-gfm-core-extensions.h"
 #include "cmark-gfm-extension_api.h"
 #include "globals.h"
 #include "core/globalManager.h"
+#include "terminal/module/terminalTypes.h"
 
 // lua -> qt
 template<>
@@ -469,131 +489,267 @@ document.addEventListener("DOMContentLoaded", async () => {
     return d;
 }
 
-// vterm -> qt
+namespace {
+    [[nodiscard]] QColor faintColor(const QColor &foreground, const QColor &background) {
+        return {
+            (foreground.red() * 55 + background.red() * 45) / 100,
+            (foreground.green() * 55 + background.green() * 45) / 100,
+            (foreground.blue() * 55 + background.blue() * 45) / 100
+        };
+    }
+
+    [[nodiscard]] QColor ghosttyStyleColor(
+        const GhosttyStyleColor &color,
+        const GhosttyColorRgb &fallback,
+        const GhosttyColorRgb *palette
+    ) {
+        switch (color.tag) {
+            case GHOSTTY_STYLE_COLOR_RGB:
+                return uni_cast<QColor>(color.value.rgb);
+            case GHOSTTY_STYLE_COLOR_PALETTE:
+                return uni_cast<QColor>(palette[color.value.palette]);
+            case GHOSTTY_STYLE_COLOR_NONE:
+            default:
+                return uni_cast<QColor>(fallback);
+        }
+    }
+
+    [[nodiscard]] QString ghosttyGridText(const GhosttyGridRef &ref) {
+        std::array<uint32_t, 16> graphemes{};
+        size_t graphemeCount{};
+        GhosttyResult result = ghostty_grid_ref_graphemes(&ref, graphemes.data(), graphemes.size(), &graphemeCount);
+        if (result == GHOSTTY_OUT_OF_SPACE && graphemeCount > 0) {
+            QVector<uint32_t> rawGraphemes;
+            rawGraphemes.resize(static_cast<qsizetype>(graphemeCount));
+            result = ghostty_grid_ref_graphemes(&ref, rawGraphemes.data(), static_cast<size_t>(rawGraphemes.size()), &graphemeCount);
+            if (result != GHOSTTY_SUCCESS || graphemeCount == 0) return {};
+
+            QVector<char32_t> text;
+            text.reserve(static_cast<qsizetype>(graphemeCount));
+            for (size_t index = 0; index < graphemeCount; ++index) {
+                text.append(static_cast<char32_t>(rawGraphemes[static_cast<qsizetype>(index)]));
+            }
+            return QString::fromUcs4(text.constData(), static_cast<qsizetype>(text.size()));
+        }
+
+        if (result != GHOSTTY_SUCCESS || graphemeCount == 0) return {};
+
+        QVector<char32_t> text;
+        text.reserve(static_cast<qsizetype>(graphemeCount));
+        for (size_t index = 0; index < graphemeCount; ++index) text.append(static_cast<char32_t>(graphemes[index]));
+        return QString::fromUcs4(text.constData(), static_cast<qsizetype>(text.size()));
+    }
+
+    [[nodiscard]] QString ghosttyGridHyperlink(const GhosttyGridRef &ref) {
+        std::array<uint8_t, 256> bytes{};
+        size_t byteCount{};
+        GhosttyResult result = ghostty_grid_ref_hyperlink_uri(&ref, bytes.data(), bytes.size(), &byteCount);
+        if (result == GHOSTTY_OUT_OF_SPACE && byteCount > 0) {
+            QByteArray dynamic;
+            dynamic.resize(static_cast<qsizetype>(byteCount));
+            result = ghostty_grid_ref_hyperlink_uri(&ref, reinterpret_cast<uint8_t *>(dynamic.data()), static_cast<size_t>(dynamic.size()), &byteCount);
+            if (result != GHOSTTY_SUCCESS || byteCount == 0) return {};
+
+            dynamic.resize(static_cast<qsizetype>(byteCount));
+            return QString::fromUtf8(dynamic.constData(), dynamic.size());
+        }
+
+        if (result != GHOSTTY_SUCCESS || byteCount == 0) return {};
+        return QString::fromUtf8(reinterpret_cast<const char *>(bytes.data()), static_cast<qsizetype>(byteCount));
+    }
+}
+
+// ghostty -> qt
 template<>
-TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, const VTermScreenCell &s, const int depth) {
+QColor uni_cast<QColor, GhosttyColorRgb>(const GhosttyColorRgb &s, const int depth) {
     Q_UNUSED(depth);
+    return {s.r, s.g, s.b};
+}
+
+template<>
+int uni_cast<int, GhosttyRenderStateCursorVisualStyle>(const GhosttyRenderStateCursorVisualStyle &s, const int depth) {
+    Q_UNUSED(depth);
+    switch (s) {
+        case GHOSTTY_RENDER_STATE_CURSOR_VISUAL_STYLE_BLOCK:
+        case GHOSTTY_RENDER_STATE_CURSOR_VISUAL_STYLE_BLOCK_HOLLOW:
+            return TerminalCursorShape::Block;
+        case GHOSTTY_RENDER_STATE_CURSOR_VISUAL_STYLE_UNDERLINE:
+            return TerminalCursorShape::Underline;
+        case GHOSTTY_RENDER_STATE_CURSOR_VISUAL_STYLE_BAR:
+        default:
+            return TerminalCursorShape::BarLeft;
+    }
+}
+
+template<>
+int uni_cast<int, GhosttyTerminal>(const GhosttyTerminal &s, const int depth) {
+    Q_UNUSED(depth);
+    bool any = false;
+    bool button = false;
+    bool normal = false;
+    bool x10 = false;
+    ghostty_terminal_mode_get(s, GHOSTTY_MODE_ANY_MOUSE, &any);
+    ghostty_terminal_mode_get(s, GHOSTTY_MODE_BUTTON_MOUSE, &button);
+    ghostty_terminal_mode_get(s, GHOSTTY_MODE_NORMAL_MOUSE, &normal);
+    ghostty_terminal_mode_get(s, GHOSTTY_MODE_X10_MOUSE, &x10);
+    if (any) return TerminalMouseMode::Move;
+    if (button) return TerminalMouseMode::Drag;
+    if (normal || x10) return TerminalMouseMode::Click;
+    return TerminalMouseMode::None;
+}
+
+template<>
+TerminalCell uni_cast<TerminalCell, GhosttyCellRef>(const GhosttyCellRef &s, const int depth) {
+    Q_UNUSED(depth);
+
+    GhosttyColorRgb defaultPalette[256]{};
+    const GhosttyColorRgb *palette = s.palette;
+    if (!palette) {
+        ghostty_color_palette_default(defaultPalette);
+        palette = defaultPalette;
+    }
+
     TerminalCell d{};
-    d.width = static_cast<int>(s.width);
+    d.width = 1;
+    d.text = QStringLiteral(" ");
+    d.foreground = uni_cast<QColor>(s.foreground);
+    d.background = uni_cast<QColor>(s.background);
 
-    if (s.chars[0] == UINT32_MAX) {
-        d.text = QString{};
-        d.width = 0;
-    } else if (s.chars[0] == 0 || s.chars[0] == ' ') {
-        d.text = ' ';
-    } else {
-        int length = 0;
-        while (length < VTERM_MAX_CHARS_PER_CELL && s.chars[length] != 0 && s.chars[length] != UINT32_MAX) ++length;
-        d.text = QString::fromUcs4(s.chars, length);
+    if (!s.ref) return d;
+    const GhosttyGridRef &ref = *s.ref;
+
+    GhosttyCell raw{};
+    if (ghostty_grid_ref_cell(&ref, &raw) == GHOSTTY_SUCCESS) {
+        GhosttyCellWide wide = GHOSTTY_CELL_WIDE_NARROW;
+        if (ghostty_cell_get(raw, GHOSTTY_CELL_DATA_WIDE, &wide) == GHOSTTY_SUCCESS) {
+            switch (wide) {
+                case GHOSTTY_CELL_WIDE_WIDE:
+                    d.width = 2;
+                    break;
+                case GHOSTTY_CELL_WIDE_SPACER_TAIL:
+                    d.width = 0;
+                    d.text.clear();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        GhosttyCellContentTag contentTag = GHOSTTY_CELL_CONTENT_CODEPOINT;
+        if (ghostty_cell_get(raw, GHOSTTY_CELL_DATA_CONTENT_TAG, &contentTag) == GHOSTTY_SUCCESS) {
+            if (contentTag == GHOSTTY_CELL_CONTENT_BG_COLOR_RGB) {
+                GhosttyColorRgb background{};
+                if (ghostty_cell_get(raw, GHOSTTY_CELL_DATA_COLOR_RGB, &background) == GHOSTTY_SUCCESS) {
+                    d.background = uni_cast<QColor>(background);
+                }
+            } else if (contentTag == GHOSTTY_CELL_CONTENT_BG_COLOR_PALETTE) {
+                GhosttyColorPaletteIndex index{};
+                if (ghostty_cell_get(raw, GHOSTTY_CELL_DATA_COLOR_PALETTE, &index) == GHOSTTY_SUCCESS) {
+                    d.background = uni_cast<QColor>(palette[index]);
+                }
+            }
+        }
     }
 
-    VTermColor foreground = s.fg;
-    vterm_screen_convert_color_to_rgb(vts, &foreground);
-    d.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
+    const QString text = ghosttyGridText(ref);
+    if (!text.isEmpty()) d.text = text;
+    d.hyperlink = ghosttyGridHyperlink(ref);
 
-    VTermColor background = s.bg;
-    vterm_screen_convert_color_to_rgb(vts, &background);
-    d.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
-
-    d.bold = s.attrs.bold;
-    d.faint = s.attrs.blink;
-    d.italic = s.attrs.italic;
-    d.underline = s.attrs.underline != VTERM_UNDERLINE_OFF;
-    d.strike = s.attrs.strike;
-
-    if (s.attrs.reverse) std::swap(d.foreground, d.background);
-    if (d.faint) {
-        d.foreground = QColor(
-            (d.foreground.red() * 55 + d.background.red() * 45) / 100,
-            (d.foreground.green() * 55 + d.background.green() * 45) / 100,
-            (d.foreground.blue() * 55 + d.background.blue() * 45) / 100
-        );
+    GhosttyStyle style{};
+    style.size = sizeof(GhosttyStyle);
+    if (ghostty_grid_ref_style(&ref, &style) == GHOSTTY_SUCCESS) {
+        d.foreground = ghosttyStyleColor(style.fg_color, s.foreground, palette);
+        if (style.bg_color.tag != GHOSTTY_STYLE_COLOR_NONE) d.background = ghosttyStyleColor(style.bg_color, s.background, palette);
+        d.bold = style.bold;
+        d.faint = style.faint;
+        d.italic = style.italic;
+        d.underline = style.underline != 0;
+        d.strike = style.strikethrough;
+        if (style.inverse) std::swap(d.foreground, d.background);
+        if (style.invisible) d.foreground = d.background;
     }
-    if (s.attrs.conceal) d.foreground = d.background;
 
+    if (d.faint) d.foreground = faintColor(d.foreground, d.background);
     return d;
 }
 
-// qt-> vterm
 template<>
-VTermButton uni_cast<VTermButton, int>(const int &s, const int depth) {
+QString uni_cast<QString, GhosttyString>(const GhosttyString &s, const int depth) {
     Q_UNUSED(depth);
-    switch (s) {
-        case Qt::LeftButton:
-            return 1;
-        case Qt::MiddleButton:
-            return 2;
-        case Qt::RightButton:
-            return 3;
-        default:
-            return 0;
-    }
+    if (!s.ptr || s.len == 0) return {};
+    return QString::fromUtf8(reinterpret_cast<const char *>(s.ptr), static_cast<qsizetype>(s.len));
+}
+
+// qt -> ghostty
+template<>
+GhosttyMods uni_cast<GhosttyMods, int>(const int &s, const int depth) {
+    Q_UNUSED(depth);
+    GhosttyMods d = 0;
+    if (s & Qt::ShiftModifier) d |= GHOSTTY_MODS_SHIFT;
+    if (s & Qt::ControlModifier) d |= GHOSTTY_MODS_CTRL;
+    if (s & Qt::AltModifier) d |= GHOSTTY_MODS_ALT;
+    if (s & Qt::MetaModifier) d |= GHOSTTY_MODS_SUPER;
+    return d;
 }
 
 template<>
-VTermKey uni_cast<VTermKey, int>(const int &s, const int depth) {
+GhosttyKey uni_cast<GhosttyKey, int>(const int &s, const int depth) {
     Q_UNUSED(depth);
-    int d = VTERM_KEY_NONE;
+    if (s >= Qt::Key_A && s <= Qt::Key_Z) return static_cast<GhosttyKey>(GHOSTTY_KEY_A + s - Qt::Key_A);
+    if (s >= Qt::Key_0 && s <= Qt::Key_9) return static_cast<GhosttyKey>(GHOSTTY_KEY_DIGIT_0 + s - Qt::Key_0);
+    if (s >= Qt::Key_F1 && s <= Qt::Key_F25) return static_cast<GhosttyKey>(GHOSTTY_KEY_F1 + s - Qt::Key_F1);
+
     switch (s) {
+        case Qt::Key_QuoteLeft: return GHOSTTY_KEY_BACKQUOTE;
+        case Qt::Key_Backslash: return GHOSTTY_KEY_BACKSLASH;
+        case Qt::Key_BracketLeft: return GHOSTTY_KEY_BRACKET_LEFT;
+        case Qt::Key_BracketRight: return GHOSTTY_KEY_BRACKET_RIGHT;
+        case Qt::Key_Comma: return GHOSTTY_KEY_COMMA;
+        case Qt::Key_Equal: return GHOSTTY_KEY_EQUAL;
+        case Qt::Key_Minus: return GHOSTTY_KEY_MINUS;
+        case Qt::Key_Period: return GHOSTTY_KEY_PERIOD;
+        case Qt::Key_Apostrophe: return GHOSTTY_KEY_QUOTE;
+        case Qt::Key_Semicolon: return GHOSTTY_KEY_SEMICOLON;
+        case Qt::Key_Slash: return GHOSTTY_KEY_SLASH;
         case Qt::Key_Return:
-        case Qt::Key_Enter:
-            d = VTERM_KEY_ENTER;
-            break;
+        case Qt::Key_Enter: return GHOSTTY_KEY_ENTER;
+        case Qt::Key_Backspace: return GHOSTTY_KEY_BACKSPACE;
         case Qt::Key_Tab:
-        case Qt::Key_Backtab:
-            d = VTERM_KEY_TAB;
-            break;
-        case Qt::Key_Backspace:
-            d = VTERM_KEY_BACKSPACE;
-            break;
-        case Qt::Key_Escape:
-            d = VTERM_KEY_ESCAPE;
-            break;
-        case Qt::Key_Up:
-            d = VTERM_KEY_UP;
-            break;
-        case Qt::Key_Down:
-            d = VTERM_KEY_DOWN;
-            break;
-        case Qt::Key_Left:
-            d = VTERM_KEY_LEFT;
-            break;
-        case Qt::Key_Right:
-            d = VTERM_KEY_RIGHT;
-            break;
-        case Qt::Key_Insert:
-            d = VTERM_KEY_INS;
-            break;
-        case Qt::Key_Delete:
-            d = VTERM_KEY_DEL;
-            break;
-        case Qt::Key_Home:
-            d = VTERM_KEY_HOME;
-            break;
-        case Qt::Key_End:
-            d = VTERM_KEY_END;
-            break;
-        case Qt::Key_PageUp:
-            d = VTERM_KEY_PAGEUP;
-            break;
-        case Qt::Key_PageDown:
-            d = VTERM_KEY_PAGEDOWN;
-            break;
-        default:
-            if (s >= Qt::Key_F1 && s <= Qt::Key_F35) {
-                d = VTERM_KEY_FUNCTION(s - Qt::Key_F1 + 1);
-            }
-            break;
+        case Qt::Key_Backtab: return GHOSTTY_KEY_TAB;
+        case Qt::Key_Escape: return GHOSTTY_KEY_ESCAPE;
+        case Qt::Key_Space: return GHOSTTY_KEY_SPACE;
+        case Qt::Key_Insert: return GHOSTTY_KEY_INSERT;
+        case Qt::Key_Delete: return GHOSTTY_KEY_DELETE;
+        case Qt::Key_Home: return GHOSTTY_KEY_HOME;
+        case Qt::Key_End: return GHOSTTY_KEY_END;
+        case Qt::Key_PageUp: return GHOSTTY_KEY_PAGE_UP;
+        case Qt::Key_PageDown: return GHOSTTY_KEY_PAGE_DOWN;
+        case Qt::Key_Up: return GHOSTTY_KEY_ARROW_UP;
+        case Qt::Key_Down: return GHOSTTY_KEY_ARROW_DOWN;
+        case Qt::Key_Left: return GHOSTTY_KEY_ARROW_LEFT;
+        case Qt::Key_Right: return GHOSTTY_KEY_ARROW_RIGHT;
+        default: return GHOSTTY_KEY_UNIDENTIFIED;
     }
-    return static_cast<VTermKey>(d);
 }
 
 template<>
-VTermModifier uni_cast<VTermModifier, int>(const int &s, const int depth) {
+GhosttyMouseButton uni_cast<GhosttyMouseButton, int>(const int &s, const int depth) {
     Q_UNUSED(depth);
-    int d = VTERM_MOD_NONE;
-    if (s & Qt::ShiftModifier) d |= VTERM_MOD_SHIFT;
-    if (s & Qt::AltModifier) d |= VTERM_MOD_ALT;
-    if (s & Qt::ControlModifier) d |= VTERM_MOD_CTRL;
-    return static_cast<VTermModifier>(d);
+    switch (s) {
+        case Qt::LeftButton: return GHOSTTY_MOUSE_BUTTON_LEFT;
+        case Qt::RightButton: return GHOSTTY_MOUSE_BUTTON_RIGHT;
+        case Qt::MiddleButton: return GHOSTTY_MOUSE_BUTTON_MIDDLE;
+        default: return GHOSTTY_MOUSE_BUTTON_UNKNOWN;
+    }
 }
+
+template<>
+GhosttyString uni_cast<GhosttyString, GhosttyStaticString>(const GhosttyStaticString &s, const int depth) {
+    Q_UNUSED(depth);
+    if (!s.value) return {};
+    return {
+        reinterpret_cast<const uint8_t *>(s.value),
+        std::strlen(s.value)
+    };
+}
+
