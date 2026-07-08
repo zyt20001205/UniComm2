@@ -305,7 +305,7 @@ INTERNAL void vterm_state_setpen(VTermState *state, const long args[], int argco
       break;
     }
 
-    case 2: // Dim/faint on
+    case 2: // Dim on
       state->pen.dim = 1;
       setpenattr_bool(state, VTERM_ATTR_DIM, 1);
       break;

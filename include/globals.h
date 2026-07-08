@@ -290,15 +290,15 @@ namespace GitStatusCode {
 struct TerminalCell {
     int width{};
     QString text{};
+    bool bold{};
+    bool underline{};
+    bool italic{};
+    bool strike{};
     QColor foreground{};
     QColor background{};
-    QString hyperlink{};
-    bool bold{};
-    bool faint{};
-    bool italic{};
-    bool underline{};
+    bool dim{};
     bool overline{};
-    bool strike{};
+    QString hyperlink{};
 };
 
 #endif //UNICOMM_GLOBALS_H

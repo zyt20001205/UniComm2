@@ -487,6 +487,11 @@ TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, con
         d.text = QString::fromUcs4(s.chars, length);
     }
 
+    d.bold = s.attrs.bold;
+    d.underline = s.attrs.underline != VTERM_UNDERLINE_OFF;
+    d.italic = s.attrs.italic;
+    d.strike = s.attrs.strike;
+
     VTermColor foreground = s.fg;
     vterm_screen_convert_color_to_rgb(vts, &foreground);
     d.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
@@ -495,15 +500,11 @@ TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, con
     vterm_screen_convert_color_to_rgb(vts, &background);
     d.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
 
-    d.bold = s.attrs.bold;
-    d.faint = s.attrs.dim;
-    d.italic = s.attrs.italic;
-    d.underline = s.attrs.underline != VTERM_UNDERLINE_OFF;
+    d.dim = s.attrs.dim;
     d.overline = s.attrs.overline;
-    d.strike = s.attrs.strike;
 
     if (s.attrs.reverse) std::swap(d.foreground, d.background);
-    if (d.faint) {
+    if (d.dim) {
         d.foreground = QColor(
             (d.foreground.red() * 55 + d.background.red() * 45) / 100,
             (d.foreground.green() * 55 + d.background.green() * 45) / 100,

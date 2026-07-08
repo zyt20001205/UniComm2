@@ -47,8 +47,8 @@ void TerminalWidget::paint(QPainter *painter) {
             if (!cell.text.isEmpty()) {
                 QFont cellFont = m_font;
                 cellFont.setBold(cell.bold);
-                cellFont.setItalic(cell.italic);
                 cellFont.setUnderline(cell.underline);
+                cellFont.setItalic(cell.italic);
                 cellFont.setStrikeOut(cell.strike);
                 if (cellFont != currentFont) {
                     currentFont = cellFont;

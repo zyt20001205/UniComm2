@@ -58,8 +58,6 @@ signals:
     void setCursorMode(int mode);
 
 private:
-    [[nodiscard]] QByteArray inputTranslate(const QByteArray &bytes);
-
     void renderScreen();
 
     void outputRead();
@@ -88,7 +86,6 @@ private:
     VTermScreenCallbacks m_callbacks{};
     VTermStateFallbacks m_fallbacks{};
     VTermSelectionCallbacks m_selectionCallbacks{};
-    QByteArray m_pendingEscape{};
     QPoint m_cursorPosition{};
     bool m_cursorVisible{true};
     QList<QList<TerminalCell> > m_scrollback{};

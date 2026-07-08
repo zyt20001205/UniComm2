@@ -66,99 +66,10 @@ void VtermWidget::reset(const bool hard) {
 
 void VtermWidget::inputWrite(const QByteArray &bytes) {
     if (bytes.isEmpty()) return;
-    const QByteArray translated = inputTranslate(bytes);
-    if (translated.isEmpty()) return;
-    vterm_input_write(m_vterm, translated.constData(), static_cast<size_t>(translated.size()));
+    vterm_input_write(m_vterm, bytes.constData(), static_cast<size_t>(bytes.size()));
     vterm_screen_flush_damage(m_screen);
     m_scrollOffset = qBound(0, m_scrollOffset, m_scrollback.size());
     renderScreen();
-}
-
-QByteArray VtermWidget::inputTranslate(const QByteArray &bytes) {
-    QByteArray input = m_pendingEscape + bytes;
-    m_pendingEscape.clear();
-
-    QByteArray output{};
-    output.reserve(input.size());
-
-    int i = 0;
-    while (i < input.size()) {
-        if (input[i] != '\x1b') {
-            output.append(input[i++]);
-            continue;
-        }
-
-        if (i + 1 >= input.size()) {
-            m_pendingEscape = input.mid(i);
-            break;
-        }
-
-        if (input[i + 1] != '[') {
-            output.append(input[i++]);
-            continue;
-        }
-
-        int end = i + 2;
-        while (end < input.size()) {
-            const auto ch = static_cast<unsigned char>(input[end]);
-            if (ch >= 0x40 && ch <= 0x7e) break;
-            ++end;
-        }
-
-        if (end >= input.size()) {
-            m_pendingEscape = input.mid(i);
-            break;
-        }
-
-        if (input[end] != 'm') {
-            output.append(input.mid(i, end - i + 1));
-            i = end + 1;
-            continue;
-        }
-
-        const QByteArray params = input.mid(i + 2, end - i - 2);
-        const QList<QByteArray> parts = params.isEmpty() ? QList<QByteArray>{"0"} : params.split(';');
-        int faintState = -1;
-        bool faintOffNeedsReset = false;
-        int skip = 0;
-
-        for (int part = 0; part < parts.size(); ++part) {
-            bool ok = false;
-            const int value = parts[part].toInt(&ok);
-            if (!ok) continue;
-
-            if (skip > 0) {
-                --skip;
-                continue;
-            }
-
-            if (value == 38 || value == 48 || value == 58) {
-                bool modeOk = false;
-                const int mode = part + 1 < parts.size() ? parts[part + 1].toInt(&modeOk) : -1;
-                if (modeOk && mode == 2) skip = 4;
-                else if (modeOk && mode == 5) skip = 2;
-                continue;
-            }
-
-            if (value == 0) {
-                faintState = 0;
-                faintOffNeedsReset = false;
-            } else if (value == 2) {
-                faintState = 1;
-            } else if (value == 22) {
-                faintState = 0;
-                faintOffNeedsReset = true;
-            }
-        }
-
-        output.append(input.mid(i, end - i));
-        if (faintState == 1) output.append(";5");
-        else if (faintState == 0 && faintOffNeedsReset) output.append(";25");
-        output.append('m');
-        i = end + 1;
-    }
-
-    return output;
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
