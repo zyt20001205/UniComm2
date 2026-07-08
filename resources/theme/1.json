@@ -56,7 +56,7 @@
     "string": {
       "fore": "#6aab73"
     },
-    "stringEol": {
+    "stringEOL": {
       "fore": "#f75464"
     },
     "propertyName": {
@@ -148,6 +148,103 @@
     },
     "codeBk": {
       "fore": "#6aab73"
+    }
+  },
+  "powershell": {
+    "comment": {
+      "fore": "#7a7e85"
+    },
+    "string": {
+      "fore": "#6aab73"
+    },
+    "character": {
+      "fore": "#6aab73"
+    },
+    "number": {
+      "fore": "#2aacb8"
+    },
+    "variable": {
+      "fore": "#bcbec4"
+    },
+    "operator": {
+      "fore": "#bcbec4"
+    },
+    "identifier": {
+      "fore": "#bcbec4"
+    },
+    "keyword": {
+      "fore": "#cf8e6d"
+    },
+    "cmdlet": {
+      "fore": "#56a8f5"
+    },
+    "alias": {
+      "fore": "#cf8e6d"
+    },
+    "function": {
+      "fore": "#bcbec4"
+    },
+    "user1": {
+      "fore": "#cf8e6d"
+    },
+    "commentStream": {
+      "fore": "#7a7e85"
+    },
+    "hereString": {
+      "fore": "#6aab73"
+    },
+    "hereCharacter": {
+      "fore": "#6aab73"
+    },
+    "commentDocKeyword": {
+      "fore": "#7a7e85"
+    }
+  },
+  "toml": {
+    "comment": {
+      "fore": "#7a7e85"
+    },
+    "identifier": {
+      "fore": "#ffffff"
+    },
+    "keyword": {
+      "fore": "#cf8e6d"
+    },
+    "number": {
+      "fore": "#2aacb8"
+    },
+    "table": {
+      "fore": "#b5b6e3"
+    },
+    "key": {
+      "fore": "#cf8e6d"
+    },
+    "error": {
+      "fore": "#f75464"
+    },
+    "operator": {
+      "fore": "#bcbec4"
+    },
+    "stringSQ": {
+      "fore": "#6aab73"
+    },
+    "stringDQ": {
+      "fore": "#6aab73"
+    },
+    "tripleStringSQ": {
+      "fore": "#6aab73"
+    },
+    "tripleStringDQ": {
+      "fore": "#6aab73"
+    },
+    "escapeChar": {
+      "fore": "#cf8e6d"
+    },
+    "datetime": {
+      "fore": "#2aacb8"
+    },
+    "stringEOL": {
+      "fore": "#f75464"
     }
   }
 }

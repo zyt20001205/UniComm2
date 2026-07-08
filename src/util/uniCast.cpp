@@ -271,6 +271,7 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     if (suffix == "md") return QUrl("qrc:/icon/fileTypeMarkdown.svg");
     if (suffix == "pdf") return QUrl("qrc:/icon/fileTypePdf.svg");
     if (suffix == "ps1") return QUrl("qrc:/icon/fileTypePowershell.svg");
+    if (suffix == "toml") return QUrl("qrc:/icon/fileTypeToml.svg");
     if (suffix == "txt") return QUrl("qrc:/icon/fileTypeTxt.svg");
     if (fileInfo.isDir() && fileInfo.fileName() == ".git") return QUrl("qrc:/icon/fileTypeFolderGit.svg");
     if (fileInfo.isDir() && fileInfo.fileName() == ".idea") return QUrl("qrc:/icon/fileTypeFolderIntellij.svg");

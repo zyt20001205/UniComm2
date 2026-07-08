@@ -362,7 +362,7 @@ void EditorWidget::lexerInit() const {
         m_scintillaWidget->styleDefine(
             SCE_JSON_STRINGEOL,
             QVariantHash{
-                {"fore", ScintillaWidget::colorGet(jsonTheme["stringEol"].toObject()["fore"].toString())}
+                {"fore", ScintillaWidget::colorGet(jsonTheme["stringEOL"].toObject()["fore"].toString())}
             });
         m_scintillaWidget->styleDefine(
             SCE_JSON_PROPERTYNAME,
@@ -516,295 +516,174 @@ void EditorWidget::lexerInit() const {
                 {"fore", ScintillaWidget::colorGet(markdownTheme["codeBk"].toObject()["fore"].toString())}
             });
     }
-
-    // abaqus
-    else if (suffix == "aba" || suffix == "inp") {
-        m_scintillaWidget->lexerSet("abaqus");
-    }
-    // ada
-    else if (suffix == "adb" || suffix == "ads") {
-        m_scintillaWidget->lexerSet("ada");
-    }
-    // apdl
-    else if (suffix == "ans" || suffix == "mac") {
-        m_scintillaWidget->lexerSet("apdl");
-    }
-    // asciidoc
-    else if (suffix == "adoc" || suffix == "asciidoc") {
-        m_scintillaWidget->lexerSet("asciidoc");
-    }
-    // asm
-    else if (suffix == "asm" || suffix == "s" || suffix == "sx" || suffix == "a51") {
-        m_scintillaWidget->lexerSet("asm");
-    }
-    // asn1
-    else if (suffix == "asn" || suffix == "asn1") {
-        m_scintillaWidget->lexerSet("asn1");
-    }
-    // asy
-    else if (suffix == "asy") {
-        m_scintillaWidget->lexerSet("asy");
-    }
-    // au3
-    else if (suffix == "au3") {
-        m_scintillaWidget->lexerSet("au3");
-    }
-    // bash
-    else if (suffix == "sh" || suffix == "bash" || suffix == "zsh" || suffix == "ksh" || fileName == ".bashrc" || fileName == ".profile") {
-        m_scintillaWidget->lexerSet("bash");
-    }
-    // batch
-    else if (suffix == "bat" || suffix == "cmd" || suffix == "nt") {
-        m_scintillaWidget->lexerSet("batch");
-    }
-    // bib
-    else if (suffix == "bib") {
-        m_scintillaWidget->lexerSet("bib");
-    }
-    // blitzbasic
-    else if (suffix == "bb") {
-        m_scintillaWidget->lexerSet("blitzbasic");
-    }
-    // caml
-    else if (suffix == "ml" || suffix == "mli") {
-        m_scintillaWidget->lexerSet("caml");
-    }
-    // cil
-    else if (suffix == "il") {
-        m_scintillaWidget->lexerSet("cil");
-    }
-    // cmake
-    else if (suffix == "cmake" || fileName == "cmakelists.txt") {
-        m_scintillaWidget->lexerSet("cmake");
-    }
-    // COBOL
-    else if (suffix == "cob" || suffix == "cbl") {
-        m_scintillaWidget->lexerSet("COBOL");
-    }
-    // coffeescript
-    else if (suffix == "coffee" || suffix == "litcoffee") {
-        m_scintillaWidget->lexerSet("coffeescript");
-    }
-    // conf
-    else if (suffix == "cfg" || suffix == "conf") {
-        m_scintillaWidget->lexerSet("conf");
-    }
-    // cpp
-    else if (suffix == "c" || suffix == "cc" || suffix == "cpp" || suffix == "cxx" || suffix == "h" || suffix == "hh" || suffix == "hpp" || suffix == "hxx" || suffix == "inl" || suffix == "ino" || suffix == "js" || suffix == "ts") {
-        m_scintillaWidget->lexerSet("cpp");
-    }
-    // csound
-    else if (suffix == "csd" || suffix == "orc" || suffix == "sco") {
-        m_scintillaWidget->lexerSet("csound");
-    }
-    // css
-    else if (suffix == "css" || suffix == "scss" || suffix == "less") {
-        m_scintillaWidget->lexerSet("css");
-    }
-    // d
-    else if (suffix == "d") {
-        m_scintillaWidget->lexerSet("d");
-    }
-    // dart
-    else if (suffix == "dart") {
-        m_scintillaWidget->lexerSet("dart");
-    }
-    // diff
-    else if (suffix == "diff" || suffix == "patch") {
-        m_scintillaWidget->lexerSet("diff");
-    }
-    // eiffel
-    else if (suffix == "e") {
-        m_scintillaWidget->lexerSet("eiffel");
-    }
-    // erlang
-    else if (suffix == "erl" || suffix == "hrl") {
-        m_scintillaWidget->lexerSet("erlang");
-    }
-    // fsharp
-    else if (suffix == "fs" || suffix == "fsi" || suffix == "fsx") {
-        m_scintillaWidget->lexerSet("fsharp");
-    }
-    // fortran
-    else if (suffix == "f" || suffix == "for" || suffix == "f90" || suffix == "f95" || suffix == "f03" || suffix == "f08") {
-        m_scintillaWidget->lexerSet("fortran");
-    }
-    // forth
-    else if (suffix == "forth" || suffix == "fth") {
-        m_scintillaWidget->lexerSet("forth");
-    }
-    // gdscript
-    else if (suffix == "gd") {
-        m_scintillaWidget->lexerSet("gdscript");
-    }
-    // haskell
-    else if (suffix == "hs" || suffix == "lhs") {
-        m_scintillaWidget->lexerSet("haskell");
-    }
-    // hypertext
-    else if (suffix == "html" || suffix == "htm" || suffix == "xhtml" || suffix == "shtml" || suffix == "php") {
-        m_scintillaWidget->lexerSet("hypertext");
-    }
-    // ihex
-    else if (suffix == "hex") {
-        m_scintillaWidget->lexerSet("ihex");
-    }
-    // inno
-    else if (suffix == "iss") {
-        m_scintillaWidget->lexerSet("inno");
-    }
-    // julia
-    else if (suffix == "jl") {
-        m_scintillaWidget->lexerSet("julia");
-    }
-    // latex
-    else if (suffix == "tex" || suffix == "sty" || suffix == "ltx") {
-        m_scintillaWidget->lexerSet("latex");
-    }
-    // lisp
-    else if (suffix == "lisp" || suffix == "lsp" || suffix == "cl" || suffix == "el") {
-        m_scintillaWidget->lexerSet("lisp");
-    }
-    // lua
-    else if (suffix == "lua") {
-        m_scintillaWidget->lexerSet("lua");
-    }
-    // makefile
-    else if (suffix == "mak" || suffix == "mk" || fileName == "makefile") {
-        m_scintillaWidget->lexerSet("makefile");
-    }
-    // matlab
-    else if (suffix == "m") {
-        m_scintillaWidget->lexerSet("matlab");
-    }
-    // maxima
-    else if (suffix == "wxm") {
-        m_scintillaWidget->lexerSet("maxima");
-    }
-    // metapost
-    else if (suffix == "mp") {
-        m_scintillaWidget->lexerSet("metapost");
-    }
-    // nim
-    else if (suffix == "nim" || suffix == "nims") {
-        m_scintillaWidget->lexerSet("nim");
-    }
-    // nix
-    else if (suffix == "nix") {
-        m_scintillaWidget->lexerSet("nix");
-    }
-    // nsis
-    else if (suffix == "nsi" || suffix == "nsh") {
-        m_scintillaWidget->lexerSet("nsis");
-    }
-    // null
-    else if (suffix == "") {
-        m_scintillaWidget->lexerSet("null");
-    }
-    // pascal
-    else if (suffix == "pas" || suffix == "pp" || suffix == "inc") {
-        m_scintillaWidget->lexerSet("pascal");
-    }
-    // perl
-    else if (suffix == "pl" || suffix == "pm" || suffix == "pod") {
-        m_scintillaWidget->lexerSet("perl");
-    }
-    // po
-    else if (suffix == "po" || suffix == "pot") {
-        m_scintillaWidget->lexerSet("po");
-    }
     // powershell
-    else if (suffix == "ps1" || suffix == "psm1" || suffix == "psd1") {
+    else if (suffix == "ps1") {
+        const auto powershellTheme = m_theme["powershell"].toObject();
         m_scintillaWidget->lexerSet("powershell");
-    }
-    // props
-    else if (suffix == "properties" || suffix == "ini" || suffix == "inf") {
-        m_scintillaWidget->lexerSet("props");
-    }
-    // ps
-    else if (suffix == "ps" || suffix == "eps") {
-        m_scintillaWidget->lexerSet("ps");
-    }
-    // python
-    else if (suffix == "py" || suffix == "pyw" || suffix == "pyi") {
-        m_scintillaWidget->lexerSet("python");
-    }
-    // r
-    else if (suffix == "r" || suffix == "rprofile" || suffix == "rmd") {
-        m_scintillaWidget->lexerSet("r");
-    }
-    // registry
-    else if (suffix == "reg") {
-        m_scintillaWidget->lexerSet("registry");
-    }
-    // ruby
-    else if (suffix == "rb" || suffix == "rbw" || fileName == "rakefile" || fileName == "gemfile") {
-        m_scintillaWidget->lexerSet("ruby");
-    }
-    // rust
-    else if (suffix == "rs") {
-        m_scintillaWidget->lexerSet("rust");
-    }
-    // sas
-    else if (suffix == "sas") {
-        m_scintillaWidget->lexerSet("sas");
-    }
-    // SML
-    else if (suffix == "sml" || suffix == "sig") {
-        m_scintillaWidget->lexerSet("SML");
-    }
-    // sql
-    else if (suffix == "sql") {
-        m_scintillaWidget->lexerSet("sql");
-    }
-    // stata
-    else if (suffix == "do" || suffix == "ado") {
-        m_scintillaWidget->lexerSet("stata");
-    }
-    // tcl
-    else if (suffix == "tcl" || suffix == "tk") {
-        m_scintillaWidget->lexerSet("tcl");
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_COMMENT,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["comment"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_STRING,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["string"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_CHARACTER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["character"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_NUMBER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["number"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_VARIABLE,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["variable"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_OPERATOR,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["operator"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_IDENTIFIER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["identifier"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_KEYWORD,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["keyword"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_CMDLET,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["cmdlet"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_ALIAS,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["alias"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_FUNCTION,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["function"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_USER1,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["user1"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_COMMENTSTREAM,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["commentStream"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_HERE_STRING,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["hereString"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_HERE_CHARACTER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["hereCharacter"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_POWERSHELL_COMMENTDOCKEYWORD,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(powershellTheme["commentDocKeyword"].toObject()["fore"].toString())}
+            });
     }
     // toml
     else if (suffix == "toml") {
+        const auto tomlTheme = m_theme["toml"].toObject();
         m_scintillaWidget->lexerSet("toml");
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_COMMENT,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["comment"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_IDENTIFIER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["identifier"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_KEYWORD,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["keyword"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_NUMBER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["number"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_TABLE,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["table"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_KEY,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["key"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_ERROR,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["error"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_OPERATOR,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["operator"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_STRING_SQ,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["stringSQ"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_STRING_DQ,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["stringDQ"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_TRIPLE_STRING_SQ,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["tripleStringSQ"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_TRIPLE_STRING_DQ,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["tripleStringDQ"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_ESCAPECHAR,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["escapeChar"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_DATETIME,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["datetime"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_TOML_STRINGEOL,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(tomlTheme["stringEOL"].toObject()["fore"].toString())}
+            });
     }
-    // troff
-    else if (suffix == "man" || suffix == "me" || suffix == "ms" || suffix == "roff" || suffix == "tmac") {
-        m_scintillaWidget->lexerSet("troff");
-    }
-    // vb
-    else if (suffix == "vb" || suffix == "bas" || suffix == "frm" || suffix == "cls" || suffix == "ctl") {
-        m_scintillaWidget->lexerSet("vb");
-    }
-    // vbscript
-    else if (suffix == "vbs") {
-        m_scintillaWidget->lexerSet("vbscript");
-    }
-    // verilog
-    else if (suffix == "v" || suffix == "vh" || suffix == "sv" || suffix == "svh") {
-        m_scintillaWidget->lexerSet("verilog");
-    }
-    // vhdl
-    else if (suffix == "vhd" || suffix == "vhdl") {
-        m_scintillaWidget->lexerSet("vhdl");
-    }
-    // xml
-    else if (suffix == "xml" || suffix == "xsd" || suffix == "xsl" || suffix == "xslt" || suffix == "svg" || suffix == "ui" || suffix == "qrc") {
-        m_scintillaWidget->lexerSet("xml");
-    }
-    // yaml
-    else if (suffix == "yaml" || suffix == "yml") {
-        m_scintillaWidget->lexerSet("yaml");
-    }
-    // zig
-    else if (suffix == "zig") {
-        m_scintillaWidget->lexerSet("zig");
-    }
-    // automatic
+    // more to go
     else {
-        const auto lexerName = suffix.toUtf8();
-        m_scintillaWidget->lexerSet(lexerName.constData());
+        return;
     }
     m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1"));
     m_scintillaWidget->send(SCI_COLOURISE, 0, -1); // NOLINT
