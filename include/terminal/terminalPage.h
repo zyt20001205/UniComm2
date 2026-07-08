@@ -5,10 +5,10 @@
 #include <QJsonObject>
 
 class ConptyWidget;
+class GhosttyWidget;
 class QCloseEvent;
 class QQuickWidget;
 class TerminalWidget;
-class VtermWidget;
 
 class TerminalPage final: public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -44,7 +44,7 @@ private:
     QObject *m_terminalItem{};
     ConptyWidget *m_conptyWidget{};
     TerminalWidget *m_terminalWidget{};
-    VtermWidget *m_vtermWidget{};
+    GhosttyWidget *m_vtermWidget{};
     int m_rows{1};
     int m_cols{1};
 };

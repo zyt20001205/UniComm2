@@ -9,8 +9,8 @@
 #include "globals.h"
 #include "core/globalManager.h"
 #include "terminal/module/conptyWidget.h"
+#include "terminal/module/ghosttyWidget.h"
 #include "terminal/module/terminalWidget.h"
-#include "terminal/module/vtermWidget.h"
 
 // public
 TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config)
@@ -19,7 +19,7 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
       m_session(session),
       m_widget(new QQuickWidget()),
       m_conptyWidget(new ConptyWidget(this)),
-      m_vtermWidget(new VtermWidget(1, 1, this)) {
+      m_vtermWidget(new GhosttyWidget(1, 1, this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 }
@@ -50,21 +50,21 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalWidget = new TerminalWidget(terminalItem);
     m_terminalWidget->setParentItem(terminalItem);
 
-    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &VtermWidget::keyPressed);
-    connect(m_terminalWidget, &TerminalWidget::mousePressed, m_vtermWidget, &VtermWidget::mousePressed);
-    connect(m_terminalWidget, &TerminalWidget::mouseReleased, m_vtermWidget, &VtermWidget::mouseReleased);
-    connect(m_terminalWidget, &TerminalWidget::mouseMoved, m_vtermWidget, &VtermWidget::mouseMoved);
-    connect(m_terminalWidget, &TerminalWidget::mouseWheeled, m_vtermWidget, &VtermWidget::mouseWheeled);
-    connect(m_terminalWidget, &TerminalWidget::mouseScrolled, m_vtermWidget, &VtermWidget::mouseScrolled);
-    connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
-    connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
-    connect(m_vtermWidget, &VtermWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
-    connect(m_vtermWidget, &VtermWidget::setCursorPosition, m_terminalWidget, &TerminalWidget::cursorPositionSet);
-    connect(m_vtermWidget, &VtermWidget::setCursorVisible, m_terminalWidget, &TerminalWidget::cursorVisibleSet);
-    connect(m_vtermWidget, &VtermWidget::setCursorBlink, m_terminalWidget, &TerminalWidget::cursorBlinkSet);
-    connect(m_vtermWidget, &VtermWidget::setTitle, this, &TerminalPage::titleSet);
-    connect(m_vtermWidget, &VtermWidget::setCursorShape, m_terminalWidget, &TerminalWidget::cursorShapeSet);
-    connect(m_vtermWidget, &VtermWidget::setCursorMode, m_terminalWidget, &TerminalWidget::cursorModeSet);
+    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &GhosttyWidget::keyPressed);
+    connect(m_terminalWidget, &TerminalWidget::mousePressed, m_vtermWidget, &GhosttyWidget::mousePressed);
+    connect(m_terminalWidget, &TerminalWidget::mouseReleased, m_vtermWidget, &GhosttyWidget::mouseReleased);
+    connect(m_terminalWidget, &TerminalWidget::mouseMoved, m_vtermWidget, &GhosttyWidget::mouseMoved);
+    connect(m_terminalWidget, &TerminalWidget::mouseWheeled, m_vtermWidget, &GhosttyWidget::mouseWheeled);
+    connect(m_terminalWidget, &TerminalWidget::mouseScrolled, m_vtermWidget, &GhosttyWidget::mouseScrolled);
+    connect(m_vtermWidget, &GhosttyWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
+    connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &GhosttyWidget::inputWrite);
+    connect(m_vtermWidget, &GhosttyWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
+    connect(m_vtermWidget, &GhosttyWidget::setCursorPosition, m_terminalWidget, &TerminalWidget::cursorPositionSet);
+    connect(m_vtermWidget, &GhosttyWidget::setCursorVisible, m_terminalWidget, &TerminalWidget::cursorVisibleSet);
+    connect(m_vtermWidget, &GhosttyWidget::setCursorBlink, m_terminalWidget, &TerminalWidget::cursorBlinkSet);
+    connect(m_vtermWidget, &GhosttyWidget::setTitle, this, &TerminalPage::titleSet);
+    connect(m_vtermWidget, &GhosttyWidget::setCursorShape, m_terminalWidget, &TerminalWidget::cursorShapeSet);
+    connect(m_vtermWidget, &GhosttyWidget::setCursorMode, m_terminalWidget, &TerminalWidget::cursorModeSet);
 
     connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
 

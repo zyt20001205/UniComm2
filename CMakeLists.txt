@@ -126,6 +126,11 @@ set(DRMINGW_INCLUDE "${DRMINGW_DIR}/include")
 file(GLOB DRMINGW_LIB "${DRMINGW_DIR}/lib/*.a")
 set(DRMINGW_BIN "${DRMINGW_DIR}/bin")
 
+set(GHOSTTY_DIR "${CMAKE_SOURCE_DIR}/3rd/ghostty")
+set(GHOSTTY_INCLUDE "${GHOSTTY_DIR}/include")
+set(GHOSTTY_LIB "${GHOSTTY_DIR}/lib/ghostty-vt.lib")
+set(GHOSTTY_BIN "${GHOSTTY_DIR}/bin")
+
 set(HIGHLIGHT_DIR "${CMAKE_SOURCE_DIR}/3rd/highlight")
 
 set(ICU_DIR "${CMAKE_SOURCE_DIR}/3rd/icu")
@@ -210,6 +215,7 @@ target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE}
         ${CMARK_INCLUDE}
         ${DRMINGW_INCLUDE}
+        ${GHOSTTY_INCLUDE}
         ${ICU_INCLUDE}
         ${KDDW_INCLUDE}
         ${LEPTONICA_INCLUDE}
@@ -245,6 +251,7 @@ target_link_libraries(UniComm PRIVATE
         Qt6::Widgets
         ${CMARK_LIB}
         ${DRMINGW_LIB}
+        ${GHOSTTY_LIB}
         ${ICU_LIB}
         ${KDDW_LIB}
         ${LEPTONICA_LIB}
@@ -354,6 +361,12 @@ else ()
             "${DRMINGW_BIN}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "DRMINGW BIN COPIED")
+    #ghostty-vt
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${GHOSTTY_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "GHOSTTY BIN COPIED")
     #icu-78.3-2
     add_custom_command(TARGET UniComm POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
