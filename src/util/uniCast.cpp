@@ -557,6 +557,25 @@ namespace {
         if (result != GHOSTTY_SUCCESS || byteCount == 0) return {};
         return QString::fromUtf8(reinterpret_cast<const char *>(bytes.data()), static_cast<qsizetype>(byteCount));
     }
+
+    [[nodiscard]] QString ghosttyRenderCellText(const GhosttyRenderStateRowCells cells) {
+        std::array<uint8_t, 64> storage{};
+        GhosttyBuffer buffer{storage.data(), storage.size(), 0};
+        GhosttyResult result = ghostty_render_state_row_cells_get(cells, GHOSTTY_RENDER_STATE_ROW_CELLS_DATA_GRAPHEMES_UTF8, &buffer);
+        if (result == GHOSTTY_OUT_OF_SPACE && buffer.len > 0) {
+            QByteArray dynamic;
+            dynamic.resize(static_cast<qsizetype>(buffer.len));
+            GhosttyBuffer dynamicBuffer{reinterpret_cast<uint8_t *>(dynamic.data()), static_cast<size_t>(dynamic.size()), 0};
+            result = ghostty_render_state_row_cells_get(cells, GHOSTTY_RENDER_STATE_ROW_CELLS_DATA_GRAPHEMES_UTF8, &dynamicBuffer);
+            if (result != GHOSTTY_SUCCESS || dynamicBuffer.len == 0) return {};
+
+            dynamic.resize(static_cast<qsizetype>(dynamicBuffer.len));
+            return QString::fromUtf8(dynamic.constData(), dynamic.size());
+        }
+
+        if (result != GHOSTTY_SUCCESS || buffer.len == 0) return {};
+        return QString::fromUtf8(reinterpret_cast<const char *>(storage.data()), static_cast<qsizetype>(buffer.len));
+    }
 }
 
 // ghostty -> qt
@@ -660,6 +679,73 @@ TerminalCell uni_cast<TerminalCell, GhosttyCellRef>(const GhosttyCellRef &s, con
     if (ghostty_grid_ref_style(&ref, &style) == GHOSTTY_SUCCESS) {
         d.foreground = ghosttyStyleColor(style.fg_color, s.foreground, palette);
         if (style.bg_color.tag != GHOSTTY_STYLE_COLOR_NONE) d.background = ghosttyStyleColor(style.bg_color, s.background, palette);
+        d.bold = style.bold;
+        d.faint = style.faint;
+        d.italic = style.italic;
+        d.underline = style.underline != 0;
+        d.strike = style.strikethrough;
+        if (style.inverse) std::swap(d.foreground, d.background);
+        if (style.invisible) d.foreground = d.background;
+    }
+
+    if (d.faint) d.foreground = faintColor(d.foreground, d.background);
+    return d;
+}
+
+template<>
+TerminalCell uni_cast<TerminalCell, GhosttyRenderCellRef>(const GhosttyRenderCellRef &s, const int depth) {
+    Q_UNUSED(depth);
+
+    GhosttyRenderStateColors defaultColors{};
+    defaultColors.size = sizeof(GhosttyRenderStateColors);
+    defaultColors.foreground = {240, 240, 240};
+    defaultColors.background = {0, 0, 0};
+    ghostty_color_palette_default(defaultColors.palette);
+
+    const GhosttyRenderStateColors &colors = s.colors ? *s.colors : defaultColors;
+
+    TerminalCell d{};
+    d.width = 1;
+    d.text = QStringLiteral(" ");
+    d.foreground = uni_cast<QColor>(colors.foreground);
+    d.background = uni_cast<QColor>(colors.background);
+
+    if (!s.cells) return d;
+
+    GhosttyCell raw{};
+    if (ghostty_render_state_row_cells_get(s.cells, GHOSTTY_RENDER_STATE_ROW_CELLS_DATA_RAW, &raw) == GHOSTTY_SUCCESS) {
+        GhosttyCellWide wide = GHOSTTY_CELL_WIDE_NARROW;
+        if (ghostty_cell_get(raw, GHOSTTY_CELL_DATA_WIDE, &wide) == GHOSTTY_SUCCESS) {
+            switch (wide) {
+                case GHOSTTY_CELL_WIDE_WIDE:
+                    d.width = 2;
+                    break;
+                case GHOSTTY_CELL_WIDE_SPACER_TAIL:
+                    d.width = 0;
+                    d.text.clear();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    const QString text = ghosttyRenderCellText(s.cells);
+    if (!text.isEmpty()) d.text = text;
+
+    GhosttyColorRgb foreground{};
+    if (ghostty_render_state_row_cells_get(s.cells, GHOSTTY_RENDER_STATE_ROW_CELLS_DATA_FG_COLOR, &foreground) == GHOSTTY_SUCCESS) {
+        d.foreground = uni_cast<QColor>(foreground);
+    }
+
+    GhosttyColorRgb background{};
+    if (ghostty_render_state_row_cells_get(s.cells, GHOSTTY_RENDER_STATE_ROW_CELLS_DATA_BG_COLOR, &background) == GHOSTTY_SUCCESS) {
+        d.background = uni_cast<QColor>(background);
+    }
+
+    GhosttyStyle style{};
+    style.size = sizeof(GhosttyStyle);
+    if (ghostty_render_state_row_cells_get(s.cells, GHOSTTY_RENDER_STATE_ROW_CELLS_DATA_STYLE, &style) == GHOSTTY_SUCCESS) {
         d.bold = style.bold;
         d.faint = style.faint;
         d.italic = style.italic;

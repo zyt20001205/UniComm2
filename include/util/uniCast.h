@@ -62,6 +62,11 @@ struct GhosttyCellRef {
     const GhosttyColorRgb *palette{};
 };
 
+struct GhosttyRenderCellRef {
+    GhosttyRenderStateRowCells cells{};
+    const GhosttyRenderStateColors *colors{};
+};
+
 struct GhosttyStaticString {
     const char *value{};
     GhosttyStaticString(const char *s) : value(s) {}
@@ -132,6 +137,9 @@ template<>
 
 template<>
 [[nodiscard]] TerminalCell uni_cast<TerminalCell, GhosttyCellRef>(const GhosttyCellRef &s, int depth);
+
+template<>
+[[nodiscard]] TerminalCell uni_cast<TerminalCell, GhosttyRenderCellRef>(const GhosttyRenderCellRef &s, int depth);
 
 template<>
 [[nodiscard]] QString uni_cast<QString, GhosttyString>(const GhosttyString &s, int depth);

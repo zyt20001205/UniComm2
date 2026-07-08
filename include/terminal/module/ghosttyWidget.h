@@ -9,16 +9,9 @@
 #include <cstddef>
 #include <cstdint>
 
-#ifdef emit
-#pragma push_macro("emit")
-#undef emit
-#define UNICOMM_GHOSTTYWIDGET_RESTORE_QT_EMIT
-#endif
-#include <ghostty/vt/terminal.h>
-#ifdef UNICOMM_GHOSTTYWIDGET_RESTORE_QT_EMIT
-#pragma pop_macro("emit")
-#undef UNICOMM_GHOSTTYWIDGET_RESTORE_QT_EMIT
-#endif
+#include <ghostty/vt/types.h>
+#include <ghostty/vt/device.h>
+#include <ghostty/vt/size_report.h>
 
 typedef struct GhosttyKeyEncoderImpl *GhosttyKeyEncoder;
 typedef struct GhosttyKeyEventImpl *GhosttyKeyEvent;
@@ -101,6 +94,8 @@ private:
     int m_cols{};
     GhosttyTerminal m_terminal{};
     GhosttyRenderState m_renderState{};
+    GhosttyRenderStateRowIterator m_rowIterator{};
+    GhosttyRenderStateRowCells m_rowCells{};
     GhosttyKeyEncoder m_keyEncoder{};
     GhosttyKeyEvent m_keyEvent{};
     GhosttyMouseEncoder m_mouseEncoder{};

@@ -1,5 +1,6 @@
 #include "terminal/module/ghosttyWidget.h"
 
+#include <QApplication>
 #include <QByteArray>
 #include <QMetaObject>
 #include <QThread>
@@ -15,6 +16,7 @@
 #include <ghostty/vt/color.h>
 #include <ghostty/vt/render.h>
 #include <ghostty/vt/terminal.h>
+// These two C headers don't provide their own C++ linkage guard.
 extern "C" {
 #include <ghostty/vt/key/encoder.h>
 #include <ghostty/vt/mouse/encoder.h>
@@ -40,6 +42,8 @@ GhosttyWidget::GhosttyWidget(const int rows, const int cols, QObject *parent)
 
     if (ghostty_terminal_new(nullptr, &m_terminal, options) != GHOSTTY_SUCCESS) m_terminal = nullptr;
     if (ghostty_render_state_new(nullptr, &m_renderState) != GHOSTTY_SUCCESS) m_renderState = nullptr;
+    if (ghostty_render_state_row_iterator_new(nullptr, &m_rowIterator) != GHOSTTY_SUCCESS) m_rowIterator = nullptr;
+    if (ghostty_render_state_row_cells_new(nullptr, &m_rowCells) != GHOSTTY_SUCCESS) m_rowCells = nullptr;
     if (ghostty_key_encoder_new(nullptr, &m_keyEncoder) != GHOSTTY_SUCCESS) m_keyEncoder = nullptr;
     if (ghostty_key_event_new(nullptr, &m_keyEvent) != GHOSTTY_SUCCESS) m_keyEvent = nullptr;
     if (ghostty_mouse_encoder_new(nullptr, &m_mouseEncoder) != GHOSTTY_SUCCESS) m_mouseEncoder = nullptr;
@@ -72,6 +76,8 @@ GhosttyWidget::GhosttyWidget(const int rows, const int cols, QObject *parent)
     }));
 
     renderScreen();
+    updateCursor();
+    updateMouseMode();
 }
 
 GhosttyWidget::~GhosttyWidget() {
@@ -79,6 +85,8 @@ GhosttyWidget::~GhosttyWidget() {
     ghostty_mouse_encoder_free(m_mouseEncoder);
     ghostty_key_event_free(m_keyEvent);
     ghostty_key_encoder_free(m_keyEncoder);
+    ghostty_render_state_row_cells_free(m_rowCells);
+    ghostty_render_state_row_iterator_free(m_rowIterator);
     ghostty_render_state_free(m_renderState);
     ghostty_terminal_free(m_terminal);
 }
@@ -90,12 +98,16 @@ void GhosttyWidget::resize(const int rows, const int cols) {
         ghostty_terminal_resize(m_terminal, static_cast<uint16_t>(m_cols), static_cast<uint16_t>(m_rows), 1, 1);
     }
     renderScreen();
+    updateCursor();
+    updateMouseMode();
 }
 
 void GhosttyWidget::reset(const bool hard) {
     Q_UNUSED(hard);
     ghostty_terminal_reset(m_terminal);
     renderScreen();
+    updateCursor();
+    updateMouseMode();
 }
 
 void GhosttyWidget::inputWrite(const QByteArray &bytes) {
@@ -104,6 +116,8 @@ void GhosttyWidget::inputWrite(const QByteArray &bytes) {
         ghostty_terminal_vt_write(m_terminal, &byte, 1);
     }
     renderScreen();
+    updateCursor();
+    updateMouseMode();
 }
 
 void GhosttyWidget::keyPressed(const int key, const int modifiers, const QString &text) {
@@ -141,50 +155,59 @@ void GhosttyWidget::mouseScrolled(const int lines) {
     viewport.value.delta = -lines;
     ghostty_terminal_scroll_viewport(m_terminal, viewport);
     renderScreen();
+    updateCursor();
 }
 
 // private render
 void GhosttyWidget::renderScreen() {
-    if (m_renderState) ghostty_render_state_update(m_renderState, m_terminal);
+    if (!m_terminal || !m_renderState || !m_rowIterator || !m_rowCells) return;
+    if (ghostty_render_state_update(m_renderState, m_terminal) != GHOSTTY_SUCCESS) return;
 
-    GhosttyColorRgb foreground{240, 240, 240};
-    GhosttyColorRgb background{0, 0, 0};
-    GhosttyColorRgb palette[256]{};
-    ghostty_color_palette_default(palette);
-    ghostty_terminal_get(m_terminal, GHOSTTY_TERMINAL_DATA_COLOR_FOREGROUND, &foreground);
-    ghostty_terminal_get(m_terminal, GHOSTTY_TERMINAL_DATA_COLOR_BACKGROUND, &background);
-    ghostty_terminal_get(m_terminal, GHOSTTY_TERMINAL_DATA_COLOR_PALETTE, palette);
+    GhosttyRenderStateColors colors{};
+    colors.size = sizeof(GhosttyRenderStateColors);
+    if (ghostty_render_state_colors_get(m_renderState, &colors) != GHOSTTY_SUCCESS) return;
+
+    if (ghostty_render_state_get(m_renderState, GHOSTTY_RENDER_STATE_DATA_ROW_ITERATOR, &m_rowIterator) != GHOSTTY_SUCCESS) return;
+
+    auto blankCell = [&colors] {
+        TerminalCell cell{};
+        cell.width = 1;
+        cell.text = QStringLiteral(" ");
+        cell.foreground = uni_cast<QColor>(colors.foreground);
+        cell.background = uni_cast<QColor>(colors.background);
+        return cell;
+    };
+
+    auto currentRowCells = [&] {
+        QList<TerminalCell> rowCells{};
+        rowCells.reserve(m_cols);
+        if (ghostty_render_state_row_get(m_rowIterator, GHOSTTY_RENDER_STATE_ROW_DATA_CELLS, &m_rowCells) == GHOSTTY_SUCCESS) {
+            while (ghostty_render_state_row_cells_next(m_rowCells) && rowCells.size() < m_cols) {
+                rowCells.append(uni_cast<TerminalCell>(GhosttyRenderCellRef{m_rowCells, &colors}));
+            }
+        }
+        while (rowCells.size() < m_cols) rowCells.append(blankCell());
+        return rowCells;
+    };
 
     QList<TerminalCell> screen{};
     screen.reserve(m_rows * m_cols);
 
-    for (int row = 0; row < m_rows; ++row) {
-        for (int col = 0; col < m_cols; ++col) {
-            TerminalCell blank{};
-            blank.width = 1;
-            blank.text = QStringLiteral(" ");
-            blank.foreground = uni_cast<QColor>(foreground);
-            blank.background = uni_cast<QColor>(background);
+    int row = 0;
+    while (ghostty_render_state_row_iterator_next(m_rowIterator) && row < m_rows) {
+        screen.append(currentRowCells());
 
-            GhosttyPoint point{};
-            point.tag = GHOSTTY_POINT_TAG_VIEWPORT;
-            point.value.coordinate.x = static_cast<uint16_t>(col);
-            point.value.coordinate.y = static_cast<uint32_t>(row);
+        const bool clean = false;
+        ghostty_render_state_row_set(m_rowIterator, GHOSTTY_RENDER_STATE_ROW_OPTION_DIRTY, &clean);
 
-            GhosttyGridRef ref{};
-            ref.size = sizeof(GhosttyGridRef);
-            if (ghostty_terminal_grid_ref(m_terminal, point, &ref) == GHOSTTY_SUCCESS) {
-                screen.append(uni_cast<TerminalCell>(GhosttyCellRef{&ref, foreground, background, palette}));
-            } else {
-                screen.append(blank);
-            }
-        }
+        ++row;
     }
 
-    updateCursor();
-    updateMouseMode();
-    titleChanged();
-    emit setScreen(m_rows, m_cols, screen, true);
+    while (screen.size() < m_rows * m_cols) screen.append(blankCell());
+    Q_EMIT setScreen(m_rows, m_cols, screen, true);
+
+    const GhosttyRenderStateDirty clean = GHOSTTY_RENDER_STATE_DIRTY_FALSE;
+    ghostty_render_state_set(m_renderState, GHOSTTY_RENDER_STATE_OPTION_DIRTY, &clean);
 }
 
 void GhosttyWidget::updateCursor() {
@@ -204,20 +227,19 @@ void GhosttyWidget::updateCursor() {
         ghostty_render_state_get(m_renderState, GHOSTTY_RENDER_STATE_DATA_CURSOR_VIEWPORT_Y, &y);
     }
 
-    const QPoint nextPosition{static_cast<int>(y), static_cast<int>(x)};
-    emit setCursorPosition(nextPosition);
-    emit setCursorVisible(visible);
-    emit setCursorBlink(blink);
-    emit setCursorShape(uni_cast<int>(style));
+    Q_EMIT setCursorVisible(visible);
+    Q_EMIT setCursorBlink(blink);
+    Q_EMIT setCursorPosition(QPoint{static_cast<int>(y), static_cast<int>(x)});
+    Q_EMIT setCursorShape(uni_cast<int>(style));
 }
 
 void GhosttyWidget::updateMouseMode() {
-    emit setCursorMode(uni_cast<int, GhosttyTerminal>(m_terminal));
+    Q_EMIT setCursorMode(uni_cast<int, GhosttyTerminal>(m_terminal));
 }
 
 void GhosttyWidget::writeEncodedKey(const int key, const int modifiers, const QString &text) {
     if (!m_keyEncoder || !m_keyEvent) {
-        if (!text.isEmpty()) emit outputWrite(text.toUtf8());
+        if (!text.isEmpty()) Q_EMIT outputWrite(text.toUtf8());
         return;
     }
 
@@ -247,15 +269,15 @@ void GhosttyWidget::writeEncodedKey(const int key, const int modifiers, const QS
         result = ghostty_key_encoder_encode(m_keyEncoder, m_keyEvent, dynamic.data(), static_cast<size_t>(dynamic.size()), &len);
         if (result == GHOSTTY_SUCCESS && len > 0) {
             dynamic.resize(static_cast<qsizetype>(len));
-            emit outputWrite(dynamic);
+            Q_EMIT outputWrite(dynamic);
             return;
         }
     }
     if (result == GHOSTTY_SUCCESS && len > 0) {
-        emit outputWrite(QByteArray(buffer.data(), static_cast<qsizetype>(len)));
+        Q_EMIT outputWrite(QByteArray(buffer.data(), static_cast<qsizetype>(len)));
         return;
     }
-    if (!utf8.isEmpty()) emit outputWrite(utf8);
+    if (!utf8.isEmpty()) Q_EMIT outputWrite(utf8);
 }
 
 void GhosttyWidget::writeEncodedMouse(const int row, const int col, const int button, const int modifiers, const int action) {
@@ -285,12 +307,12 @@ void GhosttyWidget::writeEncodedMouse(const int row, const int col, const int bu
     std::array<char, 128> buffer{};
     size_t len = 0;
     const GhosttyResult result = ghostty_mouse_encoder_encode(m_mouseEncoder, m_mouseEvent, buffer.data(), buffer.size(), &len);
-    if (result == GHOSTTY_SUCCESS && len > 0) emit outputWrite(QByteArray(buffer.data(), static_cast<qsizetype>(len)));
+    if (result == GHOSTTY_SUCCESS && len > 0) Q_EMIT outputWrite(QByteArray(buffer.data(), static_cast<qsizetype>(len)));
 }
 
 // private callbacks
 void GhosttyWidget::writePty(const uint8_t *data, const size_t len) {
-    emit outputWrite(QByteArray(reinterpret_cast<const char *>(data), static_cast<qsizetype>(len)));
+    Q_EMIT outputWrite(QByteArray(reinterpret_cast<const char *>(data), static_cast<qsizetype>(len)));
 }
 
 void GhosttyWidget::bell() {
@@ -308,7 +330,7 @@ GhosttyString GhosttyWidget::xtversion() {
 void GhosttyWidget::titleChanged() {
     GhosttyString title{};
     if (ghostty_terminal_get(m_terminal, GHOSTTY_TERMINAL_DATA_TITLE, &title) != GHOSTTY_SUCCESS) return;
-    emit setTitle(uni_cast<QString>(title));
+    Q_EMIT setTitle(uni_cast<QString>(title));
 }
 
 bool GhosttyWidget::sizeReport(GhosttySizeReportSize *size) const {
