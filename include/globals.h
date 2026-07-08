@@ -297,6 +297,7 @@ struct TerminalCell {
     bool faint{};
     bool italic{};
     bool underline{};
+    bool overline{};
     bool strike{};
 };
 

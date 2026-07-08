@@ -56,6 +56,10 @@ void TerminalWidget::paint(QPainter *painter) {
                 }
                 painter->setPen(cell.foreground);
                 painter->drawText(QPointF(rect.left(), y), cell.text);
+                if (cell.overline) {
+                    const qreal thickness = qMax<qreal>(1, m_cellHeight / 18);
+                    painter->fillRect(QRectF(rect.left(), rect.top(), rect.width(), thickness), cell.foreground);
+                }
             }
             // draw cursor
             if (m_atBottom && m_visible && m_blinkPhase && row == m_position.x() && col == m_position.y()) {
