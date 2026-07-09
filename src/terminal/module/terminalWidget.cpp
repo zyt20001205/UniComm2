@@ -14,6 +14,7 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
     setFlag(ItemAcceptsInputMethod, true);
+    setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::AllButtons);
     forceActiveFocus();
     metricsUpdate();
@@ -47,7 +48,7 @@ void TerminalWidget::paint(QPainter *painter) {
             if (!cell.text.isEmpty()) {
                 QFont cellFont = m_font;
                 cellFont.setBold(cell.bold);
-                cellFont.setUnderline(cell.underline);
+                cellFont.setUnderline(cell.underline || cell.uri > 0);
                 cellFont.setItalic(cell.italic);
                 cellFont.setStrikeOut(cell.strike);
                 if (cellFont != currentFont) {
@@ -188,7 +189,14 @@ void TerminalWidget::mousePressEvent(QMouseEvent *event) {
 }
 
 void TerminalWidget::mouseReleaseEvent(QMouseEvent *event) {
-    if (m_mode >= VTERM_PROP_MOUSE_CLICK) {
+    if (m_mode == VTERM_PROP_MOUSE_NONE) {
+        const int row = qFloor(event->position().y() / m_cellHeight);
+        const int col = qFloor(event->position().x() / m_cellWidth);
+        const int index = row * m_cols + col;
+        const bool link = row >= 0 && row < m_rows && col >= 0 && col < m_cols && index >= 0 && index < m_cells.size() && m_cells[index].uri > 0;
+        if (link) emit openLink(m_cells[index].uri);
+    }
+    else {
         emit mouseReleased(
             event->position().y() / m_cellHeight,
             event->position().x() / m_cellWidth,
@@ -201,6 +209,7 @@ void TerminalWidget::mouseReleaseEvent(QMouseEvent *event) {
 
 void TerminalWidget::mouseMoveEvent(QMouseEvent *event) {
     if (m_mode == VTERM_PROP_MOUSE_MOVE || (m_mode == VTERM_PROP_MOUSE_DRAG && event->buttons() != Qt::NoButton)) {
+        setCursor(Qt::IBeamCursor);
         emit mouseMoved(
             event->position().y() / m_cellHeight,
             event->position().x() / m_cellWidth,
@@ -208,8 +217,18 @@ void TerminalWidget::mouseMoveEvent(QMouseEvent *event) {
             event->modifiers()
         );
     }
-    // else qDebug() << "handle move here";
     event->accept();
+}
+
+void TerminalWidget::hoverMoveEvent(QHoverEvent *event) {
+    if (m_mode == VTERM_PROP_MOUSE_NONE) {
+        const int row = qFloor(event->position().y() / m_cellHeight);
+        const int col = qFloor(event->position().x() / m_cellWidth);
+        const int index = row * m_cols + col;
+        const bool link = row >= 0 && row < m_rows && col >= 0 && col < m_cols && index >= 0 && index < m_cells.size() && m_cells[index].uri > 0;
+        setCursor(link ? Qt::PointingHandCursor : Qt::IBeamCursor);
+    }
+    QQuickPaintedItem::hoverMoveEvent(event);
 }
 
 void TerminalWidget::wheelEvent(QWheelEvent *event) {

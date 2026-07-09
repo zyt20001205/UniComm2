@@ -40,6 +40,8 @@ public:
 
     void mouseScrolled(int lines);
 
+    void linkOpen(int uri) const;
+
 signals:
     void outputWrite(const QByteArray &bytes);
 
@@ -70,10 +72,6 @@ private:
 
     int linePush(int cols, const VTermScreenCell *cells);
 
-    int osc(int command, VTermStringFragment frag);
-
-    int osc8(VTermStringFragment frag);
-
     int selectionSet(VTermSelectionMask mask, VTermStringFragment frag);
 
     int selectionQuery(VTermSelectionMask mask);
@@ -84,14 +82,11 @@ private:
     VTermState *m_state{};
     VTermScreen *m_screen{};
     VTermScreenCallbacks m_callbacks{};
-    VTermStateFallbacks m_fallbacks{};
     VTermSelectionCallbacks m_selectionCallbacks{};
     QPoint m_cursorPosition{};
     bool m_cursorVisible{true};
     QList<QList<TerminalCell> > m_scrollback{};
     int m_scrollOffset{};
-    // osc8
-    QString m_hyperlink{};
     // osc52
     QByteArray m_selectionBuffer{};
     QString m_pendingSelection{};

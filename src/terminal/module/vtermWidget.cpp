@@ -1,6 +1,7 @@
 #include "terminal/module/vtermWidget.h"
 
 #include <QClipboard>
+#include <QDesktopServices>
 
 #include "globals.h"
 #include "util/uniCast.h"
@@ -28,9 +29,6 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     m_callbacks.sb_pushline = [](const int cols, const VTermScreenCell *cells, void *user) -> int {
         return static_cast<VtermWidget *>(user)->linePush(cols, cells);
     };
-    m_fallbacks.osc = [](const int command, const VTermStringFragment frag, void *user) -> int {
-        return static_cast<VtermWidget *>(user)->osc(command, frag);
-    };
     m_selectionCallbacks.set = [](const VTermSelectionMask mask, const VTermStringFragment frag, void *user) -> int {
         return static_cast<VtermWidget *>(user)->selectionSet(mask, frag);
     };
@@ -39,7 +37,6 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     };
 
     vterm_screen_set_callbacks(m_screen, &m_callbacks, this);
-    vterm_screen_set_unrecognised_fallbacks(m_screen, &m_fallbacks, this);
     vterm_state_set_selection_callbacks(m_state, &m_selectionCallbacks, this, m_selectionBuffer.data(), static_cast<size_t>(m_selectionBuffer.size()));
     vterm_screen_set_damage_merge(m_screen, VTERM_DAMAGE_SCROLL);
     vterm_screen_reset(m_screen, 1);
@@ -118,6 +115,14 @@ void VtermWidget::mouseScrolled(const int lines) {
     if (lines == 0) return;
     m_scrollOffset = qBound(0, m_scrollOffset + lines, m_scrollback.size());
     renderScreen();
+}
+
+void VtermWidget::linkOpen(const int uri) const {
+    const char *value = vterm_screen_get_uri(m_screen, uri);
+    if (value) {
+        const auto &url = QUrl(QString::fromUtf8(value));
+        QDesktopServices::openUrl(url);
+    }
 }
 
 // private
@@ -225,27 +230,6 @@ int VtermWidget::linePush(const int cols, const VTermScreenCell *cells) {
     return 1;
 }
 
-int VtermWidget::osc(const int command, const VTermStringFragment frag) {
-    switch (command) {
-        case 8: return osc8(frag);
-        default: return 0;
-    }
-}
-
-int VtermWidget::osc8(const VTermStringFragment frag) {
-    if (!frag.final) return 1;
-
-    const QString payload = QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len));
-    const int separator = payload.indexOf(';');
-    if (separator < 0) return 1;
-
-    const QString url = payload.mid(separator + 1);
-    if (url.isEmpty()) return 1;
-
-    m_hyperlink = url;
-    return 1;
-}
-
 int VtermWidget::selectionSet(const VTermSelectionMask mask, const VTermStringFragment frag) {
     if (frag.initial) m_pendingSelection.clear();
     m_pendingSelection += QString::fromUtf8(frag.str, static_cast<qsizetype>(frag.len));
@@ -257,7 +241,7 @@ int VtermWidget::selectionSet(const VTermSelectionMask mask, const VTermStringFr
         if (static_cast<int>(mask) & VTERM_SELECTION_CLIPBOARD) {
             clipboard->setText(m_pendingSelection, QClipboard::Clipboard);
         }
-        if ((static_cast<int>(mask) & VTERM_SELECTION_PRIMARY) && clipboard->supportsSelection()) {
+        if (static_cast<int>(mask) & VTERM_SELECTION_PRIMARY && clipboard->supportsSelection()) {
             clipboard->setText(m_pendingSelection, QClipboard::Selection);
         }
     }

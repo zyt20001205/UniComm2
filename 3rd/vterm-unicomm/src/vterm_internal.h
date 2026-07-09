@@ -52,6 +52,7 @@ struct VTermPen
   unsigned int baseline:2;
   unsigned int dim:1;
   unsigned int overline:1;
+  int uri;
 };
 
 struct VTermState
@@ -133,6 +134,12 @@ struct VTermState
   VTermColor default_fg;
   VTermColor default_bg;
   VTermColor colors[16]; // Store the 8 ANSI and the 8 ANSI high-brights only
+  char **uris;
+  int uri_count;
+  int uri_capacity;
+  char *osc8_buffer;
+  size_t osc8_len;
+  size_t osc8_capacity;
 
   int bold_is_highbright;
 

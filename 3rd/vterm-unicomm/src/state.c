@@ -56,6 +56,91 @@ static void erase(VTermState *state, VTermRect rect, int selective)
       return;
 }
 
+static void setpenattr_int(VTermState *state, VTermAttr attr, int number)
+{
+  VTermValue val = { .number = number };
+  if(state->callbacks && state->callbacks->setpenattr)
+    (*state->callbacks->setpenattr)(attr, &val, state->cbdata);
+}
+
+static void set_uri(VTermState *state, int uri)
+{
+  state->pen.uri = uri;
+  setpenattr_int(state, VTERM_ATTR_URI, uri);
+}
+
+static int uri_find_or_add(VTermState *state, const char *uri, size_t len)
+{
+  if(len == 0)
+    return 0;
+
+  for(int index = 0; index < state->uri_count; index++) {
+    const char *existing = state->uris[index];
+    if(strlen(existing) == len && memcmp(existing, uri, len) == 0)
+      return index + 1;
+  }
+
+  if(state->uri_count == state->uri_capacity) {
+    int new_capacity = state->uri_capacity ? state->uri_capacity * 2 : 8;
+    char **new_uris = vterm_allocator_malloc(state->vt, sizeof(char *) * new_capacity);
+    for(int index = 0; index < state->uri_count; index++)
+      new_uris[index] = state->uris[index];
+    if(state->uris)
+      vterm_allocator_free(state->vt, state->uris);
+    state->uris = new_uris;
+    state->uri_capacity = new_capacity;
+  }
+
+  char *copy = vterm_allocator_malloc(state->vt, len + 1);
+  memcpy(copy, uri, len);
+  copy[len] = 0;
+  state->uris[state->uri_count] = copy;
+  state->uri_count++;
+  return state->uri_count;
+}
+
+static void osc8_buffer_append(VTermState *state, VTermStringFragment frag)
+{
+  size_t needed = state->osc8_len + frag.len + 1;
+  if(needed > state->osc8_capacity) {
+    size_t new_capacity = state->osc8_capacity ? state->osc8_capacity * 2 : 128;
+    while(new_capacity < needed)
+      new_capacity *= 2;
+
+    char *new_buffer = vterm_allocator_malloc(state->vt, new_capacity);
+    if(state->osc8_buffer && state->osc8_len)
+      memcpy(new_buffer, state->osc8_buffer, state->osc8_len);
+    if(state->osc8_buffer)
+      vterm_allocator_free(state->vt, state->osc8_buffer);
+    state->osc8_buffer = new_buffer;
+    state->osc8_capacity = new_capacity;
+  }
+
+  if(frag.len)
+    memcpy(state->osc8_buffer + state->osc8_len, frag.str, frag.len);
+  state->osc8_len += frag.len;
+  state->osc8_buffer[state->osc8_len] = 0;
+}
+
+static void osc8(VTermState *state, VTermStringFragment frag)
+{
+  if(frag.initial)
+    state->osc8_len = 0;
+
+  osc8_buffer_append(state, frag);
+
+  if(!frag.final)
+    return;
+
+  char *separator = memchr(state->osc8_buffer, ';', state->osc8_len);
+  if(!separator)
+    return;
+
+  const char *uri = separator + 1;
+  size_t uri_len = state->osc8_len - (size_t)(uri - state->osc8_buffer);
+  set_uri(state, uri_find_or_add(state, uri, uri_len));
+}
+
 static VTermState *vterm_state_new(VTerm *vt)
 {
   VTermState *state = vterm_allocator_malloc(vt, sizeof(VTermState));
@@ -78,6 +163,12 @@ static VTermState *vterm_state_new(VTerm *vt)
   state->selection.callbacks = NULL;
   state->selection.user      = NULL;
   state->selection.buffer    = NULL;
+  state->uris                = NULL;
+  state->uri_count           = 0;
+  state->uri_capacity        = 0;
+  state->osc8_buffer         = NULL;
+  state->osc8_len            = 0;
+  state->osc8_capacity       = 0;
 
   vterm_state_newpen(state);
 
@@ -107,6 +198,12 @@ INTERNAL void vterm_state_free(VTermState *state)
   if(state->lineinfos[BUFIDX_ALTSCREEN])
     vterm_allocator_free(state->vt, state->lineinfos[BUFIDX_ALTSCREEN]);
   vterm_allocator_free(state->vt, state->combine_chars);
+  for(int index = 0; index < state->uri_count; index++)
+    vterm_allocator_free(state->vt, state->uris[index]);
+  if(state->uris)
+    vterm_allocator_free(state->vt, state->uris);
+  if(state->osc8_buffer)
+    vterm_allocator_free(state->vt, state->osc8_buffer);
   vterm_allocator_free(state->vt, state);
 }
 
@@ -1820,6 +1917,10 @@ static int on_osc(int command, VTermStringFragment frag, void *user)
       settermprop_string(state, VTERM_PROP_TITLE, frag);
       return 1;
 
+    case 8:
+      osc8(state, frag);
+      return 1;
+
     case 52:
       if(state->selection.callbacks)
         osc_selection(state, frag);
@@ -2167,6 +2268,13 @@ void vterm_state_reset(VTermState *state, int hard)
 void vterm_state_get_cursorpos(const VTermState *state, VTermPos *cursorpos)
 {
   *cursorpos = state->pos;
+}
+
+const char *vterm_state_get_uri(const VTermState *state, int uri)
+{
+  if(uri <= 0 || uri > state->uri_count)
+    return NULL;
+  return state->uris[uri - 1];
 }
 
 void vterm_state_set_callbacks(VTermState *state, const VTermStateCallbacks *callbacks, void *user)

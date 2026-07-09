@@ -501,6 +501,7 @@ TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, con
     vterm_screen_convert_color_to_rgb(vts, &background);
     d.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
 
+    d.uri = s.uri;
     d.dim = s.attrs.dim;
     d.overline = s.attrs.overline;
 

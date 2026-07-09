@@ -47,6 +47,8 @@ signals:
 
     void mouseScrolled(int lines);
 
+    void openLink(int uri);
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
@@ -57,6 +59,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
 
     void mouseMoveEvent(QMouseEvent *event) override;
+
+    void hoverMoveEvent(QHoverEvent *event) override;
 
     void wheelEvent(QWheelEvent *event) override;
 

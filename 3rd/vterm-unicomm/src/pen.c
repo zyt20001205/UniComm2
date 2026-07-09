@@ -179,6 +179,7 @@ INTERNAL void vterm_state_resetpen(VTermState *state)
   state->pen.font = 0;      setpenattr_int (state, VTERM_ATTR_FONT, 0);
   state->pen.small = 0;     setpenattr_bool(state, VTERM_ATTR_SMALL, 0);
   state->pen.baseline = 0;  setpenattr_int (state, VTERM_ATTR_BASELINE, 0);
+  state->pen.uri = 0;       setpenattr_int (state, VTERM_ATTR_URI, 0);
   state->pen.dim = 0;       setpenattr_bool(state, VTERM_ATTR_DIM, 0);
   state->pen.overline = 0;  setpenattr_bool(state, VTERM_ATTR_OVERLINE, 0);
 
@@ -204,6 +205,7 @@ INTERNAL void vterm_state_savepen(VTermState *state, int save)
     setpenattr_int (state, VTERM_ATTR_FONT,      state->pen.font);
     setpenattr_bool(state, VTERM_ATTR_SMALL,     state->pen.small);
     setpenattr_int (state, VTERM_ATTR_BASELINE,  state->pen.baseline);
+    setpenattr_int (state, VTERM_ATTR_URI,       state->pen.uri);
     setpenattr_bool(state, VTERM_ATTR_DIM,       state->pen.dim);
     setpenattr_bool(state, VTERM_ATTR_OVERLINE,  state->pen.overline);
 
@@ -624,6 +626,10 @@ int vterm_state_get_penattr(const VTermState *state, VTermAttr attr, VTermValue 
 
   case VTERM_ATTR_BASELINE:
     val->number = state->pen.baseline;
+    return 1;
+
+  case VTERM_ATTR_URI:
+    val->number = state->pen.uri;
     return 1;
 
   case VTERM_ATTR_DIM:

@@ -29,6 +29,7 @@ typedef struct
   unsigned int baseline  : 2;
   unsigned int dim       : 1;
   unsigned int overline  : 1;
+  int uri;
 
   /* Extra state storage that isn't strictly pen-related */
   unsigned int protected_cell : 1;
@@ -460,6 +461,9 @@ static int setpenattr(VTermAttr attr, VTermValue *val, void *user)
   case VTERM_ATTR_BASELINE:
     screen->pen.baseline = val->number;
     return 1;
+  case VTERM_ATTR_URI:
+    screen->pen.uri = val->number;
+    return 1;
   case VTERM_ATTR_DIM:
     screen->pen.dim = val->boolean;
     return 1;
@@ -724,6 +728,7 @@ static void resize_buffer(VTermScreen *screen, int bufidx, int new_rows, int new
         dst->pen.font      = src->attrs.font;
         dst->pen.small     = src->attrs.small;
         dst->pen.baseline  = src->attrs.baseline;
+        dst->pen.uri       = src->uri;
         dst->pen.dim       = src->attrs.dim;
         dst->pen.overline  = src->attrs.overline;
 
@@ -1020,6 +1025,7 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
   cell->attrs.baseline  = intcell->pen.baseline;
   cell->attrs.dim       = intcell->pen.dim;
   cell->attrs.overline  = intcell->pen.overline;
+  cell->uri             = intcell->pen.uri;
 
   cell->attrs.dwl = intcell->pen.dwl;
   cell->attrs.dhl = intcell->pen.dhl;
@@ -1155,6 +1161,8 @@ static int attrs_differ(VTermAttrMask attrs, ScreenCell *a, ScreenCell *b)
     return 1;
   if((attrs & VTERM_ATTR_BASELINE_MASK)    && (a->pen.baseline != b->pen.baseline))
     return 1;
+  if((attrs & VTERM_ATTR_URI_MASK)       && (a->pen.uri != b->pen.uri))
+    return 1;
   if((attrs & VTERM_ATTR_DIM_MASK)       && (a->pen.dim != b->pen.dim))
     return 1;
   if((attrs & VTERM_ATTR_OVERLINE_MASK)  && (a->pen.overline != b->pen.overline))
@@ -1194,6 +1202,11 @@ int vterm_screen_get_attrs_extent(const VTermScreen *screen, VTermRect *extent, 
 void vterm_screen_convert_color_to_rgb(const VTermScreen *screen, VTermColor *col)
 {
   vterm_state_convert_color_to_rgb(screen->state, col);
+}
+
+const char *vterm_screen_get_uri(const VTermScreen *screen, int uri)
+{
+  return vterm_state_get_uri(screen->state, uri);
 }
 
 static void reset_default_colours(VTermScreen *screen, ScreenCell *buffer)

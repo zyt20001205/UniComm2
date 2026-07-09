@@ -245,6 +245,7 @@ typedef enum {
   VTERM_ATTR_BACKGROUND, // color:  40-49 100-107
   VTERM_ATTR_SMALL,      // bool:   73, 74, 75
   VTERM_ATTR_BASELINE,   // number: 73, 74, 75
+  VTERM_ATTR_URI,        // number
   VTERM_ATTR_DIM,        // bool:   2, 22
   VTERM_ATTR_OVERLINE,   // bool:   53, 55
 
@@ -475,6 +476,7 @@ void vterm_state_get_palette_color(const VTermState *state, int index, VTermColo
 void vterm_state_set_default_colors(VTermState *state, const VTermColor *default_fg, const VTermColor *default_bg);
 void vterm_state_set_palette_color(VTermState *state, int index, const VTermColor *col);
 void vterm_state_set_bold_highbright(VTermState *state, int bold_is_highbright);
+const char *vterm_state_get_uri(const VTermState *state, int uri);
 int  vterm_state_get_penattr(const VTermState *state, VTermAttr attr, VTermValue *val);
 int  vterm_state_set_termprop(VTermState *state, VTermProp prop, VTermValue *val);
 void vterm_state_focus_in(VTermState *state);
@@ -537,6 +539,7 @@ typedef struct {
   char     width;
   VTermScreenCellAttrs attrs;
   VTermColor fg, bg;
+  int uri;
 } VTermScreenCell;
 
 typedef struct {
@@ -601,10 +604,11 @@ typedef enum {
   VTERM_ATTR_CONCEAL_MASK    = 1 << 9,
   VTERM_ATTR_SMALL_MASK      = 1 << 10,
   VTERM_ATTR_BASELINE_MASK   = 1 << 11,
-  VTERM_ATTR_DIM_MASK        = 1 << 12,
-  VTERM_ATTR_OVERLINE_MASK   = 1 << 13,
+  VTERM_ATTR_URI_MASK        = 1 << 12,
+  VTERM_ATTR_DIM_MASK        = 1 << 13,
+  VTERM_ATTR_OVERLINE_MASK   = 1 << 14,
 
-  VTERM_ALL_ATTRS_MASK = (1 << 14) - 1
+  VTERM_ALL_ATTRS_MASK = (1 << 15) - 1
 } VTermAttrMask;
 
 int vterm_screen_get_attrs_extent(const VTermScreen *screen, VTermRect *extent, VTermPos pos, VTermAttrMask attrs);
@@ -624,6 +628,8 @@ void vterm_screen_convert_color_to_rgb(const VTermScreen *screen, VTermColor *co
  * screen buffer(s)
  */
 void vterm_screen_set_default_colors(VTermScreen *screen, const VTermColor *default_fg, const VTermColor *default_bg);
+
+const char *vterm_screen_get_uri(const VTermScreen *screen, int uri);
 
 // ---------
 // Utilities

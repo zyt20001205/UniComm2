@@ -296,9 +296,9 @@ struct TerminalCell {
     bool strike{};
     QColor foreground{};
     QColor background{};
+    int uri{};
     bool dim{};
     bool overline{};
-    QString hyperlink{};
 };
 
 #endif //UNICOMM_GLOBALS_H
