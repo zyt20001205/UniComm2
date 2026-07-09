@@ -57,72 +57,180 @@ Item {
             }
         }
 
-        TableView {
-            id: tableView
-            alternatingRows: false
-            clip: true
-            editTriggers: TableView.NoEditTriggers
-            rowSpacing: 1
-            model: terminalModel
-            contentWidth: width
+        Item {
             Layout.fillWidth: true; Layout.fillHeight: true
-            property int hoveredRow: -1
-            property int selectedRow: -1
 
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-                palette {
-                    mid: global.stroke
-                    dark: global.strokePressed
-                }
-            }
+            VerticalHeaderView {
+                id: verticalHeaderView
+                anchors.left: parent.left
+                width: 24; height: parent.height
+                syncView: tableView
+                clip: true
+                interactive: false
+                movableRows: true
+                delegate: VerticalHeaderViewDelegate {
+                    implicitWidth: verticalHeaderView.width; implicitHeight: 32
+                    padding: 0
 
-            Rectangle {
-                anchors.fill: parent
-                color: global.stroke
-            }
+                    contentItem: Rectangle {
+                        width: 24; height: 32
+                        color: global.back
 
-            delegate: Item {
-                implicitWidth: tableView.width
-                implicitHeight: 32
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: global.back
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: global.backHover
-                    opacity: tableView.hoveredRow === row ? 1 : 0
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 150
+                        IconImage {
+                            anchors.centerIn: parent
+                            width: 16; height: 16
+                            color: global.fore
+                            source: "qrc:/icon/drag.svg"
                         }
+                    }
+
+                    HoverHandler {
+                        onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                    }
+                }
+                property var moves: []
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.stroke
+                }
+
+                Timer {
+                    id: moveTimer
+                    interval: 10
+                    onTriggered: {
+                        if (verticalHeaderView.moves.length === 0) return
+                        let index = -1
+                        let distance = -1
+                        for (let i = 0; i < verticalHeaderView.moves.length; ++i) {
+                            const move = verticalHeaderView.moves[i]
+                            const currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                            if (currentDistance > distance) {
+                                distance = currentDistance
+                                index = i
+                            }
+                        }
+                        const move = verticalHeaderView.moves[index]
+                        terminalModule.terminalSwap(move.oldVisualIndex, move.newVisualIndex)
+                        verticalHeaderView.clearRowReordering()
+                        tableView.clearRowReordering()
+                        verticalHeaderView.moves = []
+                    }
+                }
+
+                onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                    moves.push({logicalIndex, oldVisualIndex, newVisualIndex})
+                    moveTimer.restart()
+                }
+            }
+
+            TableView {
+                id: tableView
+                anchors.left: verticalHeaderView.right; anchors.right: parent.right
+                anchors.top: parent.top; anchors.bottom: parent.bottom
+                alternatingRows: false
+                clip: true
+                editTriggers: TableView.NoEditTriggers
+                rowSpacing: 1
+                model: terminalModel
+                contentWidth: width
+                property int hoveredRow: -1
+                property int selectedRow: -1
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
                     }
                 }
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 6
-                    color: tableView.selectedRow === row ? global.backSelected : "transparent"
+                    color: global.stroke
                 }
 
-                Label {
-                    anchors.fill: parent
-                    leftPadding: 6
-                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                    text: model.display || ""
-                    elide: Text.ElideRight
-                }
+                delegate: Item {
+                    implicitWidth: tableView.width
+                    implicitHeight: 32
 
-                HoverHandler {
-                    onHoveredChanged: {
-                        if (hovered) {
-                            tableView.hoveredRow = row
-                        } else if (tableView.hoveredRow === row) {
-                            tableView.hoveredRow = -1
+                    Rectangle {
+                        anchors.fill: parent
+                        color: global.back
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 6
+                        color: global.backHover
+                        opacity: tableView.hoveredRow === row ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 150
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 6
+                        color: tableView.selectedRow === row ? global.backSelected : "transparent"
+                    }
+
+                    Label {
+                        anchors.fill: parent
+                        leftPadding: 6
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: model.display || ""
+                        elide: Text.ElideRight
+                    }
+
+                    HoverHandler {
+                        onHoveredChanged: {
+                            if (hovered) {
+                                tableView.hoveredRow = row
+                            } else if (tableView.hoveredRow === row) {
+                                tableView.hoveredRow = -1
+                            }
+                        }
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onSingleTapped: {
+                            tableView.selectedRow = row
+                            const session = model.session
+                            programTextField.text = session.program
+                            argumentsTextField.text = session.arguments
+                        }
+
+                        onDoubleTapped: {
+                            tableView.selectedRow = row
+                            tableView.edit(tableView.index(row, column))
+                        }
+                    }
+
+                    TableView.editDelegate: TextField {
+                        anchors.fill: parent
+                        leftPadding: 6
+                        rightPadding: 6
+                        verticalAlignment: Text.AlignVCenter
+                        text: display || ""
+                        selectByMouse: true
+                        background: Rectangle {
+                            color: global.backSelected
+                            radius: 6
+                        }
+
+                        Component.onCompleted: {
+                            forceActiveFocus()
+                            selectAll()
+                        }
+
+                        TableView.onCommit: {
+                            display = text.trim()
                         }
                     }
                 }
@@ -132,50 +240,11 @@ Item {
                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                     onSingleTapped: {
-                        tableView.selectedRow = row
-                        const session = model.session
-                        programTextField.text = session.program
-                        argumentsTextField.text = session.arguments
+                        tableView.closeEditor()
+                        tableView.selectedRow = -1
+                        programTextField.clear()
+                        argumentsTextField.clear()
                     }
-
-                    onDoubleTapped: {
-                        tableView.selectedRow = row
-                        tableView.edit(tableView.index(row, column))
-                    }
-                }
-
-                TableView.editDelegate: TextField {
-                    anchors.fill: parent
-                    leftPadding: 6
-                    rightPadding: 6
-                    verticalAlignment: Text.AlignVCenter
-                    text: display || ""
-                    selectByMouse: true
-                    background: Rectangle {
-                        color: global.backSelected
-                        radius: 6
-                    }
-
-                    Component.onCompleted: {
-                        forceActiveFocus()
-                        selectAll()
-                    }
-
-                    TableView.onCommit: {
-                        display = text.trim()
-                    }
-                }
-            }
-
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                onSingleTapped: {
-                    tableView.closeEditor()
-                    tableView.selectedRow = -1
-                    programTextField.clear()
-                    argumentsTextField.clear()
                 }
             }
         }

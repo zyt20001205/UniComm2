@@ -41,7 +41,7 @@
   "terminalConfig": {
     "fontFamily": "Consolas",
     "fontSize": 10,
-    "terminals": {}
+    "terminals": []
   },
   "watchConfig": [
   ]

@@ -1,5 +1,6 @@
 #include "terminal/terminalModule.h"
 
+#include <QJsonArray>
 #include <QQmlContext>
 #include <QQuickView>
 
@@ -26,10 +27,11 @@ void TerminalModule::propertySet(const QVariantHash &objects) {
     const auto &terminalMenu = qvariant_cast<QObject *>(objects["terminalModuleTerminalMenu"]);
     terminalMenu->setProperty("terminalModel", QVariant::fromValue(m_terminalModel));
 
-    const auto terminals = m_config["terminals"].toObject();
-    for (auto iterator = terminals.constBegin(); iterator != terminals.constEnd(); ++iterator) {
-        const auto name = iterator.key();
-        const auto session = iterator.value().toObject().toVariantHash();
+    const auto terminals = m_config["terminals"];
+    for (const auto &value: terminals.toArray()) {
+        auto terminal = value.toObject();
+        const auto name = terminal.take("name").toString();
+        const auto session = terminal.contains("session") ? terminal["session"].toObject().toVariantHash() : terminal.toVariantHash();
         auto *item = new QStandardItem(name); // NOLINT
         item->setData(session, Qt::UserRole + 1);
         m_terminalModel->appendRow(item);
@@ -58,11 +60,13 @@ void TerminalModule::terminalManage() const {
 
 void TerminalModule::terminalSave() {
     m_manageWindow->close();
-    QJsonObject config{};
+    QJsonArray config{};
     for (int i = 0; i < m_terminalModel->rowCount(); ++i) {
         const auto &name = m_terminalModel->item(i, 0)->text();
         const auto &session = m_terminalModel->item(i, 0)->data(Qt::UserRole + 1).toHash();
-        config[name] = QJsonObject::fromVariantHash(session);
+        auto terminal = QJsonObject::fromVariantHash(session);
+        terminal["name"] = name;
+        config.append(terminal);
     }
     m_config["terminals"] = config;
 }
@@ -79,6 +83,12 @@ void TerminalModule::terminalAdd() const {
 
 void TerminalModule::terminalDelete(const int index) const {
     if (index >= 0 && index < m_terminalModel->rowCount()) m_terminalModel->removeRow(index);
+}
+
+void TerminalModule::terminalSwap(const int src, const int dst) const {
+    if (src < 0 || src >= m_terminalModel->rowCount() || dst < 0 || dst >= m_terminalModel->rowCount() || src == dst) return;
+    const auto row = m_terminalModel->takeRow(src);
+    m_terminalModel->insertRow(dst, row);
 }
 
 void TerminalModule::terminalOpen(const QString &name, const QVariantHash &session) {

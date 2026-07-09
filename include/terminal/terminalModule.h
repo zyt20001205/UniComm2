@@ -29,6 +29,8 @@ public:
 
     Q_INVOKABLE void terminalDelete(int index) const;
 
+    Q_INVOKABLE void terminalSwap(int src, int dst) const;
+
     Q_INVOKABLE void terminalOpen(const QString &name, const QVariantHash &session);
 
 private:
