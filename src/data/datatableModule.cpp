@@ -101,7 +101,6 @@ void DatatableModule::datatableSwap(const int src, const int dst) {
     tmp = g_datatableStandardItemModel->takeColumn(src);
     g_datatableStandardItemModel->insertColumn(dst, tmp);
     datatableIndex();
-    QMetaObject::invokeMethod(m_item, "reload");
 }
 
 void DatatableModule::datatableClear() {

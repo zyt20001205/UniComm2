@@ -504,7 +504,6 @@ void PortSetting::roiRemove(const int index) const {
 void PortSetting::roiSwap(const int src, const int dst) const {
     const auto tmp = m_roiModel->takeRow(src);
     m_roiModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_root, "roiReload");
     QMetaObject::invokeMethod(m_root, "indicatorReload");
 }
 
@@ -534,7 +533,6 @@ void PortSetting::pipelineRemove(const int index) const {
 void PortSetting::pipelineSwap(const int src, const int dst) const {
     const auto tmp = m_pipelineModel->takeRow(src);
     m_pipelineModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_root, "pipelineReload");
 }
 
 // private

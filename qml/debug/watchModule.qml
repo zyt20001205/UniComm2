@@ -77,18 +77,8 @@ Item {
             }
         }
 
-        Loader {
-            id: tableLoader
-            Layout.fillWidth: true; Layout.fillHeight: true
-            sourceComponent: tableComponent
-        }
-    }
-
-    Component {
-        id: tableComponent
-
         Item {
-            anchors.fill: parent
+            Layout.fillWidth: true; Layout.fillHeight: true
             visible: modelVisible
 
             VerticalHeaderView {
@@ -144,6 +134,8 @@ Item {
                         }
                         let move = verticalHeaderView.moves[index]
                         watchModule.watchSwap(move.oldVisualIndex, move.newVisualIndex)
+                        verticalHeaderView.clearRowReordering()
+                        tableView.clearRowReordering()
                         verticalHeaderView.moves = []
                     }
                 }
@@ -296,10 +288,5 @@ Item {
         function onModelReset() {
             modelVisible = false
         }
-    }
-
-    function reload() {
-        tableLoader.active = false
-        tableLoader.active = true
     }
 }

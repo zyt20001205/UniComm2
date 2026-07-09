@@ -31,139 +31,131 @@ Item {
         }
     }
 
-    Component {
-        id: tableComponent
+    Item {
+        anchors.fill: parent
+        visible: modelVisible
 
-        Item {
-            anchors.fill: parent
-            visible: modelVisible
+        VerticalHeaderView {
+            id: verticalHeaderView
+            anchors.left: parent.left
+            width: 32; height: parent.height
+            syncView: tableView
+            clip: true
+            interactive: false
+            movableRows: true
+            delegate: VerticalHeaderViewDelegate {
+                id: verticalHeaderViewDelegate
+                implicitWidth: verticalHeaderView.width; implicitHeight: 32
+                padding: 0
 
-            VerticalHeaderView {
-                id: verticalHeaderView
-                anchors.left: parent.left
-                width: 32; height: parent.height
-                syncView: tableView
-                clip: true
-                interactive: false
-                movableRows: true
-                delegate: VerticalHeaderViewDelegate {
-                    id: verticalHeaderViewDelegate
-                    implicitWidth: verticalHeaderView.width; implicitHeight: 32
-                    padding: 0
+                contentItem: Rectangle {
+                    width: 32; height: 32
+                    color: global.back
 
-                    contentItem: Rectangle {
-                        width: 32; height: 32
-                        color: global.back
+                    IconImage {
+                        width: 16; height: 16
+                        anchors.centerIn: parent
+                        color: global.fore
+                        source: "qrc:/icon/drag.svg"
+                    }
+                }
 
-                        IconImage {
-                            width: 16; height: 16
-                            anchors.centerIn: parent
-                            color: global.fore
-                            source: "qrc:/icon/drag.svg"
+                HoverHandler {
+                    onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                }
+            }
+            property var moves: []
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
+
+            Timer {
+                id: timer
+                interval: 10
+                onTriggered: {
+                    let index = -1
+                    let distance = -1
+                    let currentDistance;
+                    for (let i = 0; i < verticalHeaderView.moves.length; ++i) {
+                        let move = verticalHeaderView.moves[i]
+                        currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                        if (currentDistance > distance) {
+                            distance = currentDistance
+                            index = i
                         }
                     }
-
-                    HoverHandler {
-                        onHoveredChanged: cursorShape = Qt.OpenHandCursor
-                    }
-                }
-                property var moves: []
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: global.stroke
-                }
-
-                Timer {
-                    id: timer
-                    interval: 10
-                    onTriggered: {
-                        let index = -1
-                        let distance = -1
-                        let currentDistance;
-                        for (let i = 0; i < verticalHeaderView.moves.length; ++i) {
-                            let move = verticalHeaderView.moves[i]
-                            currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
-                            if (currentDistance > distance) {
-                                distance = currentDistance
-                                index = i
-                            }
-                        }
-                        let move = verticalHeaderView.moves[index]
-                        portModule.portSwap(move.oldVisualIndex, move.newVisualIndex)
-                        verticalHeaderView.moves = []
-                    }
-                }
-
-                onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
-                    moves.push({oldVisualIndex, newVisualIndex})
-                    timer.restart()
+                    let move = verticalHeaderView.moves[index]
+                    portModule.portSwap(move.oldVisualIndex, move.newVisualIndex)
+                    verticalHeaderView.clearRowReordering()
+                    tableView.clearRowReordering()
+                    verticalHeaderView.moves = []
                 }
             }
 
-            TableView {
-                id: tableView
-                anchors.left: verticalHeaderView.right; anchors.right: parent.right
-                height: parent.height
-                alternatingRows: false
-                clip: true
-                editTriggers: TableView.NoEditTriggers
-                rowSpacing: 1
-                model: standardItemModel
-                contentWidth: width
+            onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                moves.push({oldVisualIndex, newVisualIndex})
+                timer.restart()
+            }
+        }
 
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                    palette {
-                        mid: global.stroke
-                        dark: global.strokePressed
-                    }
+        TableView {
+            id: tableView
+            anchors.left: verticalHeaderView.right; anchors.right: parent.right
+            height: parent.height
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            rowSpacing: 1
+            model: standardItemModel
+            contentWidth: width
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
                 }
+            }
 
-                Rectangle {
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
+
+            delegate: SwitchDelegate {
+                implicitWidth: tableView.width
+                checked: model.whatsThis
+                text: model.display
+                background: Rectangle {
                     anchors.fill: parent
-                    color: global.stroke
+                    color: global.back
                 }
 
-                delegate: SwitchDelegate {
-                    implicitWidth: tableView.width
-                    checked: model.whatsThis
-                    text: model.display
-                    background: Rectangle {
-                        anchors.fill: parent
-                        color: global.back
-                    }
+                onClicked: portModule.portToggle(model.row)
 
-                    onClicked: portModule.portToggle(model.row)
-
-                    HoverHandler {
-                        onHoveredChanged: cursorShape = Qt.PointingHandCursor
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.RightButton
-                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                        onSingleTapped: {
-                            tableMenu.portIndex = model.row
-                            tableMenu.popup()
-                        }
-                    }
+                HoverHandler {
+                    onHoveredChanged: cursorShape = Qt.PointingHandCursor
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
+                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                    onSingleTapped: rootMenu.popup()
+                    onSingleTapped: {
+                        tableMenu.portIndex = model.row
+                        tableMenu.popup()
+                    }
                 }
             }
-        }
-    }
 
-    Loader {
-        id: tableLoader
-        anchors.fill: parent
-        sourceComponent: tableComponent
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+
+                onSingleTapped: rootMenu.popup()
+            }
+        }
     }
 
     Connections {
@@ -180,10 +172,5 @@ Item {
         function onModelReset() {
             modelVisible = false
         }
-    }
-
-    function reload() {
-        tableLoader.active = false
-        tableLoader.active = true
     }
 }

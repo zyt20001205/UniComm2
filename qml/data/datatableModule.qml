@@ -40,197 +40,189 @@ Item {
         }
     }
 
-    Component {
-        id: tableComponent
+    Item {
+        anchors.fill: parent
+        visible: modelVisible
 
-        Item {
-            anchors.fill: parent
-            visible: modelVisible
+        HorizontalHeaderView {
+            id: horizontalHeaderView
+            anchors.left: verticalHeaderView.right; anchors.top: parent.top
+            width: parent.width; height: 24
+            model: headerItemModel
+            syncView: tableView
+            clip: true
+            interactive: false
+            movableColumns: true
+            delegate: HorizontalHeaderViewDelegate {
+                id: horizontalHeaderViewDelegate
+                implicitWidth: 80; implicitHeight: 24
+                padding: 0
 
-            HorizontalHeaderView {
-                id: horizontalHeaderView
-                anchors.left: verticalHeaderView.right; anchors.top: parent.top
-                width: parent.width; height: 24
-                model: headerItemModel
-                syncView: tableView
-                clip: true
-                interactive: false
-                movableColumns: true
-                delegate: HorizontalHeaderViewDelegate {
-                    id: horizontalHeaderViewDelegate
-                    implicitWidth: 80; implicitHeight: 24
-                    padding: 0
-
-                    contentItem: Rectangle {
-                        width: 80; height: 24
-                        color: global.back
-
-                        Label {
-                            anchors.fill: parent
-                            leftPadding: 6
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: model.display
-                            elide: Text.ElideRight
-                        }
-                    }
-
-                    HoverHandler {
-                        onHoveredChanged: cursorShape = Qt.OpenHandCursor
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.RightButton
-                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                        onSingleTapped: {
-                            tableMenu.datatableIndex = model.column
-                            tableMenu.datatableKey = model.display
-                            tableMenu.popup()
-                        }
-                    }
-                }
-                property var moves: []
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: global.stroke
-                }
-
-                Timer {
-                    id: timer
-                    interval: 10
-                    onTriggered: {
-                        let index = -1
-                        let distance = -1
-                        let currentDistance;
-                        for (let i = 0; i < horizontalHeaderView.moves.length; ++i) {
-                            let move = horizontalHeaderView.moves[i]
-                            currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
-                            if (currentDistance > distance) {
-                                distance = currentDistance
-                                index = i
-                            }
-                        }
-                        let move = horizontalHeaderView.moves[index]
-                        datatableModule.datatableSwap(move.oldVisualIndex, move.newVisualIndex)
-                        horizontalHeaderView.moves = []
-                    }
-                }
-
-                onColumnMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
-                    moves.push({oldVisualIndex, newVisualIndex})
-                    timer.restart()
-                }
-            }
-
-            VerticalHeaderView {
-                id: verticalHeaderView
-                anchors.left: parent.left; anchors.top: horizontalHeaderView.bottom
-                width: 40; height: parent.height
-                syncView: tableView
-                clip: true
-                interactive: false
-                delegate: VerticalHeaderViewDelegate {
-                    implicitWidth: 40; implicitHeight: 24
-                    padding: 0
-                    contentItem: Rectangle {
-                        width: 40; height: 24
-                        color: global.back
-
-                        Label {
-                            anchors.fill: parent
-                            leftPadding: 6
-                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                            text: row + 1
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: global.stroke
-                }
-            }
-
-            TableView {
-                id: tableView
-                anchors.left: verticalHeaderView.right; anchors.right: parent.right
-                anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
-                alternatingRows: false
-                clip: true
-                rowSpacing: 1; columnSpacing: 1
-                resizableColumns: true
-                model: standardItemModel
-
-                ScrollBar.horizontal: ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                    palette {
-                        mid: global.stroke
-                        dark: global.strokePressed
-                    }
-                }
-
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                    palette {
-                        mid: global.stroke
-                        dark: global.strokePressed
-                    }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: global.stroke
-                }
-
-                delegate: Item {
-                    implicitWidth: 80; implicitHeight: 24
-
-                    Rectangle {
-                        anchors.fill: parent
-                        color: global.back
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 6
-                        color: global.backHover
-                        opacity: hoverHandler.hovered ? 1 : 0
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 150
-                            }
-                        }
-                    }
+                contentItem: Rectangle {
+                    width: 80; height: 24
+                    color: global.back
 
                     Label {
-                        id: label
                         anchors.fill: parent
                         leftPadding: 6
-                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display || ""
+                        horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                        text: model.display
                         elide: Text.ElideRight
                     }
+                }
 
-                    HoverHandler {
-                        id: hoverHandler
-                    }
+                HoverHandler {
+                    onHoveredChanged: cursorShape = Qt.OpenHandCursor
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
+                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                    onSingleTapped: rootMenu.popup()
+                    onSingleTapped: {
+                        tableMenu.datatableIndex = model.column
+                        tableMenu.datatableKey = model.display
+                        tableMenu.popup()
+                    }
                 }
             }
-        }
-    }
+            property var moves: []
 
-    Loader {
-        id: tableLoader
-        anchors.fill: parent
-        sourceComponent: tableComponent
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
+
+            Timer {
+                id: timer
+                interval: 10
+                onTriggered: {
+                    let index = -1
+                    let distance = -1
+                    let currentDistance;
+                    for (let i = 0; i < horizontalHeaderView.moves.length; ++i) {
+                        let move = horizontalHeaderView.moves[i]
+                        currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                        if (currentDistance > distance) {
+                            distance = currentDistance
+                            index = i
+                        }
+                    }
+                    let move = horizontalHeaderView.moves[index]
+                    datatableModule.datatableSwap(move.oldVisualIndex, move.newVisualIndex)
+                    horizontalHeaderView.clearColumnReordering()
+                    tableView.clearColumnReordering()
+                    horizontalHeaderView.moves = []
+                }
+            }
+
+            onColumnMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                moves.push({oldVisualIndex, newVisualIndex})
+                timer.restart()
+            }
+        }
+
+        VerticalHeaderView {
+            id: verticalHeaderView
+            anchors.left: parent.left; anchors.top: horizontalHeaderView.bottom
+            width: 40; height: parent.height
+            syncView: tableView
+            clip: true
+            interactive: false
+            delegate: VerticalHeaderViewDelegate {
+                implicitWidth: 40; implicitHeight: 24
+                padding: 0
+                contentItem: Rectangle {
+                    width: 40; height: 24
+                    color: global.back
+
+                    Label {
+                        anchors.fill: parent
+                        leftPadding: 6
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: row + 1
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
+        }
+
+        TableView {
+            id: tableView
+            anchors.left: verticalHeaderView.right; anchors.right: parent.right
+            anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
+            alternatingRows: false
+            clip: true
+            rowSpacing: 1; columnSpacing: 1
+            resizableColumns: true
+            model: standardItemModel
+
+            ScrollBar.horizontal: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
+            }
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
+
+            delegate: Item {
+                implicitWidth: 80; implicitHeight: 24
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.back
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: global.backHover
+                    opacity: hoverHandler.hovered ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                Label {
+                    id: label
+                    anchors.fill: parent
+                    leftPadding: 6
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                    text: model.display || ""
+                    elide: Text.ElideRight
+                }
+
+                HoverHandler {
+                    id: hoverHandler
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+
+                onSingleTapped: rootMenu.popup()
+            }
+        }
     }
 
     Connections {
@@ -247,9 +239,5 @@ Item {
         function onModelReset() {
             modelVisible = false
         }
-    }
-    function reload() {
-        tableLoader.active = false
-        tableLoader.active = true
     }
 }

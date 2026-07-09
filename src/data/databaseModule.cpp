@@ -78,7 +78,6 @@ void DatabaseModule::databaseSwap(const int src, const int dst) {
     const auto tmp = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, tmp);
     databaseIndex();
-    QMetaObject::invokeMethod(m_root, "reload");
 }
 
 void DatabaseModule::databaseClear(const int index) {

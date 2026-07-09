@@ -150,7 +150,6 @@ void PortModule::portRemove(const int index) {
 void PortModule::portSwap(const int src, const int dst) const {
     const auto tmp = g_portStandardItemModel->takeRow(src);
     g_portStandardItemModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_root, "reload");
 }
 
 void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {

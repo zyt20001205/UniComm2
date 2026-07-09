@@ -96,7 +96,7 @@ Item {
                 }
 
                 Timer {
-                    id: moveTimer
+                    id: timer
                     interval: 10
                     onTriggered: {
                         if (verticalHeaderView.moves.length === 0) return
@@ -120,7 +120,7 @@ Item {
 
                 onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
                     moves.push({logicalIndex, oldVisualIndex, newVisualIndex})
-                    moveTimer.restart()
+                    timer.restart()
                 }
             }
 

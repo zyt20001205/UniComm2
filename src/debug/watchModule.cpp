@@ -74,7 +74,6 @@ void WatchModule::watchRename(const int index, const QUrl &documentUrl, const QS
 void WatchModule::watchSwap(const int src, const int dst) const {
     const auto tmp = g_watchStandardItemModel->takeRow(src);
     g_watchStandardItemModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_item, "reload");
 }
 
 void WatchModule::watchClear(const int index) {
