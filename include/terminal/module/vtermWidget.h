@@ -85,6 +85,7 @@ private:
     VTermSelectionCallbacks m_selectionCallbacks{};
     QPoint m_cursorPosition{};
     bool m_cursorVisible{true};
+    bool m_altScreen{false};
     QList<QList<TerminalCell> > m_scrollback{};
     int m_scrollOffset{};
     // osc52

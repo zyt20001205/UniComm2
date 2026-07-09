@@ -38,6 +38,7 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
 
     vterm_screen_set_callbacks(m_screen, &m_callbacks, this);
     vterm_state_set_selection_callbacks(m_state, &m_selectionCallbacks, this, m_selectionBuffer.data(), static_cast<size_t>(m_selectionBuffer.size()));
+    vterm_screen_enable_altscreen(m_screen, 1);
     vterm_screen_set_damage_merge(m_screen, VTERM_DAMAGE_SCROLL);
     vterm_screen_reset(m_screen, 1);
 }
@@ -106,13 +107,20 @@ void VtermWidget::mouseWheeled(const int row, const int col, const int lines, co
     vterm_mouse_move(m_vterm, row, col, vtermModifier);
     for (int step = 0; step < steps; ++step) {
         vterm_mouse_button(m_vterm, button, true, vtermModifier);
-        vterm_mouse_button(m_vterm, button, false, vtermModifier);
     }
     outputRead();
 }
 
 void VtermWidget::mouseScrolled(const int lines) {
     if (lines == 0) return;
+    if (m_altScreen) {
+        const int key = lines > 0 ? Qt::Key_Up : Qt::Key_Down;
+        const int steps = qMax(1, qAbs(lines) / 3);
+        for (int step = 0; step < steps; ++step) {
+            keyPressed(key, Qt::NoModifier, QString{});
+        }
+        return;
+    }
     m_scrollOffset = qBound(0, m_scrollOffset + lines, m_scrollback.size());
     renderScreen();
 }
@@ -188,6 +196,10 @@ int VtermWidget::termPropSet(const VTermProp prop, const VTermValue *value) {
             emit setCursorVisible(value->boolean);
             break;
         case VTERM_PROP_CURSORBLINK: emit setCursorBlink(value->boolean);
+            break;
+        case VTERM_PROP_ALTSCREEN:
+            m_altScreen = value->boolean;
+            m_scrollOffset = 0;
             break;
         case VTERM_PROP_TITLE: {
             const auto frag = value->string;
