@@ -67,6 +67,20 @@ void TerminalModule::terminalSave() {
     m_config["terminals"] = config;
 }
 
+void TerminalModule::terminalAdd() const {
+    auto *item = new QStandardItem("new"); // NOLINT
+    const auto &session = QVariantHash({
+        {"arguments", ""},
+        {"program", ""}
+    });
+    item->setData(session, Qt::UserRole + 1);
+    m_terminalModel->appendRow(item);
+}
+
+void TerminalModule::terminalDelete(const int index) const {
+    if (index >= 0 && index < m_terminalModel->rowCount()) m_terminalModel->removeRow(index);
+}
+
 void TerminalModule::terminalOpen(const QString &name, const QVariantHash &session) {
     int index = 0;
     while (m_terminalHash.contains(index)) {

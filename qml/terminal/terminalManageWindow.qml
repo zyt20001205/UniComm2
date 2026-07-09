@@ -34,17 +34,26 @@ Item {
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: console.log("add")
+                onClicked: terminalModule.terminalAdd()
             }
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                checkable: true
                 flat: true
-                icon.source: "qrc:/icon/subtract.svg"
+                icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/subtract.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: console.log("remove")
+                onToggled: {
+                    if (!checked) terminalModule.terminalDelete(tableView.selectedRow)
+                }
+
+                Timer {
+                    interval: 1000
+                    running: parent.checked
+                    onTriggered: parent.checked = false
+                }
             }
         }
 
@@ -122,12 +131,51 @@ Item {
                     acceptedButtons: Qt.LeftButton
                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                    onTapped: {
+                    onSingleTapped: {
                         tableView.selectedRow = row
                         const session = model.session
                         programTextField.text = session.program
                         argumentsTextField.text = session.arguments
                     }
+
+                    onDoubleTapped: {
+                        tableView.selectedRow = row
+                        tableView.edit(tableView.index(row, column))
+                    }
+                }
+
+                TableView.editDelegate: TextField {
+                    anchors.fill: parent
+                    leftPadding: 6
+                    rightPadding: 6
+                    verticalAlignment: Text.AlignVCenter
+                    text: display || ""
+                    selectByMouse: true
+                    background: Rectangle {
+                        color: global.backSelected
+                        radius: 6
+                    }
+
+                    Component.onCompleted: {
+                        forceActiveFocus()
+                        selectAll()
+                    }
+
+                    TableView.onCommit: {
+                        display = text.trim()
+                    }
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                onSingleTapped: {
+                    tableView.closeEditor()
+                    tableView.selectedRow = -1
+                    programTextField.clear()
+                    argumentsTextField.clear()
                 }
             }
         }

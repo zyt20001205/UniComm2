@@ -25,6 +25,10 @@ public:
 
     Q_INVOKABLE void terminalSave();
 
+    Q_INVOKABLE void terminalAdd() const;
+
+    Q_INVOKABLE void terminalDelete(int index) const;
+
     Q_INVOKABLE void terminalOpen(const QString &name, const QVariantHash &session);
 
 private:
