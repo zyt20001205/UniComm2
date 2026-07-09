@@ -34,6 +34,8 @@ signals:
 private:
     void outputRead();
 
+    static QString environmentBlock();
+
     static void closeHandle(void *&handle);
 
     void *m_pseudoConsole{};

@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QMetaObject>
+#include <QProcessEnvironment>
 #include <QUrl>
 #include <windows.h>
 
@@ -78,6 +79,7 @@ bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QS
     const auto &applicationName = _program.toStdWString();
     auto command = commandLine.toStdWString();
     const auto &directory = QDir::toNativeSeparators(workingDirectory).toStdWString();
+    QString environment = environmentBlock();
 
     PROCESS_INFORMATION processInfo{};
     const BOOL created = CreateProcessW(
@@ -86,8 +88,8 @@ bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QS
         nullptr,
         nullptr,
         FALSE,
-        EXTENDED_STARTUPINFO_PRESENT,
-        nullptr,
+        EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
+        environment.data(),
         directory.empty() ? nullptr : directory.c_str(),
         &startupInfo.StartupInfo,
         &processInfo
@@ -181,6 +183,26 @@ void ConptyWidget::outputRead() {
         const QByteArray bytes(buffer, static_cast<qsizetype>(read));
         emit outputWrite(bytes);
     }
+}
+
+QString ConptyWidget::environmentBlock() {
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    if (env.value("TERM").isEmpty()) env.insert("TERM", "xterm-256color");
+    if (env.value("COLORTERM").isEmpty()) env.insert("COLORTERM", "truecolor");
+    if (env.value("TERM_PROGRAM").isEmpty()) env.insert("TERM_PROGRAM", "UniComm");
+
+    auto keys = env.keys();
+    keys.sort(Qt::CaseInsensitive);
+
+    QString block{};
+    for (const auto &key: keys) {
+        block += key;
+        block += '=';
+        block += env.value(key);
+        block += QChar::Null;
+    }
+    block += QChar::Null;
+    return block;
 }
 
 void ConptyWidget::closeHandle(void *&handle) {
