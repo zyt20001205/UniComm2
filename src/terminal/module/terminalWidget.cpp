@@ -253,16 +253,6 @@ void TerminalWidget::wheelEvent(QWheelEvent *event) {
     event->accept();
 }
 
-void TerminalWidget::focusInEvent(QFocusEvent *event) {
-    QQuickPaintedItem::focusInEvent(event);
-    update();
-}
-
-void TerminalWidget::focusOutEvent(QFocusEvent *event) {
-    QQuickPaintedItem::focusOutEvent(event);
-    update();
-}
-
 void TerminalWidget::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) {
     QQuickPaintedItem::geometryChange(newGeometry, oldGeometry);
     metricsUpdate();

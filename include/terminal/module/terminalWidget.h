@@ -64,10 +64,6 @@ protected:
 
     void wheelEvent(QWheelEvent *event) override;
 
-    void focusInEvent(QFocusEvent *event) override;
-
-    void focusOutEvent(QFocusEvent *event) override;
-
     void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 
 private:
