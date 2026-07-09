@@ -346,7 +346,7 @@ void GitModule::gitDiff() {
 void GitModule::gitAdd(const QUrl &documentUrl) {
     QStringList arguments{};
     if (documentUrl.isEmpty()) {
-        arguments = QStringList{"add", "."};
+        arguments = QStringList{"add", "--all"};
     } else {
         const auto &documentPath = documentUrl.toLocalFile();
         arguments = QStringList{"add", documentPath};
@@ -366,7 +366,7 @@ void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
         default: return;
     }
     if (documentUrl.isEmpty()) {
-        arguments << ".";
+        arguments << ":/";
     } else {
         const auto documentPath = documentUrl.toLocalFile();
         arguments << documentPath;
@@ -459,6 +459,7 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::Watch: {
                 const auto &gitPath = QString::fromUtf8(output).trimmed();
                 g_gitPath = QFileInfo(gitPath).absolutePath();
+                m_process->setWorkingDirectory(g_gitPath);
                 const auto &gitDir = QDir(gitPath);
                 // index watcher
                 const auto &indexPath = gitDir.filePath("index");
