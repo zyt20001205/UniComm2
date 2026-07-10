@@ -1,9 +1,7 @@
 #include "terminal/terminalPage.h"
 
 #include <QCloseEvent>
-#include <QKeyEvent>
 #include <QQmlContext>
-#include <QQuickItem>
 #include <QQuickWidget>
 
 #include "globals.h"
@@ -45,7 +43,7 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
 
     auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     font.setFixedPitch(true);
-    font.setStyleHint(QFont::Monospace);
+    font.setStyleHint(QFont::Monospace, QFont::ForceOutline);
 
     m_terminalWidget = new TerminalWidget(terminalItem);
     m_terminalWidget->setParentItem(terminalItem);
