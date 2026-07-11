@@ -286,10 +286,10 @@ Item {
                     onClicked: {
                         if (programTextField.text) {
                             const url = programTextField.text
-                            fileDialog.selectedFile = url
-                            fileDialog.currentFolder = url.substring(0, url.lastIndexOf('/'))
+                            programDialog.selectedFile = url
+                            programDialog.currentFolder = url.substring(0, url.lastIndexOf('/'))
                         }
-                        fileDialog.open()
+                        programDialog.open()
                     }
                 }
 
