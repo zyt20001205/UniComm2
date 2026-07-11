@@ -1316,7 +1316,6 @@ Item {
                     }
                 }
             }
-
             function completionPrev() {
                 if (selectedRow > 0) {
                     selectedRow = selectedRow - 1
@@ -1325,7 +1324,6 @@ Item {
                 //     selectedRow = model.rowCount() - 1
                 // }
             }
-
             function completionNext() {
                 if (selectedRow < model.rowCount() - 1) {
                     selectedRow = selectedRow + 1
@@ -1337,7 +1335,6 @@ Item {
 
             Connections {
                 target: documentModuleCompletionTableView.model
-
                 function onModelReset() {
                     documentModuleCompletionTableView.idealWidth = 0
                     documentModuleCompletionTableView.idealHeight = 0

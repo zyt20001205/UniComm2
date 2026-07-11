@@ -99,10 +99,14 @@ void TerminalPage::closeEvent(QCloseEvent *event) {
 // private
 void TerminalPage::start() {
     if (!m_conptyWidget || !m_vtermWidget) return;
+    QString workingDirectory = g_workspaceUrl.toLocalFile();
+    const auto workingDirectoryUrl = m_session["workingDirectory"].toUrl();
+    if (workingDirectoryUrl.isLocalFile()) workingDirectory = workingDirectoryUrl.toLocalFile();
+
     const bool started = m_conptyWidget->start(
         m_session["program"].toUrl(),
         m_session["arguments"].toString(),
-        g_workspaceUrl.toLocalFile(),
+        workingDirectory,
         m_rows,
         m_cols
     );

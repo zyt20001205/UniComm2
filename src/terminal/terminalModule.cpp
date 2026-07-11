@@ -71,14 +71,17 @@ void TerminalModule::terminalSave() {
     m_config["terminals"] = config;
 }
 
-void TerminalModule::terminalAdd() const {
+int TerminalModule::terminalAdd() const {
+    const int row = m_terminalModel->rowCount();
     auto *item = new QStandardItem("new"); // NOLINT
     const auto &session = QVariantHash({
+        {"program", ""},
         {"arguments", ""},
-        {"program", ""}
+        {"workingDirectory", ""}
     });
     item->setData(session, Qt::UserRole + 1);
     m_terminalModel->appendRow(item);
+    return row;
 }
 
 void TerminalModule::terminalDelete(const int index) const {

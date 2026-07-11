@@ -34,7 +34,15 @@ Item {
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: terminalModule.terminalAdd()
+                onClicked: {
+                    const row = terminalModule.terminalAdd()
+                    tableView.selectedRow = row
+                    programTextField.clear()
+                    argumentsTextField.clear()
+                    workingDirectoryTextField.clear()
+                    tableView.positionViewAtRow(row, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+                    Qt.callLater(() => tableView.edit(tableView.index(row, 0)))
+                }
             }
 
             Button {
@@ -204,6 +212,7 @@ Item {
                             const session = model.session
                             programTextField.text = session.program
                             argumentsTextField.text = session.arguments
+                            workingDirectoryTextField.text = session.workingDirectory || ""
                         }
 
                         onDoubleTapped: {
@@ -239,17 +248,13 @@ Item {
                     acceptedButtons: Qt.LeftButton
                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                    onSingleTapped: {
-                        tableView.closeEditor()
-                        tableView.selectedRow = -1
-                        programTextField.clear()
-                        argumentsTextField.clear()
-                    }
+                    onSingleTapped: tableView.closeEditor()
                 }
             }
         }
 
         ColumnLayout {
+            visible: tableView.selectedRow !== -1
             Layout.fillWidth: true
 
             Label {
@@ -279,22 +284,24 @@ Item {
                     Layout.preferredWidth: 32; Layout.preferredHeight: 32
 
                     onClicked: {
-                        const url = programTextField.text
-                        fileDialog.selectedFile = url
-                        fileDialog.currentFolder = url.substring(0, url.lastIndexOf('/'))
+                        if (programTextField.text) {
+                            const url = programTextField.text
+                            fileDialog.selectedFile = url
+                            fileDialog.currentFolder = url.substring(0, url.lastIndexOf('/'))
+                        }
                         fileDialog.open()
                     }
                 }
 
                 FileDialog {
-                    id: fileDialog
+                    id: programDialog
                     fileMode: FileDialog.OpenFile
                     nameFilters: ["Executable files (*.exe)", "All files (*)"]
                     onAccepted: {
                         programTextField.text = selectedFile
                         const index = terminalModel.index(tableView.selectedRow, 0)
                         const session = terminalModel.data(index, Qt.UserRole + 1)
-                        session.program = programTextField.text
+                        session.program = selectedFile
                         terminalModel.setData(index, session, Qt.UserRole + 1)
                     }
                 }
@@ -314,6 +321,53 @@ Item {
                     const session = terminalModel.data(index, Qt.UserRole + 1)
                     session.arguments = argumentsTextField.text
                     terminalModel.setData(index, session, Qt.UserRole + 1)
+                }
+            }
+
+            Label {
+                text: qsTr("Working Directory")
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                TextField {
+                    id: workingDirectoryTextField
+                    Layout.fillWidth: true
+
+                    onEditingFinished: {
+                        const index = terminalModel.index(tableView.selectedRow, 0)
+                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        session.workingDirectory = workingDirectoryTextField.text
+                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                    }
+                }
+
+                Button {
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    icon.source: "qrc:/icon/folder.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 32; Layout.preferredHeight: 32
+
+                    onClicked: {
+                        if (workingDirectoryTextField.text) {
+                            workingDirectoryDialog.currentFolder = workingDirectoryTextField.text
+                        }
+                        workingDirectoryDialog.open()
+                    }
+                }
+
+                FolderDialog {
+                    id: workingDirectoryDialog
+
+                    onAccepted: {
+                        workingDirectoryTextField.text = selectedFolder
+                        const index = terminalModel.index(tableView.selectedRow, 0)
+                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        session.workingDirectory = selectedFolder
+                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                    }
                 }
             }
         }
