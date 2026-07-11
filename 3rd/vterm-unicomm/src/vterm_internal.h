@@ -108,6 +108,8 @@ struct VTermState
   size_t combine_chars_size; // Number of ELEMENTS in the above
   int combine_width; // The width of the glyph above
   VTermPos combine_pos;   // Position before movement
+  void *grapheme_breaker;
+  uint16_t grapheme_text[(VTERM_MAX_CHARS_PER_CELL + 1) * 2];
 
   struct {
     unsigned int keypad:1;

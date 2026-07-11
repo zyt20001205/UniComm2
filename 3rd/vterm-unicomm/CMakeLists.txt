@@ -13,8 +13,25 @@ file(GLOB VTERM_SOURCES CONFIGURE_DEPENDS
 
 add_library(UniComm_Vterm STATIC ${VTERM_SOURCES})
 
+if (ICU_INCLUDE AND ICU_LIB)
+    set(VTERM_ICU_INCLUDE ${ICU_INCLUDE})
+    set(VTERM_ICU_LIB ${ICU_LIB})
+else ()
+    find_package(ICU REQUIRED COMPONENTS i18n uc)
+    set(VTERM_ICU_INCLUDE ${ICU_INCLUDE_DIRS})
+    set(VTERM_ICU_LIB ICU::i18n ICU::uc)
+endif ()
+
 target_include_directories(UniComm_Vterm PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_include_directories(UniComm_Vterm PRIVATE
+        ${VTERM_ICU_INCLUDE}
+)
+
+target_link_libraries(UniComm_Vterm PRIVATE
+        ${VTERM_ICU_LIB}
 )
 
 if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")

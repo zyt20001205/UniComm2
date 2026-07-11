@@ -18,10 +18,9 @@ extern "C" {
 #define VTERM_CHECK_VERSION \
         vterm_check_version(VTERM_VERSION_MAJOR, VTERM_VERSION_MINOR)
 
-/* Any cell can contain at most one basic printing character and 5 combining
- * characters. This number could be changed but will be ABI-incompatible if
- * you do */
-#define VTERM_MAX_CHARS_PER_CELL 6
+/* A cell stores one extended grapheme cluster. Keep enough room for current
+ * emoji ZWJ and combining sequences. Changing this value is ABI-incompatible. */
+#define VTERM_MAX_CHARS_PER_CELL 32
 
 typedef struct VTerm VTerm;
 typedef struct VTermState VTermState;
