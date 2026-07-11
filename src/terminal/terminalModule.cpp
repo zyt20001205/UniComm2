@@ -77,7 +77,8 @@ int TerminalModule::terminalAdd() const {
     const auto &session = QVariantHash({
         {"program", ""},
         {"arguments", ""},
-        {"workingDirectory", ""}
+        {"workingDirectory", ""},
+        {"environment", ""}
     });
     item->setData(session, Qt::UserRole + 1);
     m_terminalModel->appendRow(item);

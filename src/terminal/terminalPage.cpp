@@ -107,6 +107,7 @@ void TerminalPage::start() {
         m_session["program"].toUrl(),
         m_session["arguments"].toString(),
         workingDirectory,
+        m_session["environment"].toString(),
         m_rows,
         m_cols
     );

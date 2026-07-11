@@ -17,7 +17,8 @@ ConptyWidget::~ConptyWidget() {
     stop();
 }
 
-bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QString &workingDirectory, const int rows, const int cols) {
+bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QString &workingDirectory,
+                        const QString &environment, const int rows, const int cols) {
     if (program.isEmpty() || rows < 1 || cols < 1) return false;
 
     HANDLE h_inputRead{};
@@ -79,7 +80,7 @@ bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QS
     const auto &applicationName = _program.toStdWString();
     auto command = commandLine.toStdWString();
     const auto &directory = QDir::toNativeSeparators(workingDirectory).toStdWString();
-    QString environment = environmentBlock();
+    auto _environment = environmentParse(environment).toStdWString();
 
     PROCESS_INFORMATION processInfo{};
     const BOOL created = CreateProcessW(
@@ -89,7 +90,7 @@ bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QS
         nullptr,
         FALSE,
         EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
-        environment.data(),
+        _environment.data(),
         directory.empty() ? nullptr : directory.c_str(),
         &startupInfo.StartupInfo,
         &processInfo
@@ -185,11 +186,21 @@ void ConptyWidget::outputRead() {
     }
 }
 
-QString ConptyWidget::environmentBlock() {
+QString ConptyWidget::environmentParse(const QString &environment) {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     if (env.value("TERM").isEmpty()) env.insert("TERM", "xterm-256color");
     if (env.value("COLORTERM").isEmpty()) env.insert("COLORTERM", "truecolor");
     if (env.value("TERM_PROGRAM").isEmpty()) env.insert("TERM_PROGRAM", "UniComm");
+
+    for (const auto &entry: environment.split(';', Qt::SkipEmptyParts)) {
+        const qsizetype separator = entry.indexOf('=');
+        if (separator <= 0) continue;
+        const auto &name = entry.first(separator).trimmed();
+        if (name.isEmpty() || name.contains(QChar::Null)) continue;
+        const auto &value = entry.sliced(separator + 1);
+        if (value.contains(QChar::Null)) continue;
+        env.insert(name, value);
+    }
 
     auto keys = env.keys();
     keys.sort(Qt::CaseInsensitive);

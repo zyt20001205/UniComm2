@@ -16,7 +16,8 @@ public:
 
     ~ConptyWidget() override;
 
-    [[nodiscard]] bool start(const QUrl &program, const QString &arguments, const QString &workingDirectory, int rows, int cols);
+    [[nodiscard]] bool start(const QUrl &program, const QString &arguments, const QString &workingDirectory,
+                             const QString &environment, int rows, int cols);
 
     void inputWrite(const QByteArray &bytes) const;
 
@@ -34,7 +35,7 @@ signals:
 private:
     void outputRead();
 
-    static QString environmentBlock();
+    static QString environmentParse(const QString &environment);
 
     static void closeHandle(void *&handle);
 
