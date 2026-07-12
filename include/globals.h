@@ -45,8 +45,10 @@ extern ViSession g_rm;
 extern QVariantMap g_cursorPosition;
 extern QHash<QChar, int> g_gitStatusCode;
 
+class PortModel;
+
 extern QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints;
-extern QStandardItemModel *g_portStandardItemModel;
+extern PortModel *g_portModel;
 extern QStandardItemModel *g_databaseStandardItemModel;
 extern QStandardItemModel *g_datatableHeaderItemModel;
 extern QStandardItemModel *g_datatableStandardItemModel;

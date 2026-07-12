@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool modelVisible: standardItemModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -15,7 +14,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !modelVisible
+        visible: portModel.empty
 
         RowLayout {
             anchors.centerIn: parent
@@ -33,7 +32,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: modelVisible
+        visible: !portModel.empty
 
         VerticalHeaderView {
             id: verticalHeaderView
@@ -108,7 +107,7 @@ Item {
             clip: true
             editTriggers: TableView.NoEditTriggers
             rowSpacing: 1
-            model: standardItemModel
+            model: portModel
             contentWidth: width
 
             ScrollBar.vertical: ScrollBar {
@@ -155,22 +154,6 @@ Item {
 
                 onSingleTapped: rootMenu.popup()
             }
-        }
-    }
-
-    Connections {
-        target: standardItemModel
-
-        function onRowsInserted() {
-            modelVisible = true
-        }
-
-        function onRowsRemoved() {
-            modelVisible = standardItemModel.rowCount() > 0
-        }
-
-        function onModelReset() {
-            modelVisible = false
         }
     }
 }

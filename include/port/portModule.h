@@ -2,11 +2,11 @@
 #define UNICOMM_PORTMODULE_H
 
 #include <QJsonObject>
+#include <QStandardItemModel>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QPushButton;
 class QQuickWidget;
-class QStandardItemModel;
 class QTabWidget;
 class QVBoxLayout;
 
@@ -49,6 +49,23 @@ private:
     QQuickWidget *m_widget{};
     QObject *m_root{};
     PortSetting *m_portSetting{};
+};
+
+class PortModel final : public QStandardItemModel {
+    Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
+
+public:
+    explicit PortModel(QObject *parent = nullptr);
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] bool emptyGet() const {
+        return rowCount() == 0;
+    }
+
+    signals:
+        void emptyChanged();
 };
 
 #endif //UNICOMM_PORTMODULE_H

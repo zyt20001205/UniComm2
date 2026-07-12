@@ -44,7 +44,7 @@ QHash<QChar, int> g_gitStatusCode = {
 };
 
 QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints = {};
-QStandardItemModel *g_portStandardItemModel = {};
+PortModel *g_portModel = {};
 QStandardItemModel *g_databaseStandardItemModel = {};
 QStandardItemModel *g_datatableHeaderItemModel = {};
 QStandardItemModel *g_datatableStandardItemModel = {};
