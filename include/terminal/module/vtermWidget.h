@@ -4,6 +4,7 @@
 #include <QByteArray>
 #include <QObject>
 #include <QPoint>
+#include <QRect>
 #include <vterm.h>
 
 extern "C" {
@@ -45,7 +46,9 @@ public:
 signals:
     void outputWrite(const QByteArray &bytes);
 
-    void setScreen(int row, int col, const QList<TerminalCell> &cells, bool atBottom);
+    void setScreen(int rows, int cols, const QList<TerminalCell> &cells, bool atBottom);
+
+    void setScreenDamage(const QRect &rect, const QList<TerminalCell> &cells);
 
     void setCursorPosition(const QPoint &position, const QPoint &oldPosition);
 
@@ -62,7 +65,11 @@ signals:
 private:
     void renderScreen();
 
+    void renderDamage(const QRect &rect);
+
     void outputRead();
+
+    int screenDamage(VTermRect rect);
 
     int cursorMove(VTermPos pos, VTermPos oldPos, int visible);
 
@@ -88,6 +95,7 @@ private:
     bool m_altScreen{false};
     QList<QList<TerminalCell> > m_scrollback{};
     int m_scrollOffset{};
+    QRect m_pendingDamage{};
     // osc52
     QByteArray m_selectionBuffer{};
     QString m_pendingSelection{};

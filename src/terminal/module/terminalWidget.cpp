@@ -1,6 +1,9 @@
+#define UNICOMM_TERMINAL_DAMAGE_DEBUG
+
 #include "terminal/module/terminalWidget.h"
 
 #include <QClipboard>
+#include <QDebug>
 #include <QInputMethodEvent>
 #include <QPainter>
 #include <QTimer>
@@ -28,13 +31,24 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
 }
 
 void TerminalWidget::paint(QPainter *painter) {
+    if (m_rows < 1 || m_cols < 1 || m_cells.size() < m_rows * m_cols) return;
+
+    QRectF paintRect = painter->hasClipping() ? painter->clipBoundingRect() : boundingRect();
+    paintRect = paintRect.intersected(QRectF(0, 0, m_cols * m_cellWidth, m_rows * m_cellHeight));
+    if (paintRect.isEmpty()) return;
+
+    const int firstRow = qMax(0, qFloor(paintRect.top() / m_cellHeight));
+    const int endRow = qMin(m_rows, qCeil(paintRect.bottom() / m_cellHeight));
+    const int firstCol = qMax(0, qFloor(paintRect.left() / m_cellWidth) - 1);
+    const int endCol = qMin(m_cols, qCeil(paintRect.right() / m_cellWidth) + 1);
+
     painter->setFont(m_font);
     QFont currentFont = m_font;
 
-    for (int row = 0; row < m_rows; ++row) {
+    for (int row = firstRow; row < endRow; ++row) {
         const qreal y = row * m_cellHeight + m_ascent;
-        int col = 0;
-        while (col < m_cols) {
+        int col = firstCol;
+        while (col < endCol) {
             // get cell
             const auto &cell = m_cells[row * m_cols + col];
             if (cell.width == 0) {
@@ -87,6 +101,17 @@ void TerminalWidget::paint(QPainter *painter) {
             col += cell.width;
         }
     }
+
+#ifdef UNICOMM_TERMINAL_DAMAGE_DEBUG
+    painter->save();
+    QPen pen(QColor(255, 0, 255, 220));
+    pen.setCosmetic(true);
+    pen.setWidth(1);
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(paintRect.adjusted(0.5, 0.5, -0.5, -0.5));
+    painter->restore();
+#endif
 }
 
 void TerminalWidget::fontSet(const QFont &font) {
@@ -101,6 +126,31 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Termi
     m_cells = cells;
     m_atBottom = atBottom;
     update();
+}
+
+void TerminalWidget::screenDamageSet(const QRect &rect, const QList<TerminalCell> &cells) {
+    const int expectedCells = rect.width() * rect.height();
+    if (rect.isEmpty() || cells.size() != expectedCells || m_cells.size() != m_rows * m_cols ||
+        rect.left() < 0 || rect.top() < 0 || rect.right() >= m_cols || rect.bottom() >= m_rows) {
+        qWarning() << "Invalid terminal damage" << rect << cells.size();
+        return;
+    }
+
+    int source = 0;
+    for (int row = rect.top(); row <= rect.bottom(); ++row) {
+        for (int col = rect.left(); col <= rect.right(); ++col) {
+            m_cells[row * m_cols + col] = cells[source++];
+        }
+    }
+
+    const QRect pixelRect = QRectF(
+        rect.left() * m_cellWidth,
+        rect.top() * m_cellHeight,
+        rect.width() * m_cellWidth,
+        rect.height() * m_cellHeight
+    ).toAlignedRect().adjusted(-1, 0, 1, 0).intersected(boundingRect().toAlignedRect());
+
+    update(pixelRect);
 }
 
 void TerminalWidget::cursorPositionSet(const QPoint &position, const QPoint &oldPosition) {

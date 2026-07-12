@@ -58,6 +58,7 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
     connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
     connect(m_vtermWidget, &VtermWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
+    connect(m_vtermWidget, &VtermWidget::setScreenDamage, m_terminalWidget, &TerminalWidget::screenDamageSet);
     connect(m_vtermWidget, &VtermWidget::setCursorPosition, m_terminalWidget, &TerminalWidget::cursorPositionSet);
     connect(m_vtermWidget, &VtermWidget::setCursorVisible, m_terminalWidget, &TerminalWidget::cursorVisibleSet);
     connect(m_vtermWidget, &VtermWidget::setCursorBlink, m_terminalWidget, &TerminalWidget::cursorBlinkSet);
@@ -75,6 +76,7 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalWidget->setHeight(terminalItem->height());
     m_terminalWidget->fontSet(font);
 
+    m_vtermWidget->resize(m_rows, m_cols);
     start();
 }
 

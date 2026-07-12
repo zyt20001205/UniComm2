@@ -5,6 +5,7 @@
 
 #include <QList>
 #include <QQuickPaintedItem>
+#include <QRect>
 
 struct TerminalCell;
 
@@ -19,6 +20,8 @@ public:
     void fontSet(const QFont &font);
 
     void screenSet(int rows, int cols, const QList<TerminalCell> &cells, bool atBottom);
+
+    void screenDamageSet(const QRect &rect, const QList<TerminalCell> &cells);
 
     void cursorPositionSet(const QPoint &position, const QPoint &oldPosition);
 

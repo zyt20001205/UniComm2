@@ -17,6 +17,9 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     vterm_set_utf8(m_vterm, 1);
     vterm_state_set_bold_highbright(m_state, 1);
 
+    m_callbacks.damage = [](const VTermRect rect, void *user) -> int {
+        return static_cast<VtermWidget *>(user)->screenDamage(rect);
+    };
     m_callbacks.movecursor = [](const VTermPos pos, const VTermPos oldPos, const int visible, void *user) -> int {
         return static_cast<VtermWidget *>(user)->cursorMove(pos, oldPos, visible);
     };
@@ -50,12 +53,14 @@ VtermWidget::~VtermWidget() {
 void VtermWidget::resize(const int rows, const int cols) {
     m_rows = rows;
     m_cols = cols;
+    m_pendingDamage = {};
     vterm_set_size(m_vterm, m_rows, m_cols);
     vterm_screen_flush_damage(m_screen);
     renderScreen();
 }
 
 void VtermWidget::reset(const bool hard) {
+    m_pendingDamage = {};
     vterm_screen_reset(m_screen, hard ? 1 : 0);
     vterm_screen_flush_damage(m_screen);
     m_scrollOffset = 0;
@@ -64,10 +69,14 @@ void VtermWidget::reset(const bool hard) {
 
 void VtermWidget::inputWrite(const QByteArray &bytes) {
     if (bytes.isEmpty()) return;
+    m_pendingDamage = {};
     vterm_input_write(m_vterm, bytes.constData(), static_cast<size_t>(bytes.size()));
     vterm_screen_flush_damage(m_screen);
     m_scrollOffset = qBound(0, m_scrollOffset, m_scrollback.size());
-    renderScreen();
+
+    const QRect damage = m_pendingDamage;
+    m_pendingDamage = {};
+    if (!damage.isEmpty()) renderDamage(damage);
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
@@ -167,7 +176,30 @@ void VtermWidget::renderScreen() {
         }
     }
 
+    m_pendingDamage = {};
     emit setScreen(m_rows, m_cols, visible, m_scrollOffset == 0);
+}
+
+void VtermWidget::renderDamage(const QRect &rect) {
+    if (m_scrollOffset != 0) {
+        renderScreen();
+        return;
+    }
+
+    const QRect damage = rect.intersected(QRect(0, 0, m_cols, m_rows));
+    if (damage.isEmpty()) return;
+
+    QList<TerminalCell> cells{};
+    cells.reserve(damage.width() * damage.height());
+    for (int row = damage.top(); row <= damage.bottom(); ++row) {
+        for (int col = damage.left(); col <= damage.right(); ++col) {
+            VTermScreenCell cell{};
+            vterm_screen_get_cell(m_screen, VTermPos{row, col}, &cell);
+            cells.append(uni_cast<TerminalCell>(m_screen, cell));
+        }
+    }
+
+    emit setScreenDamage(damage, cells);
 }
 
 void VtermWidget::outputRead() {
@@ -179,6 +211,19 @@ void VtermWidget::outputRead() {
         output.append(buffer, static_cast<qsizetype>(read));
     }
     emit outputWrite(output);
+}
+
+int VtermWidget::screenDamage(const VTermRect rect) {
+    const QRect damage(
+        rect.start_col,
+        rect.start_row,
+        rect.end_col - rect.start_col,
+        rect.end_row - rect.start_row
+    );
+    if (damage.isEmpty()) return 1;
+
+    m_pendingDamage = m_pendingDamage.isEmpty() ? damage : m_pendingDamage.united(damage);
+    return 1;
 }
 
 int VtermWidget::cursorMove(const VTermPos pos, const VTermPos oldPos, const int visible) {
