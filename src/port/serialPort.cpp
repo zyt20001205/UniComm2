@@ -89,8 +89,8 @@ bool SerialPort::open() {
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
         const QVariantHash session{
             {"active", true},
-            {"capacity", 0},
-            {"used", 0}
+            {"capacity", m_portConfig["bufferSize"].toInt()},
+            {"used", m_buffer.used()}
         };
         emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");

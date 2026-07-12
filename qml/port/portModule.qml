@@ -1,3 +1,4 @@
+import QtGraphs
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.impl
@@ -6,6 +7,12 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+
+    function formatBytes(value) {
+        if (value < 1024) return value + " B"
+        if (value < 1048576) return (value / 1024).toFixed(value < 10240 ? 1 : 0) + " KB"
+        return (value / 1048576).toFixed(value < 10485760 ? 1 : 0) + " MB"
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -109,6 +116,7 @@ Item {
             rowSpacing: 1
             model: portModel
             contentWidth: width
+            property int hoveredRow: -1
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
@@ -123,19 +131,83 @@ Item {
                 color: global.stroke
             }
 
-            delegate: SwitchDelegate {
+            delegate: Item {
+                id: portDelegate
                 implicitWidth: tableView.width
-                checked: model.active
-                text: model.display
-                background: Rectangle {
+
+                Rectangle {
                     anchors.fill: parent
                     color: global.back
                 }
 
-                onClicked: portModule.portToggle(model.row)
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: global.backHover
+                    opacity: tableView.hoveredRow === row ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+
+                    RowLayout {
+                        Layout.fillWidth: true; Layout.preferredHeight: 32
+
+                        Label {
+                            leftPadding: 6
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                            text: model.display || ""
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+
+                        Switch {
+                            checked: model.active
+
+                            onClicked: portModule.portToggle(model.row)
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true; Layout.preferredHeight: 80
+
+                        Item {
+                            Layout.fillWidth: true; Layout.fillHeight: true
+
+                            GraphsView {
+                                anchors.fill: parent
+                                theme: GraphsTheme {
+                                    theme: GraphsTheme.Theme.QtGreen
+                                    // backgroundVisible: false
+                                    // plotAreaBackgroundVisible: false
+                                    // gridVisible: false
+                                }
+
+                                PieSeries {
+                                    pieSize: 0.88
+                                    holeSize: 0.58
+
+                                    PieSlice {
+                                        value: model.used
+                                    }
+
+                                    PieSlice {
+                                        value: model.capacity - model.used
+                                        // borderWidth: 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 HoverHandler {
-                    onHoveredChanged: cursorShape = Qt.PointingHandCursor
+                    id: hoverHandler
                 }
 
                 TapHandler {

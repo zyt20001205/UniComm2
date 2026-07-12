@@ -95,6 +95,8 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     const QString portName = portConfig["portName"].toString();
     auto *item = new QStandardItem(portName); // NOLINT
     item->setData(false, Qt::UserRole + 1);
+    item->setData(0, Qt::UserRole + 2);
+    item->setData(0, Qt::UserRole + 3);
     g_portModel->insertRow(index, item);
     BasePort *port{};
     switch (portConfig["portType"].toInt()) {
@@ -184,7 +186,9 @@ void PortModule::portRefresh(const QString &portName, const QVariantHash &sessio
     for (int row = 0; row < g_portModel->rowCount(); ++row) {
         auto *item = g_portModel->item(row, 0);
         if (item->text() == portName) {
-            item->setData(session.value("active").toBool(), Qt::UserRole + 1);
+            if (session.contains("active")) item->setData(session.value("active"), Qt::UserRole + 1);
+            if (session.contains("capacity")) item->setData(session.value("capacity"), Qt::UserRole + 2);
+            if (session.contains("used")) item->setData(session.value("used"), Qt::UserRole + 3);
             break;
         }
     }
@@ -201,5 +205,7 @@ PortModel::PortModel(QObject *parent)
 QHash<int, QByteArray> PortModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "active";
+    roles[Qt::UserRole + 2] = "capacity";
+    roles[Qt::UserRole + 3] = "used";
     return roles;
 }
