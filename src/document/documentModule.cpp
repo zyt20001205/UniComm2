@@ -288,7 +288,9 @@ void DocumentModule::documentReload(const QString &documentPath) {
     const auto documentUrl = QUrl::fromLocalFile(documentPath);
     if (m_pageHash.contains(documentUrl)) {
         auto *basePage = m_pageHash.value(documentUrl);
-        connect(basePage, &BasePage::destroyed, this, [this, documentUrl] { documentOpen(documentUrl); });
+        connect(basePage, &BasePage::destroyed, this, [this, documentUrl, documentPath] {
+            if (QFileInfo::exists(documentPath)) documentOpen(documentUrl);
+        });
         basePage->documentClose(true);
     }
 }
