@@ -42,7 +42,6 @@ Item {
                     workingDirectoryTextField.clear()
                     environmentTextField.clear()
                     tableView.positionViewAtRow(row, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
-                    Qt.callLater(() => tableView.edit(tableView.index(row, 0)))
                 }
             }
 

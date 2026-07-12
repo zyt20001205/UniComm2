@@ -1,9 +1,8 @@
-#define UNICOMM_TERMINAL_DAMAGE_DEBUG
+// #define UNICOMM_TERMINAL_DAMAGE_DEBUG
 
 #include "terminal/module/terminalWidget.h"
 
 #include <QClipboard>
-#include <QDebug>
 #include <QInputMethodEvent>
 #include <QPainter>
 #include <QTimer>
@@ -25,7 +24,7 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
     m_blinkTimer->setInterval(500);
     connect(m_blinkTimer, &QTimer::timeout, this, [this] {
         m_blinkPhase = !m_blinkPhase;
-        update(cursorRect());
+        updateRegion(cursorRect());
     });
     m_blinkTimer->start();
 }
@@ -101,23 +100,12 @@ void TerminalWidget::paint(QPainter *painter) {
             col += cell.width;
         }
     }
-
-#ifdef UNICOMM_TERMINAL_DAMAGE_DEBUG
-    painter->save();
-    QPen pen(QColor(255, 0, 255, 220));
-    pen.setCosmetic(true);
-    pen.setWidth(1);
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
-    painter->drawRect(paintRect.adjusted(0.5, 0.5, -0.5, -0.5));
-    painter->restore();
-#endif
 }
 
 void TerminalWidget::fontSet(const QFont &font) {
     m_font = font;
     metricsUpdate();
-    update();
+    updateRegion();
 }
 
 void TerminalWidget::screenSet(const int rows, const int cols, const QList<TerminalCell> &cells, const bool atBottom) {
@@ -125,16 +113,12 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Termi
     m_cols = cols;
     m_cells = cells;
     m_atBottom = atBottom;
-    update();
+    updateRegion();
 }
 
 void TerminalWidget::screenDamageSet(const QRect &rect, const QList<TerminalCell> &cells) {
     const int expectedCells = rect.width() * rect.height();
-    if (rect.isEmpty() || cells.size() != expectedCells || m_cells.size() != m_rows * m_cols ||
-        rect.left() < 0 || rect.top() < 0 || rect.right() >= m_cols || rect.bottom() >= m_rows) {
-        qWarning() << "Invalid terminal damage" << rect << cells.size();
-        return;
-    }
+    if (rect.isEmpty() || cells.size() != expectedCells || m_cells.size() != m_rows * m_cols || rect.left() < 0 || rect.top() < 0 || rect.right() >= m_cols || rect.bottom() >= m_rows) return;
 
     int source = 0;
     for (int row = rect.top(); row <= rect.bottom(); ++row) {
@@ -150,15 +134,15 @@ void TerminalWidget::screenDamageSet(const QRect &rect, const QList<TerminalCell
         rect.height() * m_cellHeight
     ).toAlignedRect().adjusted(-1, 0, 1, 0).intersected(boundingRect().toAlignedRect());
 
-    update(pixelRect);
+    updateRegion(pixelRect);
 }
 
 void TerminalWidget::cursorPositionSet(const QPoint &position, const QPoint &oldPosition) {
     if (m_position == position) return;
     m_position = position;
     if (!(m_atBottom && m_visible && m_blinkPhase)) return;
-    update(cursorRect(oldPosition));
-    update(cursorRect(position));
+    updateRegion(cursorRect(oldPosition));
+    updateRegion(cursorRect(position));
 }
 
 void TerminalWidget::cursorVisibleSet(const bool visible) {
@@ -175,7 +159,7 @@ void TerminalWidget::cursorVisibleSet(const bool visible) {
         m_blinkTimer->stop();
         m_blinkPhase = true;
     }
-    update(cursorRect());
+    updateRegion(cursorRect());
 }
 
 void TerminalWidget::cursorBlinkSet(const bool blink) {
@@ -189,13 +173,13 @@ void TerminalWidget::cursorBlinkSet(const bool blink) {
         m_blinkTimer->stop();
         m_blinkPhase = true;
     }
-    update(cursorRect());
+    updateRegion(cursorRect());
 }
 
 void TerminalWidget::cursorShapeSet(const int shape) {
     if (m_shape == shape) return;
     m_shape = shape;
-    update(cursorRect());
+    updateRegion(cursorRect());
 }
 
 void TerminalWidget::cursorModeSet(const int mode) {
@@ -321,6 +305,20 @@ void TerminalWidget::metricsUpdate() {
     m_requestedRows = rows;
     m_requestedCols = cols;
     emit resize(rows, cols);
+}
+
+void TerminalWidget::updateRegion() {
+#ifdef UNICOMM_TERMINAL_DAMAGE_DEBUG
+    emit debugDamage(boundingRect());
+#endif
+    update();
+}
+
+void TerminalWidget::updateRegion(const QRect &rect) {
+#ifdef UNICOMM_TERMINAL_DAMAGE_DEBUG
+    if (!rect.isEmpty()) emit debugDamage(rect);
+#endif
+    update(rect);
 }
 
 QRect TerminalWidget::cursorRect() const {

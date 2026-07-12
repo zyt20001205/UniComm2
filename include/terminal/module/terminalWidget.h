@@ -52,6 +52,8 @@ signals:
 
     void openLink(int uri);
 
+    void debugDamage(const QRectF &rect);
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
@@ -71,6 +73,10 @@ protected:
 
 private:
     void metricsUpdate();
+
+    void updateRegion();
+
+    void updateRegion(const QRect &rect);
 
     [[nodiscard]] QRect cursorRect() const;
 

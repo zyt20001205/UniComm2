@@ -40,6 +40,7 @@ void TerminalPage::propertySet(const QVariantHash &objects) {
 void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalItem = qvariant_cast<QObject *>(objects["terminalItem"]);
     auto *terminalItem = qobject_cast<QQuickItem *>(m_terminalItem);
+    auto *damageOverlay = qobject_cast<QQuickItem *>(qvariant_cast<QObject *>(objects["damageOverlay"]));
 
     auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     font.setFixedPitch(true);
@@ -55,6 +56,11 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     connect(m_terminalWidget, &TerminalWidget::mouseWheeled, m_vtermWidget, &VtermWidget::mouseWheeled);
     connect(m_terminalWidget, &TerminalWidget::mouseScrolled, m_vtermWidget, &VtermWidget::mouseScrolled);
     connect(m_terminalWidget, &TerminalWidget::openLink, m_vtermWidget, &VtermWidget::linkOpen);
+    connect(m_terminalWidget, &TerminalWidget::debugDamage, damageOverlay, [damageOverlay](const QRectF &rect) {
+        damageOverlay->setPosition(rect.topLeft());
+        damageOverlay->setSize(rect.size());
+        damageOverlay->setVisible(true);
+    });
     connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
     connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
     connect(m_vtermWidget, &VtermWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
