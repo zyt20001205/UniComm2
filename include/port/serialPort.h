@@ -1,12 +1,14 @@
 #ifndef UNICOMM_SERIALPORT_H
 #define UNICOMM_SERIALPORT_H
 
+#include <QElapsedTimer>
 #include <QJsonObject>
 
 #include "basePort.h"
 #include "port/module/ringBuffer.h"
 
 class QSerialPort;
+class QTimer;
 
 class SerialPort final : public BasePort {
     Q_OBJECT
@@ -54,13 +56,15 @@ private:
 
     [[nodiscard]] QByteArray handleReadUntil(const QByteArray &text, int timeout);
 
-    void handleUpdate();
-
     void handleLog(int type, const QByteArray &data);
+
+     void handleUpdate();
 
     QSerialPort *m_serialPort{};
     QJsonObject m_portConfig{};
     RingBuffer m_buffer;
+    QTimer *m_updateTimer{};
+    QElapsedTimer m_activeTimer{};
 };
 
 #endif //UNICOMM_SERIALPORT_H

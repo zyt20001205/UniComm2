@@ -97,6 +97,11 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     item->setData(false, Qt::UserRole + 1);
     item->setData(0, Qt::UserRole + 2);
     item->setData(0, Qt::UserRole + 3);
+    item->setData(0, Qt::UserRole + 4);
+    item->setData(0, Qt::UserRole + 5);
+    item->setData(0, Qt::UserRole + 6);
+    item->setData(0, Qt::UserRole + 7);
+    item->setData(0, Qt::UserRole + 8);
     g_portModel->insertRow(index, item);
     BasePort *port{};
     switch (portConfig["portType"].toInt()) {
@@ -189,6 +194,11 @@ void PortModule::portRefresh(const QString &portName, const QVariantHash &sessio
             if (session.contains("active")) item->setData(session.value("active"), Qt::UserRole + 1);
             if (session.contains("capacity")) item->setData(session.value("capacity"), Qt::UserRole + 2);
             if (session.contains("used")) item->setData(session.value("used"), Qt::UserRole + 3);
+            if (session.contains("lifetime")) item->setData(session.value("lifetime"), Qt::UserRole + 4);
+            if (session.contains("readCount")) item->setData(session.value("readCount"), Qt::UserRole + 5);
+            if (session.contains("readBytes")) item->setData(session.value("readBytes"), Qt::UserRole + 6);
+            if (session.contains("writeCount")) item->setData(session.value("writeCount"), Qt::UserRole + 7);
+            if (session.contains("writeBytes")) item->setData(session.value("writeBytes"), Qt::UserRole + 8);
             break;
         }
     }
@@ -207,5 +217,10 @@ QHash<int, QByteArray> PortModel::roleNames() const {
     roles[Qt::UserRole + 1] = "active";
     roles[Qt::UserRole + 2] = "capacity";
     roles[Qt::UserRole + 3] = "used";
+    roles[Qt::UserRole + 4] = "lifetime";
+    roles[Qt::UserRole + 5] = "readCount";
+    roles[Qt::UserRole + 6] = "readBytes";
+    roles[Qt::UserRole + 7] = "writeCount";
+    roles[Qt::UserRole + 8] = "writeBytes";
     return roles;
 }

@@ -133,7 +133,7 @@ Item {
 
             delegate: Item {
                 id: portDelegate
-                implicitWidth: tableView.width; implicitHeight: contentLayout.implicitHeight
+                implicitWidth: tableView.width; implicitHeight: contentLayout.implicitHeight + 12
 
                 Rectangle {
                     anchors.fill: parent
@@ -175,15 +175,39 @@ Item {
                         }
                     }
 
-                    RowLayout {
+                    SplitView {
+                        visible: model.active
+                        orientation: Qt.Horizontal
                         Layout.fillWidth: true; Layout.preferredHeight: 120
+                        handle: Item {
+                            implicitWidth: 5
+
+                            Rectangle {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.top: parent.top
+                                anchors.bottom: parent.bottom
+                                width: 1
+                                color: global.stroke
+                            }
+                        }
+
+                        GridLayout {
+                            SplitView.fillWidth: true; SplitView.fillHeight: true
+
+                            Label {
+                                text: qsTr("Lifetime: ")
+                            }
+
+                            Label {
+                                text: model.lifetime
+                            }
+                        }
 
                         Item {
-                            Layout.fillWidth: true; Layout.fillHeight: true
+                            SplitView.preferredWidth: 120; SplitView.fillHeight: true
 
                             Label {
                                 anchors.centerIn: parent
-                                visible: model.active
                                 text: (usedSlice.percentage * 100).toFixed(1) + "%"
                             }
 

@@ -20,8 +20,9 @@ qsizetype RingBuffer::write(const QByteArray &data) {
 
         m_writePos = (m_writePos + length) % m_capacity;
         m_used += length;
+        ++m_writeCount;
+        m_writeBytes += static_cast<quint64>(length);
     }
-    emit update();
     return length;
 }
 
@@ -30,8 +31,11 @@ QByteArray RingBuffer::read(qsizetype length) {
     {
         QMutexLocker locker(&m_mutex);
         data = readLocked(length);
+        if (!data.isEmpty()) {
+            ++m_readCount;
+            m_readBytes += static_cast<quint64>(data.size());
+        }
     }
-    if (!data.isEmpty()) emit update();
     return data;
 }
 
@@ -42,8 +46,11 @@ QByteArray RingBuffer::readUntil(const QByteArray &text) {
         const qsizetype length = distanceLocked(text);
         if (length < 0) return {};
         data = readLocked(length);
+        if (!data.isEmpty()) {
+            ++m_readCount;
+            m_readBytes += static_cast<quint64>(data.size());
+        }
     }
-    if (!data.isEmpty()) emit update();
     return data;
 }
 
@@ -57,17 +64,25 @@ qsizetype RingBuffer::distance(const QByteArray &text) {
     return distanceLocked(text);
 }
 
+RingBuffer::Statistics RingBuffer::statistics() {
+    QMutexLocker locker(&m_mutex);
+    return {m_used, m_readCount, m_readBytes, m_writeCount, m_writeBytes};
+}
+
+void RingBuffer::resetStatistics() {
+    QMutexLocker locker(&m_mutex);
+    m_readCount = 0;
+    m_readBytes = 0;
+    m_writeCount = 0;
+    m_writeBytes = 0;
+}
+
 void RingBuffer::clear() {
-    bool changed = false;
-    {
-        QMutexLocker locker(&m_mutex);
-        changed = m_used > 0;
-        m_buffer.fill(0);
-        m_readPos = 0;
-        m_writePos = 0;
-        m_used = 0;
-    }
-    if (changed) emit update();
+    QMutexLocker locker(&m_mutex);
+    m_buffer.fill(0);
+    m_readPos = 0;
+    m_writePos = 0;
+    m_used = 0;
 }
 
 // private
