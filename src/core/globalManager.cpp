@@ -80,6 +80,8 @@ GlobalManager::GlobalManager(QObject *parent)
           + "QScrollBar:vertical { background-color: transparent; width: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
           + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette["lightStroke"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar::handle:horizontal { min-width: 20px; }"
+          + "QScrollBar::handle:vertical { min-height: 20px; }"
           + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["lightStrokePressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["lightBack"] + "; }"
 
@@ -100,6 +102,8 @@ GlobalManager::GlobalManager(QObject *parent)
           + "QScrollBar:vertical { background-color: transparent; width: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
           + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette["darkStroke"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar::handle:horizontal { min-width: 20px; }"
+          + "QScrollBar::handle:vertical { min-height: 20px; }"
           + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["darkStrokePressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["darkBack"] + "; }"
 
