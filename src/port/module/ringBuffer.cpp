@@ -10,28 +10,41 @@ RingBuffer::RingBuffer(const qsizetype capacity)
 
 qsizetype RingBuffer::write(const QByteArray &data) {
     const qsizetype length = data.size();
-    QMutexLocker locker(&m_mutex);
-    if (length == 0 || length > m_capacity - m_used) return 0;
-    const qsizetype firstChunk = qMin(length, m_capacity - m_writePos);
-    const qsizetype secondChunk = length - firstChunk;
-    if (firstChunk > 0) m_buffer.replace(m_writePos, firstChunk, data.constData(), firstChunk);
-    if (secondChunk > 0) m_buffer.replace(static_cast<qsizetype>(0), secondChunk, data.constData() + firstChunk, secondChunk);
+    {
+        QMutexLocker locker(&m_mutex);
+        if (length == 0 || length > m_capacity - m_used) return 0;
+        const qsizetype firstChunk = qMin(length, m_capacity - m_writePos);
+        const qsizetype secondChunk = length - firstChunk;
+        if (firstChunk > 0) m_buffer.replace(m_writePos, firstChunk, data.constData(), firstChunk);
+        if (secondChunk > 0) m_buffer.replace(static_cast<qsizetype>(0), secondChunk, data.constData() + firstChunk, secondChunk);
 
-    m_writePos = (m_writePos + length) % m_capacity;
-    m_used += length;
+        m_writePos = (m_writePos + length) % m_capacity;
+        m_used += length;
+    }
+    emit update();
     return length;
 }
 
 QByteArray RingBuffer::read(qsizetype length) {
-    QMutexLocker locker(&m_mutex);
-    return readLocked(length);
+    QByteArray data;
+    {
+        QMutexLocker locker(&m_mutex);
+        data = readLocked(length);
+    }
+    if (!data.isEmpty()) emit update();
+    return data;
 }
 
 QByteArray RingBuffer::readUntil(const QByteArray &text) {
-    QMutexLocker locker(&m_mutex);
-    const qsizetype length = distanceLocked(text);
-    if (length < 0) return {};
-    return readLocked(length);
+    QByteArray data;
+    {
+        QMutexLocker locker(&m_mutex);
+        const qsizetype length = distanceLocked(text);
+        if (length < 0) return {};
+        data = readLocked(length);
+    }
+    if (!data.isEmpty()) emit update();
+    return data;
 }
 
 qsizetype RingBuffer::used() {
@@ -45,11 +58,16 @@ qsizetype RingBuffer::distance(const QByteArray &text) {
 }
 
 void RingBuffer::clear() {
-    QMutexLocker locker(&m_mutex);
-    m_buffer.fill(0);
-    m_readPos = 0;
-    m_writePos = 0;
-    m_used = 0;
+    bool changed = false;
+    {
+        QMutexLocker locker(&m_mutex);
+        changed = m_used > 0;
+        m_buffer.fill(0);
+        m_readPos = 0;
+        m_writePos = 0;
+        m_used = 0;
+    }
+    if (changed) emit update();
 }
 
 // private

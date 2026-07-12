@@ -13,6 +13,7 @@ SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
       m_buffer(portConfig["bufferSize"].toInt()) {
+    connect(&m_buffer, &RingBuffer::update, this, &SerialPort::handleUpdate);
 }
 
 SerialPort::~SerialPort() {
@@ -89,8 +90,7 @@ bool SerialPort::open() {
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
         const QVariantHash session{
             {"active", true},
-            {"capacity", m_portConfig["bufferSize"].toInt()},
-            {"used", m_buffer.used()}
+            {"capacity", m_portConfig["bufferSize"].toInt()}
         };
         emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
@@ -199,6 +199,11 @@ QByteArray SerialPort::handleReadUntil(const QByteArray &text, const int timeout
         data = m_buffer.readUntil(text);
     }
     return data;
+}
+
+void SerialPort::handleUpdate() {
+    const QVariantHash session{{"used", m_buffer.used()}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
 }
 
 void SerialPort::handleLog(const int type, const QByteArray &data) {

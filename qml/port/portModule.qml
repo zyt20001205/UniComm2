@@ -133,7 +133,7 @@ Item {
 
             delegate: Item {
                 id: portDelegate
-                implicitWidth: tableView.width
+                implicitWidth: tableView.width; implicitHeight: contentLayout.implicitHeight
 
                 Rectangle {
                     anchors.fill: parent
@@ -153,13 +153,15 @@ Item {
                 }
 
                 ColumnLayout {
+                    id: contentLayout
                     anchors.fill: parent
+                    anchors.margins: 6
+                    spacing: 0
 
                     RowLayout {
-                        Layout.fillWidth: true; Layout.preferredHeight: 32
+                        Layout.fillWidth: true; Layout.preferredHeight: 24
 
                         Label {
-                            leftPadding: 6
                             horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                             text: model.display || ""
                             elide: Text.ElideRight
@@ -174,31 +176,39 @@ Item {
                     }
 
                     RowLayout {
-                        Layout.fillWidth: true; Layout.preferredHeight: 80
+                        Layout.fillWidth: true; Layout.preferredHeight: 120
 
                         Item {
                             Layout.fillWidth: true; Layout.fillHeight: true
 
+                            Label {
+                                anchors.centerIn: parent
+                                visible: model.active
+                                text: (usedSlice.percentage * 100).toFixed(1) + "%"
+                            }
+
                             GraphsView {
                                 anchors.fill: parent
                                 theme: GraphsTheme {
-                                    theme: GraphsTheme.Theme.QtGreen
-                                    // backgroundVisible: false
-                                    // plotAreaBackgroundVisible: false
-                                    // gridVisible: false
+                                    seriesColors: [global.brandBack, global.back]
+                                    borderColors: [global.stroke]
+                                    backgroundVisible: false
                                 }
 
                                 PieSeries {
-                                    pieSize: 0.88
-                                    holeSize: 0.58
+                                    pieSize: 0.9
+                                    holeSize: 0.7
 
                                     PieSlice {
+                                        id: usedSlice
                                         value: model.used
+                                        color: percentage < 0.3 ? global.successBack3
+                                            : percentage < 0.6 ? global.warningBack3
+                                                : global.dangerBack3
                                     }
 
                                     PieSlice {
                                         value: model.capacity - model.used
-                                        // borderWidth: 0
                                     }
                                 }
                             }

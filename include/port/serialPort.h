@@ -54,6 +54,8 @@ private:
 
     [[nodiscard]] QByteArray handleReadUntil(const QByteArray &text, int timeout);
 
+    void handleUpdate();
+
     void handleLog(int type, const QByteArray &data);
 
     QSerialPort *m_serialPort{};

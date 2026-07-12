@@ -1,10 +1,12 @@
 #ifndef UNICOMM_RINGBUFFER_H
 #define UNICOMM_RINGBUFFER_H
 
-#include <QByteArray>
 #include <QMutex>
+#include <QObject>
 
-class RingBuffer final {
+class RingBuffer final : public QObject {
+    Q_OBJECT
+
 public:
     explicit RingBuffer(qsizetype capacity);
 
@@ -19,6 +21,9 @@ public:
     [[nodiscard]] qsizetype distance(const QByteArray &text);
 
     void clear();
+
+signals:
+    void update();
 
 private:
     [[nodiscard]] QByteArray readLocked(qsizetype length);
