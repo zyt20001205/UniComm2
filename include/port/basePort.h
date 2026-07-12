@@ -23,6 +23,9 @@ public:
 
     virtual void clear() = 0;
 
+    virtual void monitor(bool enabled) {
+    }
+
     [[nodiscard]] virtual bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
         return false;
     }
@@ -51,6 +54,9 @@ signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
     void refreshPort(const QString &portName, const QVariantHash &session);
+
+protected:
+    [[nodiscard]] static QString lifetimeFormat(qint64 elapsed);
 
 private:
     QThread *m_thread{};

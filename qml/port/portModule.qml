@@ -133,7 +133,7 @@ Item {
 
             delegate: Item {
                 id: portDelegate
-                implicitWidth: tableView.width; implicitHeight: contentLayout.implicitHeight + 12
+                implicitWidth: tableView.width; implicitHeight: detailButton.checked ? 156 : 36
 
                 Rectangle {
                     anchors.fill: parent
@@ -153,7 +153,6 @@ Item {
                 }
 
                 ColumnLayout {
-                    id: contentLayout
                     anchors.fill: parent
                     anchors.margins: 6
                     spacing: 0
@@ -168,6 +167,27 @@ Item {
                             Layout.fillWidth: true
                         }
 
+                        Button {
+                            id: detailButton
+                            enabled: model.active
+                            checkable: true
+                            flat: true
+                            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                            icon.source:"qrc:/icon/moreHorizontal.svg"
+                            icon.width: 16; icon.height: 16
+                            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                            onToggled: portModule.portMonitor(model.row, checked)
+
+                            Binding {
+                                target: detailButton
+                                property: "checked"
+                                when: !model.active
+                                value: false
+                                restoreMode: Binding.RestoreNone
+                            }
+                        }
+
                         Switch {
                             checked: model.active
 
@@ -176,9 +196,10 @@ Item {
                     }
 
                     SplitView {
-                        visible: model.active
+                        visible: detailButton.checked
                         orientation: Qt.Horizontal
-                        Layout.fillWidth: true; Layout.preferredHeight: 120
+                        Layout.fillWidth: true; Layout.preferredHeight: visible ? 120 : 0
+                        onVisibleChanged: Qt.callLater(tableView.forceLayout)
                         handle: Item {
                             implicitWidth: 5
 
@@ -191,15 +212,63 @@ Item {
                             }
                         }
 
-                        GridLayout {
+                        ColumnLayout {
+                            spacing: 0
                             SplitView.fillWidth: true; SplitView.fillHeight: true
 
-                            Label {
-                                text: qsTr("Lifetime: ")
+                            RowLayout {
+                                SplitView.fillWidth: true
+
+                                Label {
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    text: qsTr("Lifetime: ")
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    text: model.lifetime
+                                    elide: Text.ElideRight
+                                }
                             }
 
-                            Label {
-                                text: model.lifetime
+                            RowLayout {
+                                SplitView.fillWidth: true
+
+                                Label {
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    text: qsTr("Read: ")
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    text: model.readCount + "/" + model.readBytes
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            RowLayout {
+                                SplitView.fillWidth: true
+
+                                Label {
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    text: qsTr("Write: ")
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                    text: model.writeCount + "/" + model.writeBytes
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Item {
+                                Layout.fillWidth: true; Layout.fillHeight: true
                             }
                         }
 
@@ -213,6 +282,7 @@ Item {
 
                             GraphsView {
                                 anchors.fill: parent
+                                marginLeft: 0; marginTop: 0; marginRight: 0; marginBottom: 0
                                 theme: GraphsTheme {
                                     seriesColors: [global.brandBack, global.back]
                                     borderColors: [global.stroke]

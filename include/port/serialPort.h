@@ -30,6 +30,8 @@ public:
 
     void clear() override;
 
+    void monitor(bool enabled) override;
+
     [[nodiscard]] bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 
     [[nodiscard]] QByteArray read(int length, int timeout, const QString &rxFormat) override;
@@ -58,12 +60,12 @@ private:
 
     void handleLog(int type, const QByteArray &data);
 
-     void handleUpdate();
+    void handleUpdate();
 
     QSerialPort *m_serialPort{};
     QJsonObject m_portConfig{};
     RingBuffer m_buffer;
-    QTimer *m_updateTimer{};
+    QTimer *m_monitorTimer{};
     QElapsedTimer m_activeTimer{};
 };
 

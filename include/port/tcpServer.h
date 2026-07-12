@@ -27,6 +27,8 @@ public:
 
     void clear() override;
 
+    void monitor(bool enabled) override;
+
     [[nodiscard]] QVariantHash info() override;
 
     [[nodiscard]] bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;

@@ -2,6 +2,7 @@
 
 #include <QElapsedTimer>
 #include <QScopedValueRollback>
+#include <QTimer>
 #include <QUdpSocket>
 
 #include "globals.h"
@@ -54,6 +55,12 @@ bool UdpSocket::open() {
         connect(m_udpSocket, &QUdpSocket::readyRead, this, &UdpSocket::handleReadyRead);
         connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
     }
+    if (m_monitorTimer == nullptr) {
+        m_monitorTimer = new QTimer(this);
+        m_monitorTimer->setInterval(16);
+        m_monitorTimer->setSingleShot(false);
+        connect(m_monitorTimer, &QTimer::timeout, this, &UdpSocket::handleUpdate);
+    }
     if (m_udpSocket->state() != QAbstractSocket::UnconnectedState) return true;
     // open port
     if (!m_udpSocket->bind(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
@@ -61,7 +68,14 @@ bool UdpSocket::open() {
         return false;
     }
     m_udpSocket->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
-    const QVariantHash session{{"active", true}};
+    m_buffer.clear();
+    m_buffer.resetStatistics();
+    m_activeTimer.start();
+    const QVariantHash session{
+        {"active", true},
+        {"capacity", m_portConfig["bufferSize"].toInt()},
+        {"lifetime", lifetimeFormat(0)}
+    };
     emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
@@ -80,6 +94,7 @@ void UdpSocket::close() {
     if (m_udpSocket->isOpen()) {
         m_udpSocket->close();
     }
+    if (m_monitorTimer) m_monitorTimer->stop();
     // port close
     clear();
     const QVariantHash session{{"active", false}};
@@ -89,6 +104,16 @@ void UdpSocket::close() {
 
 void UdpSocket::clear() {
     m_buffer.clear();
+}
+
+void UdpSocket::monitor(const bool enabled) {
+    if (m_monitorTimer == nullptr || m_udpSocket == nullptr || !m_udpSocket->isOpen()) return;
+    if (enabled) {
+        handleUpdate();
+        m_monitorTimer->start();
+    } else {
+        m_monitorTimer->stop();
+    }
 }
 
 bool UdpSocket::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
@@ -119,8 +144,8 @@ QByteArray UdpSocket::readUntil(const QByteArray &text, const int timeout, const
 void UdpSocket::handleReadyRead() {
     const auto rxData = m_udpSocket->readAll();
     if (m_buffer.write(rxData) != rxData.size()) {
-        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()),
-                       QString("receive buffer overflow: dropped %1 bytes").arg(rxData.size()));
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "buffer overflow");
+        close();
     }
     handleLog(LogLevel::Receive, rxData);
 }
@@ -130,6 +155,7 @@ void UdpSocket::handleError() {
     if (m_udpSocket->isOpen()) {
         m_udpSocket->close();
     }
+    if (m_monitorTimer) m_monitorTimer->stop();
     const QVariantHash session{{"active", false}};
     emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_udpSocket->errorString()));
@@ -175,6 +201,19 @@ QByteArray UdpSocket::handleReadUntil(const QByteArray &text, const int timeout)
         data = m_buffer.readUntil(text);
     }
     return data;
+}
+
+void UdpSocket::handleUpdate() {
+    const auto statistics = m_buffer.statistics();
+    const auto &session = QVariantHash{
+        {"used", statistics.used},
+        {"lifetime", lifetimeFormat(m_activeTimer.elapsed())},
+        {"readCount", statistics.readCount},
+        {"readBytes", statistics.readBytes},
+        {"writeCount", statistics.writeCount},
+        {"writeBytes", statistics.writeBytes}
+    };
+    emit refreshPort(m_portConfig["portName"].toString(), session);
 }
 
 void UdpSocket::handleLog(const int type, const QByteArray &data) {

@@ -1,6 +1,7 @@
 #include "visa.h"
 
 #include <QScopedValueRollback>
+#include <QTimer>
 
 #include "globals.h"
 #include "port/visa.h"
@@ -30,10 +31,23 @@ QVariantHash Visa::info() {
 }
 
 bool Visa::open() {
+    if (m_monitorTimer == nullptr) {
+        m_monitorTimer = new QTimer(this);
+        m_monitorTimer->setInterval(16);
+        m_monitorTimer->setSingleShot(false);
+        connect(m_monitorTimer, &QTimer::timeout, this, &Visa::handleUpdate);
+    }
     ViStatus status = viOpen(g_rm, m_portConfig["portName"].toString().toUtf8().constData(), VI_NULL, VI_NULL, &m_visa);
     if (status == VI_SUCCESS) {
         status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
-        const QVariantHash session{{"active", true}};
+        m_buffer.clear();
+        m_buffer.resetStatistics();
+        m_activeTimer.start();
+        const QVariantHash session{
+            {"active", true},
+            {"capacity", m_portConfig["bufferSize"].toInt()},
+            {"lifetime", lifetimeFormat(0)}
+        };
         emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
         // logging
@@ -47,7 +61,9 @@ bool Visa::open() {
 
 void Visa::close() {
     if (m_visa != VI_NULL) {
-        ViStatus status = viClose(m_visa);
+        viClose(m_visa);
+        m_visa = VI_NULL;
+        if (m_monitorTimer) m_monitorTimer->stop();
         const QVariantHash session{{"active", false}};
         emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
@@ -55,6 +71,17 @@ void Visa::close() {
 }
 
 void Visa::clear() {
+    m_buffer.clear();
+}
+
+void Visa::monitor(const bool enabled) {
+    if (m_monitorTimer == nullptr || m_visa == VI_NULL) return;
+    if (enabled) {
+        handleUpdate();
+        m_monitorTimer->start();
+    } else {
+        m_monitorTimer->stop();
+    }
 }
 
 bool Visa::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
@@ -118,6 +145,19 @@ QByteArray Visa::handleRead(const int length, const int timeout) {
 
 QByteArray Visa::handleReadUntil(const QByteArray &text, const int timeout) {
     return {};
+}
+
+void Visa::handleUpdate() {
+    const auto statistics = m_buffer.statistics();
+    const auto &session = QVariantHash{
+        {"used", statistics.used},
+        {"lifetime", lifetimeFormat(m_activeTimer.elapsed())},
+        {"readCount", statistics.readCount},
+        {"readBytes", statistics.readBytes},
+        {"writeCount", statistics.writeCount},
+        {"writeBytes", statistics.writeBytes}
+    };
+    emit refreshPort(m_portConfig["portName"].toString(), session);
 }
 
 void Visa::handleLog(const int type, const QByteArray &data) {

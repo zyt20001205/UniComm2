@@ -1,12 +1,14 @@
 #ifndef UNICOMM_TCPCLIENT_H
 #define UNICOMM_TCPCLIENT_H
 
+#include <QElapsedTimer>
 #include <QJsonObject>
 
 #include "basePort.h"
 #include "port/module/ringBuffer.h"
 
 class QTcpSocket;
+class QTimer;
 
 class TcpClient final : public BasePort {
     Q_OBJECT
@@ -27,6 +29,8 @@ public:
     void close() override;
 
     void clear() override;
+
+    void monitor(bool enabled) override;
 
     [[nodiscard]] bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 
@@ -58,6 +62,8 @@ private:
 
     [[nodiscard]] QByteArray handleReadUntil(const QByteArray &text, int timeout);
 
+    void handleUpdate();
+
     void handleLog(int type, const QByteArray &data);
 
     QTcpSocket *m_tcpClient{};
@@ -65,7 +71,8 @@ private:
     QString m_tcpClientLocalHost{};
     int m_tcpClientLocalPort{};
     RingBuffer m_buffer;
-
+    QTimer *m_monitorTimer{};
+    QElapsedTimer m_activeTimer{};
 };
 
 #endif //UNICOMM_TCPCLIENT_H

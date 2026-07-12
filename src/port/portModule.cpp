@@ -187,6 +187,14 @@ void PortModule::portToggle(const int index) {
     }
 }
 
+void PortModule::portMonitor(const int index, const bool enabled) {
+    const QString portName = g_portModel->item(index, 0)->text();
+    auto *port = m_portHash[portName];
+    QMetaObject::invokeMethod(port, [port, enabled] {
+        port->monitor(enabled);
+    }, Qt::QueuedConnection);
+}
+
 void PortModule::portRefresh(const QString &portName, const QVariantHash &session) {
     for (int row = 0; row < g_portModel->rowCount(); ++row) {
         auto *item = g_portModel->item(row, 0);

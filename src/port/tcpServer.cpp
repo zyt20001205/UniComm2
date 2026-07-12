@@ -101,6 +101,11 @@ void TcpServer::clear() {
     }
 }
 
+void TcpServer::monitor(const bool enabled) {
+    Q_UNUSED(enabled);
+    // TODO: Aggregate statistics across active and disconnected peer buffers.
+}
+
 bool TcpServer::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
     QScopedValueRollback configRollback(m_portConfig);
     if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
@@ -194,8 +199,8 @@ void TcpServer::handleReadyRead(QTcpSocket *tcpServerPeer) {
     auto *buffer = m_bufferHash.value(peerIp, nullptr);
     if (buffer == nullptr) return;
     if (buffer->write(rxData) != rxData.size()) {
-        emit appendLog(LogLevel::Error, QString("[%1]").arg(peerIp),
-                       QString("receive buffer overflow: dropped %1 bytes").arg(rxData.size()));
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(peerIp), "buffer overflow");
+        close();
     }
     handleLog(LogLevel::Receive, rxData, tcpServerPeer);
 }

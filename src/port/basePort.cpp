@@ -1,7 +1,7 @@
 #include "port/basePort.h"
 
-#include <QDebug>
 #include <QThread>
+#include <QTime>
 
 // public
 BasePort::BasePort(QObject *parent)
@@ -17,4 +17,15 @@ BasePort::~BasePort() {
     //     m_thread->quit();
     //     m_thread->wait();
     // }
+}
+
+// protected
+QString BasePort::lifetimeFormat(const qint64 elapsed) {
+    const qint64 totalSeconds = elapsed / 1000;
+    const qint64 days = totalSeconds / 86400;
+    const int millisecondsOfDay = static_cast<int>(totalSeconds % 86400 * 1000);
+    const auto time = QTime::fromMSecsSinceStartOfDay(millisecondsOfDay);
+    return QStringLiteral("%1d %2")
+        .arg(days)
+        .arg(time.toString(QStringLiteral("hh'h' mm'm' ss's'")));
 }

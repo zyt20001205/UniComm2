@@ -40,6 +40,8 @@ public:
 
     Q_INVOKABLE void portToggle(int index);
 
+    Q_INVOKABLE void portMonitor(int index, bool enabled);
+
     static void portRefresh(const QString &portName, const QVariantHash &session);
 
     QHash<QString, BasePort *> m_portHash{};

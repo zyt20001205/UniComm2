@@ -3,6 +3,7 @@
 #include <QElapsedTimer>
 #include <QScopedValueRollback>
 #include <QSslSocket>
+#include <QTimer>
 
 #include "globals.h"
 #include "util/suffixUtils.h"
@@ -77,6 +78,12 @@ bool SslClient::open() {
         connect(m_sslClient, &QSslSocket::readyRead, this, &SslClient::handleReadyRead);
         connect(m_sslClient, &QSslSocket::errorOccurred, this, &SslClient::handleError);
     }
+    if (m_monitorTimer == nullptr) {
+        m_monitorTimer = new QTimer(this);
+        m_monitorTimer->setInterval(16);
+        m_monitorTimer->setSingleShot(false);
+        connect(m_monitorTimer, &QTimer::timeout, this, &SslClient::handleUpdate);
+    }
     if (m_sslClient->state() != QAbstractSocket::UnconnectedState) return true;
     // open port
     m_sslClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
@@ -86,7 +93,14 @@ bool SslClient::open() {
         handleError();
         return false;
     }
-    const QVariantHash session{{"active", true}};
+    m_buffer.clear();
+    m_buffer.resetStatistics();
+    m_activeTimer.start();
+    const QVariantHash session{
+        {"active", true},
+        {"capacity", m_portConfig["bufferSize"].toInt()},
+        {"lifetime", lifetimeFormat(0)}
+    };
     emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
@@ -110,6 +124,7 @@ void SslClient::close() {
         break;
         default: break;
     }
+    if (m_monitorTimer) m_monitorTimer->stop();
     const QVariantHash session{{"active", false}};
     emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
@@ -117,6 +132,16 @@ void SslClient::close() {
 
 void SslClient::clear() {
     m_buffer.clear();
+}
+
+void SslClient::monitor(const bool enabled) {
+    if (m_monitorTimer == nullptr || m_sslClient == nullptr || m_sslClient->state() != QAbstractSocket::ConnectedState) return;
+    if (enabled) {
+        handleUpdate();
+        m_monitorTimer->start();
+    } else {
+        m_monitorTimer->stop();
+    }
 }
 
 bool SslClient::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
@@ -153,6 +178,7 @@ void SslClient::handleConnected() {
 }
 
 void SslClient::handleDisconnected() {
+    if (m_monitorTimer) m_monitorTimer->stop();
     clear();
     const QVariantHash session{{"active", false}};
     emit refreshPort(m_portConfig["portName"].toString(), session);
@@ -164,8 +190,8 @@ void SslClient::handleDisconnected() {
 void SslClient::handleReadyRead() {
     const auto rxData = m_sslClient->readAll();
     if (m_buffer.write(rxData) != rxData.size()) {
-        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()),
-                       QString("receive buffer overflow: dropped %1 bytes").arg(rxData.size()));
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "buffer overflow");
+        close();
     }
     handleLog(LogLevel::Receive, rxData);
 }
@@ -175,6 +201,7 @@ void SslClient::handleError() {
     if (m_sslClient->isOpen()) {
         m_sslClient->close();
     }
+    if (m_monitorTimer) m_monitorTimer->stop();
     const QVariantHash session{{"active", false}};
     emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_sslClient->errorString()));
@@ -220,6 +247,19 @@ QByteArray SslClient::handleReadUntil(const QByteArray &text, const int timeout)
         data = m_buffer.readUntil(text);
     }
     return data;
+}
+
+void SslClient::handleUpdate() {
+    const auto statistics = m_buffer.statistics();
+    const auto &session = QVariantHash{
+        {"used", statistics.used},
+        {"lifetime", lifetimeFormat(m_activeTimer.elapsed())},
+        {"readCount", statistics.readCount},
+        {"readBytes", statistics.readBytes},
+        {"writeCount", statistics.writeCount},
+        {"writeBytes", statistics.writeBytes}
+    };
+    emit refreshPort(m_portConfig["portName"].toString(), session);
 }
 
 void SslClient::handleLog(const int type, const QByteArray &data) {
