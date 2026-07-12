@@ -53,6 +53,7 @@ Item {
             clip: true
             interactive: false
             movableColumns: true
+            editTriggers: TableView.NoEditTriggers
             delegate: HorizontalHeaderViewDelegate {
                 id: horizontalHeaderViewDelegate
                 implicitWidth: 80; implicitHeight: 24
@@ -76,6 +77,13 @@ Item {
                 }
 
                 TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                    onDoubleTapped: horizontalHeaderView.edit(horizontalHeaderView.index(row, column))
+                }
+
+                TapHandler {
                     acceptedButtons: Qt.RightButton
                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
@@ -83,6 +91,29 @@ Item {
                         tableMenu.datatableIndex = model.column
                         tableMenu.datatableKey = model.display
                         tableMenu.popup()
+                    }
+                }
+
+                TableView.editDelegate: TextField {
+                    anchors.fill: parent
+                    leftPadding: 6
+                    rightPadding: 6
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: display || ""
+                    selectByMouse: true
+                    background: Rectangle {
+                        color: global.backSelected
+                    }
+
+                    Component.onCompleted: {
+                        forceActiveFocus()
+                        selectAll()
+                    }
+
+                    TableView.onCommit: {
+                        const key = text.trim()
+                        if (key) datatableModule.datatableRename(column, key)
                     }
                 }
             }

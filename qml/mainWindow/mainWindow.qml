@@ -586,18 +586,6 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Rename")
-            icon.source: "qrc:/icon/rename.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: {
-                databaseModuleEditDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
-                databaseModuleEditDialog.databaseKey = databaseModuleTableMenu.databaseKey
-                databaseModuleEditDialog.open()
-            }
-        }
-
-        MenuItem {
             text: qsTr("Clear")
             icon.source: "qrc:/icon/eraser.svg"
             icon.width: 16; icon.height: 16
@@ -713,18 +701,6 @@ Item {
             onTriggered: {
                 datatableModuleEditDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
                 datatableModuleEditDialog.datatableKey = ""
-                datatableModuleEditDialog.open()
-            }
-        }
-
-        MenuItem {
-            text: qsTr("Rename")
-            icon.source: "qrc:/icon/rename.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: {
-                datatableModuleEditDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
-                datatableModuleEditDialog.datatableKey = datatableModuleTableMenu.datatableKey
                 datatableModuleEditDialog.open()
             }
         }

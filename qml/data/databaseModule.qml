@@ -117,6 +117,7 @@ Item {
             clip: true
             rowSpacing: 1; columnSpacing: 1
             resizableColumns: true
+            editTriggers: TableView.NoEditTriggers
             model: standardItemModel
             contentWidth: width
 
@@ -208,6 +209,15 @@ Item {
                 }
 
                 TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                    onDoubleTapped: {
+                        if (column === 0) tableView.edit(tableView.index(row, column))
+                    }
+                }
+
+                TapHandler {
                     acceptedButtons: Qt.RightButton
                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
@@ -215,6 +225,29 @@ Item {
                         tableMenu.databaseIndex = model.row
                         tableMenu.databaseKey = model.display
                         tableMenu.popup()
+                    }
+                }
+
+                TableView.editDelegate: TextField {
+                    anchors.fill: parent
+                    leftPadding: 6
+                    rightPadding: 6
+                    verticalAlignment: Text.AlignVCenter
+                    text: display || ""
+                    selectByMouse: true
+                    background: Rectangle {
+                        color: global.backSelected
+                        radius: 6
+                    }
+
+                    Component.onCompleted: {
+                        forceActiveFocus()
+                        selectAll()
+                    }
+
+                    TableView.onCommit: {
+                        const key = text.trim()
+                        if (key) databaseModule.databaseRename(row, key)
                     }
                 }
             }
