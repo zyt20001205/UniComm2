@@ -188,7 +188,12 @@ void TcpServer::handleDisconnected(QTcpSocket *tcpServerPeer) {
 void TcpServer::handleReadyRead(QTcpSocket *tcpServerPeer) {
     const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
     const auto rxData = tcpServerPeer->readAll();
-    m_bufferHash[peerIp]->write(rxData);
+    auto *buffer = m_bufferHash.value(peerIp, nullptr);
+    if (buffer == nullptr) return;
+    if (buffer->write(rxData) != rxData.size()) {
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(peerIp),
+                       QString("receive buffer overflow: dropped %1 bytes").arg(rxData.size()));
+    }
     handleLog(LogLevel::Receive, rxData, tcpServerPeer);
 }
 
@@ -216,8 +221,9 @@ bool TcpServer::handleWrite(const QByteArray &f_txData, const QString &peerIp) {
     } else {
         if (!m_peerHash.contains(peerIp)) {
             emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "peer not found");
+            return false;
         }
-        QTcpSocket *tcpServerPeer = m_peerHash[peerIp];
+        QTcpSocket *tcpServerPeer = m_peerHash.value(peerIp);
         tcpServerPeer->write(f_txData);
         handleLog(LogLevel::Transmit, f_txData, tcpServerPeer);
     }
@@ -230,12 +236,21 @@ QByteArray TcpServer::handleRead(const int length, const int timeout, const QStr
         emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
-    const QDeadlineTimer deadline(timeout);
-    while (m_bufferHash[peerIp]->used() < length) {
-        if (deadline.hasExpired()) break;
-        m_peerHash[peerIp]->waitForReadyRead(10);
+    auto *buffer = m_bufferHash.value(peerIp, nullptr);
+    auto *peer = m_peerHash.value(peerIp, nullptr);
+    if (buffer == nullptr || peer == nullptr) {
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "peer not found");
+        return {};
     }
-    return m_bufferHash[peerIp]->read(length);
+    const QDeadlineTimer deadline(timeout);
+    while (buffer->used() < length) {
+        if (deadline.hasExpired()) break;
+        peer->waitForReadyRead(10);
+        buffer = m_bufferHash.value(peerIp, nullptr);
+        peer = m_peerHash.value(peerIp, nullptr);
+        if (buffer == nullptr || peer == nullptr) return {};
+    }
+    return buffer->read(length);
 }
 
 QByteArray TcpServer::handleReadUntil(const QByteArray &text, const int timeout, const QString &peerIp) {
@@ -244,13 +259,24 @@ QByteArray TcpServer::handleReadUntil(const QByteArray &text, const int timeout,
         emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
-    const QDeadlineTimer deadline(timeout);
-    const auto buffer = m_bufferHash[peerIp];
-    while (buffer->distance(text) == -1) {
-        if (deadline.hasExpired()) break;
-        m_peerHash[peerIp]->waitForReadyRead(10);
+    if (text.isEmpty()) return {};
+    auto *buffer = m_bufferHash.value(peerIp, nullptr);
+    auto *peer = m_peerHash.value(peerIp, nullptr);
+    if (buffer == nullptr || peer == nullptr) {
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "peer not found");
+        return {};
     }
-    return buffer->read(buffer->distance(text));
+    const QDeadlineTimer deadline(timeout);
+    QByteArray data = buffer->readUntil(text);
+    while (data.isEmpty()) {
+        if (deadline.hasExpired()) break;
+        peer->waitForReadyRead(10);
+        buffer = m_bufferHash.value(peerIp, nullptr);
+        peer = m_peerHash.value(peerIp, nullptr);
+        if (buffer == nullptr || peer == nullptr) return {};
+        data = buffer->readUntil(text);
+    }
+    return data;
 }
 
 void TcpServer::handleLog(const int type, const QByteArray &data, const QTcpSocket *tcpServerPeer) {

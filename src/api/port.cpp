@@ -93,7 +93,8 @@ sol::object Port::read(const sol::this_state ts, const std::string &portName, co
 
     if (port->type() == PortType::TcpServer) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout, &peerIp] {
-            rxData = port->read(length, timeout, "", QString::fromStdString(peerIp));
+            if (peerIp.empty()) rxData = port->read(length, timeout, "");
+            else rxData = port->read(length, timeout, QString::fromStdString(peerIp), "");
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
@@ -127,7 +128,8 @@ sol::object Port::readUntil(const sol::this_state ts, const std::string &portNam
 
     if (port->type() == PortType::TcpServer) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &textData, &timeout, &peerIp] {
-            rxData = port->readUntil(textData, timeout, "", QString::fromStdString(peerIp));
+            if (peerIp.empty()) rxData = port->readUntil(textData, timeout, "");
+            else rxData = port->readUntil(textData, timeout, QString::fromStdString(peerIp), "");
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }

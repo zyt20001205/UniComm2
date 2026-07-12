@@ -136,7 +136,10 @@ QByteArray SerialPort::readUntil(const QByteArray &text, const int timeout, cons
 // private
 void SerialPort::handleReadyRead() {
     const auto rxData = m_serialPort->readAll();
-    m_buffer.write(rxData);
+    if (m_buffer.write(rxData) != rxData.size()) {
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()),
+                       QString("receive buffer overflow: dropped %1 bytes").arg(rxData.size()));
+    }
     handleLog(LogLevel::Receive, rxData);
 }
 
@@ -180,12 +183,15 @@ QByteArray SerialPort::handleReadUntil(const QByteArray &text, const int timeout
         emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
+    if (text.isEmpty()) return {};
     const QDeadlineTimer deadline(timeout);
-    while (m_buffer.distance(text) == -1) {
+    QByteArray data = m_buffer.readUntil(text);
+    while (data.isEmpty()) {
         if (deadline.hasExpired()) break;
         m_serialPort->waitForReadyRead(10);
+        data = m_buffer.readUntil(text);
     }
-    return m_buffer.read(m_buffer.distance(text));
+    return data;
 }
 
 void SerialPort::handleLog(const int type, const QByteArray &data) {
