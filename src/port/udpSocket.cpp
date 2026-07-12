@@ -61,7 +61,8 @@ bool UdpSocket::open() {
         return false;
     }
     m_udpSocket->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
-    emit refreshPort(m_portConfig["portName"].toString(), true);
+    const QVariantHash session{{"active", true}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("opened: %2:%3->%4:%5")
@@ -81,7 +82,8 @@ void UdpSocket::close() {
     }
     // port close
     clear();
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
@@ -128,7 +130,8 @@ void UdpSocket::handleError() {
     if (m_udpSocket->isOpen()) {
         m_udpSocket->close();
     }
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_udpSocket->errorString()));
 }
 

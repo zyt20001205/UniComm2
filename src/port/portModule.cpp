@@ -94,7 +94,7 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     if (index == -1) index = g_portModel->rowCount();
     const QString portName = portConfig["portName"].toString();
     auto *item = new QStandardItem(portName); // NOLINT
-    item->setData(false, Qt::WhatsThisRole);
+    item->setData(false, Qt::UserRole + 1);
     g_portModel->insertRow(index, item);
     BasePort *port{};
     switch (portConfig["portType"].toInt()) {
@@ -147,7 +147,7 @@ void PortModule::portRemove(const int index) {
     emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "removed");
 }
 
-void PortModule::portSwap(const int src, const int dst) const {
+void PortModule::portSwap(const int src, const int dst) {
     const auto tmp = g_portModel->takeRow(src);
     g_portModel->insertRow(dst, tmp);
 }
@@ -167,7 +167,7 @@ void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portCon
 void PortModule::portToggle(const int index) {
     const auto *item = g_portModel->item(index, 0);
     const QString portName = item->text();
-    bool status = item->data(Qt::WhatsThisRole).toBool();
+    bool status = item->data(Qt::UserRole + 1).toBool();
     auto port = m_portHash[portName];
     if (status) {
         QMetaObject::invokeMethod(port, [&port] {
@@ -178,14 +178,13 @@ void PortModule::portToggle(const int index) {
             status = port->open();
         }, Qt::BlockingQueuedConnection);
     }
-    portRefresh(portName, status);
 }
 
-void PortModule::portRefresh(const QString &portName, const bool status) {
+void PortModule::portRefresh(const QString &portName, const QVariantHash &session) {
     for (int row = 0; row < g_portModel->rowCount(); ++row) {
         auto *item = g_portModel->item(row, 0);
         if (item->text() == portName) {
-            item->setData(status, Qt::WhatsThisRole);
+            item->setData(session.value("active").toBool(), Qt::UserRole + 1);
             break;
         }
     }
@@ -201,7 +200,6 @@ PortModel::PortModel(QObject *parent)
 
 QHash<int, QByteArray> PortModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "documentUrl";
-    roles[Qt::UserRole + 2] = "status";
+    roles[Qt::UserRole + 1] = "active";
     return roles;
 }

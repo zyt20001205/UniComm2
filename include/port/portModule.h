@@ -5,12 +5,13 @@
 #include <QStandardItemModel>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+#include "basePort.h"
+
 class QPushButton;
 class QQuickWidget;
 class QTabWidget;
 class QVBoxLayout;
 
-class BasePort;
 class PortSetting;
 
 class PortModule final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -33,13 +34,13 @@ public:
 
     Q_INVOKABLE void portRemove(int index);
 
-    Q_INVOKABLE void portSwap(int src, int dst) const;
+    Q_INVOKABLE static void portSwap(int src, int dst);
 
     void portEdit(const QString &oldPortName, const QJsonObject &portConfig);
 
     Q_INVOKABLE void portToggle(int index);
 
-    static void portRefresh(const QString &portName, bool status) ;
+    static void portRefresh(const QString &portName, const QVariantHash &session);
 
     QHash<QString, BasePort *> m_portHash{};
 signals:

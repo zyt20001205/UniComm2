@@ -86,7 +86,8 @@ bool SslClient::open() {
         handleError();
         return false;
     }
-    emit refreshPort(m_portConfig["portName"].toString(), true);
+    const QVariantHash session{{"active", true}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
@@ -109,7 +110,8 @@ void SslClient::close() {
         break;
         default: break;
     }
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
@@ -152,6 +154,8 @@ void SslClient::handleConnected() {
 
 void SslClient::handleDisconnected() {
     clear();
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("disconnected from %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
@@ -171,7 +175,8 @@ void SslClient::handleError() {
     if (m_sslClient->isOpen()) {
         m_sslClient->close();
     }
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_sslClient->errorString()));
 }
 

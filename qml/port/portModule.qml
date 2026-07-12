@@ -125,7 +125,7 @@ Item {
 
             delegate: SwitchDelegate {
                 implicitWidth: tableView.width
-                checked: model.whatsThis
+                checked: model.active
                 text: model.display
                 background: Rectangle {
                     anchors.fill: parent

@@ -84,7 +84,8 @@ bool TcpClient::open() {
         handleError();
         return false;
     }
-    emit refreshPort(m_portConfig["portName"].toString(), true);
+    const QVariantHash session{{"active", true}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
@@ -108,7 +109,8 @@ void TcpClient::close() {
         default:
             break;
     }
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
@@ -151,6 +153,8 @@ void TcpClient::handleConnected() {
 
 void TcpClient::handleDisconnected() {
     clear();
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("disconnected from %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
@@ -170,7 +174,8 @@ void TcpClient::handleError() {
     if (m_tcpClient->isOpen()) {
         m_tcpClient->close();
     }
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_tcpClient->errorString()));
 }
 

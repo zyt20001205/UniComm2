@@ -87,7 +87,12 @@ bool SerialPort::open() {
     m_serialPort->setParity(static_cast<QSerialPort::Parity>(m_portConfig["parity"].toInt()));
     m_serialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_portConfig["stopBits"].toInt()));
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
-        emit refreshPort(m_portConfig["portName"].toString(), true);
+        const QVariantHash session{
+            {"active", true},
+            {"capacity", 0},
+            {"used", 0}
+        };
+        emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
         return true;
     }
@@ -101,7 +106,8 @@ void SerialPort::close() {
     // port close
     m_serialPort->close();
     clear();
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
@@ -148,7 +154,8 @@ void SerialPort::handleError() {
     if (m_serialPort->isOpen()) {
         m_serialPort->close();
     }
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_serialPort->errorString()));
 }
 

@@ -50,7 +50,7 @@ public:
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
-    void refreshPort(const QString &portName, bool status);
+    void refreshPort(const QString &portName, const QVariantHash &session);
 
 private:
     QThread *m_thread{};

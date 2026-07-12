@@ -61,7 +61,8 @@ bool TcpServer::open() {
     // open port
     // m_tcpServer->setMaxPendingConnections();
     if (m_tcpServer->listen(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
-        emit refreshPort(m_portConfig["portName"].toString(), true);
+        const QVariantHash session{{"active", true}};
+        emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Info,
                        QString("[%1]").arg(m_portConfig["portName"].toString()),
                        QString("started on %1:%2").arg(m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt())));
@@ -89,7 +90,8 @@ void TcpServer::close() {
     qDeleteAll(m_bufferHash);
     m_bufferHash.clear();
     clear();
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
@@ -165,7 +167,8 @@ void TcpServer::handleServerError() {
     if (m_tcpServer->isListening()) {
         m_tcpServer->close();
     }
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_tcpServer->errorString()));
 }
 
@@ -203,7 +206,6 @@ void TcpServer::handleError(const QTcpSocket *tcpServerPeer) {
     //     tcpServerPeer->close();
     // }
     const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
-    // emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(LogLevel::Error, QString("[%1]").arg(peerIp), QString("error: %1").arg(tcpServerPeer->errorString()));
 }
 

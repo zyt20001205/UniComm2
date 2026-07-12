@@ -58,11 +58,13 @@ bool VideoStream::open() {
     if (m_screenCapture) m_screenCapture->start();
     else if (m_cameraCapture) m_cameraCapture->start();
     else {
-        emit refreshPort(m_portConfig["portName"].toString(), false);
+        const QVariantHash session{{"active", false}};
+        emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "open failed");
         return false;
     }
-    emit refreshPort(m_portConfig["portName"].toString(), true);
+    const QVariantHash session{{"active", true}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
     return true;
 }
@@ -72,7 +74,8 @@ void VideoStream::close() {
     if (m_screenCapture) m_screenCapture->stop();
     else if (m_cameraCapture) m_cameraCapture->stop();
     clear();
-    emit refreshPort(m_portConfig["portName"].toString(), false);
+    const QVariantHash session{{"active", false}};
+    emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
