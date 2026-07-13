@@ -10,7 +10,6 @@ class QEventLoop;
 class QStandardItemModel;
 class Data;
 class File;
-class Http;
 class Imap;
 class IO;
 class Key;
@@ -70,7 +69,6 @@ private:
     QVariantMap m_luaSession{};
     Data *m_data{};
     File *m_file{};
-    Http *m_http{};
     Imap *m_imap{};
     IO *m_io{};
     Key *m_key{};

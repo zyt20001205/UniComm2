@@ -11,6 +11,16 @@ Http::Http(QObject *parent)
     : QObject(parent) {
 }
 
+void Http::init(const std::string &portName, const int timeout) {
+    const QString name = QString::fromStdString(portName);
+    const auto port = g_port->m_portHash.constFind(name);
+    if (port == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
+
+    m_portName = portName;
+    m_timeout = timeout;
+    m_port = port.value();
+}
+
 void Http::get(const std::string &portName, const sol::table &headers, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 

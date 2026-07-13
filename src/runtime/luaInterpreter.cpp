@@ -32,7 +32,6 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
       m_luaSession(luaSession),
       m_data(new Data(this)),
       m_file(new File(this)),
-      m_http(new Http(this)),
       m_imap(new Imap(this)),
       m_io(new IO(this)),
       m_key(new Key(this)),
@@ -82,11 +81,19 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     }
     // Http lib (instance)
     {
+        m_lua.new_usertype<Http>(
+            "Http",
+            sol::no_constructor,
+            sol::meta_function::garbage_collect, [](Http *) {
+            }
+        );
         auto http = m_lua.create_table();
-        http.set_function("get", [this](const std::string &portName, const sol::optional<sol::table> &headers, const sol::optional<int> timeout) {
-            Http::get(portName, headers.value_or(m_lua.create_table()), timeout.value_or(30000));
+        http.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
+            auto *obj = new Http(this);
+            obj->init(portName, timeout.value_or(30000));
+            return obj;
         });
-        m_lua["http"] = http;
+        m_lua["Http"] = http;
     }
     // Imap lib (instance)
     {
