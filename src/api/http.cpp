@@ -22,11 +22,12 @@ void Http::init(const std::string &portName, const int timeout) {
 }
 
 void Http::get(const std::string &portName, const sol::table &headers, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     bool status = false;
     QByteArray rxData{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
     QByteArray txData = "GET /get HTTP/1.1\r\n";
     const auto host = port->info().value("remoteHost", "").toByteArray();
     if (host.isEmpty()) {

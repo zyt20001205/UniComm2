@@ -22,10 +22,11 @@ sol::table Port::list(const sol::this_state ts) {
 }
 
 sol::object Port::info(const sol::this_state ts, const std::string &portName) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     QVariantHash infoHash{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
 
     QMetaObject::invokeMethod(port, [&infoHash, &port] {
         infoHash = port->info();
@@ -34,10 +35,11 @@ sol::object Port::info(const sol::this_state ts, const std::string &portName) {
 }
 
 void Port::open(const std::string &portName) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     bool status = false;
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
 
     QMetaObject::invokeMethod(port, [&status, &port] {
         status = port->open();
@@ -46,9 +48,10 @@ void Port::open(const std::string &portName) {
 }
 
 void Port::close(const std::string &portName) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
 
     QMetaObject::invokeMethod(port, [&port] {
         port->close();
@@ -56,9 +59,10 @@ void Port::close(const std::string &portName) {
 }
 
 void Port::clear(const std::string &portName) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
 
     QMetaObject::invokeMethod(port, [&port] {
         port->clear();
@@ -66,10 +70,11 @@ void Port::clear(const std::string &portName) {
 }
 
 void Port::write(const std::string &portName, const std::string &data, const std::string &peerIp) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     bool status = false;
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
     const QByteArray txData(data.data(), static_cast<qsizetype>(data.size()));
 
     if (port->type() == PortType::TcpServer) {
@@ -86,10 +91,11 @@ void Port::write(const std::string &portName, const std::string &data, const std
 
 sol::object Port::read(const sol::this_state ts, const std::string &portName, const int length, const int timeout, const std::string &peerIp) {
     sol::state_view lua(ts);
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     QByteArray rxData{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
 
     if (port->type() == PortType::TcpServer) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout, &peerIp] {
@@ -120,10 +126,11 @@ sol::object Port::read(const sol::this_state ts, const std::string &portName, co
 
 sol::object Port::readUntil(const sol::this_state ts, const std::string &portName, const std::string &text, const int timeout, const std::string &peerIp) {
     sol::state_view lua(ts);
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     QByteArray rxData{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
     const QByteArray textData(text.data(), static_cast<qsizetype>(text.size()));
 
     if (port->type() == PortType::TcpServer) {

@@ -226,11 +226,12 @@ bool TcpServer::handleWrite(const QByteArray &f_txData, const QString &peerIp) {
             handleLog(LogLevel::Transmit, f_txData, tcpServerPeer);
         }
     } else {
-        if (!m_peerHash.contains(peerIp)) {
+        const auto peer = m_peerHash.constFind(peerIp);
+        if (peer == m_peerHash.constEnd()) {
             emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "peer not found");
             return false;
         }
-        QTcpSocket *tcpServerPeer = m_peerHash.value(peerIp);
+        QTcpSocket *tcpServerPeer = peer.value();
         tcpServerPeer->write(f_txData);
         handleLog(LogLevel::Transmit, f_txData, tcpServerPeer);
     }

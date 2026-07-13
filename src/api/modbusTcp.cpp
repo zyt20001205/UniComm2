@@ -11,11 +11,12 @@ ModbusTcp::ModbusTcp(QObject *parent)
 }
 
 std::string ModbusTcp::readHoldingRegisters(const std::string &portName, const int transactionId, const int unitId, const int startAddr, const int quantity, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     QString exception{};
     QByteArray rxData{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
     constexpr int funcCode = 0x03;
@@ -64,11 +65,12 @@ std::string ModbusTcp::readHoldingRegisters(const std::string &portName, const i
 }
 
 void ModbusTcp::writeSingleRegister(const std::string &portName, const int transactionId, const int unitId, const int regAddr, const std::string &data, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     QString exception{};
     QByteArray rxData{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
     constexpr int funcCode = 0x06;
@@ -112,11 +114,12 @@ void ModbusTcp::writeSingleRegister(const std::string &portName, const int trans
 }
 
 void ModbusTcp::writeMultipleRegisters(const std::string &portName, const int transactionId, const int unitId, const int startAddr, const std::string &data, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
     QString exception{};
     QByteArray rxData{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    auto *port = portIt.value();
     constexpr int protocolId = 0x00;
     const auto size = static_cast<qsizetype>(data.size() / 2);
     const auto txLength = size + 7;

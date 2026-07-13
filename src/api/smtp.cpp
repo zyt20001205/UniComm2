@@ -18,10 +18,11 @@ Smtp::Smtp(QObject *parent)
 
 void Smtp::init(const std::string &portName, const int timeout) {
     const auto _portName = QString::fromStdString(portName);
-    if (!g_port->m_portHash.contains(_portName)) throw sol::error(portName + " does not exist");
+    const auto port = g_port->m_portHash.constFind(_portName);
+    if (port == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
     m_portName = portName;
     m_timeout = timeout;
-    m_port = g_port->m_portHash[_portName];
+    m_port = port.value();
 
     QString exception{};
 
