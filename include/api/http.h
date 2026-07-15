@@ -2,6 +2,8 @@
 #define UNICOMM_HTTP_H
 
 #include <QObject>
+#include <QVariant>
+#include <sol/object.hpp>
 #include <sol/table.hpp>
 
 #include <string>
@@ -18,9 +20,18 @@ public:
 
     void init(const std::string &portName, int timeout);
 
-    static void get(const std::string &portName, const sol::table &headers, int timeout);
+    [[nodiscard]] sol::object head(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const;
+
+    [[nodiscard]] sol::object post(sol::this_state ts, const std::string &target, const std::string &body,
+                                   const sol::optional<sol::table> &header) const;
+
+    // static void get(const std::string &portName, const sol::table &header);
 
 private:
+    [[nodiscard]] static QVariantHash headerParser(const QByteArray &rxData);
+
+    static void bodyParser(const QByteArray &rxData);
+
     std::string m_portName{};
     int m_timeout{};
     BasePort *m_port{};

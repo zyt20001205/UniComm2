@@ -85,7 +85,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             "Http",
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](Http *) {
-            }
+            },
+            "head", &Http::head,
+            "post", &Http::post
         );
         auto http = m_lua.create_table();
         http.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {

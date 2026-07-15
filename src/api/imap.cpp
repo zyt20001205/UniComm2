@@ -362,24 +362,11 @@ void Imap::receive(const sol::optional<std::string> &from, const sol::optional<s
 
 // private
 QVariantHash Imap::parser(const QByteArray &command, const QByteArray &rxData) {
-    QVariantHash session{};
-    session["exception"] = "contact author: unsupported tagged response(" + QString::fromUtf8(rxData) + ")";
-    if (rxData.isEmpty()) {
-        session["exception"] = "read timeout";
-        return session;
-    }
-    if (rxData.startsWith('+')) {
-        session["exception"] = continuationParser(command, rxData.trimmed());
-        return session;
-    }
-    if (rxData.startsWith('A')) {
-        session["exception"] = taggedParser(command, rxData.trimmed());
-        return session;
-    }
-    if (rxData.startsWith('*')) {
-        return untaggedParser(command, rxData.trimmed());
-    }
-    return session;
+    if (rxData.isEmpty()) return {{"exception", "read timeout"}};
+    if (rxData.startsWith('+')) return {{"exception", continuationParser(command, rxData.trimmed())}};
+    if (rxData.startsWith('A')) return {{"exception", taggedParser(command, rxData.trimmed())}};
+    if (rxData.startsWith('*')) return untaggedParser(command, rxData.trimmed());
+    return {{"exception", "contact author: unsupported tagged response(" + QString::fromUtf8(rxData) + ")"}};
 }
 
 QString Imap::continuationParser(const QByteArray &command, const QByteArray &rxData) {
@@ -417,15 +404,9 @@ QVariantHash Imap::untaggedParser(const QByteArray &command, const QByteArray &r
     QVariantHash session{};
     session["exception"] = "contact author: unsupported tagged response(" + QString::fromUtf8(rxData) + ")";
     const auto space1 = rxData.indexOf(' ');
-    if (space1 == -1) {
-        session["exception"] = "invalid imap response";
-        return session;
-    }
+    if (space1 == -1) return {{"exception", "invalid imap response"}};
     const auto space2 = rxData.indexOf(' ', space1 + 1);
-    if (space2 == -1) {
-        session["exception"] = "invalid imap response";
-        return session;
-    }
+    if (space2 == -1) return {{"exception", "invalid imap response"}};
     const auto head = rxData.mid(space1 + 1, space2 - space1 - 1);
 
     // numeric
