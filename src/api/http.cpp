@@ -1,6 +1,5 @@
 #include "api/http.h"
 
-#include <QDebug>
 #include <sol/error.hpp>
 
 #include "globals.h"
@@ -113,8 +112,8 @@ sol::object Http::post(const sol::this_state ts, const std::string &target, cons
         exception = parsed.take("exception").toString();
         if (!exception.isEmpty()) return;
 
-        const auto responseHeader = parsed.value("header").toHash();
-        const int contentLength = responseHeader.value("content-length").toInt();
+        const auto header = parsed.value("header").toHash();
+        const auto contentLength = header.value("content-length").toInt();
         QByteArray rxBody{};
         if (contentLength > 0) {
             rxBody = m_port->read(contentLength, m_timeout, "utf-8");
@@ -124,7 +123,7 @@ sol::object Http::post(const sol::this_state ts, const std::string &target, cons
             }
         }
         // TODO: Handle Transfer-Encoding: chunked.
-        bodyParser(rxBody);
+        parsed["body"] = rxBody;
     }, Qt::BlockingQueuedConnection);
 
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
@@ -201,10 +200,7 @@ QVariantHash Http::headerParser(const QByteArray &rxData) {
         {"version", version},
         {"statusCode", statusCode},
         {"reason", reason},
-        {"header", header}
+        {"header", header},
+        {"body", QByteArray{}}
     };
-}
-
-void Http::bodyParser(const QByteArray &rxData) {
-    qDebug() << "HTTP body:" << rxData;
 }

@@ -30,8 +30,6 @@ public:
 private:
     [[nodiscard]] static QVariantHash headerParser(const QByteArray &rxData);
 
-    static void bodyParser(const QByteArray &rxData);
-
     std::string m_portName{};
     int m_timeout{};
     BasePort *m_port{};
