@@ -23,22 +23,20 @@ void Http::init(const std::string &portName, const int timeout) {
 }
 
 sol::object Http::head(const sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const {
-    const QByteArray _target(target.data(), static_cast<qsizetype>(target.size()));
-    if (_target.contains('\r') || _target.contains('\n')) throw sol::error("invalid HTTP target");
-
+    QString exception{};
+    QVariantHash parsed{};
+    const auto _target = QByteArray::fromStdString(target);
     QByteArray _header{};
     if (header.has_value()) {
-        const auto headerMap = uni_cast<QVariant>(sol::object(header.value())).toMap();
-        for (auto it = headerMap.constBegin(); it != headerMap.constEnd(); ++it) {
-            const QByteArray name = it.key().toUtf8();
-            const QByteArray value = it.value().toString().toUtf8();
+        for (const auto &[key, value]: header.value()) {
+            if (!key.is<std::string>() || !value.is<std::string>()) continue;
+            const auto name = QByteArray::fromStdString(key.as<std::string>());
+            const auto fieldValue = QByteArray::fromStdString(value.as<std::string>());
             if (name.compare("Host", Qt::CaseInsensitive) == 0) continue;
-            _header += name + ": " + value + "\r\n";
+            _header += name + ": " + fieldValue + "\r\n";
         }
     }
 
-    QString exception{};
-    QVariantHash parsed{};
     QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &_target, &_header] {
         if (!m_port->open()) {
             exception = "open failed";
@@ -69,23 +67,21 @@ sol::object Http::head(const sol::this_state ts, const std::string &target, cons
 }
 
 sol::object Http::post(const sol::this_state ts, const std::string &target, const std::string &body, const sol::optional<sol::table> &header) const {
-    const QByteArray _target(target.data(), static_cast<qsizetype>(target.size()));
-    if (_target.contains('\r') || _target.contains('\n')) throw sol::error("invalid HTTP target");
-    const QByteArray _body(body.data(), static_cast<qsizetype>(body.size()));
-
+    QString exception{};
+    QVariantHash parsed{};
+    const auto _target = QByteArray::fromStdString(target);
+    const auto _body = QByteArray::fromStdString(body);
     QByteArray _header{};
     if (header.has_value()) {
-        const auto headerMap = uni_cast<QVariant>(sol::object(header.value())).toMap();
-        for (auto it = headerMap.constBegin(); it != headerMap.constEnd(); ++it) {
-            const QByteArray name = it.key().toUtf8();
-            const QByteArray value = it.value().toString().toUtf8();
+        for (const auto &[key, value]: header.value()) {
+            if (!key.is<std::string>() || !value.is<std::string>()) continue;
+            const auto name = QByteArray::fromStdString(key.as<std::string>());
+            const auto fieldValue = QByteArray::fromStdString(value.as<std::string>());
             if (name.compare("Host", Qt::CaseInsensitive) == 0 || name.compare("Content-Length", Qt::CaseInsensitive) == 0) continue;
-            _header += name + ": " + value + "\r\n";
+            _header += name + ": " + fieldValue + "\r\n";
         }
     }
 
-    QString exception{};
-    QVariantHash parsed{};
     QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &_target, &_body, &_header] {
         if (!m_port->open()) {
             exception = "open failed";

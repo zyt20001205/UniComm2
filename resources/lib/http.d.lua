@@ -21,13 +21,13 @@ http = {}
 
 ---Send an HTTP HEAD request.
 ---@param target string HTTP request target.
----@param header? table<string, string|number> Additional request header.
+---@param header? table<string, string> Additional request header.
 ---@return HttpResponse
 function http:head(target, header) end
 
 ---Send an HTTP POST request.
 ---@param target string HTTP request target.
 ---@param body string HTTP request body.
----@param header? table<string, string|number> Additional request header. `Host` and `Content-Length` are generated automatically.
+---@param header? table<string, string> Additional request header. `Host` and `Content-Length` are generated automatically.
 ---@return HttpResponse
 function http:post(target, body, header) end
