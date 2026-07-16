@@ -99,16 +99,64 @@ sol::object Http::request(const sol::this_state ts, const QByteArray &method, co
         if (!exception.isEmpty() || method == "HEAD") return;
 
         const auto responseHeader = parsed.value("header").toHash();
-        const auto contentLength = responseHeader.value("content-length").toInt();
         QByteArray rxBody{};
-        if (contentLength > 0) {
-            rxBody = m_port->read(contentLength, m_timeout, "utf-8");
-            if (rxBody.isEmpty()) {
-                exception = "read timeout";
-                return;
+
+        if (responseHeader.value("transfer-encoding").toString().contains("chunked", Qt::CaseInsensitive)) {
+            while (true) {
+                // size line
+                auto sizeLine = m_port->readUntil("\r\n", m_timeout, "utf-8");
+                if (sizeLine.isEmpty()) {
+                    exception = "read timeout";
+                    return;
+                }
+                // remove eol
+                sizeLine.chop(2);
+                // remove trailer: "1000;some-extension=value\r\n"
+                const auto semicolon = sizeLine.indexOf(';');
+                if (semicolon != -1) sizeLine.truncate(semicolon);
+                // get chunk size
+                bool ok{};
+                const auto chunkSize = sizeLine.trimmed().toInt(&ok, 16);
+                if (!ok || chunkSize < 0) {
+                    exception = "invalid HTTP chunk size";
+                    return;
+                }
+
+                // dump trailer
+                if (chunkSize == 0) {
+                    while (true) {
+                        const auto trailer = m_port->readUntil("\r\n", m_timeout, "utf-8");
+                        if (trailer.isEmpty()) {
+                            exception = "read timeout";
+                            return;
+                        }
+                        if (trailer == "\r\n") break;
+                    }
+                    break;
+                }
+                // read chunk
+                const auto data = m_port->read(chunkSize, m_timeout, "utf-8");
+                if (data.size() != chunkSize) {
+                    exception = "read timeout";
+                    return;
+                }
+                rxBody += data;
+                // dump delimiter
+                if (m_port->read(2, m_timeout, "utf-8") != "\r\n") {
+                    exception = "invalid HTTP chunk delimiter";
+                    return;
+                }
+            }
+        } else {
+            const int contentLength = responseHeader.value("content-length").toInt();
+            if (contentLength > 0) {
+                rxBody = m_port->read(contentLength, m_timeout, "utf-8");
+                if (rxBody.size() != contentLength) {
+                    exception = "read timeout";
+                    return;
+                }
             }
         }
-        // TODO: Handle Transfer-Encoding: chunked.
         parsed["body"] = rxBody;
     }, Qt::BlockingQueuedConnection);
 
