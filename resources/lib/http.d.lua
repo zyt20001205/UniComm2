@@ -19,11 +19,12 @@ function Http.new(name, timeout) end
 ---@class http
 http = {}
 
----Send an HTTP HEAD request.
+---Send an HTTP DELETE request.
 ---@param target string HTTP request target.
----@param header? table<string, string> Additional request header.
+---@param header? table<string, string> Additional request header. `Host` and `Content-Length` are generated automatically; `Transfer-Encoding` is ignored.
+---@param body? string HTTP request body.
 ---@return HttpResponse
-function http:head(target, header) end
+function http:delete(target, header, body) end
 
 ---Send an HTTP GET request.
 ---@param target string HTTP request target, including any query string.
@@ -31,9 +32,29 @@ function http:head(target, header) end
 ---@return HttpResponse
 function http:get(target, header) end
 
+---Send an HTTP HEAD request.
+---@param target string HTTP request target.
+---@param header? table<string, string> Additional request header. `Host` is generated automatically; message-body framing headers are ignored.
+---@return HttpResponse
+function http:head(target, header) end
+
+---Send an HTTP PATCH request.
+---@param target string HTTP request target.
+---@param header? table<string, string> Additional request header. `Host` and `Content-Length` are generated automatically; `Transfer-Encoding` is ignored.
+---@param body? string HTTP request body.
+---@return HttpResponse
+function http:patch(target, header, body) end
+
 ---Send an HTTP POST request.
 ---@param target string HTTP request target.
----@param body string HTTP request body.
----@param header? table<string, string> Additional request header. `Host` and `Content-Length` are generated automatically.
+---@param header? table<string, string> Additional request header. `Host` and `Content-Length` are generated automatically; `Transfer-Encoding` is ignored.
+---@param body? string HTTP request body.
 ---@return HttpResponse
-function http:post(target, body, header) end
+function http:post(target, header, body) end
+
+---Send an HTTP PUT request.
+---@param target string HTTP request target.
+---@param header? table<string, string> Additional request header. `Host` and `Content-Length` are generated automatically; `Transfer-Encoding` is ignored.
+---@param body? string HTTP request body.
+---@return HttpResponse
+function http:put(target, header, body) end

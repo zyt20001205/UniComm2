@@ -20,18 +20,27 @@ public:
 
     void init(const std::string &portName, int timeout);
 
-    [[nodiscard]] sol::object head(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const;
+    [[nodiscard]] sol::object del(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header, const sol::optional<std::string> &body) const;
 
     [[nodiscard]] sol::object get(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const;
 
-    [[nodiscard]] sol::object post(sol::this_state ts, const std::string &target, const std::string &body,
-                                   const sol::optional<sol::table> &header) const;
+    [[nodiscard]] sol::object head(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const;
+
+    [[nodiscard]] sol::object patch(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header, const sol::optional<std::string> &body) const;
+
+    [[nodiscard]] sol::object post(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header, const sol::optional<std::string> &body) const;
+
+    [[nodiscard]] sol::object put(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header, const sol::optional<std::string> &body) const;
 
 private:
-    [[nodiscard]] static QVariantHash headerParser(const QByteArray &rxData);
+    [[nodiscard]] sol::object request(sol::this_state ts, const QByteArray &method, const std::string &target, const sol::optional<sol::table> &header,
+                                      const sol::optional<std::string> &body) const;
+
+    [[nodiscard]] static QVariantHash parser(const QByteArray &rxData);
 
     std::string m_portName{};
     int m_timeout{};
+    QByteArray m_remoteHost{};
     BasePort *m_port{};
 
     struct StatusCode {

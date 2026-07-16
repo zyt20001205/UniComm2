@@ -43,9 +43,10 @@ void Imap::init(const std::string &portName, const int timeout) {
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
-int Imap::_idle(const int timeout) {
+int Imap::idle(const sol::optional<int> timeout) {
     QString exception{};
     int sequenceNumber{};
+    const auto _timeout = timeout.value_or(600000);
 
     const QByteArray txData =
             'A'
@@ -53,7 +54,7 @@ int Imap::_idle(const int timeout) {
             + ' '
             + "IDLE";
 
-    QMetaObject::invokeMethod(m_port, [&exception, &sequenceNumber, this, &txData, &timeout] {
+    QMetaObject::invokeMethod(m_port, [&exception, &sequenceNumber, this, &txData, &_timeout] {
         QByteArray rxData{};
         QVariantHash session{};
 
@@ -71,7 +72,7 @@ int Imap::_idle(const int timeout) {
         else return;
 
         while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", timeout, "utf-8");
+            rxData = m_port->readUntil("\r\n", _timeout, "utf-8");
             session = parser("IDLE", rxData);
             exception = session["exception"].toString();
         }
@@ -95,10 +96,6 @@ int Imap::_idle(const int timeout) {
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
     return sequenceNumber;
-}
-
-int Imap::idle(sol::optional<int> timeout) {
-    return _idle(timeout.value_or(600000));
 }
 
 void Imap::login(const std::string &username, const std::string &password) {
@@ -206,11 +203,14 @@ sol::object Imap::fetch(const sol::this_state ts, const int sequenceNumber) {
     return uni_cast<sol::object>(ts, parsed);
 }
 
-void Imap::_receive(const std::string &from, const std::string &path, const int timeout) {
+void Imap::receive(const sol::optional<std::string> &from, const sol::optional<std::string> &path, const sol::optional<int> timeout) {
     QString exception{};
     QVariantHash parsed{};
+    const auto _from = from.value_or("");
+    const auto _path = path.value_or("");
+    const auto _timeout = timeout.value_or(600000);
 
-    QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &from, &timeout] {
+    QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &_from, &_timeout] {
         QElapsedTimer timer{};
         timer.start();
 
@@ -241,7 +241,7 @@ void Imap::_receive(const std::string &from, const std::string &path, const int 
             else return;
 
             while (exception.isEmpty()) {
-                const int remaining = timeout - static_cast<int>(timer.elapsed());
+                const int remaining = _timeout - static_cast<int>(timer.elapsed());
                 qDebug() << "remaining" << remaining;
                 rxData = m_port->readUntil("\r\n", remaining, "utf-8");
                 session = parser("IDLE", rxData);
@@ -304,14 +304,14 @@ void Imap::_receive(const std::string &from, const std::string &path, const int 
             else return;
 
             // check sender
-            if (from.empty()) break;
-            const auto _from = QString::fromStdString(from);
+            if (_from.empty()) break;
+            const auto sender = QString::fromStdString(_from);
             const auto header = parsed["header"].toHash();
-            if (header["From"].toString().contains(_from)) break;
+            if (header["From"].toString().contains(sender)) break;
         }
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
-    const LPath luaPath = QString::fromStdString(path);
+    const LPath luaPath = QString::fromStdString(_path);
     const auto folderUrl = uni_cast<QUrl>(luaPath);
     const QDir dir(folderUrl.toLocalFile());
     if (!dir.exists()) {
@@ -354,10 +354,6 @@ void Imap::_receive(const std::string &from, const std::string &path, const int 
             file.close();
         }
     }
-}
-
-void Imap::receive(const sol::optional<std::string> &from, const sol::optional<std::string> &path, sol::optional<int> timeout) {
-    _receive(from.value_or(""), path.value_or(""), timeout.value_or(600000));
 }
 
 // private

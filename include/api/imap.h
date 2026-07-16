@@ -16,8 +16,6 @@ public:
 
     void init(const std::string &portName, int timeout);
 
-    [[nodiscard]] int _idle(int timeout);
-
     [[nodiscard]] int idle(sol::optional<int> timeout);
 
     void login(const std::string &username, const std::string &password);
@@ -25,8 +23,6 @@ public:
     void select(const std::string &mailbox);
 
     [[nodiscard]] sol::object fetch(sol::this_state ts, int sequenceNumber);
-
-    void _receive(const std::string &from, const std::string &path, int timeout);
 
     void receive(const sol::optional<std::string> &from, const sol::optional<std::string> &path, sol::optional<int> timeout);
 
