@@ -87,6 +87,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             sol::meta_function::garbage_collect, [](Http *) {
             },
             "head", &Http::head,
+            "get", &Http::get,
             "post", &Http::post
         );
         auto http = m_lua.create_table();

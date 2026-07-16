@@ -22,10 +22,10 @@ public:
 
     [[nodiscard]] sol::object head(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const;
 
+    [[nodiscard]] sol::object get(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const;
+
     [[nodiscard]] sol::object post(sol::this_state ts, const std::string &target, const std::string &body,
                                    const sol::optional<sol::table> &header) const;
-
-    // static void get(const std::string &portName, const sol::table &header);
 
 private:
     [[nodiscard]] static QVariantHash headerParser(const QByteArray &rxData);

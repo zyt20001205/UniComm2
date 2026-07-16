@@ -66,6 +66,66 @@ sol::object Http::head(const sol::this_state ts, const std::string &target, cons
     return uni_cast<sol::object>(ts, parsed);
 }
 
+sol::object Http::get(const sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header) const {
+    QString exception{};
+    QVariantHash parsed{};
+    const auto _target = QByteArray::fromStdString(target);
+    QByteArray _header{};
+    if (header.has_value()) {
+        for (const auto &[key, value]: header.value()) {
+            if (!key.is<std::string>() || !value.is<std::string>()) continue;
+            const auto name = QByteArray::fromStdString(key.as<std::string>());
+            const auto fieldValue = QByteArray::fromStdString(value.as<std::string>());
+            if (name.compare("Host", Qt::CaseInsensitive) == 0 ||
+                name.compare("Content-Length", Qt::CaseInsensitive) == 0 ||
+                name.compare("Transfer-Encoding", Qt::CaseInsensitive) == 0) continue;
+            _header += name + ": " + fieldValue + "\r\n";
+        }
+    }
+
+    QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &_target, &_header] {
+        if (!m_port->open()) {
+            exception = "open failed";
+            return;
+        }
+
+        QByteArray txData = "GET " + _target + " HTTP/1.1\r\n";
+        txData += "Host: " + m_port->config().value("remoteHost").toString().toUtf8() + "\r\n";
+        txData += _header + "\r\n";
+
+        if (!m_port->write(txData, "utf-8", "null")) {
+            exception = "write failed";
+            return;
+        }
+
+        const QByteArray rxHeader = m_port->readUntil("\r\n\r\n", m_timeout, "utf-8");
+        if (rxHeader.isEmpty()) {
+            exception = "read timeout";
+            return;
+        }
+
+        parsed = headerParser(rxHeader);
+        exception = parsed.take("exception").toString();
+        if (!exception.isEmpty()) return;
+
+        const auto responseHeader = parsed.value("header").toHash();
+        const auto contentLength = responseHeader.value("content-length").toInt();
+        QByteArray rxBody{};
+        if (contentLength > 0) {
+            rxBody = m_port->read(contentLength, m_timeout, "utf-8");
+            if (rxBody.isEmpty()) {
+                exception = "read timeout";
+                return;
+            }
+        }
+        // TODO: Handle Transfer-Encoding: chunked.
+        parsed["body"] = rxBody;
+    }, Qt::BlockingQueuedConnection);
+
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+    return uni_cast<sol::object>(ts, parsed);
+}
+
 sol::object Http::post(const sol::this_state ts, const std::string &target, const std::string &body, const sol::optional<sol::table> &header) const {
     QString exception{};
     QVariantHash parsed{};
@@ -125,41 +185,6 @@ sol::object Http::post(const sol::this_state ts, const std::string &target, cons
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
     return uni_cast<sol::object>(ts, parsed);
 }
-
-// void Http::get(const std::string &portName, const sol::table &header) {
-//     const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
-//     if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
-//
-//     bool status = false;
-//     QByteArray rxData{};
-//     auto *port = portIt.value();
-//     QByteArray txData = "GET /get HTTP/1.1\r\n";
-//     const auto host = port->info().value("remoteHost", "").toByteArray();
-//     if (host.isEmpty()) {
-//         throw sol::error(portName + ": Host not found");
-//     }
-//     txData += "Host: " + host + "\r\n";
-//     if (!header.empty()) {
-//         const auto headerMap = uni_cast<QVariant>(sol::object(header)).toMap();
-//         for (auto it = headerMap.constBegin(); it != headerMap.constEnd(); ++it) {
-//             const auto key = it.key().toUtf8();
-//             const auto value = it.value().toString().toUtf8();
-//             txData += key + ": " + value + "\r\n";
-//         }
-//     }
-//
-//     QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData] {
-//         status = port->write(txData, "ascii", "crlf");
-//         // port->clear();
-//         // rxData = port->read(3, 1000, "ascii");
-//     }, Qt::BlockingQueuedConnection);
-//     // if (!status || rxData.isEmpty()) {
-//     //     throw sol::error(portName + ": communication failed");
-//     // }
-//     // if (!QString::fromLatin1(rxData).startsWith("250")) {
-//     //     throw sol::error(portName + ": SMTP EHLO failed");
-//     // }
-// }
 
 // private
 QVariantHash Http::headerParser(const QByteArray &rxData) {

@@ -25,6 +25,12 @@ http = {}
 ---@return HttpResponse
 function http:head(target, header) end
 
+---Send an HTTP GET request.
+---@param target string HTTP request target, including any query string.
+---@param header? table<string, string> Additional request header. `Host` is generated automatically; message-body framing headers are ignored.
+---@return HttpResponse
+function http:get(target, header) end
+
 ---Send an HTTP POST request.
 ---@param target string HTTP request target.
 ---@param body string HTTP request body.

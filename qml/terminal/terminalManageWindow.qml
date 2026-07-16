@@ -77,11 +77,11 @@ Item {
                 interactive: false
                 movableRows: true
                 delegate: VerticalHeaderViewDelegate {
-                    implicitWidth: verticalHeaderView.width; implicitHeight: 32
+                    implicitWidth: verticalHeaderView.width; implicitHeight: 24
                     padding: 0
 
                     contentItem: Rectangle {
-                        width: 24; height: 32
+                        width: 24; height: 24
                         color: global.back
 
                         IconImage {
@@ -160,7 +160,7 @@ Item {
 
                 delegate: Item {
                     implicitWidth: tableView.width
-                    implicitHeight: 32
+                    implicitHeight: 24
 
                     Rectangle {
                         anchors.fill: parent
