@@ -80,9 +80,8 @@ bool UdpSocket::open() {
     emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
-                   QString("opened: %2:%3->%4:%5")
-                   .arg(m_portConfig["portName"].toString(),
-                        m_portConfig["localHost"].toString(),
+                   QString("opened: %1:%2->%3:%4")
+                   .arg(m_portConfig["localHost"].toString(),
                         QString::number(m_portConfig["localPort"].toInt()),
                         m_portConfig["remoteHost"].toString(),
                         QString::number(m_portConfig["remotePort"].toInt())));

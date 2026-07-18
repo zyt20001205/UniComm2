@@ -181,13 +181,13 @@ void PortModule::portToggle(const int index) {
     bool status = item->data(Qt::UserRole + 1).toBool();
     auto port = m_portHash[portName];
     if (status) {
-        QMetaObject::invokeMethod(port, [&port] {
+        QMetaObject::invokeMethod(port, [port] {
             port->close();
-        }, Qt::BlockingQueuedConnection);
+        }, Qt::QueuedConnection);
     } else {
-        QMetaObject::invokeMethod(port, [&port, &status] {
-            status = port->open();
-        }, Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(port, [port] {
+            port->open();
+        }, Qt::QueuedConnection);
     }
 }
 

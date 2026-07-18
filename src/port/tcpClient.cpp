@@ -87,6 +87,9 @@ bool TcpClient::open() {
     // port open
     m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+    emit appendLog(LogLevel::Info,
+                   QString("[%1]").arg(m_portConfig["portName"].toString()),
+                   QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
     m_tcpClient->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
     if (!m_tcpClient->waitForConnected()) {
         handleError();
@@ -101,9 +104,6 @@ bool TcpClient::open() {
         {"lifetime", uni_cast<QLifetime>(qint64{}).value}
     };
     emit refreshPort(m_portConfig["portName"].toString(), session);
-    emit appendLog(LogLevel::Info,
-                   QString("[%1]").arg(m_portConfig["portName"].toString()),
-                   QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
     return true;
 }
 
@@ -113,11 +113,17 @@ void TcpClient::close() {
     // port close
     switch (m_tcpClient->state()) {
         case QAbstractSocket::ConnectedState: {
+            emit appendLog(LogLevel::Info,
+                           QString("[%1]").arg(m_portConfig["portName"].toString()),
+                           QString("disconnecting from %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
             m_tcpClient->disconnectFromHost();
         }
         break;
         case QAbstractSocket::ConnectingState:
         case QAbstractSocket::HostLookupState: {
+            emit appendLog(LogLevel::Info,
+                           QString("[%1]").arg(m_portConfig["portName"].toString()),
+                           QString("connection to %1:%2 cancelled").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
             m_tcpClient->abort();
         }
         break;
@@ -127,7 +133,6 @@ void TcpClient::close() {
     if (m_monitorTimer) m_monitorTimer->stop();
     const QVariantHash session{{"active", false}};
     emit refreshPort(m_portConfig["portName"].toString(), session);
-    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void TcpClient::clear() {

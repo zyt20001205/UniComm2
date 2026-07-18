@@ -50,6 +50,8 @@ signals:
 private:
     void handleConnected();
 
+    void handleEncrypted();
+
     void handleDisconnected();
 
     void handleReadyRead();

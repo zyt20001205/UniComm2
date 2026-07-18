@@ -75,6 +75,7 @@ bool SslClient::open() {
         // TODO: This is not safe!!! test only
         m_sslClient->setPeerVerifyMode(QSslSocket::VerifyNone);
         connect(m_sslClient, &QSslSocket::connected, this, &SslClient::handleConnected);
+        connect(m_sslClient, &QSslSocket::encrypted, this, &SslClient::handleEncrypted);
         connect(m_sslClient, &QSslSocket::disconnected, this, &SslClient::handleDisconnected);
         connect(m_sslClient, &QSslSocket::readyRead, this, &SslClient::handleReadyRead);
         connect(m_sslClient, &QSslSocket::errorOccurred, this, &SslClient::handleError);
@@ -89,6 +90,9 @@ bool SslClient::open() {
     // open port
     m_sslClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_sslClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+    emit appendLog(LogLevel::Info,
+                   QString("[%1]").arg(m_portConfig["portName"].toString()),
+                   QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
     m_sslClient->connectToHostEncrypted(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
     if (!m_sslClient->waitForEncrypted()) {
         handleError();
@@ -103,9 +107,6 @@ bool SslClient::open() {
         {"lifetime", uni_cast<QLifetime>(qint64{}).value}
     };
     emit refreshPort(m_portConfig["portName"].toString(), session);
-    emit appendLog(LogLevel::Info,
-                   QString("[%1]").arg(m_portConfig["portName"].toString()),
-                   QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
     return true;
 }
 
@@ -115,11 +116,17 @@ void SslClient::close() {
     // port close
     switch (m_sslClient->state()) {
         case QAbstractSocket::ConnectedState: {
+            emit appendLog(LogLevel::Info,
+                           QString("[%1]").arg(m_portConfig["portName"].toString()),
+                           QString("disconnecting from %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
             m_sslClient->disconnectFromHost();
         }
         break;
         case QAbstractSocket::ConnectingState:
         case QAbstractSocket::HostLookupState: {
+            emit appendLog(LogLevel::Info,
+                           QString("[%1]").arg(m_portConfig["portName"].toString()),
+                           QString("connection to %1:%2 cancelled").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
             m_sslClient->abort();
         }
         break;
@@ -128,7 +135,6 @@ void SslClient::close() {
     if (m_monitorTimer) m_monitorTimer->stop();
     const QVariantHash session{{"active", false}};
     emit refreshPort(m_portConfig["portName"].toString(), session);
-    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void SslClient::clear() {
@@ -176,6 +182,12 @@ void SslClient::handleConnected() {
     emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("connected to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
+}
+
+void SslClient::handleEncrypted() {
+    emit appendLog(LogLevel::Info,
+                   QString("[%1]").arg(m_portConfig["portName"].toString()),
+                   QString("encrypted connection established with %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
 }
 
 void SslClient::handleDisconnected() {
