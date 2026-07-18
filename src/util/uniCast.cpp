@@ -1,6 +1,7 @@
 #include "util/uniCast.h"
 
 #include <QDir>
+#include <QTime>
 #include <sol/state_view.hpp>
 #include <sol/table_core.hpp>
 #include <sol/variadic_args.hpp>
@@ -468,6 +469,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     d.replace("@highlightTheme", g_globalManager->themeGet() == Theme::Light ? "highlight-light.min.css" : "highlight-dark.min.css");
     d.replace("@body", body);
     return d;
+}
+
+template<>
+QLifetime uni_cast<QLifetime, qint64>(const qint64 &s, const int depth) {
+    Q_UNUSED(depth);
+    const qint64 totalSeconds = s / 1000;
+    const qint64 days = totalSeconds / 86400;
+    const int millisecondsOfDay = static_cast<int>(totalSeconds % 86400 * 1000);
+    const auto time = QTime::fromMSecsSinceStartOfDay(millisecondsOfDay);
+    return QStringLiteral("%1d %2")
+        .arg(days)
+        .arg(time.toString(QStringLiteral("hh'h' mm'm' ss's'")));
 }
 
 // vterm -> qt

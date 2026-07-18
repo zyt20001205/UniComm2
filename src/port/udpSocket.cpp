@@ -7,6 +7,7 @@
 
 #include "globals.h"
 #include "util/suffixUtils.h"
+#include "util/uniCast.h"
 
 // public
 UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent)
@@ -74,7 +75,7 @@ bool UdpSocket::open() {
     const QVariantHash session{
         {"active", true},
         {"capacity", m_portConfig["bufferSize"].toInt()},
-        {"lifetime", lifetimeFormat(0)}
+        {"lifetime", uni_cast<QLifetime>(qint64{}).value}
     };
     emit refreshPort(m_portConfig["portName"].toString(), session);
     emit appendLog(LogLevel::Info,
@@ -207,7 +208,7 @@ void UdpSocket::handleUpdate() {
     const auto statistics = m_buffer.statistics();
     const auto &session = QVariantHash{
         {"used", statistics.used},
-        {"lifetime", lifetimeFormat(m_activeTimer.elapsed())},
+        {"lifetime", uni_cast<QLifetime>(m_activeTimer.elapsed()).value},
         {"readCount", statistics.readCount},
         {"readBytes", statistics.readBytes},
         {"writeCount", statistics.writeCount},

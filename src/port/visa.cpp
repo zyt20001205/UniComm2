@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "port/visa.h"
 #include "util/suffixUtils.h"
+#include "util/uniCast.h"
 
 // public
 Visa::Visa(const QJsonObject &portConfig, QObject *parent)
@@ -46,7 +47,7 @@ bool Visa::open() {
         const QVariantHash session{
             {"active", true},
             {"capacity", m_portConfig["bufferSize"].toInt()},
-            {"lifetime", lifetimeFormat(0)}
+            {"lifetime", uni_cast<QLifetime>(qint64{}).value}
         };
         emit refreshPort(m_portConfig["portName"].toString(), session);
         emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
@@ -151,7 +152,7 @@ void Visa::handleUpdate() {
     const auto statistics = m_buffer.statistics();
     const auto &session = QVariantHash{
         {"used", statistics.used},
-        {"lifetime", lifetimeFormat(m_activeTimer.elapsed())},
+        {"lifetime", uni_cast<QLifetime>(m_activeTimer.elapsed()).value},
         {"readCount", statistics.readCount},
         {"readBytes", statistics.readBytes},
         {"writeCount", statistics.writeCount},

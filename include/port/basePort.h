@@ -55,9 +55,6 @@ signals:
 
     void refreshPort(const QString &portName, const QVariantHash &session);
 
-protected:
-    [[nodiscard]] static QString lifetimeFormat(qint64 elapsed);
-
 private:
     QThread *m_thread{};
 };
