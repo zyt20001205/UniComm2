@@ -316,7 +316,7 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                    gesturePolicy: TapHandler.DragWithinBounds
 
                     onSingleTapped: {
                         tableMenu.portIndex = model.row

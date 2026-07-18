@@ -78,14 +78,14 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                    gesturePolicy: TapHandler.DragWithinBounds
 
                     onDoubleTapped: horizontalHeaderView.edit(horizontalHeaderView.index(row, column))
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                    gesturePolicy: TapHandler.DragWithinBounds
 
                     onSingleTapped: {
                         tableMenu.datatableIndex = model.column

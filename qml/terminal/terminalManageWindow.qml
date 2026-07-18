@@ -205,7 +205,7 @@ Item {
 
                     TapHandler {
                         acceptedButtons: Qt.LeftButton
-                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                        gesturePolicy: TapHandler.DragWithinBounds
 
                         onSingleTapped: {
                             tableView.selectedRow = row
@@ -247,7 +247,7 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                    gesturePolicy: TapHandler.DragWithinBounds
 
                     onSingleTapped: tableView.closeEditor()
                 }

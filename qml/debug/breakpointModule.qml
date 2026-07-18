@@ -97,7 +97,7 @@ Item {
 
                     TapHandler {
                         acceptedButtons: Qt.LeftButton
-                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                        gesturePolicy: TapHandler.DragWithinBounds
 
                         onTapped: {
                             treeView.selectedRow = row
@@ -136,7 +136,7 @@ Item {
 
             TapHandler {
                 acceptedButtons: Qt.LeftButton
-                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                gesturePolicy: TapHandler.DragWithinBounds
 
                 onTapped: {
                     treeView.selectedRow = row
@@ -150,7 +150,7 @@ Item {
 
             TapHandler {
                 acceptedButtons: Qt.RightButton
-                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                gesturePolicy: TapHandler.DragWithinBounds
 
                 onTapped: {
                     if (isTreeNode && hasChildren) {

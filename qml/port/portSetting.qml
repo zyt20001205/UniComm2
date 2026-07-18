@@ -1029,14 +1029,14 @@ Item {
 
                                             TapHandler {
                                                 acceptedButtons: Qt.LeftButton
-                                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                                gesturePolicy: TapHandler.DragWithinBounds
 
                                                 onTapped: roiTableView.selectedRow = row
                                             }
 
                                             TapHandler {
                                                 acceptedButtons: Qt.RightButton
-                                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                                gesturePolicy: TapHandler.DragWithinBounds
 
                                                 onSingleTapped: {
                                                     roiMenu.roiIndex = model.row
@@ -1047,7 +1047,7 @@ Item {
 
                                         TapHandler {
                                             acceptedButtons: Qt.LeftButton
-                                            gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                            gesturePolicy: TapHandler.DragWithinBounds
 
                                             onTapped: roiTableView.selectedRow = -1
                                         }
@@ -1345,7 +1345,7 @@ Item {
 
                                                 TapHandler {
                                                     acceptedButtons: Qt.RightButton
-                                                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                                    gesturePolicy: TapHandler.DragWithinBounds
 
                                                     onSingleTapped: {
                                                         pipelineMenu.pipelineIndex = model.row
@@ -1444,7 +1444,7 @@ Item {
 
                                                 TapHandler {
                                                     acceptedButtons: Qt.RightButton
-                                                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                                    gesturePolicy: TapHandler.DragWithinBounds
 
                                                     onSingleTapped: {
                                                         pipelineMenu.pipelineIndex = model.row

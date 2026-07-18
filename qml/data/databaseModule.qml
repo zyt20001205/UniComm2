@@ -210,7 +210,7 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                    gesturePolicy: TapHandler.DragWithinBounds
 
                     onDoubleTapped: {
                         if (column === 0) tableView.edit(tableView.index(row, column))
@@ -219,7 +219,7 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                    gesturePolicy: TapHandler.DragWithinBounds
 
                     onSingleTapped: {
                         tableMenu.databaseIndex = model.row

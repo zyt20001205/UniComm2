@@ -106,7 +106,7 @@ Item {
 
                                     TapHandler {
                                         acceptedButtons: Qt.LeftButton
-                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                        gesturePolicy: TapHandler.DragWithinBounds
 
                                         onTapped: {
                                             workingTreeView.selectedRow = row
@@ -194,7 +194,7 @@ Item {
 
                             TapHandler {
                                 acceptedButtons: Qt.LeftButton
-                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                gesturePolicy: TapHandler.DragWithinBounds
 
                                 onTapped: {
                                     workingTreeView.selectedRow = row
@@ -416,7 +416,7 @@ Item {
 
                                     TapHandler {
                                         acceptedButtons: Qt.LeftButton
-                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                        gesturePolicy: TapHandler.DragWithinBounds
 
                                         onTapped: {
                                             indexTreeView.selectedRow = row
@@ -504,7 +504,7 @@ Item {
 
                             TapHandler {
                                 acceptedButtons: Qt.LeftButton
-                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                gesturePolicy: TapHandler.DragWithinBounds
 
                                 onTapped: {
                                     indexTreeView.selectedRow = row
