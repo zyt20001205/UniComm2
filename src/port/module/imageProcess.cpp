@@ -9,8 +9,7 @@
 #include "tesseract/baseapi.h"
 
 // public
-ImageProcess::ImageProcess(QObject *parent)
-    : QObject(parent) {
+ImageProcess::ImageProcess() {
     m_ocrEngine = new tesseract::TessBaseAPI();
     const QByteArray charsetBytes = "eng";
     m_ocrEngine->Init(nullptr, charsetBytes.constData());

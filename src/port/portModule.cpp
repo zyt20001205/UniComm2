@@ -7,6 +7,7 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
+#include <QThread>
 #include <QTimer>
 
 #include "globals.h"
@@ -38,7 +39,9 @@ PortModule::PortModule()
 
 PortModule::~PortModule() {
     for (const auto &port: m_portHash) {
-        delete port;
+        auto *thread = port->thread();
+        thread->quit();
+        thread->wait();
     }
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
@@ -148,9 +151,10 @@ void PortModule::portRemove(const int index) {
     const auto *item = g_portModel->item(index, 0);
     const QString portName = item->text();
     g_portModel->removeRow(index);
-    const auto *port = m_portHash[portName];
-    delete port;
-    m_portHash.remove(portName);
+    auto *port = m_portHash.take(portName);
+    auto *thread = port->thread();
+    thread->quit();
+    thread->wait();
     emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "removed");
 }
 

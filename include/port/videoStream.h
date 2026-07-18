@@ -4,8 +4,8 @@
 #include <QJsonObject>
 
 #include "port/basePort.h"
+#include "port/module/imageProcess.h"
 
-class ImageProcess;
 class QCamera;
 class QEventLoop;
 class QImageCapture;
@@ -44,7 +44,7 @@ private:
     QCamera *m_cameraCapture{};
     // port config
     QJsonObject m_portConfig{};
-    ImageProcess *m_imageProcess{};
+    ImageProcess m_imageProcess{};
 };
 
 #endif //UNICOMM_VIDEOSTREAM_H

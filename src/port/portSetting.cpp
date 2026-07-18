@@ -20,7 +20,6 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
-#include "port/module/imageProcess.h"
 
 // public
 PortSetting::PortSetting(QWidget *parent)
@@ -638,12 +637,7 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
 
 // public
 ImageProvider::ImageProvider()
-    : QQuickImageProvider(Pixmap),
-      m_imageProcess(new ImageProcess()) {
-}
-
-ImageProvider::~ImageProvider() {
-    delete m_imageProcess;
+    : QQuickImageProvider(Pixmap) {
 }
 
 QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
@@ -661,8 +655,8 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonObject &conf
     if (image.isNull()) {
         return;
     }
-    m_imageProcess->configSet(config);
-    const auto results = m_imageProcess->detail(image);
+    m_imageProcess.configSet(config);
+    const auto results = m_imageProcess.detail(image);
     if (results.isEmpty()) {
         return;
     }

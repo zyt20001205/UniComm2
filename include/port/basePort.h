@@ -9,7 +9,7 @@ class BasePort : public QObject {
 public:
     explicit BasePort(QObject *parent = nullptr);
 
-    ~BasePort() override;
+    ~BasePort() override = default;
 
     [[nodiscard]] virtual int type() = 0;
 

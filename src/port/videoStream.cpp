@@ -8,19 +8,16 @@
 #include <QVideoSink>
 
 #include "globals.h"
-#include "port/module/imageProcess.h"
 
 // public
 VideoStream::VideoStream(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
-      m_portConfig(portConfig),
-      m_imageProcess(new ImageProcess()) {
-    m_imageProcess->configSet(m_portConfig);
+      m_portConfig(portConfig) {
+    m_imageProcess.configSet(m_portConfig);
 }
 
 VideoStream::~VideoStream() {
     close();
-    delete m_imageProcess;
 }
 
 int VideoStream::type() {
@@ -124,5 +121,5 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
     const auto rawImage = rawFrame.toImage();
     if (rawImage.isNull()) return {};
 
-    return m_imageProcess->process(rawImage).join("\x1E").toUtf8();
+    return m_imageProcess.process(rawImage).join("\x1E").toUtf8();
 }

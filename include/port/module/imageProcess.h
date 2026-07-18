@@ -4,7 +4,6 @@
 #include <QImage>
 #include <QJsonObject>
 #include <QList>
-#include <QObject>
 #include <QPoint>
 #include <QUrl>
 
@@ -14,9 +13,7 @@ namespace tesseract {
     class TessBaseAPI;
 }
 
-class ImageProcess final : public QObject {
-    Q_OBJECT
-
+class ImageProcess final {
 public:
     struct ProcessResult {
         QImage roiFrame;
@@ -24,9 +21,9 @@ public:
         QString result;
     };
 
-    explicit ImageProcess(QObject *parent = nullptr);
+    ImageProcess();
 
-    ~ImageProcess() override;
+    ~ImageProcess();
 
     void configSet(const QJsonObject &config) {
         m_config = config;

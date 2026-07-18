@@ -7,7 +7,8 @@
 #include <QQuickImageProvider>
 #include <QStandardItemModel>
 
-class ImageProcess;
+#include "port/module/imageProcess.h"
+
 class QQuickView;
 class QCamera;
 class QMediaCaptureSession;
@@ -130,7 +131,7 @@ class ImageProvider final: public QQuickImageProvider {
 public:
     explicit ImageProvider();
 
-    ~ImageProvider() override;
+    ~ImageProvider() = default;
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 
@@ -141,7 +142,7 @@ public:
 private:
     QPixmap m_preview{};
     QString m_recognition{};
-    ImageProcess *m_imageProcess{};
+    ImageProcess m_imageProcess{};
 };
 
 class RoiModel final : public QStandardItemModel {
