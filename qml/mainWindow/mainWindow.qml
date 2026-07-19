@@ -2802,6 +2802,18 @@ Item {
         }
         onClosed: widgetCount -= 1
 
+        MenuItem {
+            text: qsTr("Cherry-pick")
+            enabled: global.gitStatus === 0
+            icon.source: "qrc:/icon/gitMerge.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: gitModule.gitCherryPick(gitModuleLogMenu.hash)
+        }
+
+        MenuSeparator {
+        }
+
         Menu {
             title: qsTr("Reset")
             icon.source: "qrc:/icon/reset.svg"

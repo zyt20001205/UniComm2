@@ -254,6 +254,14 @@ void GitModule::gitRepo() {
             [this] { this->gitDiff(); });
         g_globalManager->gitStatusSet(GitStatus::Rebase);
     }
+    // cherry-pick
+    else if (QFileInfo::exists(gitDir.filePath("CHERRY_PICK_HEAD"))) {
+        emit appendBackground(
+            m_taskId,
+            [this] { this->gitAbort(); },
+            [this] { this->gitDiff(); });
+        g_globalManager->gitStatusSet(GitStatus::CherryPick);
+    }
     if (g_globalManager->gitStatusGet() != GitStatus::Idle) gitDiff();
 }
 
@@ -325,6 +333,11 @@ void GitModule::gitReset(const QString &hash, const int mode) {
     processEnqueue(GitCommand::Reset, QStringList{"reset", hash, _mode});
 }
 
+void GitModule::gitCherryPick(const QString &hash) {
+    if (hash.isEmpty()) return;
+    processEnqueue(GitCommand::CherryPick, QStringList{"cherry-pick", hash});
+}
+
 // public: show
 void GitModule::gitShowCommit(const QString &hash) {
     processEnqueue(GitCommand::ShowCommit, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
@@ -351,6 +364,8 @@ void GitModule::gitAbort() {
             break;
         case GitStatus::Rebase: processEnqueue(GitCommand::Abort, QStringList{"rebase", "--abort"});
             break;
+        case GitStatus::CherryPick: processEnqueue(GitCommand::Abort, QStringList{"cherry-pick", "--abort"});
+            break;
         default: break;
     }
 }
@@ -364,6 +379,8 @@ void GitModule::gitContinue(const QString &message) {
         }
         break;
         case GitStatus::Rebase: arguments = {"rebase", "--continue"};
+            break;
+        case GitStatus::CherryPick: arguments = {"cherry-pick", "--continue"};
             break;
         default: break;
     }
@@ -705,6 +722,8 @@ void GitModule::processFinished(const int exitcode) {
                         break;
                     case GitStatus::Rebase: operation = tr("Rebasing: ");
                         break;
+                    case GitStatus::CherryPick: operation = tr("Cherry-picking: ");
+                        break;
                     default:
                         return;
                 }
@@ -1000,7 +1019,8 @@ void GitModule::processFinished(const int exitcode) {
                 break;
             case GitCommand::Create:
             case GitCommand::Rename:
-            case GitCommand::Delete: gitWatch();
+            case GitCommand::Delete:
+            case GitCommand::CherryPick: gitWatch();
                 break;
             case GitCommand::Log: {
                 if (m_logModel->rowCount() > 0) {
@@ -1027,6 +1047,12 @@ void GitModule::processFinished(const int exitcode) {
             break;
             case GitCommand::Rebase: {
                 title = tr("Rebase Failed");
+                if (!output.isEmpty()) text = QString::fromUtf8(output).trimmed();
+                else text = QString::fromUtf8(error).trimmed();
+            }
+            break;
+            case GitCommand::CherryPick: {
+                title = tr("Cherry-pick Failed");
                 if (!output.isEmpty()) text = QString::fromUtf8(output).trimmed();
                 else text = QString::fromUtf8(error).trimmed();
             }

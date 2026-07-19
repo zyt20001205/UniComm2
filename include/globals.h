@@ -270,7 +270,8 @@ namespace GitStatus {
         Idle,
         Transfer,
         Merge,
-        Rebase
+        Rebase,
+        CherryPick
     };
 }
 

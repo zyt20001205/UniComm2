@@ -85,6 +85,8 @@ public:
 
     Q_INVOKABLE void gitReset(const QString &hash, int mode);
 
+    Q_INVOKABLE void gitCherryPick(const QString &hash);
+
     Q_INVOKABLE void gitShowCommit(const QString &hash);
 
     Q_INVOKABLE void gitShowFile(const QString &hash, const QUrl &documentUrl);
@@ -205,6 +207,7 @@ private:
             ShowFile,
             Merge,
             Rebase,
+            CherryPick,
             Abort,
             Continue,
             Diff,
