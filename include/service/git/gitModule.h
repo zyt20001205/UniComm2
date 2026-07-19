@@ -59,6 +59,8 @@ public:
 
     void gitWatch();
 
+    void gitRepo();
+
     Q_INVOKABLE void gitRemoteAdd(const QString &upstreamUrl);
 
     void gitRemoteGet();
@@ -150,6 +152,7 @@ private:
     int m_command{};
     QProcess *m_process{};
     QQueue<QVariantHash> m_queue{};
+    QString m_gitDirPath{};
     QFileSystemWatcher *m_repoWatcher{};
     QTimer *m_repoWatcherTimer{};
     QFileSystemWatcher *m_indexWatcher{};
@@ -205,7 +208,8 @@ private:
             Abort,
             Continue,
             Diff,
-            Restore
+            Restore,
+            Ignore
         };
     };
 
