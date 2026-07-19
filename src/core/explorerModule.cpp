@@ -55,7 +55,7 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 }
 
 void ExplorerModule::indexUpdate() const {
-    m_process->start("git", {"status", "-uall", "--porcelain", "--ignored"});
+    m_process->start("git", {"--no-optional-locks", "status", "-uall", "--porcelain", "--ignored"});
 }
 
 void ExplorerModule::scriptRun(const QUrl &documentUrl) {

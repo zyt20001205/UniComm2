@@ -150,6 +150,8 @@ private:
     int m_command{};
     QProcess *m_process{};
     QQueue<QVariantHash> m_queue{};
+    QFileSystemWatcher *m_repoWatcher{};
+    QTimer *m_repoWatcherTimer{};
     QFileSystemWatcher *m_indexWatcher{};
     QTimer *m_indexWatcherTimer{};
     QFileSystemWatcher *m_branchWatcher{};

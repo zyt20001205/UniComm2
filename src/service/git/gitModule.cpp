@@ -23,6 +23,8 @@ GitModule::GitModule()
       m_commitWindow(new QQuickView()),
       m_pushWindow(new QQuickView()),
       m_process(new QProcess(this)),
+      m_repoWatcher(new QFileSystemWatcher(this)),
+      m_repoWatcherTimer(new QTimer(this)),
       m_indexWatcher(new QFileSystemWatcher(this)),
       m_indexWatcherTimer(new QTimer(this)),
       m_branchWatcher(new QFileSystemWatcher(this)),
@@ -44,13 +46,21 @@ GitModule::GitModule()
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
     connect(m_process, &QProcess::finished, this, [this](const int exitcode) { processFinished(exitcode); });
 
+    connect(m_repoWatcher, &QFileSystemWatcher::directoryChanged, this, [this] { m_repoWatcherTimer->start(); });
+    // connect(m_repoWatcher, &QFileSystemWatcher::directoryChanged, this, [](const QString &filePath) { qDebug() << "repo changed:" << filePath; });
+    m_repoWatcherTimer->setSingleShot(true);
+    m_repoWatcherTimer->setInterval(100);
+    connect(m_repoWatcherTimer, &QTimer::timeout, this, &GitModule::gitBranch);
+
     connect(m_indexWatcher, &QFileSystemWatcher::fileChanged, this, [this] { m_indexWatcherTimer->start(); });
+    // connect(m_indexWatcher, &QFileSystemWatcher::fileChanged, this, [](const QString &filePath) { qDebug() << "index changed:" << filePath; });
     m_indexWatcherTimer->setSingleShot(true);
     m_indexWatcherTimer->setInterval(100);
     connect(m_indexWatcherTimer, &QTimer::timeout, this, &GitModule::updateIndex);
     connect(m_indexWatcherTimer, &QTimer::timeout, this, &GitModule::gitStatus);
 
     connect(m_branchWatcher, &QFileSystemWatcher::fileChanged, this, [this] { m_branchWatcherTimer->start(); });
+    // connect(m_branchWatcher, &QFileSystemWatcher::fileChanged, this, [](const QString &filePath) { qDebug() << "branch changed:" << filePath; });
     m_branchWatcherTimer->setSingleShot(true);
     m_branchWatcherTimer->setInterval(100);
     connect(m_branchWatcherTimer, &QTimer::timeout, this, &GitModule::gitBranch);
@@ -163,7 +173,7 @@ void GitModule::gitCommitPre() {
 }
 
 void GitModule::gitStatus() {
-    processEnqueue(GitCommand::Status, QStringList{"status", "-uall", "--porcelain"});
+    processEnqueue(GitCommand::Status, QStringList{"--no-optional-locks", "status", "-uall", "--porcelain"});
 }
 
 void GitModule::gitCommit(const QString &subject) {
@@ -461,6 +471,8 @@ void GitModule::processFinished(const int exitcode) {
                 g_gitPath = QFileInfo(gitPath).absolutePath();
                 m_process->setWorkingDirectory(g_gitPath);
                 const auto &gitDir = QDir(gitPath);
+                // repo watcher
+                if (QFileInfo::exists(gitPath)) m_repoWatcher->addPath(gitPath);
                 // index watcher
                 const auto &indexPath = gitDir.filePath("index");
                 if (QFileInfo::exists(indexPath)) m_indexWatcher->addPath(indexPath);

@@ -230,7 +230,7 @@ Item {
             columnWidthProvider: function (column) {
                 if (column !== columns - 1) return implicitColumnWidth(column)
                 let usedWidth = 0
-                for (let i = 0; i < columns - 1; ++i) usedWidth += implicitColumnWidth(i)
+                for (let i = 0; i < columns - 2; ++i) usedWidth += implicitColumnWidth(i)
                 return width - usedWidth
             }
 
