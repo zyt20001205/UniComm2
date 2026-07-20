@@ -7,10 +7,11 @@
 #include "util/uniCast.h"
 
 // public
-LanguageServer::LanguageServer(const QString &program, QObject *parent)
+LanguageServer::LanguageServer(const QString &program, const QStringList &arguments, QObject *parent)
     : QObject(parent),
       m_process(new QProcess(this)) {
     m_process->setProgram(program);
+    m_process->setArguments(arguments);
     connect(m_process, &QProcess::readyRead, this, &LanguageServer::parser);
 }
 

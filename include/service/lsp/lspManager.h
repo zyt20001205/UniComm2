@@ -1,6 +1,8 @@
 #ifndef UNICOMM_LSPMANAGER_H
 #define UNICOMM_LSPMANAGER_H
 
+#include <QStringList>
+
 #include "languageServer.h"
 
 class LSPManager final : public QObject {
@@ -58,7 +60,7 @@ private:
         QSet<QChar> signatureHelpTrigger{};
     };
 
-    void serverAdd(const QString &suffix, const QString &process);
+    void serverAdd(const QString &suffix, const QString &process, const QStringList &arguments = {});
 
     QHash<QString, LanguageServerSession> m_session{};
 };

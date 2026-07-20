@@ -36,7 +36,7 @@ LLMModule::LLMModule()
       m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
 
-    const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath("llm");
+    const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath(".unicomm/llm");
     for (const auto &value: QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         auto sessionFile = QFile(value.absoluteFilePath());
         const auto topic = value.baseName();
@@ -119,7 +119,7 @@ void LLMModule::llmConfigSave() {
     m_config["topic"] = m_topic;
     g_workspaceConfig["llmConfig"] = m_config;
 
-    const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath("llm");
+    const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath(".unicomm/llm");
     for (const auto &value: QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QFile::remove(value.absoluteFilePath());
     }

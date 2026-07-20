@@ -1,19 +1,22 @@
 #include "service/lsp/lspManager.h"
 
-#include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QUrl>
 
+#include "globals.h"
 #include "service/lsp/languageServer.h"
 
 // public
 LSPManager::LSPManager(QObject *parent)
     : QObject(parent) {
     const QDir rootDir(QCoreApplication::applicationDirPath());
-    serverAdd("lua", rootDir.absoluteFilePath("lua-language-server/bin/lua-language-server.exe"));
+    const QDir workspaceDir(g_workspaceUrl.toLocalFile());
+    serverAdd("lua",
+        rootDir.absoluteFilePath("lua-language-server/bin/lua-language-server.exe"),
+        {"--configpath", workspaceDir.absoluteFilePath(".unicomm/.luarc.json")});
 }
 
 LSPManager::~LSPManager() {
@@ -53,8 +56,8 @@ void LSPManager::jsonNotification(const QString &method, const QJsonObject &para
 }
 
 // private
-void LSPManager::serverAdd(const QString &suffix, const QString &process) {
-    auto *server = new LanguageServer(process, this);
+void LSPManager::serverAdd(const QString &suffix, const QString &process, const QStringList &arguments) {
+    auto *server = new LanguageServer(process, arguments, this);
     connect(server, &LanguageServer::notificationDiagnostics, this, &LSPManager::notificationDiagnostics);
     connect(server, &LanguageServer::responseCodeAction, this, &LSPManager::responseCodeAction);
     connect(server, &LanguageServer::responseCompletion, this, &LSPManager::responseCompletion);

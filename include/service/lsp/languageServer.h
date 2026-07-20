@@ -11,7 +11,7 @@ class LanguageServer : public QObject {
     Q_OBJECT
 
 public:
-    explicit LanguageServer(const QString &program, QObject *parent = nullptr);
+    explicit LanguageServer(const QString &program, const QStringList &arguments, QObject *parent = nullptr);
 
     ~LanguageServer() override;
 

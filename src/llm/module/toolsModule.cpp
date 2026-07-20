@@ -9,7 +9,6 @@
 #include "port/portModule.h"
 #include "runtime/threadpoolModule.h"
 #include "service/ripgrep.h"
-#include "terminal/logModule.h"
 
 // public
 ToolsModule::ToolsModule(QObject *parent)
@@ -466,22 +465,28 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
     const auto object = doc.object();
     chatCreate(name, object);
     if (!permissionGet(mode, name, object)) return {"User denied permission to execute this tool."};
+    const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath())
+                               .filePath("lua-language-server/meta/3rd/UniComm"));
+    const QDir apiDir(uniCommDir.filePath("library"));
+    const QDir demoDir(uniCommDir.filePath("demo"));
     // UniComm tools
     if (name == "api_list") {
-        const auto dir = QDir(":/lib");
         QJsonArray array{};
-        const auto entries = dir.entryInfoList();
+        const auto entries = apiDir.entryInfoList({"*.d.lua"}, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
         for (const auto &entry: entries) {
-            const auto baseName = entry.baseName();
-            if (!QStringList({"http", "mqtt"}).contains(baseName)) {
-                array.append(baseName);
+            const auto packageName = entry.fileName().chopped(QStringLiteral(".d.lua").size());
+            if (!QStringList({"http", "mqtt"}).contains(packageName)) {
+                array.append(packageName);
             }
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
     if (name == "api_get") {
         const auto packageName = object.value("package_name").toString();
-        auto file = QFile(QString(":/lib/%1.d.lua").arg(packageName));
+        if (packageName.isEmpty() || packageName.contains('/') || packageName.contains('\\') || packageName.contains("..")) {
+            return "Invalid package name.";
+        }
+        auto file = QFile(apiDir.filePath(packageName + ".d.lua"));
         if (!file.open(QIODevice::ReadOnly)) {
             return QString("Package '%1' not found.").arg(packageName);
         }
@@ -490,7 +495,10 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
     }
     if (name == "demo_get") {
         const auto packageName = object.value("package_name").toString();
-        auto file = QFile(QString(":/demo/%1.lua").arg(packageName));
+        if (packageName.isEmpty() || packageName.contains('/') || packageName.contains('\\') || packageName.contains("..")) {
+            return "Invalid package name.";
+        }
+        auto file = QFile(demoDir.filePath(packageName + ".lua"));
         if (!file.open(QIODevice::ReadOnly)) {
             return QString("Demo '%1' not found.").arg(packageName);
         }

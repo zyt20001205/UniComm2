@@ -75,36 +75,6 @@ qt_add_resources(UniComm "config_resources"
         "resources/config/config.json"
 )
 
-qt_add_resources(UniComm "lib_resources"
-        PREFIX "/lib"
-        BASE "resources/lib"
-        FILES
-        "resources/lib/alias.d.lua"
-        "resources/lib/database.d.lua"
-        "resources/lib/datatable.d.lua"
-        "resources/lib/file.d.lua"
-        "resources/lib/http.d.lua"
-        "resources/lib/imap.d.lua"
-        "resources/lib/io.d.lua"
-        "resources/lib/key.d.lua"
-        "resources/lib/modbusAscii.d.lua"
-        "resources/lib/modbusRtu.d.lua"
-        "resources/lib/modbusTcp.d.lua"
-        "resources/lib/mouse.d.lua"
-        "resources/lib/mqtt.d.lua"
-        "resources/lib/port.d.lua"
-        "resources/lib/smtp.d.lua"
-        "resources/lib/string.d.lua"
-        "resources/lib/thread.d.lua"
-)
-
-qt_add_resources(UniComm "demo_resources"
-        PREFIX "/demo"
-        BASE "resources/demo"
-        FILES
-        "resources/demo/modbusRtu.lua"
-)
-
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
 set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt")
@@ -291,7 +261,7 @@ else ()
             "${HIGHLIGHT_DIR}"
             "${CMAKE_BINARY_DIR}/javascript"
             COMMENT "HIGHLIGHT COPIED")
-    #lua-language-server-3.18.2 + UniComm API
+    #lua-language-server-3.18.2 + UniComm assets
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${LUALS_DIR}"
@@ -301,7 +271,12 @@ else ()
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/lib"
             "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/library"
-            COMMENT "LUALS DIR AND UNICOMM API COPIED")
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/demo"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/resources/demo"
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/demo"
+            COMMENT "LUALS DIR AND UNICOMM ASSETS COPIED")
     #mermaid-11.16.0
     add_custom_command(TARGET UniComm POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory

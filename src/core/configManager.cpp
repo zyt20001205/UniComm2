@@ -1,9 +1,11 @@
 #include "core/configManager.h"
 
+#include <QDir>
+#include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QJsonArray>
-#include <QMessageBox>
-#include <QProcess>
+#include <QJsonDocument>
 #include <QStandardPaths>
 
 #include "globals.h"
@@ -61,10 +63,12 @@ int ConfigManager::mainConfigLoad() {
 
 void ConfigManager::workspaceInit() {
     const auto workspacePath = g_workspaceUrl.toLocalFile();
+    const auto metadataDirPath = QDir(workspacePath).filePath(".unicomm");
+    if (!QDir().mkpath(metadataDirPath)) return;
     // 1: config.json
     {
         const auto srcConfigPath = ":/config/config.json";
-        const auto dstConfigPath = QDir(workspacePath).filePath("config.json");
+        const auto dstConfigPath = QDir(metadataDirPath).filePath("config.json");
         // copy if not found
         if (!QFile::exists(dstConfigPath)) {
             QFile::copy(srcConfigPath, dstConfigPath);
@@ -124,7 +128,7 @@ void ConfigManager::workspaceInit() {
     // 2: .luarc.json
     {
         const auto srcLuarcPath = ":/config/.luarc.json";
-        const auto dstLuarcPath = QDir(workspacePath).filePath(".luarc.json");
+        const auto dstLuarcPath = QDir(metadataDirPath).filePath(".luarc.json");
         // copy if not found
         if (!QFile::exists(dstLuarcPath)) {
             QFile::copy(srcLuarcPath, dstLuarcPath);
@@ -146,9 +150,9 @@ void ConfigManager::workspaceInit() {
     }
     // 3: llm dir
     {
-        const auto llmDirPath = QDir(workspacePath).filePath("llm");
+        const auto llmDirPath = QDir(metadataDirPath).filePath("llm");
         // mkdir if not found
-        if (QDir().mkdir(llmDirPath)) {
+        if (QDir().mkpath(llmDirPath)) {
             emit appendLog(LogLevel::Info, "llm dir created", "");
         }
     }
@@ -158,7 +162,7 @@ void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {
     QString configPath{};
     if (configUrl.isEmpty()) {
         const auto workspacePath = g_workspaceUrl.toLocalFile();
-        configPath = QDir(workspacePath).filePath("config.json");
+        configPath = QDir(workspacePath).filePath(".unicomm/config.json");
     } else {
         configPath = configUrl.toLocalFile();
     }
