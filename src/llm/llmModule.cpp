@@ -120,12 +120,14 @@ void LLMModule::llmConfigSave() {
     g_workspaceConfig["llmConfig"] = m_config;
 
     const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath(".unicomm/llm");
+    if (!QDir().mkpath(dirPath)) return;
     const QDir dir(dirPath);
     for (const auto &value: dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QFile::remove(value.absoluteFilePath());
     }
     for (auto it = m_sessions.constBegin(); it != m_sessions.constEnd(); ++it) {
         const auto &topic = it.key();
+        if (topic.isEmpty()) continue;
         const auto sessionPath = dir.filePath(topic + ".json");
         auto sessionFile = QFile(sessionPath);
         if (sessionFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {

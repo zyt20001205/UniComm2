@@ -265,21 +265,9 @@ else ()
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${LUALS_DIR}"
             "${CMAKE_BINARY_DIR}/lua-language-server"
-            COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_SOURCE_DIR}/resources/config/.luarc.json"
-            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/.luarc.json"
-            COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/library"
             COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/resources/lib"
-            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/library"
-            COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/demo"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/resources/demo"
-            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/demo"
+            "${CMAKE_SOURCE_DIR}/resources/meta"
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta"
             COMMENT "LUALS DIR AND UNICOMM ASSETS COPIED")
     #mermaid-11.16.0
     add_custom_command(TARGET UniComm POST_BUILD
