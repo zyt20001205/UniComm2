@@ -18,7 +18,7 @@
 
 // public
 AgentModule::AgentModule()
-    : DockWidget("LLM"),
+    : DockWidget("Agent"),
       m_config(g_workspaceConfig["llmConfig"].toObject()),
       m_topic(m_config["topic"].toString()),
       m_widget(new QQuickWidget()),
