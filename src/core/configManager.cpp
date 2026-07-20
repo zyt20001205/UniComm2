@@ -1,7 +1,5 @@
 #include "core/configManager.h"
 
-#include <QDir>
-#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QJsonArray>
@@ -9,7 +7,6 @@
 #include <QStandardPaths>
 
 #include "globals.h"
-#include "util/qtUtils.h"
 
 // public
 ConfigManager::ConfigManager(QWidget *parent)
@@ -65,97 +62,64 @@ void ConfigManager::workspaceInit() {
     const auto workspacePath = g_workspaceUrl.toLocalFile();
     const auto metadataDirPath = QDir(workspacePath).filePath(".unicomm");
     if (!QDir().mkpath(metadataDirPath)) return;
-    // 1: config.json
-    {
-        const auto srcConfigPath = ":/config/config.json";
-        const auto dstConfigPath = QDir(metadataDirPath).filePath("config.json");
-        // copy if not found
-        if (!QFile::exists(dstConfigPath)) {
-            QFile::copy(srcConfigPath, dstConfigPath);
-            QFile::setPermissions(dstConfigPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                                 | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                                 | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] .config.json copied").arg(timestamp);
-        }
-        // validation
-        {
-            QFile config(dstConfigPath);
-            if (!config.open(QIODevice::ReadOnly | QIODevice::Text)) return;
-            const QByteArray jsonData = config.readAll();
-            config.close();
-            const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-            if (!jsonDoc.isObject()) return;
-            const QJsonObject jsonObject = jsonDoc.object();
-            // validation document config
-            {
-                QJsonObject documentConfig = jsonObject["documentConfig"].toObject();
-                // remove invalid document url in document list
-                QJsonArray validDocumentList;
-                for (const auto &value: documentConfig["documentList"].toArray()) {
-                    if (const auto documentUrl = QUrl(value.toString()); QFileInfo::exists(documentUrl.toLocalFile())) {
-                        validDocumentList.append(value);
-                    } else {
-                        qDebug() << "invalid document url found in document list:" << documentUrl;
-                    }
-                }
-                documentConfig["documentList"] = validDocumentList;
-                // remove invalid document url in breakpoint hash
-                QJsonObject breakpointHash = documentConfig["breakpointHash"].toObject();
-                QJsonObject validBreakpointHash;
-                for (auto it = breakpointHash.begin(); it != breakpointHash.end(); ++it) {
-                    if (const auto documentUrl = QUrl(it.key()); QFileInfo::exists(documentUrl.toLocalFile())) {
-                        validBreakpointHash.insert(it.key(), it.value());
-                    } else {
-                        qDebug() << "invalid document url found in breakpoint hash:" << documentUrl;
-                    }
-                }
-                documentConfig["breakpointHash"] = validBreakpointHash;
-                // write back
-                jsonObject["documentConfig"] = documentConfig;
-            }
-            g_workspaceConfig = jsonObject;
-            const QJsonDocument doc(jsonObject);
-            if (!config.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return;
-            config.write(doc.toJson(QJsonDocument::Indented));
-            config.close();
-        }
+    // config.json
+    const auto srcConfigPath = ":/config/config.json";
+    const auto dstConfigPath = QDir(metadataDirPath).filePath("config.json");
+    // copy if not found
+    if (!QFile::exists(dstConfigPath)) {
+        QFile::copy(srcConfigPath, dstConfigPath);
+        QFile::setPermissions(dstConfigPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] config loaded").arg(timestamp);
+        qDebug() << QString("[%1] .config.json copied").arg(timestamp);
     }
-    // 2: .luarc.json
+    // validation
     {
-        const auto srcLuarcPath = ":/config/.luarc.json";
-        const auto dstLuarcPath = QDir(metadataDirPath).filePath(".luarc.json");
-        // copy if not found
-        if (!QFile::exists(dstLuarcPath)) {
-            QFile::copy(srcLuarcPath, dstLuarcPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] .luarc.json copied").arg(timestamp);
+        QFile config(dstConfigPath);
+        if (!config.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+        const QByteArray jsonData = config.readAll();
+        config.close();
+        const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+        if (!jsonDoc.isObject()) return;
+        const QJsonObject jsonObject = jsonDoc.object();
+        // validation document config
+        {
+            QJsonObject documentConfig = jsonObject["documentConfig"].toObject();
+            // remove invalid document url in document list
+            QJsonArray validDocumentList;
+            for (const auto &value: documentConfig["documentList"].toArray()) {
+                if (const auto documentUrl = QUrl(value.toString()); QFileInfo::exists(documentUrl.toLocalFile())) {
+                    validDocumentList.append(value);
+                } else {
+                    qDebug() << "invalid document url found in document list:" << documentUrl;
+                }
+            }
+            documentConfig["documentList"] = validDocumentList;
+            // remove invalid document url in breakpoint hash
+            QJsonObject breakpointHash = documentConfig["breakpointHash"].toObject();
+            QJsonObject validBreakpointHash;
+            for (auto it = breakpointHash.begin(); it != breakpointHash.end(); ++it) {
+                if (const auto documentUrl = QUrl(it.key()); QFileInfo::exists(documentUrl.toLocalFile())) {
+                    validBreakpointHash.insert(it.key(), it.value());
+                } else {
+                    qDebug() << "invalid document url found in breakpoint hash:" << documentUrl;
+                }
+            }
+            documentConfig["breakpointHash"] = validBreakpointHash;
+            // write back
+            jsonObject["documentConfig"] = documentConfig;
         }
-        // validation
-        else if (fileHashCalc(srcLuarcPath) != fileHashCalc(dstLuarcPath)) {
-            QFile::setPermissions(dstLuarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                                | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                                | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            QFile::remove(dstLuarcPath);
-            QFile::copy(srcLuarcPath, dstLuarcPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] .luarc.json updated").arg(timestamp);
-        }
+        g_workspaceConfig = jsonObject;
+        const QJsonDocument doc(jsonObject);
+        if (!config.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return;
+        config.write(doc.toJson(QJsonDocument::Indented));
+        config.close();
     }
-    // 3: llm dir
-    {
-        const auto llmDirPath = QDir(metadataDirPath).filePath("llm");
-        // mkdir if not found
-        if (QDir().mkpath(llmDirPath)) {
-            emit appendLog(LogLevel::Info, "llm dir created", "");
-        }
-    }
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] config loaded").arg(timestamp);
 }
 
 void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {

@@ -71,7 +71,6 @@ qt_add_resources(UniComm "config_resources"
         PREFIX "/config"
         BASE "resources/config"
         FILES
-        "resources/config/.luarc.json"
         "resources/config/config.json"
 )
 
@@ -266,6 +265,11 @@ else ()
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${LUALS_DIR}"
             "${CMAKE_BINARY_DIR}/lua-language-server"
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/resources/config/.luarc.json"
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/.luarc.json"
             COMMAND ${CMAKE_COMMAND} -E make_directory
             "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/library"
             COMMAND ${CMAKE_COMMAND} -E copy_directory

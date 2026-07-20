@@ -1,22 +1,21 @@
 #include "service/lsp/lspManager.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QUrl>
 
-#include "globals.h"
 #include "service/lsp/languageServer.h"
 
 // public
 LSPManager::LSPManager(QObject *parent)
     : QObject(parent) {
     const QDir rootDir(QCoreApplication::applicationDirPath());
-    const QDir workspaceDir(g_workspaceUrl.toLocalFile());
     serverAdd("lua",
         rootDir.absoluteFilePath("lua-language-server/bin/lua-language-server.exe"),
-        {"--configpath", workspaceDir.absoluteFilePath(".unicomm/.luarc.json")});
+        {"--configpath", rootDir.absoluteFilePath("lua-language-server/meta/3rd/UniComm/.luarc.json")});
 }
 
 LSPManager::~LSPManager() {

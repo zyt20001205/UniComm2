@@ -14,7 +14,7 @@ public:
 
     static int mainConfigLoad();
 
-    void workspaceInit();
+    static void workspaceInit();
 
     void workspaceConfigSave(const QUrl &configUrl);
 
