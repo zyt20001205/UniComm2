@@ -291,12 +291,17 @@ else ()
             "${HIGHLIGHT_DIR}"
             "${CMAKE_BINARY_DIR}/javascript"
             COMMENT "HIGHLIGHT COPIED")
-    #lua-language-server-3.18.2
+    #lua-language-server-3.18.2 + UniComm API
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${LUALS_DIR}"
             "${CMAKE_BINARY_DIR}/lua-language-server"
-            COMMENT "LUALS DIR COPIED")
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/library"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/resources/lib"
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm/library"
+            COMMENT "LUALS DIR AND UNICOMM API COPIED")
     #mermaid-11.16.0
     add_custom_command(TARGET UniComm POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory

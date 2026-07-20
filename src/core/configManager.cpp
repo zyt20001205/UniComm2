@@ -144,36 +144,7 @@ void ConfigManager::workspaceInit() {
             qDebug() << QString("[%1] .luarc.json updated").arg(timestamp);
         }
     }
-    // 3: lib dir
-    {
-        const auto srcLibDirPath = ":/lib";
-        const auto dstLibDirPath = QDir(workspacePath).filePath("lib");
-        // mkdir if not found
-        if (QDir().mkdir(dstLibDirPath)) {
-            emit appendLog(LogLevel::Info, "lib dir created", "");
-        }
-
-        for (const auto &fileName: QDir(srcLibDirPath).entryList(QDir::Files | QDir::NoDotAndDotDot)) {
-            const auto srcLibFilePath = QDir(srcLibDirPath).filePath(fileName);
-            const auto dstLibFilePath = QDir(dstLibDirPath).filePath(fileName);
-            if (!QFile::exists(dstLibFilePath)) {
-                QFile::copy(srcLibFilePath, dstLibFilePath);
-                // logging
-                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] %2 copied").arg(timestamp, fileName);
-            } else if (fileHashCalc(srcLibFilePath) != fileHashCalc(dstLibFilePath)) {
-                QFile::setPermissions(dstLibFilePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                                      | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                                      | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-                QFile::remove(dstLibFilePath);
-                QFile::copy(srcLibFilePath, dstLibFilePath);
-                // logging
-                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] %2 updated").arg(timestamp, fileName);
-            }
-        }
-    }
-    // 4: llm dir
+    // 3: llm dir
     {
         const auto llmDirPath = QDir(workspacePath).filePath("llm");
         // mkdir if not found

@@ -16,5 +16,10 @@
   },
   "semantic": {
     "keyword": true
+  },
+  "workspace": {
+    "library": [
+      "${3rd}/UniComm/library"
+    ]
   }
 }
