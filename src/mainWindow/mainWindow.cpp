@@ -24,6 +24,7 @@
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
 #include "globals.h"
+#include "agent/agentModule.h"
 #include "analysis/diagnosticsModule.h"
 #include "analysis/nuspellModule.h"
 #include "analysis/structureModule.h"
@@ -39,7 +40,7 @@
 #include "debug/debugModule.h"
 #include "debug/watchModule.h"
 #include "document/documentModule.h"
-#include "llm/llmModule.h"
+
 #include "mainWindow/menuModule.h"
 #include "mainWindow/statusModule.h"
 #include "port/portModule.h"
@@ -86,6 +87,7 @@ MainWindow::~MainWindow() {
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
     m_overlay->rootContext()->setContextProperty("global", m_globalManager);
+    m_overlay->rootContext()->setContextProperty("agentModule", m_agentModule);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
     m_overlay->rootContext()->setContextProperty("databaseModule", m_databaseModule);
     // m_overlay->rootContext()->setContextProperty("dataplotModule", m_dataplotModule);
@@ -95,7 +97,6 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("documentModule", m_documentModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("gitModule", m_gitModule);
-    m_overlay->rootContext()->setContextProperty("llmModule", m_llmModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     m_overlay->rootContext()->setContextProperty("menuModule", m_menuModule);
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
@@ -106,6 +107,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
     m_overlay->rootContext()->setContextProperty("watchModule", m_watchModule);
 
+    m_overlay->rootContext()->setContextProperty("agentModuleAction", QVariant::fromValue(m_agentModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("breakpointModuleAction", QVariant::fromValue(m_breakpointModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("databaseModuleAction", QVariant::fromValue(m_databaseModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("dataplotModuleAction", QVariant::fromValue(m_dataplotModule->toggleAction()));
@@ -119,12 +121,20 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("watchModuleAction", QVariant::fromValue(m_watchModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("logModuleAction", QVariant::fromValue(m_logModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("gitModuleAction", QVariant::fromValue(m_gitModule->toggleAction()));
-    m_overlay->rootContext()->setContextProperty("llmModuleAction", QVariant::fromValue(m_llmModule->toggleAction()));
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
     m_quitDialog = qvariant_cast<QObject *>(objects["mainWindowQuitDialog"]);
+
+    const QVariantHash agentObjects = {
+        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
+        {"agentModuleRenameDialog", objects["agentModuleRenameDialog"]},
+        {"agentModuleMcpMenu", objects["agentModuleMcpMenu"]},
+        {"agentModuleModeMenu", objects["agentModuleModeMenu"]},
+        {"agentModuleModelMenu", objects["agentModuleModelMenu"]}
+    };
+    m_agentModule->propertySet(agentObjects);
 
     const QVariantHash breakpointObjects = {
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
@@ -206,15 +216,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"gitModuleLogMenu", objects["gitModuleLogMenu"]}
     };
     m_gitModule->propertySet(gitObjects);
-
-    const QVariantHash llmObjects = {
-        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
-        {"llmModuleRenameDialog", objects["llmModuleRenameDialog"]},
-        {"llmModuleMcpMenu", objects["llmModuleMcpMenu"]},
-        {"llmModuleModeMenu", objects["llmModuleModeMenu"]},
-        {"llmModuleModelMenu", objects["llmModuleModelMenu"]}
-    };
-    m_llmModule->propertySet(llmObjects);
 
     const QVariantHash logObjects = {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
@@ -368,11 +369,11 @@ void MainWindow::workspaceOpen() {
 }
 
 void MainWindow::workspaceSave(const QUrl &configUrl) {
+    m_agentModule->agentConfigSave();
     BreakpointModule::breakpointConfigSave();
     DatabaseModule::databaseConfigSave();
     DatatableModule::datatableConfigSave();
     m_documentModule->documentConfigSave();
-    m_llmModule->llmConfigSave();
     m_logModule->logConfigSave();
     m_portModule->portConfigSave();
     m_terminalModule->terminalConfigSave();
@@ -422,7 +423,7 @@ void MainWindow::moduleInit() {
     m_explorerModule = new ExplorerModule();
     m_fileModule = new FileModule();
     m_gitModule = new GitModule();
-    m_llmModule = new LLMModule();
+    m_agentModule = new AgentModule();
     m_logModule = new LogModule();
     m_menuModule = new MenuModule(this);
     m_nuspellModule = new NuspellModule(this);

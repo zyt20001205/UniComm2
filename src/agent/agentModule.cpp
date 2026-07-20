@@ -1,4 +1,4 @@
-#include "llm/llmModule.h"
+#include "agent/agentModule.h"
 
 #include <QDir>
 #include <QJsonArray>
@@ -9,22 +9,22 @@
 #include <QQuickWidget>
 
 #include "globals.h"
+#include "agent/module/mcpModule.h"
+#include "agent/module/toolsModule.h"
+#include "agent/provider/bigmodelProvider.h"
+#include "agent/provider/deepseekProvider.h"
 #include "core/globalManager.h"
 #include "document/documentModule.h"
-#include "llm/module/mcpModule.h"
-#include "llm/module/toolsModule.h"
-#include "llm/provider/bigmodelProvider.h"
-#include "llm/provider/deepseekProvider.h"
 
 // public
-LLMModule::LLMModule()
+AgentModule::AgentModule()
     : DockWidget("LLM"),
       m_config(g_workspaceConfig["llmConfig"].toObject()),
       m_topic(m_config["topic"].toString()),
       m_widget(new QQuickWidget()),
       m_system("You are an IDE code assistant. "
-          "When in ask mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to Agent mode. "
-          "When in agent mode (tools provided), you have access to file system, terminal, and advanced tools. "
+          "When in chat mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to agent mode. "
+          "When in agent mode (read/write/full-access), you have access to file system, terminal, and advanced tools. "
           "Use tools first when possible. If not, consult API annotations and generate a script. "
           "When dealing with files, highly prefer using 'symbol_get' to understand the code structure and locate exactly which lines you need to use with text_get or text_set. "
           "All code must be written in English (including comments, variable names, identifiers, and strings). "
@@ -50,42 +50,42 @@ LLMModule::LLMModule()
         }
     }
 
-    connect(m_toolsModule, &ToolsModule::createChat, this, &LLMModule::chatCreate);
-    connect(m_toolsModule, &ToolsModule::appendChat, this, &LLMModule::chatAppend);
-    connect(m_toolsModule, &ToolsModule::setStatus, this, &LLMModule::statusSet);
+    connect(m_toolsModule, &ToolsModule::createChat, this, &AgentModule::chatCreate);
+    connect(m_toolsModule, &ToolsModule::appendChat, this, &AgentModule::chatAppend);
+    connect(m_toolsModule, &ToolsModule::setStatus, this, &AgentModule::statusSet);
 }
 
-LLMModule::~LLMModule() {
+AgentModule::~AgentModule() {
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void LLMModule::propertySet(const QVariantHash &objects) {
+void AgentModule::propertySet(const QVariantHash &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
-    m_mcpMenu = qvariant_cast<QObject *>(objects["llmModuleMcpMenu"]);
-    m_modeMenu = qvariant_cast<QObject *>(objects["llmModuleModeMenu"]);
-    m_modelMenu = qvariant_cast<QObject *>(objects["llmModuleModelMenu"]);
+    m_mcpMenu = qvariant_cast<QObject *>(objects["agentModuleMcpMenu"]);
+    m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
+    m_modelMenu = qvariant_cast<QObject *>(objects["agentModuleModelMenu"]);
 
-    m_widget->rootContext()->setContextProperty("llmModule", this);
+    m_widget->rootContext()->setContextProperty("agentModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
-    m_widget->rootContext()->setContextProperty("renameDialog", objects["llmModuleRenameDialog"]);
+    m_widget->rootContext()->setContextProperty("renameDialog", objects["agentModuleRenameDialog"]);
     m_widget->rootContext()->setContextProperty("topicStandardItemModel", m_topicStandardItemModel);
     m_widget->rootContext()->setContextProperty("mcpMenu", m_mcpMenu);
     m_widget->rootContext()->setContextProperty("modeMenu", m_modeMenu);
     m_widget->rootContext()->setContextProperty("modelMenu", m_modelMenu);
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_widget->setSource(QUrl("qrc:/qml/llm/llmModule.qml"));
+    m_widget->setSource(QUrl("qrc:/qml/agent/agentModule.qml"));
     m_root = m_widget->rootObject();
 
     // scaffold
     connect(m_mcpModule, &McpModule::setModel, this, [this](QStandardItemModel *mcpModel) {
         m_mcpMenu->setProperty("mcpModel", QVariant::fromValue(mcpModel));
     });
-    connect(m_mcpModule, &McpModule::registerTools, this, &LLMModule::toolsRegister);
+    connect(m_mcpModule, &McpModule::registerTools, this, &AgentModule::toolsRegister);
     m_mcpModule->initialize();
 
-    connect(m_toolsModule, &ToolsModule::registerTools, this, &LLMModule::toolsRegister);
+    connect(m_toolsModule, &ToolsModule::registerTools, this, &AgentModule::toolsRegister);
     m_toolsModule->initialize();
 
     // base model
@@ -108,14 +108,14 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     conversationLoad(m_topic);
 }
 
-void LLMModule::propertyGet(const QVariantMap &objects) {
+void AgentModule::propertyGet(const QVariantMap &objects) {
     m_topicComboBox = qvariant_cast<QObject *>(objects["topicComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
 }
 
-void LLMModule::llmConfigSave() {
+void AgentModule::agentConfigSave() {
     m_config["topic"] = m_topic;
     g_workspaceConfig["llmConfig"] = m_config;
 
@@ -138,24 +138,24 @@ void LLMModule::llmConfigSave() {
     }
 }
 
-void LLMModule::apikeySet(const QString &key, const QString &apikey) const {
+void AgentModule::apikeySet(const QString &key, const QString &apikey) const {
     if (key == "bigmodel-api-key") m_bigmodelProvider->apikeySet(apikey);
     else if (key == "deepseek-api-key") m_deepseekProvider->apikeySet(apikey);
 }
 
-void LLMModule::modeSet(const QString &mode) {
+void AgentModule::modeSet(const QString &mode) {
     if (m_sessions[m_topic]["mode"].toString() == mode) return;
     m_sessions[m_topic]["mode"] = mode;
     m_modeButton->setProperty("text", m_sessions[m_topic]["mode"].toString());
 }
 
-void LLMModule::modelSet(const QString &model) {
+void AgentModule::modelSet(const QString &model) {
     if (m_sessions[m_topic]["model"].toString() == model) return;
     m_sessions[m_topic]["model"] = model;
     m_modelButton->setProperty("text", m_sessions[m_topic]["model"].toString());
 }
 
-void LLMModule::conversationRename(const QString &oldTopic, const QString &newTopic) {
+void AgentModule::conversationRename(const QString &oldTopic, const QString &newTopic) {
     const auto session = m_sessions.take(oldTopic);
     m_sessions[newTopic] = session;
     for (int row = 0; row < m_topicStandardItemModel->rowCount(); ++row) {
@@ -167,7 +167,7 @@ void LLMModule::conversationRename(const QString &oldTopic, const QString &newTo
     }
 }
 
-void LLMModule::conversationCreate() {
+void AgentModule::conversationCreate() {
     const auto topic = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
     m_topicStandardItemModel->appendRow(new QStandardItem(topic));
     m_topicComboBox->setProperty("currentValue", topic);
@@ -185,7 +185,7 @@ void LLMModule::conversationCreate() {
     };
 }
 
-void LLMModule::conversationDelete(const QString &topic) {
+void AgentModule::conversationDelete(const QString &topic) {
     for (int row = 0; row < m_topicStandardItemModel->rowCount(); ++row) {
         if (m_topicStandardItemModel->item(row, 0)->text() == topic) {
             m_topicStandardItemModel->removeRow(row);
@@ -195,7 +195,7 @@ void LLMModule::conversationDelete(const QString &topic) {
     m_sessions.remove(topic);
 }
 
-void LLMModule::conversationLoad(const QString &topic) {
+void AgentModule::conversationLoad(const QString &topic) {
     if (topic.isEmpty() || m_modeButton == nullptr || m_modelButton == nullptr) return;
     m_topic = topic;
     const auto session = m_sessions[m_topic];
@@ -223,7 +223,7 @@ void LLMModule::conversationLoad(const QString &topic) {
     m_modelButton->setProperty("text", session["model"].toString());
 }
 
-void LLMModule::conversationUndo() {
+void AgentModule::conversationUndo() {
     auto messages = m_sessions[m_topic]["messages"].toArray();
     if (messages.size() <= 1) return;
     for (auto i = messages.size() - 1; i >= 0; --i) {
@@ -238,7 +238,7 @@ void LLMModule::conversationUndo() {
     conversationLoad(m_topic);
 }
 
-void LLMModule::conversationStart() {
+void AgentModule::conversationStart() {
     // get topic
     if (m_topicComboBox->property("currentText").toString().isEmpty()) conversationCreate();
     m_topic = m_topicComboBox->property("currentText").toString();
@@ -265,33 +265,33 @@ void LLMModule::conversationStart() {
     conversationSend();
 }
 
-void LLMModule::conversationEnd() {
+void AgentModule::conversationEnd() {
     activeSet(false);
     m_reply->abort();
 }
 
-void LLMModule::permissionSet(const bool status) const {
+void AgentModule::permissionSet(const bool status) const {
     m_toolsModule->permissionSet(status);
 }
 
 // private
-void LLMModule::activeSet(const bool status) {
+void AgentModule::activeSet(const bool status) {
     if (m_active == status) return;
     m_active = status;
     emit activeChanged();
 }
 
-void LLMModule::conversationSend() {
+void AgentModule::conversationSend() {
     const auto session = m_sessions[m_topic];
     QJsonObject body{};
     body["model"] = session["model"];
     body["messages"] = session["messages"];
     body["stream"] = true;
-    body["tools"] = session["mode"] == "ask" ? QJsonArray{} : toolsList({"Context7"});
+    body["tools"] = session["mode"] == "chat" ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
     // TODO: provider judge
-    auto *reply = g_networkAccessManager->post(m_bigmodelProvider->requestGet(), QJsonDocument(body).toJson());
-    // auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
+    // auto *reply = g_networkAccessManager->post(m_bigmodelProvider->requestGet(), QJsonDocument(body).toJson());
+    auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     auto reasoning = std::make_shared<QString>();
     auto content = std::make_shared<QString>();
@@ -437,25 +437,25 @@ void LLMModule::conversationSend() {
     });
 }
 
-void LLMModule::chatClear() const {
+void AgentModule::chatClear() const {
     QMetaObject::invokeMethod(m_root, "chatClear");
 }
 
-QString LLMModule::chatCreate(const QString &role, const QString &text) {
+QString AgentModule::chatCreate(const QString &role, const QString &text) {
     const auto messageId = "id_" + QString::number(m_id++);
     QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, messageId), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
     return messageId;
 }
 
-void LLMModule::chatAppend(const QString &messageId, const QString &text) const {
+void AgentModule::chatAppend(const QString &messageId, const QString &text) const {
     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, messageId), Q_ARG(QVariant, text));
 }
 
-void LLMModule::statusSet(const QString &status, const QString &text) const {
+void AgentModule::statusSet(const QString &status, const QString &text) const {
     QMetaObject::invokeMethod(m_root, "statusSet", Q_ARG(QVariant, status), Q_ARG(QVariant, text));
 }
 
-void LLMModule::toolsRegister(const QString &name, const QJsonArray &tools) {
+void AgentModule::toolsRegister(const QString &name, const QJsonArray &tools) {
     for (const auto &value: tools) {
         const auto _name = value.toObject().value("function").toObject().value("name").toString();
         m_owner[_name] = name;
@@ -463,7 +463,7 @@ void LLMModule::toolsRegister(const QString &name, const QJsonArray &tools) {
     m_tools[name] = tools;
 }
 
-QJsonArray LLMModule::toolsList(const QStringList &names) {
+QJsonArray AgentModule::toolsList(const QStringList &names) {
     auto tools = m_tools["UniComm"];
     for (const auto &name: names) {
         for (const auto &tool: m_tools.value(name)) {

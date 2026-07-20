@@ -1,4 +1,4 @@
-#include "llm/provider/baseProvider.h"
+#include "agent/provider/baseProvider.h"
 
 BaseProvider::BaseProvider(QObject *parent)
     : QObject(parent),

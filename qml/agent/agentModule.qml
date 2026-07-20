@@ -24,18 +24,18 @@ Item {
 
             ComboBox {
                 id: topicComboBox
-                enabled: !llmModule.active
+                enabled: !agentModule.active
                 model: topicStandardItemModel
                 textRole: "display"
                 valueRole: "display"
                 Layout.fillWidth: true; Layout.preferredHeight: 30
 
-                onCurrentTextChanged: llmModule.conversationLoad(topicComboBox.currentText)
+                onCurrentTextChanged: agentModule.conversationLoad(topicComboBox.currentText)
             }
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !llmModule.active
+                enabled: !agentModule.active
                 flat: true
                 icon.source: "qrc:/icon/rename.svg"
                 icon.width: 16; icon.height: 16
@@ -49,19 +49,19 @@ Item {
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !llmModule.active
+                enabled: !agentModule.active
                 flat: true
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: llmModule.conversationCreate()
+                onClicked: agentModule.conversationCreate()
             }
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
-                enabled: topicComboBox.currentText && !llmModule.active
+                enabled: topicComboBox.currentText && !agentModule.active
                 flat: true
                 icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
                 icon.width: 16; icon.height: 16
@@ -69,7 +69,7 @@ Item {
 
                 onToggled: {
                     if (!checked) {
-                        llmModule.conversationDelete(topicComboBox.currentText)
+                        agentModule.conversationDelete(topicComboBox.currentText)
                     }
                 }
 
@@ -156,7 +156,7 @@ Item {
 
                     onClicked: {
                         chatAppend("", " ✓")
-                        llmModule.permissionSet(true)
+                        agentModule.permissionSet(true)
                     }
                 }
 
@@ -170,7 +170,7 @@ Item {
 
                     onClicked: {
                         chatAppend("", " ✗")
-                        llmModule.permissionSet(false)
+                        agentModule.permissionSet(false)
                     }
                 }
 
@@ -226,7 +226,7 @@ Item {
                 Keys.onPressed: (event) => {
                     if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
                         if (textArea.text.trim().length > 0) {
-                            llmModule.conversationStart()
+                            agentModule.conversationStart()
                         }
                         event.accepted = true
                     }
@@ -240,7 +240,7 @@ Item {
             Button {
                 id: mcpButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !llmModule.active
+                enabled: !agentModule.active
                 flat: true
                 icon.source: "qrc:/icon/mcp.svg"
                 icon.width: 16; icon.height: 16
@@ -256,7 +256,7 @@ Item {
             Button {
                 id: modeButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !llmModule.active
+                enabled: !agentModule.active
                 Layout.preferredWidth: modeButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
                 onClicked: {
@@ -275,7 +275,7 @@ Item {
             Button {
                 id: modelButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !llmModule.active
+                enabled: !agentModule.active
                 Layout.preferredWidth: modelButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
                 onClicked: {
@@ -297,24 +297,24 @@ Item {
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !llmModule.active && chatColumn.children.length > 0
+                enabled: !agentModule.active && chatColumn.children.length > 0
                 flat: true
                 icon.source: "qrc:/icon/undo.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: llmModule.conversationUndo()
+                onClicked: agentModule.conversationUndo()
             }
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: llmModule.active || textArea.text.trim().length > 0
+                enabled: agentModule.active || textArea.text.trim().length > 0
                 flat: true
-                icon.source: llmModule.active ? "qrc:/icon/stop.svg" : "qrc:/icon/send.svg"
+                icon.source: agentModule.active ? "qrc:/icon/stop.svg" : "qrc:/icon/send.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: llmModule.active ? llmModule.conversationEnd() : llmModule.conversationStart()
+                onClicked: agentModule.active ? agentModule.conversationEnd() : agentModule.conversationStart()
             }
         }
     }
@@ -430,6 +430,6 @@ Item {
             "modeButton": modeButton,
             "modelButton": modelButton
         };
-        llmModule.propertyGet(objects)
+        agentModule.propertyGet(objects)
     }
 }

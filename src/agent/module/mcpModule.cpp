@@ -1,4 +1,4 @@
-#include "llm/module/mcpModule.h"
+#include "agent/module/mcpModule.h"
 
 #include <QJsonArray>
 #include <QNetworkReply>

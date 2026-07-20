@@ -1,4 +1,4 @@
-#include "llm/provider/deepseekProvider.h"
+#include "agent/provider/bigmodelProvider.h"
 
 #include <QJsonArray>
 #include <QNetworkReply>
@@ -7,15 +7,15 @@
 
 #include "globals.h"
 
-DeepseekProvider::DeepseekProvider(QObject *parent)
+BigmodelProvider::BigmodelProvider(QObject *parent)
     : BaseProvider(parent),
-      m_deepseekModel(new QStandardItemModel(this)) {
-    m_key = "deepseek-api-key";
-    m_request.setUrl(QUrl("https://api.deepseek.com/v1/chat/completions"));
+      m_bigmodelModel(new QStandardItemModel(this)) {
+    m_key = "bigmodel-api-key";
+    m_request.setUrl(QUrl("https://open.bigmodel.cn/api/paas/v4/chat/completions"));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 }
 
-void DeepseekProvider::apikeySet(const QString &apikey) {
+void BigmodelProvider::apikeySet(const QString &apikey) {
     const auto job = new QKeychain::WritePasswordJob(m_service);
     job->setKey(m_key);
     job->setTextData(apikey);
@@ -30,7 +30,7 @@ void DeepseekProvider::apikeySet(const QString &apikey) {
     job->start();
 }
 
-void DeepseekProvider::apikeyGet() {
+void BigmodelProvider::apikeyGet() {
     const auto job = new QKeychain::ReadPasswordJob(m_service);
     job->setKey(m_key);
     connect(job, &QKeychain::Job::finished, [this](QKeychain::Job *j) {
@@ -45,10 +45,10 @@ void DeepseekProvider::apikeyGet() {
     job->start();
 }
 
-void DeepseekProvider::modelGet() {
-    m_deepseekModel->clear();
+void BigmodelProvider::modelGet() {
+    m_bigmodelModel->clear();
     QNetworkRequest request{};
-    request.setUrl(QUrl("https://api.deepseek.com/models"));
+    request.setUrl(QUrl("https://open.bigmodel.cn/api/paas/v4/models"));
     request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     auto *reply = g_networkAccessManager->get(request);
@@ -60,10 +60,10 @@ void DeepseekProvider::modelGet() {
             const auto models = doc.object().value("data").toArray();
             for (const auto &value: models) {
                 const auto id = value.toObject().value("id").toString();
-                m_deepseekModel->appendRow(new QStandardItem(id));
+                m_bigmodelModel->appendRow(new QStandardItem(id));
             }
         }
         reply->deleteLater();
-        emit setModel(m_deepseekModel);
+        emit setModel(m_bigmodelModel);
     });
 }

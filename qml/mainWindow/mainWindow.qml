@@ -292,6 +292,224 @@ Item {
         }
     }
 
+    // agent module
+    Dialog {
+        id: agentModuleApikeyDialog
+        parent: Overlay.overlay
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
+        width: 600
+        modal: true
+        standardButtons: Dialog.Ok
+        property string key
+        property string apikey
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            agentModuleApikeyTextField.text = agentModuleApikeyDialog.apikey
+            agentModuleApikeyTextField.forceActiveFocus()
+            agentModuleApikeyTextField.selectAll()
+        }
+        onAccepted: {
+            agentModule.apikeySet(agentModuleApikeyDialog.key, agentModuleApikeyTextField.text)
+        }
+
+        TextField {
+            id: agentModuleApikeyTextField
+            width: parent.width
+            placeholderText: qsTr("Enter key:")
+
+            onAccepted: agentModuleApikeyDialog.accept()
+            Keys.onEscapePressed: agentModuleApikeyDialog.reject()
+        }
+    }
+
+    Dialog {
+        id: agentModuleRenameDialog
+        parent: Overlay.overlay
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
+        width: 600
+        modal: true
+        title: qsTr("Rename Conversation")
+        standardButtons: Dialog.Ok
+        property string oldTopic
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            agentModuleRenameTextField.text = agentModuleRenameDialog.oldTopic
+            agentModuleRenameTextField.forceActiveFocus()
+            agentModuleRenameTextField.selectAll()
+        }
+        onAccepted: agentModule.conversationRename(agentModuleRenameDialog.oldTopic, agentModuleRenameTextField.text)
+
+        TextField {
+            id: agentModuleRenameTextField
+            width: parent.width
+            placeholderText: qsTr("Enter new name:")
+
+            onAccepted: agentModuleRenameDialog.accept()
+            Keys.onEscapePressed: agentModuleRenameDialog.reject()
+        }
+    }
+
+    Menu {
+        id: agentModuleMcpMenu
+        property var mcpModel
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Add server")
+
+            onTriggered: {
+            }
+        }
+
+        MenuSeparator {
+            visible: agentModuleMcpInstantiator.count > 0
+        }
+
+        Instantiator {
+            id: agentModuleMcpInstantiator
+            model: agentModuleMcpMenu.mcpModel
+            delegate: MenuItem {
+                checkable: true
+                text: model.display
+                // onTriggered: agentModule.modelSet(text)
+            }
+
+            onObjectAdded: (index, object) => agentModuleMcpMenu.addItem(object)
+            onObjectRemoved: (index, object) => agentModuleMcpMenu.removeItem(object)
+        }
+    }
+
+    Menu {
+        id: agentModuleModeMenu
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: "chat"
+
+            onTriggered: agentModule.modeSet(text)
+        }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            text: "read"
+            onTriggered: agentModule.modeSet(text)
+        }
+
+        MenuItem {
+            text: "write"
+            onTriggered: agentModule.modeSet(text)
+        }
+
+        MenuItem {
+            text: "full-access"
+            onTriggered: agentModule.modeSet(text)
+        }
+    }
+
+    Menu {
+        id: agentModuleModelMenu
+        property string bigmodelApikey
+        property var bigmodelModel
+        property string deepseekApikey
+        property var deepseekModel
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        Menu {
+            id: agentModuleBigmodelMenu
+            title: qsTr("bigmodel")
+            // icon.source: "qrc:/icon/bigmodel.svg"
+            // icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("API Key")
+
+                onTriggered: {
+                    agentModuleApikeyDialog.title = qsTr("Enter Bigmodel API Key")
+                    agentModuleApikeyDialog.key = "bigmodel-api-key"
+                    agentModuleApikeyDialog.apikey = agentModuleModelMenu.bigmodelApikey
+                    agentModuleApikeyDialog.open()
+                }
+            }
+
+            MenuSeparator {
+            }
+
+            Instantiator {
+                id: agentModuleBigmodelInstantiator
+                model: agentModuleModelMenu.bigmodelModel
+                delegate: MenuItem {
+                    text: model.display
+                    onTriggered: agentModule.modelSet(text)
+                }
+
+                onObjectAdded: (index, object) => agentModuleBigmodelMenu.addItem(object)
+                onObjectRemoved: (index, object) => agentModuleBigmodelMenu.removeItem(object)
+            }
+        }
+
+        Menu {
+            id: agentModuleDeepseekMenu
+            title: qsTr("deepseek")
+            icon.source: "qrc:/icon/deepseek.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("API Key")
+
+                onTriggered: {
+                    agentModuleApikeyDialog.title = qsTr("Enter Deepseek API Key")
+                    agentModuleApikeyDialog.key = "deepseek-api-key"
+                    agentModuleApikeyDialog.apikey = agentModuleModelMenu.deepseekApikey
+                    agentModuleApikeyDialog.open()
+                }
+            }
+
+            MenuSeparator {
+            }
+
+            Instantiator {
+                id: agentModuleDeepseekInstantiator
+                model: agentModuleModelMenu.deepseekModel
+                delegate: MenuItem {
+                    text: model.display
+                    onTriggered: agentModule.modelSet(text)
+                }
+
+                onObjectAdded: (index, object) => agentModuleDeepseekMenu.addItem(object)
+                onObjectRemoved: (index, object) => agentModuleDeepseekMenu.removeItem(object)
+            }
+        }
+    }
+
     // breakpoint module
     Dialog {
         id: breakpointModuleEditDialog
@@ -1292,6 +1510,7 @@ Item {
                     }
                 }
             }
+
             function completionPrev() {
                 if (selectedRow > 0) {
                     selectedRow = selectedRow - 1
@@ -1300,6 +1519,7 @@ Item {
                 //     selectedRow = model.rowCount() - 1
                 // }
             }
+
             function completionNext() {
                 if (selectedRow < model.rowCount() - 1) {
                     selectedRow = selectedRow + 1
@@ -1311,6 +1531,7 @@ Item {
 
             Connections {
                 target: documentModuleCompletionTableView.model
+
                 function onModelReset() {
                     documentModuleCompletionTableView.idealWidth = 0
                     documentModuleCompletionTableView.idealHeight = 0
@@ -2911,225 +3132,6 @@ Item {
         }
     }
 
-    // llm module
-    Dialog {
-        id: llmModuleApikeyDialog
-        parent: Overlay.overlay
-        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
-        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
-        width: 600
-        modal: true
-        standardButtons: Dialog.Ok
-        property string key
-        property string apikey
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            llmModuleApikeyTextField.text = llmModuleApikeyDialog.apikey
-            llmModuleApikeyTextField.forceActiveFocus()
-            llmModuleApikeyTextField.selectAll()
-        }
-        onAccepted: {
-            llmModule.apikeySet(llmModuleApikeyDialog.key, llmModuleApikeyTextField.text)
-        }
-
-        TextField {
-            id: llmModuleApikeyTextField
-            width: parent.width
-            placeholderText: qsTr("Enter key:")
-
-            onAccepted: llmModuleApikeyDialog.accept()
-            Keys.onEscapePressed: llmModuleApikeyDialog.reject()
-        }
-    }
-
-    Dialog {
-        id: llmModuleRenameDialog
-        parent: Overlay.overlay
-        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
-        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
-        width: 600
-        modal: true
-        title: qsTr("Rename Conversation")
-        standardButtons: Dialog.Ok
-        property string oldTopic
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            llmModuleRenameTextField.text = llmModuleRenameDialog.oldTopic
-            llmModuleRenameTextField.forceActiveFocus()
-            llmModuleRenameTextField.selectAll()
-        }
-        onAccepted: llmModule.conversationRename(llmModuleRenameDialog.oldTopic, llmModuleRenameTextField.text)
-
-        TextField {
-            id: llmModuleRenameTextField
-            width: parent.width
-            placeholderText: qsTr("Enter new name:")
-
-            onAccepted: llmModuleRenameDialog.accept()
-            Keys.onEscapePressed: llmModuleRenameDialog.reject()
-        }
-    }
-
-    Menu {
-        id: llmModuleMcpMenu
-        property var mcpModel
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        MenuItem {
-            text: qsTr("Add server")
-
-            onTriggered: {
-            }
-        }
-
-        MenuSeparator {
-            visible: llmModuleMcpInstantiator.count > 0
-        }
-
-        Instantiator {
-            id: llmModuleMcpInstantiator
-            model: llmModuleMcpMenu.mcpModel
-            delegate: MenuItem {
-                checkable: true
-                text: model.display
-                // onTriggered: llmModule.modelSet(text)
-            }
-
-            onObjectAdded: (index, object) => llmModuleMcpMenu.addItem(object)
-            onObjectRemoved: (index, object) => llmModuleMcpMenu.removeItem(object)
-        }
-    }
-
-    Menu {
-        id: llmModuleModeMenu
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        MenuItem {
-            text: qsTr("ask")
-
-            onTriggered: llmModule.modeSet(text)
-        }
-
-        Menu {
-            title: qsTr("agent")
-
-            MenuItem {
-                text: qsTr("read")
-                onTriggered: llmModule.modeSet(text)
-            }
-
-            MenuItem {
-                text: qsTr("write")
-                onTriggered: llmModule.modeSet(text)
-            }
-
-            MenuItem {
-                text: qsTr("god")
-                onTriggered: llmModule.modeSet(text)
-            }
-        }
-    }
-
-    Menu {
-        id: llmModuleModelMenu
-        property string bigmodelApikey
-        property var bigmodelModel
-        property string deepseekApikey
-        property var deepseekModel
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        Menu {
-            id: llmModuleBigmodelMenu
-            title: qsTr("bigmodel")
-            // icon.source: "qrc:/icon/bigmodel.svg"
-            // icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("API Key")
-
-                onTriggered: {
-                    llmModuleApikeyDialog.title = qsTr("Enter Bigmodel API Key")
-                    llmModuleApikeyDialog.key = "bigmodel-api-key"
-                    llmModuleApikeyDialog.apikey = llmModuleModelMenu.bigmodelApikey
-                    llmModuleApikeyDialog.open()
-                }
-            }
-
-            MenuSeparator {
-            }
-
-            Instantiator {
-                id: llmModuleBigmodelInstantiator
-                model: llmModuleModelMenu.bigmodelModel
-                delegate: MenuItem {
-                    text: model.display
-                    onTriggered: llmModule.modelSet(text)
-                }
-
-                onObjectAdded: (index, object) => llmModuleBigmodelMenu.addItem(object)
-                onObjectRemoved: (index, object) => llmModuleBigmodelMenu.removeItem(object)
-            }
-        }
-
-        Menu {
-            id: llmModuleDeepseekMenu
-            title: qsTr("deepseek")
-            icon.source: "qrc:/icon/deepseek.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("API Key")
-
-                onTriggered: {
-                    llmModuleApikeyDialog.title = qsTr("Enter Deepseek API Key")
-                    llmModuleApikeyDialog.key = "deepseek-api-key"
-                    llmModuleApikeyDialog.apikey = llmModuleModelMenu.deepseekApikey
-                    llmModuleApikeyDialog.open()
-                }
-            }
-
-            MenuSeparator {
-            }
-
-            Instantiator {
-                id: llmModuleDeepseekInstantiator
-                model: llmModuleModelMenu.deepseekModel
-                delegate: MenuItem {
-                    text: model.display
-                    onTriggered: llmModule.modelSet(text)
-                }
-
-                onObjectAdded: (index, object) => llmModuleDeepseekMenu.addItem(object)
-                onObjectRemoved: (index, object) => llmModuleDeepseekMenu.removeItem(object)
-            }
-        }
-    }
-
     // log module
     Dialog {
         id: logModuleHeightDialog
@@ -3764,9 +3766,9 @@ Item {
         MenuItem {
             text: qsTr("LLM")
             checkable: true
-            checked: llmModuleAction ? llmModuleAction.checked : false
+            checked: agentModuleAction ? agentModuleAction.checked : false
 
-            onTriggered: llmModuleAction.toggle()
+            onTriggered: agentModuleAction.toggle()
         }
     }
 
@@ -4258,7 +4260,6 @@ Item {
         }
 
         MenuSeparator {
-
         }
 
         Menu {
@@ -4832,6 +4833,11 @@ Item {
             "mainWindowTextView": mainWindowTextView,
             "mainWindowToolTip": mainWindowToolTip,
 
+            "agentModuleRenameDialog": agentModuleRenameDialog,
+            "agentModuleMcpMenu": agentModuleMcpMenu,
+            "agentModuleModeMenu": agentModuleModeMenu,
+            "agentModuleModelMenu": agentModuleModelMenu,
+
             "breakpointModuleEditDialog": breakpointModuleEditDialog,
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
@@ -4881,11 +4887,6 @@ Item {
             "gitModuleRemoteAddDialog": gitModuleRemoteAddDialog,
             "gitModuleBranchMenu": gitModuleBranchMenu,
             "gitModuleLogMenu": gitModuleLogMenu,
-
-            "llmModuleRenameDialog": llmModuleRenameDialog,
-            "llmModuleMcpMenu": llmModuleMcpMenu,
-            "llmModuleModeMenu": llmModuleModeMenu,
-            "llmModuleModelMenu": llmModuleModelMenu,
 
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,

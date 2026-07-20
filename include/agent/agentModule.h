@@ -1,5 +1,5 @@
-#ifndef UNICOMM_LLMMODULE_H
-#define UNICOMM_LLMMODULE_H
+#ifndef UNICOMM_AGENTMODULE_H
+#define UNICOMM_AGENTMODULE_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonArray>
@@ -15,14 +15,14 @@ class ToolsModule;
 class BigmodelProvider;
 class DeepseekProvider;
 
-class LLMModule final : public KDDockWidgets::QtWidgets::DockWidget {
+class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
     Q_PROPERTY(bool active READ activeGet NOTIFY activeChanged)
 
 public:
-    explicit LLMModule();
+    explicit AgentModule();
 
-    ~LLMModule() override;
+    ~AgentModule() override;
 
     void propertySet(const QVariantHash &objects);
 
@@ -32,7 +32,7 @@ public:
         return m_active;
     }
 
-    void llmConfigSave();
+    void agentConfigSave();
 
     Q_INVOKABLE void apikeySet(const QString &key, const QString &apikey) const;
 
@@ -105,4 +105,4 @@ private:
     DeepseekProvider *m_deepseekProvider{};
 };
 
-#endif //UNICOMM_LLMMODULE_H
+#endif //UNICOMM_AGENTMODULE_H
