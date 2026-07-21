@@ -38,19 +38,23 @@ file(GLOB_RECURSE UNICOMM_SOURCES CONFIGURE_DEPENDS
         "${CMAKE_SOURCE_DIR}/include/*.h"
 )
 
+qt_standard_project_setup(REQUIRES 6.8)
+
 qt_add_executable(UniComm ${GUI_TYPE}
         resources/icon/app.rc
         ${UNICOMM_SOURCES}
 )
 
 file(GLOB_RECURSE UNICOMM_QML CONFIGURE_DEPENDS
-        "${CMAKE_SOURCE_DIR}/qml/*.qml"
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "qml/*.qml"
 )
 
-qt_add_resources(UniComm "qml_resources"
-        PREFIX "/qml"
-        BASE "${CMAKE_SOURCE_DIR}/qml"
-        FILES
+qt_add_qml_module(UniComm
+        URI UniComm
+        RESOURCE_PREFIX "/"
+        NO_RESOURCE_TARGET_PATH
+        QML_FILES
         ${UNICOMM_QML}
 )
 
