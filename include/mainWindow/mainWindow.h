@@ -10,6 +10,7 @@ class QShortcut;
 class ConfigManager;
 class GlobalManager;
 class LSPManager;
+class AudioService;
 class Ripgrep;
 
 class AgentModule;
@@ -92,6 +93,7 @@ private:
     ConfigManager *m_configManager{};
     GlobalManager *m_globalManager{};
     LSPManager *m_lspManager{};
+    AudioService *m_audioService{};
     Ripgrep *m_ripgrep{};
 
     AgentModule *m_agentModule{};

@@ -177,6 +177,12 @@ set(WEBVIEW2_INCLUDE "${WEBVIEW2_DIR}/include")
 file(GLOB WEBVIEW2_LIB "${WEBVIEW2_DIR}/lib/*.dll")
 set(WEBVIEW2_BIN "${WEBVIEW2_DIR}/bin")
 
+set(WHISPER_DIR "${CMAKE_SOURCE_DIR}/3rd/whisper")
+set(WHISPER_INCLUDE "${WHISPER_DIR}/include")
+file(GLOB WHISPER_LIB "${WHISPER_DIR}/lib/*.a")
+set(WHISPER_BIN "${WHISPER_DIR}/bin")
+set(WHISPER_MODEL "${WHISPER_DIR}/model")
+
 target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE}
         ${CMARK_INCLUDE}
@@ -194,6 +200,7 @@ target_include_directories(UniComm PRIVATE
         ${TESSERACT_INCLUDE}
         ${VISA_INCLUDE}
         ${WEBVIEW2_INCLUDE}
+        ${WHISPER_INCLUDE}
 )
 
 target_link_libraries(UniComm PRIVATE
@@ -225,6 +232,7 @@ target_link_libraries(UniComm PRIVATE
         ${SCINTILLA_LIB}
         ${TESSERACT_LIB}
         ${VISA_LIB}
+        ${WHISPER_LIB}
         UniComm_Vterm
         ${WEBVIEW2_LIB}
         ole32
@@ -297,6 +305,12 @@ else ()
             "${TESSERACT_LANG}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "TESSERACT LANG COPIED")
+    #whisper.cpp-1.9.1
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${WHISPER_MODEL}"
+            "${CMAKE_BINARY_DIR}/whisper/model"
+            COMMENT "WHISPER MODEL COPIED")
 
     #qt-6.11.1
     add_custom_command(TARGET UniComm POST_BUILD
@@ -393,6 +407,12 @@ else ()
             "${VISA_BIN}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "VISA BIN COPIED")
+    #whisper.cpp-1.9.1
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${WHISPER_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "WHISPER BIN COPIED")
     #webview2
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory

@@ -8,6 +8,7 @@
 class QNetworkAccessManager;
 class QStandardItemModel;
 
+class AudioService;
 class DatabaseModule;
 class DatatableModule;
 class DataplotModule;
@@ -22,6 +23,7 @@ class UndoModule;
 extern MainWindow *g_mainWindow;
 extern QNetworkAccessManager *g_networkAccessManager;
 extern GlobalManager *g_globalManager;
+extern AudioService *g_audioService;
 extern Ripgrep *g_ripgrep;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;

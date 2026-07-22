@@ -46,6 +46,7 @@
 #include "port/portModule.h"
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
+#include "service/audio.h"
 #include "service/ripgrep.h"
 #include "service/git/gitModule.h"
 #include "service/lsp/lspManager.h"
@@ -409,8 +410,10 @@ void MainWindow::moduleInit() {
     m_configManager = new ConfigManager(this);
     m_globalManager = new GlobalManager(this);
     m_lspManager = new LSPManager(this);
+    m_audioService = new AudioService(this);
     m_ripgrep = new Ripgrep(this);
     g_globalManager = m_globalManager;
+    g_audioService = m_audioService;
     g_ripgrep = m_ripgrep;
 
     m_breakpointModule = new BreakpointModule();

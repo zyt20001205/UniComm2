@@ -1,19 +1,12 @@
 #include "agent/agentModule.h"
 
-#include <algorithm>
-#include <cmath>
-#include <QAudioDevice>
-#include <QAudioSource>
-#include <QDataStream>
 #include <QDir>
 #include <QJsonArray>
-#include <QMediaDevices>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <QSaveFile>
 
 #include "globals.h"
 #include "agent/module/mcpModule.h"
@@ -22,19 +15,7 @@
 #include "agent/provider/deepseekProvider.h"
 #include "core/globalManager.h"
 #include "document/documentModule.h"
-
-namespace {
-constexpr int kAudioWindowMs = 20;
-constexpr int kAudioCalibrationMs = 300;
-constexpr int kAudioPreRollMs = 300;
-constexpr int kAudioVoiceStartMs = 120;
-constexpr int kAudioSilenceEndMs = 800;
-constexpr int kAudioMaximumSpeechMs = 20000;
-constexpr float kAudioStartMarginDb = 12.0f;
-constexpr float kAudioEndMarginDb = 6.0f;
-constexpr float kAudioMinimumStartDb = -42.0f;
-constexpr float kAudioMinimumEndDb = -50.0f;
-}
+#include "service/audio.h"
 
 // public
 AgentModule::AgentModule()
@@ -76,7 +57,6 @@ AgentModule::AgentModule()
 }
 
 AgentModule::~AgentModule() {
-    audioListenStop();
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
@@ -134,6 +114,7 @@ void AgentModule::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
+    m_micButton = qvariant_cast<QObject *>(objects["micButton"]);
 }
 
 void AgentModule::agentConfigSave() {
@@ -165,8 +146,18 @@ void AgentModule::stateSet(const int state) {
     switch (state) {
         case AgentState::Idle: {
             if (m_micButton->property("checked").toBool()) {
-                m_textArea->setProperty("text", stt());
-                // stateSet(AgentState::Request);
+                const auto pcm = g_audioService->record();
+                if (pcm.isEmpty()) {
+                    stateSet(AgentState::Idle);
+                    break;
+                }
+                const auto text = g_audioService->stt(pcm);
+                if (text.isEmpty()) {
+                    stateSet(AgentState::Idle);
+                    break;
+                }
+                m_textArea->setProperty("text", text);
+                stateSet(AgentState::Request);
             }
         }
         break;
@@ -467,11 +458,6 @@ void AgentModule::conversationSend() {
         }
         reply->deleteLater();
     });
-}
-
-QString AgentModule::stt() const {
-
-    return {};
 }
 
 void AgentModule::chatClear() const {

@@ -1,0 +1,1 @@
+3rd/whisper/model/*.bin filter=lfs diff=lfs merge=lfs -text
