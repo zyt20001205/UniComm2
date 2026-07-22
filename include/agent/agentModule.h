@@ -17,9 +17,18 @@ class DeepseekProvider;
 
 class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
-    Q_PROPERTY(bool active READ activeGet NOTIFY activeChanged)
+    Q_PROPERTY(int state READ stateGet WRITE stateSet NOTIFY stateChanged)
 
 public:
+    struct AgentState {
+        enum {
+            Idle,
+            Request,
+            Abort,
+            Active
+        };
+    };
+
     explicit AgentModule();
 
     ~AgentModule() override;
@@ -28,11 +37,13 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    [[nodiscard]] bool activeGet() const {
-        return m_active;
+    void agentConfigSave();
+
+    [[nodiscard]] int stateGet() const {
+        return m_state;
     }
 
-    void agentConfigSave();
+    void stateSet(int state);
 
     Q_INVOKABLE void apikeySet(const QString &key, const QString &apikey) const;
 
@@ -50,18 +61,12 @@ public:
 
     Q_INVOKABLE void conversationUndo();
 
-    Q_INVOKABLE void conversationStart();
-
-    Q_INVOKABLE void conversationEnd();
-
     Q_INVOKABLE void permissionSet(bool status) const;
 
 signals:
-    void activeChanged();
+    void stateChanged();
 
 private:
-    void activeSet(bool status);
-
     void conversationSend();
 
     void chatClear() const;
@@ -70,7 +75,7 @@ private:
 
     void chatAppend(const QString &messageId, const QString &text) const;
 
-    void statusSet(const QString &status, const QString &text) const;
+    void monitorSet(const QString &status, const QString &text) const;
 
     void toolsRegister(const QString &name, const QJsonArray &tools);
 
@@ -88,15 +93,15 @@ private:
     QObject *m_textArea{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
+    QObject *m_micButton{};
 
     QString m_system{};
     QStandardItemModel *m_topicStandardItemModel{};
     QHash<QString, QJsonObject> m_sessions{};
 
-    bool m_active{};
+    int m_state{AgentState::Idle};
     QNetworkReply *m_reply{};
-    int m_id = 0;
-    QJsonArray m_messages{};
+    int m_id{0};
     QHash<QString, QString> m_owner{};
     QHash<QString, QJsonArray> m_tools{};
     McpModule *m_mcpModule{};

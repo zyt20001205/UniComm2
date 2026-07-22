@@ -52,7 +52,7 @@ AgentModule::AgentModule()
 
     connect(m_toolsModule, &ToolsModule::createChat, this, &AgentModule::chatCreate);
     connect(m_toolsModule, &ToolsModule::appendChat, this, &AgentModule::chatAppend);
-    connect(m_toolsModule, &ToolsModule::setStatus, this, &AgentModule::statusSet);
+    connect(m_toolsModule, &ToolsModule::setStatus, this, &AgentModule::monitorSet);
 }
 
 AgentModule::~AgentModule() {
@@ -113,6 +113,7 @@ void AgentModule::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
+    m_micButton = qvariant_cast<QObject *>(objects["micButton"]);
 }
 
 void AgentModule::agentConfigSave() {
@@ -135,6 +136,54 @@ void AgentModule::agentConfigSave() {
             sessionFile.write(sessionDoc.toJson(QJsonDocument::Indented));
             sessionFile.close();
         }
+    }
+}
+
+void AgentModule::stateSet(const int state) {
+    m_state = state;
+    emit stateChanged();
+    switch (state) {
+        case AgentState::Idle: {
+            if (m_micButton->property("checked").toBool()) {
+                qDebug() << "speech to text here";
+            }
+        }
+        break;
+        case AgentState::Request: {
+            // get topic
+            if (m_topicComboBox->property("currentText").toString().isEmpty()) conversationCreate();
+            m_topic = m_topicComboBox->property("currentText").toString();
+            // check model
+            if (m_sessions[m_topic]["model"].toString().isEmpty()) {
+                m_messageDialog->setProperty("title", tr("Error"));
+                m_messageDialog->setProperty("text", tr("Please select a model first."));
+                QMetaObject::invokeMethod(m_messageDialog, "open");
+                stateSet(AgentState::Idle);
+                break;
+            }
+            // append message
+            const auto text = m_textArea->property("text").toString();
+            if (!text.isEmpty()) {
+                chatCreate("user", text);
+                auto messages = m_sessions[m_topic]["messages"].toArray();
+                messages.append(QJsonObject{
+                    {"role", "user"},
+                    {"content", text}
+                });
+                m_sessions[m_topic]["messages"] = messages;
+            }
+            conversationSend();
+            stateSet(AgentState::Active);
+        }
+        break;
+        case AgentState::Abort: {
+            m_reply->abort();
+            stateSet(AgentState::Idle);
+        }
+        break;
+        case AgentState::Active: {
+        }
+        default: break;
     }
 }
 
@@ -238,49 +287,11 @@ void AgentModule::conversationUndo() {
     conversationLoad(m_topic);
 }
 
-void AgentModule::conversationStart() {
-    // get topic
-    if (m_topicComboBox->property("currentText").toString().isEmpty()) conversationCreate();
-    m_topic = m_topicComboBox->property("currentText").toString();
-    // check model
-    if (m_sessions[m_topic]["model"].toString().isEmpty()) {
-        m_messageDialog->setProperty("title", tr("Error"));
-        m_messageDialog->setProperty("text", tr("Please select a model first."));
-        QMetaObject::invokeMethod(m_messageDialog, "open");
-        return;
-    }
-    // append message
-    const auto text = m_textArea->property("text").toString();
-    if (!text.isEmpty()) {
-        chatCreate("user", text);
-        auto messages = m_sessions[m_topic]["messages"].toArray();
-        messages.append(QJsonObject{
-            {"role", "user"},
-            {"content", text}
-        });
-        m_sessions[m_topic]["messages"] = messages;
-    }
-
-    activeSet(true);
-    conversationSend();
-}
-
-void AgentModule::conversationEnd() {
-    activeSet(false);
-    m_reply->abort();
-}
-
 void AgentModule::permissionSet(const bool status) const {
     m_toolsModule->permissionSet(status);
 }
 
 // private
-void AgentModule::activeSet(const bool status) {
-    if (m_active == status) return;
-    m_active = status;
-    emit activeChanged();
-}
-
 void AgentModule::conversationSend() {
     const auto session = m_sessions[m_topic];
     QJsonObject body{};
@@ -321,7 +332,7 @@ void AgentModule::conversationSend() {
             if (!_reasoning.isEmpty()) {
                 if (reasoningId->isEmpty()) {
                     *reasoningId = chatCreate("assistant", "");
-                    statusSet("busy", "Thinking...");
+                    monitorSet("busy", "Thinking...");
                 }
                 reasoning->append(_reasoning);
                 chatAppend(*reasoningId, _reasoning);
@@ -332,7 +343,7 @@ void AgentModule::conversationSend() {
                 if (contentId->isEmpty()) {
                     if (!reasoningId->isEmpty()) QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                     *contentId = chatCreate("assistant", "");
-                    statusSet("busy", "Responding...");
+                    monitorSet("busy", "Responding...");
                 }
                 content->append(_content);
                 chatAppend(*contentId, _content);
@@ -360,8 +371,8 @@ void AgentModule::conversationSend() {
     });
     connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
-            activeSet(false);
-            statusSet("idle", "Ready");
+            stateSet(AgentState::Idle);
+            monitorSet("idle", "Ready");
         } else if (reply->error() == QNetworkReply::NoError) {
             // tool calls
             if (!toolCalls->isEmpty()) {
@@ -423,15 +434,15 @@ void AgentModule::conversationSend() {
                     {"content", *content}
                 });
                 m_sessions[m_topic]["messages"] = messages;
-                activeSet(false);
-                statusSet("idle", "Ready");
+                stateSet(AgentState::Idle);
+                monitorSet("idle", "Ready");
             }
         } else {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
-            activeSet(false);
-            statusSet("error", reply->errorString());
+            stateSet(AgentState::Idle);
+            monitorSet("error", reply->errorString());
         }
         reply->deleteLater();
     });
@@ -451,8 +462,8 @@ void AgentModule::chatAppend(const QString &messageId, const QString &text) cons
     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, messageId), Q_ARG(QVariant, text));
 }
 
-void AgentModule::statusSet(const QString &status, const QString &text) const {
-    QMetaObject::invokeMethod(m_root, "statusSet", Q_ARG(QVariant, status), Q_ARG(QVariant, text));
+void AgentModule::monitorSet(const QString &status, const QString &text) const {
+    QMetaObject::invokeMethod(m_root, "monitorSet", Q_ARG(QVariant, status), Q_ARG(QVariant, text));
 }
 
 void AgentModule::toolsRegister(const QString &name, const QJsonArray &tools) {

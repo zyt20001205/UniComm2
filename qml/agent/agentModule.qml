@@ -24,7 +24,7 @@ Item {
 
             ComboBox {
                 id: topicComboBox
-                enabled: !agentModule.active
+                enabled: agentModule.state === 0
                 model: topicStandardItemModel
                 textRole: "display"
                 valueRole: "display"
@@ -35,7 +35,7 @@ Item {
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !agentModule.active
+                enabled: agentModule.state === 0
                 flat: true
                 icon.source: "qrc:/icon/rename.svg"
                 icon.width: 16; icon.height: 16
@@ -49,7 +49,7 @@ Item {
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !agentModule.active
+                enabled: agentModule.state === 0
                 flat: true
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
@@ -61,7 +61,7 @@ Item {
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
-                enabled: topicComboBox.currentText && !agentModule.active
+                enabled: topicComboBox.currentText && agentModule.state === 0
                 flat: true
                 icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
                 icon.width: 16; icon.height: 16
@@ -226,7 +226,7 @@ Item {
                 Keys.onPressed: (event) => {
                     if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
                         if (textArea.text.trim().length > 0) {
-                            agentModule.conversationStart()
+                            agentModule.state = 1
                         }
                         event.accepted = true
                     }
@@ -240,7 +240,7 @@ Item {
             Button {
                 id: mcpButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !agentModule.active
+                enabled: agentModule.state === 0
                 flat: true
                 icon.source: "qrc:/icon/mcp.svg"
                 icon.width: 16; icon.height: 16
@@ -256,7 +256,7 @@ Item {
             Button {
                 id: modeButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !agentModule.active
+                enabled: agentModule.state === 0
                 Layout.preferredWidth: modeButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
                 onClicked: {
@@ -275,7 +275,7 @@ Item {
             Button {
                 id: modelButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !agentModule.active
+                enabled: agentModule.state === 0
                 Layout.preferredWidth: modelButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
                 onClicked: {
@@ -297,7 +297,7 @@ Item {
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: !agentModule.active && chatColumn.children.length > 0
+                enabled: agentModule.state === 0 && chatColumn.children.length > 0
                 flat: true
                 icon.source: "qrc:/icon/undo.svg"
                 icon.width: 16; icon.height: 16
@@ -308,13 +308,30 @@ Item {
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: agentModule.active || textArea.text.trim().length > 0
+                enabled: agentModule.state !== 0 || textArea.text.trim().length > 0
                 flat: true
-                icon.source: agentModule.active ? "qrc:/icon/stop.svg" : "qrc:/icon/send.svg"
+                icon.source: agentModule.state !== 0 ? "qrc:/icon/stop.svg" : "qrc:/icon/send.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: agentModule.active ? agentModule.conversationEnd() : agentModule.conversationStart()
+                onClicked: agentModule.state !== 0 ? agentModule.state = 2 : agentModule.state = 1
+            }
+
+            Button {
+                id: micButton
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: agentModule.state === 0
+                checkable: true
+                flat: true
+                icon.source: "qrc:/icon/mic.svg"
+                icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                onClicked: {
+                    if (checked) {
+                        agentModule.state = 0
+                    }
+                }
             }
         }
     }
@@ -418,7 +435,7 @@ Item {
         rootItem.chatMap[messageId].visible = status
     }
 
-    function statusSet(status, text) {
+    function monitorSet(status, text) {
         chatStatus.status = status
         chatStatus.text = text
     }
@@ -428,7 +445,8 @@ Item {
             "topicComboBox": topicComboBox,
             "textArea": textArea,
             "modeButton": modeButton,
-            "modelButton": modelButton
+            "modelButton": modelButton,
+            "micButton": micButton
         };
         agentModule.propertyGet(objects)
     }
