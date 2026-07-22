@@ -69,6 +69,8 @@ signals:
 private:
     void conversationSend();
 
+    [[nodiscard]] QString stt() const;
+
     void chatClear() const;
 
     QString chatCreate(const QString &role, const QString &text);
