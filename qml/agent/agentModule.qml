@@ -105,7 +105,6 @@ Item {
         }
 
         Item {
-            id: chatStatus
             property string text
             Layout.fillWidth: true; Layout.preferredHeight: 32
 
@@ -216,13 +215,13 @@ Item {
                 }
 
                 BusyIndicator {
-                    visible: agentModule.state in [6, 7, 8]
+                    visible: [6, 7, 8].includes(agentModule.state)
                     running: visible
                     Layout.preferredWidth: 16; Layout.preferredHeight: 16
                 }
 
                 IconImage {
-                    visible: chatStatus.status === "idle"
+                    visible: agentModule.state === 0
                     color: global.successBack3
                     source: "qrc:/icon/checkmark.svg"
                     Layout.preferredWidth: 16; Layout.preferredHeight: 16

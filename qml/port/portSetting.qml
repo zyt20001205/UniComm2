@@ -531,7 +531,7 @@ Item {
             // port format
             StackLayout {
                 currentIndex: {
-                    if (rootItem.portType in [0, 1, 2, 3, 4, 5]) {
+                    if ([0, 1, 2, 3, 4, 5].includes(rootItem.portType)) {
                         return 0
                     } else {
                         return 1
