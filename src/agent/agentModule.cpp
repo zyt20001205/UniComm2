@@ -204,6 +204,11 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         case AgentState::Permission: {
             m_messageLabel->setProperty("message", payload.toString());
         }
+        case AgentState::Speak: {
+            g_audioService->speak(payload.toString());
+            stateSet(AgentState::Ready);
+        }
+        break;
         default: break;
     }
 }
@@ -455,7 +460,8 @@ void AgentModule::conversationSend() {
                     {"content", *content}
                 });
                 m_sessions[m_topic]["messages"] = messages;
-                stateSet(AgentState::Ready);
+                if (m_micButton->property("checked").toBool()) stateSet(AgentState::Speak, content);
+                else stateSet(AgentState::Ready);
             }
         } else {
             const auto data = reply->readAll();

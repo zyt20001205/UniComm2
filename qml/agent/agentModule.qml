@@ -118,7 +118,7 @@ Item {
                             return global.successBack3
                         case 1: // Error
                             return global.dangerBack3
-                        case 2: // STT
+                        case 2: // Listen
                         case 3: // STT
                         case 4: // Request
                             return global.brandBack
@@ -130,6 +130,8 @@ Item {
                             return global.stroke
                         case 9: // Permission
                             return global.warningBack3
+                        case 10: // Speak
+                            return global.stroke
                         default:
                             return global.stroke
                     }
@@ -180,6 +182,8 @@ Item {
                                 return qsTr("Calling Tool")
                             case 9: // Permission
                                 return message
+                            case 10: // Speak
+                                return qsTr("Speaking")
                             default:
                                 return ""
                         }
@@ -217,7 +221,7 @@ Item {
                 }
 
                 BusyIndicator {
-                    visible: [6, 7, 8].includes(agentModule.state)
+                    visible: [6, 7, 8, 10].includes(agentModule.state)
                     running: visible
                     Layout.preferredWidth: 16; Layout.preferredHeight: 16
                 }

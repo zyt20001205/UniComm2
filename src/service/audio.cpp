@@ -15,6 +15,7 @@
 #include <QScopedValueRollback>
 #include <QTimer>
 #include <QtEndian>
+#include <QTextToSpeech>
 
 #include <whisper.h>
 
@@ -200,6 +201,19 @@ QString AudioService::stt(const QByteArray &pcm) {
         if (segment) text.append(QString::fromUtf8(segment));
     }
     return text.trimmed();
+}
+
+void AudioService::speak(const QString &text) {
+    QTextToSpeech tts;
+    if (tts.engine().isEmpty() || text.isEmpty()) return;
+    // tts.setLocale(QLocale::English);
+    tts.setLocale(QLocale::Chinese);
+    tts.setRate(0.0);
+    tts.setVolume(1.0);
+    QEventLoop loop;
+    connect(&tts, &QTextToSpeech::stateChanged, [&](const QTextToSpeech::State state) { if (state == QTextToSpeech::Ready) loop.quit(); });
+    tts.say(text);
+    loop.exec();
 }
 
 bool AudioService::contextEnsure() {

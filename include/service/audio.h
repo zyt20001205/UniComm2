@@ -19,6 +19,8 @@ public:
 
     [[nodiscard]] QString stt(const QByteArray &pcm);
 
+    static void speak(const QString &text);
+
 private:
     [[nodiscard]] bool contextEnsure();
 

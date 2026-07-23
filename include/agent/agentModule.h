@@ -32,7 +32,7 @@ public:
             Response,
             Toolcall,
             Permission,
-            Active
+            Speak
         };
     };
 
