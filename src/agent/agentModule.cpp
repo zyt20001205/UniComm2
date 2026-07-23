@@ -351,8 +351,8 @@ void AgentModule::conversationSend() {
 
             const auto _reasoning = delta.value("reasoning_content").toString();
             if (!_reasoning.isEmpty()) {
-                stateSet(AgentState::Think);
                 if (reasoningId->isEmpty()) {
+                    stateSet(AgentState::Think);
                     *reasoningId = chatCreate("assistant", "");
                 }
                 reasoning->append(_reasoning);
@@ -361,8 +361,8 @@ void AgentModule::conversationSend() {
 
             const auto _content = delta.value("content").toString();
             if (!_content.isEmpty()) {
-                stateSet(AgentState::Response);
                 if (contentId->isEmpty()) {
+                    stateSet(AgentState::Response);
                     if (!reasoningId->isEmpty()) QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                     *contentId = chatCreate("assistant", "");
                 }
@@ -372,9 +372,9 @@ void AgentModule::conversationSend() {
 
             const auto _toolCalls = delta.value("tool_calls").toArray();
             if (!_toolCalls.isEmpty()) {
-                stateSet(AgentState::Toolcall);
                 QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                 for (const auto &value: _toolCalls) {
+                    stateSet(AgentState::Toolcall);
                     const auto _toolCall = value.toObject();
 
                     if (!_toolCall.contains("index")) continue;
