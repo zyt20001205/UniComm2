@@ -17,13 +17,11 @@ public:
 
     [[nodiscard]] QByteArray record();
 
-    [[nodiscard]] QString stt(const QByteArray &pcm);
+    [[nodiscard]] QString stt(const QByteArray &pcm) const;
 
     static void speak(const QString &text);
 
 private:
-    [[nodiscard]] bool contextEnsure();
-
     whisper_context *m_context{};
     bool m_recording{};
 };

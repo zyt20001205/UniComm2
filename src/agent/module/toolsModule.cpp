@@ -659,7 +659,6 @@ bool ToolsModule::permissionGet(const QString &mode, const QString &name, const 
         statusSet(name, object);
         m_eventloop->exec();
     }
-    emit setState(AgentState::Request, QVariant());
     return m_approved;
 }
 

@@ -9,18 +9,31 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QFile>
-#include <QFileInfo>
-#include <QLibrary>
 #include <QMediaDevices>
 #include <QScopedValueRollback>
 #include <QTimer>
 #include <QtEndian>
 #include <QTextToSpeech>
 
+#include <ggml-backend.h>
 #include <whisper.h>
 
 AudioService::AudioService(QObject *parent)
     : QObject(parent) {
+    whisper_log_set([](const ggml_log_level level, const char *text, void *) {
+    }, nullptr);
+
+    // load backend
+    const auto applicationDir = QCoreApplication::applicationDirPath();
+    const auto encodedApplicationDir = QFile::encodeName(applicationDir);
+    ggml_backend_load_all_from_path(encodedApplicationDir.constData());
+
+    const auto modelPath = QDir(applicationDir).filePath("whisper/model/ggml-base.bin");
+    auto params = whisper_context_default_params();
+    params.use_gpu = true;
+    params.flash_attn = true;
+    const auto encodedPath = QFile::encodeName(modelPath);
+    m_context = whisper_init_from_file_with_params(encodedPath.constData(), params);
 }
 
 AudioService::~AudioService() {
@@ -133,7 +146,6 @@ QByteArray AudioService::record() {
                     speaking = true;
                     recording = preRoll;
                     silenceFor = 0;
-                    qDebug() << "Speech started at" << level << "dBFS";
                 }
                 continue;
             }
@@ -153,7 +165,6 @@ QByteArray AudioService::record() {
     });
     connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
 
-    qDebug() << "Listening for speech:" << format;
     timeout.start(maximumWaitMs);
     loop.exec();
     source.stop();
@@ -163,13 +174,12 @@ QByteArray AudioService::record() {
         return {};
     }
 
-    qDebug() << "Speech captured:" << format.durationForBytes(recording.size()) / 1000 << "ms";
     return recording;
 }
 
-QString AudioService::stt(const QByteArray &pcm) {
+QString AudioService::stt(const QByteArray &pcm) const {
     if (pcm.isEmpty() || pcm.size() % static_cast<qsizetype>(sizeof(qint16)) != 0) return {};
-    if (!contextEnsure()) return {};
+    if (!m_context) return {};
 
     const auto sampleCount = pcm.size() / static_cast<qsizetype>(sizeof(qint16));
     std::vector<float> samples(static_cast<size_t>(sampleCount));
@@ -208,7 +218,7 @@ void AudioService::speak(const QString &text) {
     if (tts.engine().isEmpty() || text.isEmpty()) return;
     // tts.setLocale(QLocale::English);
     tts.setLocale(QLocale::Chinese);
-    tts.setRate(0.0);
+    tts.setRate(0.3);
     tts.setVolume(1.0);
     QEventLoop loop;
     connect(&tts, &QTextToSpeech::stateChanged, [&](const QTextToSpeech::State state) { if (state == QTextToSpeech::Ready) loop.quit(); });
@@ -216,47 +226,3 @@ void AudioService::speak(const QString &text) {
     loop.exec();
 }
 
-bool AudioService::contextEnsure() {
-    // https://huggingface.co/ggerganov/whisper.cpp/tree/main
-    if (m_context) return true;
-
-    const auto applicationDir = QCoreApplication::applicationDirPath();
-    QLibrary ggml(QDir(applicationDir).filePath("ggml.dll"));
-    if (!ggml.load()) {
-        qWarning() << "Unable to load ggml.dll:" << ggml.errorString();
-        return false;
-    }
-
-    using BackendLoadAllFromPath = void (*)(const char *);
-    using BackendCount = size_t (*)();
-    const auto backendLoadAllFromPath = reinterpret_cast<BackendLoadAllFromPath>(ggml.resolve("ggml_backend_load_all_from_path"));
-    const auto backendRegCount = reinterpret_cast<BackendCount>(ggml.resolve("ggml_backend_reg_count"));
-    const auto backendDevCount = reinterpret_cast<BackendCount>(ggml.resolve("ggml_backend_dev_count"));
-    if (!backendLoadAllFromPath) {
-        qWarning() << "Unable to resolve ggml_backend_load_all_from_path.";
-        return false;
-    }
-
-    const auto encodedApplicationDir = QFile::encodeName(applicationDir);
-    backendLoadAllFromPath(encodedApplicationDir.constData());
-    if (backendRegCount && backendDevCount) {
-        qDebug() << "GGML backends loaded:" << backendRegCount() << "devices:" << backendDevCount();
-    }
-
-    const auto modelPath = QDir(QCoreApplication::applicationDirPath()).filePath("whisper/model/ggml-base.bin");
-    if (!QFileInfo(modelPath).isFile()) {
-        qWarning() << "Whisper model was not found:" << modelPath;
-        return false;
-    }
-
-    auto params = whisper_context_default_params();
-    params.use_gpu = true;
-    params.flash_attn = false;
-    const auto encodedPath = QFile::encodeName(modelPath);
-    m_context = whisper_init_from_file_with_params(encodedPath.constData(), params);
-    if (!m_context) {
-        qWarning() << "Unable to load the Whisper model:" << modelPath;
-        return false;
-    }
-    return true;
-}
