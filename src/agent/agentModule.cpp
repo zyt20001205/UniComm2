@@ -194,7 +194,6 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
                 m_sessions[m_topic]["messages"] = messages;
             }
             conversationSend();
-            stateSet(AgentState::Active);
         }
         break;
         case AgentState::Abort: {
@@ -202,7 +201,8 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             stateSet(AgentState::Ready);
         }
         break;
-        case AgentState::Active: {
+        case AgentState::Permission: {
+            m_messageLabel->setProperty("message", payload.toString());
         }
         default: break;
     }
@@ -374,7 +374,6 @@ void AgentModule::conversationSend() {
             if (!_toolCalls.isEmpty()) {
                 QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                 for (const auto &value: _toolCalls) {
-                    stateSet(AgentState::Toolcall);
                     const auto _toolCall = value.toObject();
 
                     if (!_toolCall.contains("index")) continue;
@@ -430,6 +429,7 @@ void AgentModule::conversationSend() {
                 }
                 // call tools
                 for (const auto &value: _toolCalls) {
+                    stateSet(AgentState::Toolcall);
                     const auto toolCall = value.toObject();
                     const auto id = toolCall.value("id").toString();
                     const auto function = toolCall.value("function").toObject();

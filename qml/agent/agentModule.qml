@@ -127,11 +127,11 @@ Item {
                         case 6: // Think
                         case 7: // Response
                         case 8: // Toolcall
-                            return global.strokeBack
+                            return global.stroke
                         case 9: // Permission
                             return global.warningBack3
                         default:
-                            return global.strokeBack
+                            return global.stroke
                     }
                 }
                 border.width: 1
