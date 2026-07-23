@@ -204,6 +204,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         case AgentState::Permission: {
             m_messageLabel->setProperty("message", payload.toString());
         }
+        break;
         case AgentState::Speak: {
             g_audioService->speak(payload.toString());
             stateSet(AgentState::Ready);
