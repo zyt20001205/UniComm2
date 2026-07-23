@@ -1,6 +1,8 @@
 #include "util/uniCast.h"
 
 #include <QDir>
+#include <QImageReader>
+#include <QMovie>
 #include <QTime>
 #include <sol/state_view.hpp>
 #include <sol/table_core.hpp>
@@ -259,9 +261,9 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     Q_UNUSED(depth);
     const auto fileInfo = QFileInfo(s.toLocalFile());
     const auto suffix = fileInfo.suffix().toLower();
-    const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
     const QStringList libType = {"dll", "so"};
-    if (imageType.contains(suffix)) return QUrl("qrc:/icon/fileTypeImage.svg");
+    if (QImageReader::supportedImageFormats().contains(suffix)) return QUrl("qrc:/icon/fileTypeImage.svg");
+    if (QMovie::supportedFormats().contains(suffix)) return QUrl("qrc:/icon/fileTypeVideo.svg");
     if (suffix == "bat") return QUrl("qrc:/icon/fileTypeBatch.svg");
     if (suffix == "csv") return QUrl("qrc:/icon/fileTypeCsv.svg");
     if (suffix == "exe") return QUrl("qrc:/icon/fileTypeExe.svg");

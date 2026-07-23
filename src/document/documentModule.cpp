@@ -3,8 +3,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
+#include <QImageReader>
 #include <QProcess>
-#include <QShortcut>
 #include <QTextBrowser>
 #include <QTimer>
 
@@ -150,10 +150,9 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             const auto documentPath = documentUrl.toLocalFile();
             const QFileInfo documentInfo(documentPath);
             const auto suffix = documentInfo.suffix().toLower();
-            const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
             const QStringList codeType = {"lua"};
             // image page
-            if (imageType.contains(suffix)) {
+            if (QImageReader::supportedImageFormats().contains(suffix).contains(suffix)) {
                 newPage = new ImagePage(m_config, documentUrl);
                 auto *imagePage = qobject_cast<ImagePage *>(newPage);
                 imagePage->propertySet(QVariantHash{

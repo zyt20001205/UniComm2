@@ -7,7 +7,6 @@
 #include <QStyleFactory>
 
 #include "core/configManager.h"
-#include "document/module/webviewWidget.h"
 #include "globals.h"
 #include "mainWindow/kddwCustom.h"
 
