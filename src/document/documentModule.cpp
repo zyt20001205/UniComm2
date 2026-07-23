@@ -152,7 +152,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             const auto suffix = documentInfo.suffix().toLower();
             const QStringList codeType = {"lua"};
             // image page
-            if (QImageReader::supportedImageFormats().contains(suffix).contains(suffix)) {
+            if (QImageReader::supportedImageFormats().contains(suffix)) {
                 newPage = new ImagePage(m_config, documentUrl);
                 auto *imagePage = qobject_cast<ImagePage *>(newPage);
                 imagePage->propertySet(QVariantHash{
