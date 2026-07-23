@@ -169,13 +169,15 @@ Item {
                             case 3: // STT
                                 return qsTr("Processing")
                             case 4: // Request
-                                return global.brandBack
+                                return qsTr("Requesting")
                             case 5: // Abort
-                                return global.dangerBack3
+                                return qsTr("Aborting")
                             case 6: // Think
+                                return qsTr("Thinking")
                             case 7: // Response
+                                return qsTr("Responding")
                             case 8: // Toolcall
-                                return global.strokeBack
+                                return qsTr("Calling Tool")
                             case 9: // Permission
                                 return message
                             default:
