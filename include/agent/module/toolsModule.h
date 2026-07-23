@@ -27,7 +27,7 @@ signals:
 
     void appendChat(const QString &messageId, const QString &text);
 
-    void setStatus(const QString &status, const QString &text);
+    void setState(int state, const QVariant &payload);
 
 private:
     [[nodiscard]] bool permissionGet(const QString &mode, const QString &name, const QJsonObject &object);

@@ -3,12 +3,15 @@
 #include <QDir>
 
 #include "globals.h"
+#include "agent/agentModule.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
 #include "port/portModule.h"
 #include "runtime/threadpoolModule.h"
 #include "service/ripgrep.h"
+
+using AgentState = AgentModule::AgentState;
 
 // public
 ToolsModule::ToolsModule(QObject *parent)
@@ -656,7 +659,7 @@ bool ToolsModule::permissionGet(const QString &mode, const QString &name, const 
         statusSet(name, object);
         m_eventloop->exec();
     }
-    emit setStatus("busy", "Responding...");
+    emit setState(AgentState::Response, QVariant());
     return m_approved;
 }
 
@@ -712,5 +715,5 @@ void ToolsModule::statusSet(const QString &name, const QJsonObject &object) {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         statusText = QString("I want to run %1.").arg(documentName);
     }
-    emit setStatus("waiting", statusText);
+    emit setState(AgentState::Permission, statusText);
 }

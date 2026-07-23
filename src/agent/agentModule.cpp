@@ -53,7 +53,7 @@ AgentModule::AgentModule()
 
     connect(m_toolsModule, &ToolsModule::createChat, this, &AgentModule::chatCreate);
     connect(m_toolsModule, &ToolsModule::appendChat, this, &AgentModule::chatAppend);
-    connect(m_toolsModule, &ToolsModule::setStatus, this, &AgentModule::monitorSet);
+    connect(m_toolsModule, &ToolsModule::setState, this, &AgentModule::stateSet);
 }
 
 AgentModule::~AgentModule() {
@@ -112,6 +112,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
 void AgentModule::propertyGet(const QVariantMap &objects) {
     m_topicComboBox = qvariant_cast<QObject *>(objects["topicComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
+    m_messageLabel = qvariant_cast<QObject *>(objects["messageLabel"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
     m_micButton = qvariant_cast<QObject *>(objects["micButton"]);
@@ -140,31 +141,33 @@ void AgentModule::agentConfigSave() {
     }
 }
 
-void AgentModule::stateSet(const int state) {
+void AgentModule::stateSet(const int state, const QVariant &payload) {
     m_state = state;
     emit stateChanged();
     switch (state) {
         case AgentState::Ready: {
-            if (m_micButton->property("checked").toBool()) stateSet(AgentState::STT);
+            if (m_micButton->property("checked").toBool()) stateSet(AgentState::Listen);
         }
         break;
         case AgentState::Error: {
+            m_messageLabel->setProperty("message", payload.toString());
             stateSet(AgentState::Ready);
         }
         break;
-        case AgentState::STT: {
+        case AgentState::Listen: {
             const auto pcm = g_audioService->record();
-            if (pcm.isEmpty()) {
-                stateSet(AgentState::Ready);
-                break;
-            }
-            const auto text = g_audioService->stt(pcm);
+            if (pcm.isEmpty()) stateSet(AgentState::Ready);
+            else stateSet(AgentState::STT, pcm);
+        }
+        break;
+        case AgentState::STT: {
+            const auto text = g_audioService->stt(payload.toByteArray());
             if (text.isEmpty()) {
                 stateSet(AgentState::Ready);
-                break;
+            } else {
+                m_textArea->setProperty("text", text);
+                stateSet(AgentState::Request);
             }
-            m_textArea->setProperty("text", text);
-            stateSet(AgentState::Request);
         }
         break;
         case AgentState::Request: {
@@ -348,9 +351,9 @@ void AgentModule::conversationSend() {
 
             const auto _reasoning = delta.value("reasoning_content").toString();
             if (!_reasoning.isEmpty()) {
+                stateSet(AgentState::Think);
                 if (reasoningId->isEmpty()) {
                     *reasoningId = chatCreate("assistant", "");
-                    monitorSet("busy", "Thinking...");
                 }
                 reasoning->append(_reasoning);
                 chatAppend(*reasoningId, _reasoning);
@@ -358,10 +361,10 @@ void AgentModule::conversationSend() {
 
             const auto _content = delta.value("content").toString();
             if (!_content.isEmpty()) {
+                stateSet(AgentState::Response);
                 if (contentId->isEmpty()) {
                     if (!reasoningId->isEmpty()) QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                     *contentId = chatCreate("assistant", "");
-                    monitorSet("busy", "Responding...");
                 }
                 content->append(_content);
                 chatAppend(*contentId, _content);
@@ -369,6 +372,7 @@ void AgentModule::conversationSend() {
 
             const auto _toolCalls = delta.value("tool_calls").toArray();
             if (!_toolCalls.isEmpty()) {
+                stateSet(AgentState::Toolcall);
                 QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                 for (const auto &value: _toolCalls) {
                     const auto _toolCall = value.toObject();
@@ -390,7 +394,6 @@ void AgentModule::conversationSend() {
     connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             stateSet(AgentState::Ready);
-            monitorSet("idle", "Ready");
         } else if (reply->error() == QNetworkReply::NoError) {
             // tool calls
             if (!toolCalls->isEmpty()) {
@@ -453,14 +456,12 @@ void AgentModule::conversationSend() {
                 });
                 m_sessions[m_topic]["messages"] = messages;
                 stateSet(AgentState::Ready);
-                monitorSet("idle", "Ready");
             }
         } else {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
-            stateSet(AgentState::Error);
-            monitorSet("error", reply->errorString());
+            stateSet(AgentState::Error, reply->errorString());
         }
         reply->deleteLater();
     });
@@ -478,10 +479,6 @@ QString AgentModule::chatCreate(const QString &role, const QString &text) {
 
 void AgentModule::chatAppend(const QString &messageId, const QString &text) const {
     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, messageId), Q_ARG(QVariant, text));
-}
-
-void AgentModule::monitorSet(const QString &status, const QString &text) const {
-    QMetaObject::invokeMethod(m_root, "monitorSet", Q_ARG(QVariant, status), Q_ARG(QVariant, text));
 }
 
 void AgentModule::toolsRegister(const QString &name, const QJsonArray &tools) {

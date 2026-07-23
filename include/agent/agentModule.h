@@ -24,9 +24,14 @@ public:
         enum {
             Ready,
             Error,
+            Listen,
             STT,
             Request,
             Abort,
+            Think,
+            Response,
+            Toolcall,
+            Permission,
             Active
         };
     };
@@ -45,7 +50,7 @@ public:
         return m_state;
     }
 
-    void stateSet(int state);
+    void stateSet(int state, const QVariant &payload = QVariant());
 
     Q_INVOKABLE void apikeySet(const QString &key, const QString &apikey) const;
 
@@ -77,8 +82,6 @@ private:
 
     void chatAppend(const QString &messageId, const QString &text) const;
 
-    void monitorSet(const QString &status, const QString &text) const;
-
     void toolsRegister(const QString &name, const QJsonArray &tools);
 
     [[nodiscard]] QJsonArray toolsList(const QStringList &names);
@@ -93,6 +96,7 @@ private:
     QObject *m_modelMenu{};
     QObject *m_topicComboBox{};
     QObject *m_textArea{};
+    QObject *m_messageLabel{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
     QObject *m_micButton{};
