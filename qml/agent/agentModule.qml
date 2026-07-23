@@ -226,7 +226,7 @@ Item {
                 Keys.onPressed: (event) => {
                     if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
                         if (textArea.text.trim().length > 0) {
-                            agentModule.state = 1
+                            agentModule.state = 3
                         }
                         event.accepted = true
                     }
@@ -310,17 +310,16 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 enabled: agentModule.state !== 0 || textArea.text.trim().length > 0
                 flat: true
-                icon.source: agentModule.state !== 0 ? "qrc:/icon/stop.svg" : "qrc:/icon/send.svg"
+                icon.source: agentModule.state === 0 ? "qrc:/icon/send.svg" : "qrc:/icon/stop.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: agentModule.state !== 0 ? agentModule.state = 2 : agentModule.state = 1
+                onClicked: agentModule.state === 0 ? agentModule.state = 3 : agentModule.state = 4
             }
 
             Button {
                 id: micButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: agentModule.state === 0
                 checkable: true
                 flat: true
                 icon.source: "qrc:/icon/mic.svg"

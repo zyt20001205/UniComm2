@@ -22,7 +22,9 @@ class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     struct AgentState {
         enum {
-            Idle,
+            Ready,
+            Error,
+            STT,
             Request,
             Abort,
             Active
@@ -99,7 +101,7 @@ private:
     QStandardItemModel *m_topicStandardItemModel{};
     QHash<QString, QJsonObject> m_sessions{};
 
-    int m_state{AgentState::Idle};
+    int m_state{AgentState::Ready};
     QNetworkReply *m_reply{};
     int m_id{0};
     QHash<QString, QString> m_owner{};

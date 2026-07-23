@@ -144,21 +144,27 @@ void AgentModule::stateSet(const int state) {
     m_state = state;
     emit stateChanged();
     switch (state) {
-        case AgentState::Idle: {
-            if (m_micButton->property("checked").toBool()) {
-                const auto pcm = g_audioService->record();
-                if (pcm.isEmpty()) {
-                    stateSet(AgentState::Idle);
-                    break;
-                }
-                const auto text = g_audioService->stt(pcm);
-                if (text.isEmpty()) {
-                    stateSet(AgentState::Idle);
-                    break;
-                }
-                m_textArea->setProperty("text", text);
-                stateSet(AgentState::Request);
+        case AgentState::Ready: {
+            if (m_micButton->property("checked").toBool()) stateSet(AgentState::STT);
+        }
+        break;
+        case AgentState::Error: {
+            stateSet(AgentState::Ready);
+        }
+        break;
+        case AgentState::STT: {
+            const auto pcm = g_audioService->record();
+            if (pcm.isEmpty()) {
+                stateSet(AgentState::Ready);
+                break;
             }
+            const auto text = g_audioService->stt(pcm);
+            if (text.isEmpty()) {
+                stateSet(AgentState::Ready);
+                break;
+            }
+            m_textArea->setProperty("text", text);
+            stateSet(AgentState::Request);
         }
         break;
         case AgentState::Request: {
@@ -170,7 +176,7 @@ void AgentModule::stateSet(const int state) {
                 m_messageDialog->setProperty("title", tr("Error"));
                 m_messageDialog->setProperty("text", tr("Please select a model first."));
                 QMetaObject::invokeMethod(m_messageDialog, "open");
-                stateSet(AgentState::Idle);
+                stateSet(AgentState::Error);
                 break;
             }
             // append message
@@ -190,7 +196,7 @@ void AgentModule::stateSet(const int state) {
         break;
         case AgentState::Abort: {
             m_reply->abort();
-            stateSet(AgentState::Idle);
+            stateSet(AgentState::Ready);
         }
         break;
         case AgentState::Active: {
@@ -383,7 +389,7 @@ void AgentModule::conversationSend() {
     });
     connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
-            stateSet(AgentState::Idle);
+            stateSet(AgentState::Ready);
             monitorSet("idle", "Ready");
         } else if (reply->error() == QNetworkReply::NoError) {
             // tool calls
@@ -446,14 +452,14 @@ void AgentModule::conversationSend() {
                     {"content", *content}
                 });
                 m_sessions[m_topic]["messages"] = messages;
-                stateSet(AgentState::Idle);
+                stateSet(AgentState::Ready);
                 monitorSet("idle", "Ready");
             }
         } else {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
-            stateSet(AgentState::Idle);
+            stateSet(AgentState::Error);
             monitorSet("error", reply->errorString());
         }
         reply->deleteLater();
