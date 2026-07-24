@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "api/data.h"
 #include "api/file.h"
+#include "api/ftp.h"
 #include "api/http.h"
 #include "api/imap.h"
 #include "api/io.h"
@@ -78,6 +79,23 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         f.set_function("read", [this](const std::string &path, const sol::variadic_args &args) { return m_file->read(path, args); });
         f.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
         m_lua["f"] = f;
+    }
+    // Ftp lib (instance)
+    {
+        m_lua.new_usertype<Ftp>(
+            "Ftp",
+            sol::no_constructor,
+            sol::meta_function::garbage_collect, [](Ftp *) {
+            },
+            "start", &Ftp::start
+        );
+        auto ftp = m_lua.create_table();
+        ftp.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
+            auto *obj = new Ftp(this);
+            obj->init(portName, timeout.value_or(30000));
+            return obj;
+        });
+        m_lua["Ftp"] = ftp;
     }
     // Http lib (instance)
     {

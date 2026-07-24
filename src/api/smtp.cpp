@@ -337,13 +337,13 @@ QString Smtp::parser(const QByteArray &rxData) {
     if (rxData.size() < 4) return "invalid smtp response";
     const auto code = rxData.left(3).toInt();
     switch (code) {
-        case 220:
-        case 235:
-        case 250:
-        case 334:
-        case 354:
+        case StatusCode::ServiceReady:
+        case StatusCode::AuthenticationSucceeded:
+        case StatusCode::RequestedMailActionOkay:
+        case StatusCode::AuthenticationChallenge:
+        case StatusCode::StartMailInput:
             break;
-        case 535:
+        case StatusCode::AuthenticationCredentialsInvalid:
             return "authentication credentials invalid";
         default: return "contact author: unsupported status code(" + QString::number(code) + ")";
     }

@@ -48,6 +48,8 @@ signals:
 
     void acceptError(const QString &error);
 
+    void connected(const QString &peerIp);
+
     void disconnected(qintptr socketDescriptor);
 
     void readyRead();
