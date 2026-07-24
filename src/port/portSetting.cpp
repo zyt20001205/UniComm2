@@ -151,10 +151,10 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             m_videoStreamNameComboBox->setProperty("currentIndex", 0);
         }
         // format
-        m_txFormatComboBox->setProperty("currentValue", "hex");
+        m_txFormatComboBox->setProperty("currentValue", "utf-8");
         m_txSuffixComboBox->setProperty("currentValue", "null");
-        m_rxFormatComboBox->setProperty("currentValue", "hex");
-        m_bufferSizeSpinBox->setProperty("value", 1024);
+        m_rxFormatComboBox->setProperty("currentValue", "utf-8");
+        m_bufferSizeSpinBox->setProperty("value", 65536);
     } else {
         m_swipeView->setProperty("currentIndex", 1);
         m_oldPortName = portConfig["portName"].toString();

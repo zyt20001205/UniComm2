@@ -1,7 +1,6 @@
 #ifndef UNICOMM_HTTP_H
 #define UNICOMM_HTTP_H
 
-#include <QObject>
 #include <QVariant>
 #include <sol/object.hpp>
 #include <sol/table.hpp>
