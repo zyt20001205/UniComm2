@@ -114,10 +114,15 @@ QVariantHash Ftp::parser(Session &session, const QByteArray &rxData) const {
     int statusCode = StatusCode::SyntaxError;
     const auto argument = argumentStart == -1 ? QByteArray{} : line.mid(argumentStart);
 
-    if (command == "USER") statusCode = StatusCode::UserNameOkay;
+    if (command == "QUIT") {
+        parsed["statusCode"] = StatusCode::ServiceClosingControlConnection;
+        parsed["exception"] = "quit";
+        return parsed;
+    }
+    if (command == "SYST") statusCode = StatusCode::SystemType;
     else if (command == "PASS") statusCode = StatusCode::UserLoggedIn;
     else if (command == "PWD") statusCode = StatusCode::PathnameCreated;
-    else if (command == "SYST") statusCode = StatusCode::SystemType;
+    else if (command == "USER") statusCode = StatusCode::UserNameOkay;
 
     switch (session.state) {
         case StatusCode::ServiceReady:
@@ -193,6 +198,8 @@ QByteArray Ftp::assembler(const int statusCode) {
         case StatusCode::SystemType: message = "UNIX Type: L8";
             break;
         case StatusCode::ServiceReady: message = "UniComm FTP Service ready";
+            break;
+        case StatusCode::ServiceClosingControlConnection: message = "Service closing control connection";
             break;
         case StatusCode::UserLoggedIn: message = "Login successful";
             break;
