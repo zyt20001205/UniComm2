@@ -98,9 +98,7 @@ private:
 
     void handleReadyRead(const QString &peerIp);
 
-    static void stateSet(Session &session, int state);
-
-    [[nodiscard]] static QVariantHash parser(const QByteArray &rxData);
+    [[nodiscard]] QVariantHash parser(Session &session, const QByteArray &rxData) const;
 
     [[nodiscard]] static QByteArray assembler(int statusCode);
 

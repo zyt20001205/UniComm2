@@ -57,7 +57,7 @@ void Ftp::handleConnected(const QString &peerIp) {
     m_sessions.insert(peerIp, Session{});
 
     bool written{};
-    QMetaObject::invokeMethod(m_port, [&written, &peerIp, this] {
+    QMetaObject::invokeMethod(m_port, [&written, this, &peerIp] {
         written = m_port->write(assembler(StatusCode::ServiceReady), peerIp, "utf-8", "null");
     }, Qt::BlockingQueuedConnection);
     if (!written) m_sessions.remove(peerIp);
@@ -74,71 +74,14 @@ void Ftp::handleReadyRead(const QString &peerIp) {
 
     while (true) {
         QByteArray rxData{};
-        QMetaObject::invokeMethod(m_port, [&rxData, &peerIp, this] {
+        QMetaObject::invokeMethod(m_port, [&rxData, this, &peerIp] {
             rxData = m_port->readUntil("\r\n", 0, peerIp, "utf-8");
         }, Qt::BlockingQueuedConnection);
         if (rxData.isEmpty()) return;
 
-        auto parsed = parser(rxData);
-        int statusCode = parsed.value("statusCode").toInt();
-
-        switch (session.state) {
-            case StatusCode::ServiceReady: {
-                switch (statusCode) {
-                    case StatusCode::SystemType:
-                        break;
-                    case StatusCode::UserNameOkay:
-                        session.username = parsed.value("username").toByteArray();
-                        break;
-                    case StatusCode::SyntaxError:
-                        break;
-                    default:
-                        statusCode = StatusCode::BadSequenceOfCommands;
-                        break;
-                }
-            }
-            break;
-            case StatusCode::UserLoggedIn: {
-                switch (statusCode) {
-                    case StatusCode::SystemType:
-                    case StatusCode::PathnameCreated:
-                    case StatusCode::SyntaxError:
-                        break;
-                    default:
-                        statusCode = StatusCode::BadSequenceOfCommands;
-                        break;
-                }
-            }
-            break;
-            case StatusCode::UserNameOkay: {
-                switch (statusCode) {
-                    case StatusCode::SystemType:
-                        break;
-                    case StatusCode::UserLoggedIn: {
-                        const auto password = parsed.value("password").toByteArray();
-                        const bool authenticated =
-                                // anonymous
-                                (m_options.allowAnonymous
-                                 && (session.username.compare("anonymous", Qt::CaseInsensitive) == 0
-                                     || session.username.compare("ftp", Qt::CaseInsensitive) == 0))
-                                // username & password
-                                || (!m_options.username.isEmpty()
-                                    && session.username == m_options.username
-                                    && password == m_options.password);
-                        statusCode = authenticated ? StatusCode::UserLoggedIn : StatusCode::NotLoggedIn;
-                        break;
-                    }
-                    case StatusCode::SyntaxError:
-                        break;
-                    default:
-                        statusCode = StatusCode::BadSequenceOfCommands;
-                        break;
-                }
-            }
-            break;
-            default: statusCode = StatusCode::BadSequenceOfCommands;
-                break;
-        }
+        const auto parsed = parser(session, rxData);
+        const int statusCode = parsed.value("statusCode").toInt();
+        const auto exception = parsed.value("exception").toString();
 
         bool written{};
         QMetaObject::invokeMethod(m_port, [&written, &peerIp, &statusCode, this] {
@@ -146,37 +89,16 @@ void Ftp::handleReadyRead(const QString &peerIp) {
         }, Qt::BlockingQueuedConnection);
         if (!written) return;
 
-        stateSet(session, statusCode);
-        if (statusCode == StatusCode::NotLoggedIn) {
-            session.username.clear();
-            if (++session.attempts >= m_options.maxAttempts) {
-                QMetaObject::invokeMethod(m_port, [peerIp, this] {
-                    m_port->disconnectPeer(peerIp);
-                }, Qt::BlockingQueuedConnection);
-                return;
-            }
+        if (!exception.isEmpty()) {
+            QMetaObject::invokeMethod(m_port, [peerIp, this] {
+                m_port->disconnectPeer(peerIp);
+            }, Qt::BlockingQueuedConnection);
+            return;
         }
     }
 }
 
-void Ftp::stateSet(Session &session, const int state) {
-    switch (state) {
-        case StatusCode::ServiceReady:
-        case StatusCode::UserLoggedIn:
-        case StatusCode::UserNameOkay:
-            session.state = state;
-            break;
-        case StatusCode::NotLoggedIn:
-            session.state = StatusCode::ServiceReady;
-            break;
-        default:
-            break;
-    }
-}
-
-QVariantHash Ftp::parser(const QByteArray &rxData) {
-    if (rxData.isEmpty()) return {{"exception", "read timeout"}};
-
+QVariantHash Ftp::parser(Session &session, const QByteArray &rxData) const {
     auto line = rxData;
     if (line.endsWith("\r\n")) line.chop(2);
 
@@ -187,49 +109,102 @@ QVariantHash Ftp::parser(const QByteArray &rxData) {
     while (argumentStart != -1 && argumentStart < line.size() && line.at(argumentStart) == ' ') {
         ++argumentStart;
     }
+
+    QVariantHash parsed{};
+    int statusCode = StatusCode::SyntaxError;
     const auto argument = argumentStart == -1 ? QByteArray{} : line.mid(argumentStart);
 
-    QVariantHash parsed{{"statusCode", StatusCode::SyntaxError}};
-    if (command == "USER") {
-        parsed["statusCode"] = StatusCode::UserNameOkay;
-        parsed["username"] = argument;
-    } else if (command == "PASS") {
-        parsed["statusCode"] = StatusCode::UserLoggedIn;
-        parsed["password"] = argument;
-    } else if (command == "PWD") {
-        parsed["statusCode"] = StatusCode::PathnameCreated;
-    } else if (command == "SYST") {
-        parsed["statusCode"] = StatusCode::SystemType;
+    if (command == "USER") statusCode = StatusCode::UserNameOkay;
+    else if (command == "PASS") statusCode = StatusCode::UserLoggedIn;
+    else if (command == "PWD") statusCode = StatusCode::PathnameCreated;
+    else if (command == "SYST") statusCode = StatusCode::SystemType;
+
+    switch (session.state) {
+        case StatusCode::ServiceReady:
+            switch (statusCode) {
+                case StatusCode::SystemType:
+                case StatusCode::SyntaxError:
+                    break;
+                case StatusCode::UserNameOkay:
+                    session.username = argument;
+                    session.state = StatusCode::UserNameOkay;
+                    break;
+                default:
+                    statusCode = StatusCode::BadSequenceOfCommands;
+                    break;
+            }
+            break;
+        case StatusCode::UserLoggedIn:
+            switch (statusCode) {
+                case StatusCode::SystemType:
+                case StatusCode::PathnameCreated:
+                case StatusCode::SyntaxError:
+                    break;
+                default:
+                    statusCode = StatusCode::BadSequenceOfCommands;
+                    break;
+            }
+            break;
+        case StatusCode::UserNameOkay:
+            switch (statusCode) {
+                case StatusCode::SystemType:
+                case StatusCode::SyntaxError:
+                    break;
+                case StatusCode::UserLoggedIn: {
+                    const auto password = argument;
+                    const bool authenticated =
+                            // anonymous
+                            (m_options.allowAnonymous
+                             && (session.username.compare("anonymous", Qt::CaseInsensitive) == 0
+                                 || session.username.compare("ftp", Qt::CaseInsensitive) == 0))
+                            // username & password
+                            || (!m_options.username.isEmpty()
+                                && session.username == m_options.username
+                                && password == m_options.password);
+                    if (authenticated) {
+                        session.state = StatusCode::UserLoggedIn;
+                    } else {
+                        statusCode = StatusCode::NotLoggedIn;
+                        session.state = StatusCode::ServiceReady;
+                        session.username.clear();
+                        if (++session.attempts >= m_options.maxAttempts) {
+                            parsed["exception"] = "maximum login attempts exceeded";
+                        }
+                    }
+                    break;
+                }
+                default:
+                    statusCode = StatusCode::BadSequenceOfCommands;
+                    break;
+            }
+            break;
+        default:
+            statusCode = StatusCode::BadSequenceOfCommands;
+            break;
     }
+
+    parsed["statusCode"] = statusCode;
     return parsed;
 }
 
 QByteArray Ftp::assembler(const int statusCode) {
     QByteArray message{};
     switch (statusCode) {
-        case StatusCode::SystemType:
-            message = "UNIX Type: L8";
+        case StatusCode::SystemType: message = "UNIX Type: L8";
             break;
-        case StatusCode::ServiceReady:
-            message = "UniComm FTP Service ready";
+        case StatusCode::ServiceReady: message = "UniComm FTP Service ready";
             break;
-        case StatusCode::UserLoggedIn:
-            message = "Login successful";
+        case StatusCode::UserLoggedIn: message = "Login successful";
             break;
-        case StatusCode::PathnameCreated:
-            message = "\"" + g_workspaceUrl.toLocalFile().toUtf8() + "\" is current directory";
+        case StatusCode::PathnameCreated: message = "\"" + g_workspaceUrl.toLocalFile().toUtf8() + "\" is current directory";
             break;
-        case StatusCode::UserNameOkay:
-            message = "Password required";
+        case StatusCode::UserNameOkay: message = "Password required";
             break;
-        case StatusCode::SyntaxError:
-            message = "Syntax error, command unrecognized";
+        case StatusCode::SyntaxError: message = "Syntax error, command unrecognized";
             break;
-        case StatusCode::BadSequenceOfCommands:
-            message = "Bad sequence of commands";
+        case StatusCode::BadSequenceOfCommands: message = "Bad sequence of commands";
             break;
-        case StatusCode::NotLoggedIn:
-            message = "Login incorrect";
+        case StatusCode::NotLoggedIn: message = "Login incorrect";
             break;
         default:
             break;
