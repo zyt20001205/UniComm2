@@ -45,6 +45,7 @@ private:
             DataConnectionOpen = 225,
             ClosingDataConnection = 226,
             EnteringPassiveMode = 227,
+            EnteringExtendedPassiveMode = 229,
             UserLoggedIn = 230,
             RequestedFileActionOkay = 250,
             PathnameCreated = 257,
@@ -87,6 +88,7 @@ private:
     struct Session {
         int state{StatusCode::ServiceReady};
         QByteArray username{};
+        QByteArray transferType{"A"};
         int attempts{};
         QTcpServer *dataServer{};
         QTcpSocket *dataSocket{};
@@ -98,9 +100,11 @@ private:
 
     void handleReadyRead(const QString &peerIp);
 
-    [[nodiscard]] QVariantHash parser(Session &session, const QByteArray &rxData) const;
+    static void closeDataConnection(Session &session);
 
-    [[nodiscard]] static QByteArray assembler(int statusCode);
+    [[nodiscard]] QVariantHash parser(const QString &peerIp, Session &session, const QByteArray &rxData);
+
+    [[nodiscard]] static QByteArray assembler(int statusCode, quint16 dataPort = 0);
 
     std::string m_portName{};
     int m_timeout{};

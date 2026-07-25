@@ -1,6 +1,9 @@
 #include "api/ftp.h"
 
+#include <QHostAddress>
 #include <QThread>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QTimer>
 #include <sol/error.hpp>
 
@@ -49,6 +52,7 @@ void Ftp::start(const sol::table &options) {
     loop.exec();
 
     disconnect(m_port, nullptr, this, nullptr);
+    for (auto &session: m_sessions) closeDataConnection(session);
     m_sessions.clear();
 }
 
@@ -64,7 +68,10 @@ void Ftp::handleConnected(const QString &peerIp) {
 }
 
 void Ftp::handleDisconnected(const QString &peerIp) {
-    m_sessions.remove(peerIp);
+    const auto it = m_sessions.find(peerIp);
+    if (it == m_sessions.end()) return;
+    closeDataConnection(it.value());
+    m_sessions.erase(it);
 }
 
 void Ftp::handleReadyRead(const QString &peerIp) {
@@ -79,13 +86,14 @@ void Ftp::handleReadyRead(const QString &peerIp) {
         }, Qt::BlockingQueuedConnection);
         if (rxData.isEmpty()) return;
 
-        const auto parsed = parser(session, rxData);
+        const auto parsed = parser(peerIp, session, rxData);
         const int statusCode = parsed.value("statusCode").toInt();
+        const auto dataPort = static_cast<quint16>(parsed.value("dataPort").toUInt());
         const auto exception = parsed.value("exception").toString();
 
         bool written{};
-        QMetaObject::invokeMethod(m_port, [&written, &peerIp, &statusCode, this] {
-            written = m_port->write(assembler(statusCode), peerIp, "utf-8", "null");
+        QMetaObject::invokeMethod(m_port, [&written, &peerIp, &statusCode, &dataPort, this] {
+            written = m_port->write(assembler(statusCode, dataPort), peerIp, "utf-8", "null");
         }, Qt::BlockingQueuedConnection);
         if (!written) return;
 
@@ -98,7 +106,14 @@ void Ftp::handleReadyRead(const QString &peerIp) {
     }
 }
 
-QVariantHash Ftp::parser(Session &session, const QByteArray &rxData) const {
+void Ftp::closeDataConnection(Session &session) {
+    session.dataSocket->deleteLater();
+    session.dataSocket = nullptr;
+    session.dataServer->deleteLater();
+    session.dataServer = nullptr;
+}
+
+QVariantHash Ftp::parser(const QString &peerIp, Session &session, const QByteArray &rxData) {
     auto line = rxData;
     if (line.endsWith("\r\n")) line.chop(2);
 
@@ -119,7 +134,9 @@ QVariantHash Ftp::parser(Session &session, const QByteArray &rxData) const {
         parsed["exception"] = "quit";
         return parsed;
     }
-    if (command == "SYST") statusCode = StatusCode::SystemType;
+    if (command == "TYPE") statusCode = StatusCode::CommandOkay;
+    else if (command == "SYST") statusCode = StatusCode::SystemType;
+    else if (command == "EPSV") statusCode = StatusCode::EnteringExtendedPassiveMode;
     else if (command == "PASS") statusCode = StatusCode::UserLoggedIn;
     else if (command == "PWD") statusCode = StatusCode::PathnameCreated;
     else if (command == "USER") statusCode = StatusCode::UserNameOkay;
@@ -141,10 +158,51 @@ QVariantHash Ftp::parser(Session &session, const QByteArray &rxData) const {
             break;
         case StatusCode::UserLoggedIn:
             switch (statusCode) {
+                case StatusCode::CommandOkay: {
+                    const auto transferType = argument.simplified().toUpper();
+                    if (transferType == "A" || transferType == "A N") session.transferType = "A";
+                    else if (transferType == "I" || transferType == "L 8") session.transferType = "I";
+                    else statusCode = StatusCode::CommandNotImplementedForParameter;
+                    break;
+                }
                 case StatusCode::SystemType:
                 case StatusCode::PathnameCreated:
                 case StatusCode::SyntaxError:
                     break;
+                case StatusCode::EnteringExtendedPassiveMode: {
+                    closeDataConnection(session);
+                    auto *dataServer = new QTcpServer(this);
+                    session.dataServer = dataServer;
+                    if (!dataServer->listen(QHostAddress::Any, 0)) {
+                        closeDataConnection(session);
+                        statusCode = StatusCode::CannotOpenDataConnection;
+                        break;
+                    }
+                    parsed["dataPort"] = dataServer->serverPort();
+                    connect(dataServer, &QTcpServer::newConnection, this, [dataServer, peerIp, this] {
+                        const auto it = m_sessions.find(peerIp);
+                        if (it == m_sessions.end() || it->dataServer != dataServer) return;
+                        auto &session = it.value();
+                        while (dataServer->hasPendingConnections()) {
+                            auto *dataSocket = dataServer->nextPendingConnection();
+                            if (session.dataSocket == nullptr) {
+                                session.dataSocket = dataSocket;
+                                connect(dataSocket, &QTcpSocket::disconnected, this, [dataSocket, peerIp, this] {
+                                    const auto sessionIt = m_sessions.find(peerIp);
+                                    if (sessionIt != m_sessions.end() && sessionIt->dataSocket == dataSocket) {
+                                        sessionIt->dataSocket = nullptr;
+                                    }
+                                    dataSocket->deleteLater();
+                                });
+                            } else {
+                                dataSocket->abort();
+                                dataSocket->deleteLater();
+                            }
+                        }
+                        dataServer->close();
+                    });
+                    break;
+                }
                 default:
                     statusCode = StatusCode::BadSequenceOfCommands;
                     break;
@@ -192,14 +250,18 @@ QVariantHash Ftp::parser(Session &session, const QByteArray &rxData) const {
     return parsed;
 }
 
-QByteArray Ftp::assembler(const int statusCode) {
+QByteArray Ftp::assembler(const int statusCode, const quint16 dataPort) {
     QByteArray message{};
     switch (statusCode) {
+        case StatusCode::CommandOkay: message = "Command okay";
+            break;
         case StatusCode::SystemType: message = "UNIX Type: L8";
             break;
         case StatusCode::ServiceReady: message = "UniComm FTP Service ready";
             break;
         case StatusCode::ServiceClosingControlConnection: message = "Service closing control connection";
+            break;
+        case StatusCode::EnteringExtendedPassiveMode: message = "Entering Extended Passive Mode (|||" + QByteArray::number(dataPort) + "|)";
             break;
         case StatusCode::UserLoggedIn: message = "Login successful";
             break;
@@ -207,9 +269,13 @@ QByteArray Ftp::assembler(const int statusCode) {
             break;
         case StatusCode::UserNameOkay: message = "Password required";
             break;
+        case StatusCode::CannotOpenDataConnection: message = "Cannot open data connection";
+            break;
         case StatusCode::SyntaxError: message = "Syntax error, command unrecognized";
             break;
         case StatusCode::BadSequenceOfCommands: message = "Bad sequence of commands";
+            break;
+        case StatusCode::CommandNotImplementedForParameter: message = "Command not implemented for parameter";
             break;
         case StatusCode::NotLoggedIn: message = "Login incorrect";
             break;
