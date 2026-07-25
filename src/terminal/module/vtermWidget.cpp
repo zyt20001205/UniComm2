@@ -32,6 +32,9 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     m_callbacks.sb_pushline = [](const int cols, const VTermScreenCell *cells, void *user) -> int {
         return static_cast<VtermWidget *>(user)->linePush(cols, cells);
     };
+    m_callbacks.sb_clear = [](void *user) -> int {
+        return static_cast<VtermWidget *>(user)->clear();
+    };
     m_selectionCallbacks.set = [](const VTermSelectionMask mask, const VTermStringFragment frag, void *user) -> int {
         return static_cast<VtermWidget *>(user)->selectionSet(mask, frag);
     };
@@ -284,6 +287,16 @@ int VtermWidget::linePush(const int cols, const VTermScreenCell *cells) {
     constexpr int maxScrollbackLines = 10000;
     if (m_scrollback.size() > maxScrollbackLines) m_scrollback.removeFirst();
 
+    return 1;
+}
+
+int VtermWidget::clear() {
+    m_scrollback.clear();
+    if (m_scrollOffset == 0) return 1;
+
+    m_scrollOffset = 0;
+    const QRect screenRect(0, 0, m_cols, m_rows);
+    m_pendingDamage = m_pendingDamage.isEmpty() ? screenRect : m_pendingDamage.united(screenRect);
     return 1;
 }
 

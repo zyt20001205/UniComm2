@@ -79,6 +79,8 @@ private:
 
     int linePush(int cols, const VTermScreenCell *cells);
 
+    int clear();
+
     int selectionSet(VTermSelectionMask mask, VTermStringFragment frag);
 
     int selectionQuery(VTermSelectionMask mask);
