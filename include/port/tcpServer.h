@@ -25,6 +25,8 @@ public:
 
     void close() override;
 
+    void disconnectPeer(const QString &peerIp);
+
     void clear() override;
 
     void monitor(bool enabled) override;
@@ -50,9 +52,9 @@ signals:
 
     void connected(const QString &peerIp);
 
-    void disconnected(qintptr socketDescriptor);
+    void disconnected(const QString &peerIp);
 
-    void readyRead();
+    void readyRead(const QString &peerIp);
 
     void errorOccurred(const QString &error);
 

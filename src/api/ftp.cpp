@@ -1,5 +1,6 @@
 #include "api/ftp.h"
 
+#include <QThread>
 #include <QTimer>
 #include <sol/error.hpp>
 
@@ -24,131 +25,149 @@ void Ftp::init(const std::string &portName, const int timeout) {
 }
 
 void Ftp::start(const sol::table &options) {
-    const auto username = QByteArray::fromStdString(options.get_or("username", std::string{}));
-    const auto password = QByteArray::fromStdString(options.get_or("password", std::string{}));
-    const bool allowAnonymous = options.get_or("allowAnonymous", true);
-    const int maxAttempts = options.get_or("maxAttempts", 1);
+    m_options.username = QByteArray::fromStdString(options.get_or("username", std::string{}));
+    m_options.password = QByteArray::fromStdString(options.get_or("password", std::string{}));
+    m_options.allowAnonymous = options.get_or("allowAnonymous", true);
+    m_options.maxAttempts = options.get_or("maxAttempts", 1);
 
-    accept();
-    stateSet(StatusCode::ServiceReady);
-
-    // login
-    QByteArray _username{};
-    int attempts{};
-
-    while (true) {
-        QString exception{};
-        int statusCode{};
-
-        QMetaObject::invokeMethod(m_port, [&, this] {
-            auto parsed = parser(m_port->readUntil("\r\n", m_timeout, m_peer, "utf-8"));
-            exception = parsed.take("exception").toString();
-            if (!exception.isEmpty()) return;
-
-            statusCode = parsed.value("statusCode").toInt();
-            switch (m_state) {
-                case StatusCode::ServiceReady: {
-                    switch (statusCode) {
-                        case StatusCode::UserNameOkay:
-                            _username = parsed.value("username").toByteArray();
-                            break;
-                        case StatusCode::SystemType:
-                        case StatusCode::SyntaxError:
-                            break;
-                        default:
-                            statusCode = StatusCode::BadSequenceOfCommands;
-                            break;
-                    }
-                }
-                break;
-                case StatusCode::UserLoggedIn: {
-                    switch (statusCode) {
-                        case StatusCode::SystemType:
-                        case StatusCode::PathnameCreated:
-                        case StatusCode::SyntaxError:
-                            break;
-                        default:
-                            statusCode = StatusCode::BadSequenceOfCommands;
-                            break;
-                    }
-                    break;
-                }
-                case StatusCode::UserNameOkay: {
-                    switch (statusCode) {
-                        case StatusCode::UserLoggedIn: {
-                            const auto _password = parsed.value("password").toByteArray();
-                            const bool authenticated =
-                                    // anonymous
-                                    (allowAnonymous && (_username.compare("anonymous", Qt::CaseInsensitive) == 0 || _username.compare("ftp", Qt::CaseInsensitive) == 0))
-                                    // username & password
-                                    || (!username.isEmpty() && _username == username && _password == password);
-                            statusCode = authenticated ? StatusCode::UserLoggedIn : StatusCode::NotLoggedIn;
-                            break;
-                        }
-                        case StatusCode::SystemType:
-                        case StatusCode::SyntaxError:
-                            break;
-                        default:
-                            statusCode = StatusCode::BadSequenceOfCommands;
-                            break;
-                    }
-                }
-                break;
-                default: statusCode = StatusCode::BadSequenceOfCommands;
-                    break;
-            }
-
-            if (!m_port->write(assembler(statusCode), m_peer, "utf-8", "null")) {
-                exception = "write failed";
-            }
-        }, Qt::BlockingQueuedConnection);
-
-        if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
-
-        stateSet(statusCode);
-        if (statusCode == StatusCode::NotLoggedIn && ++attempts >= maxAttempts) return;
-    }
-}
-
-// private
-void Ftp::accept() {
-    m_peer.clear();
-
-    QEventLoop loop{};
-    connect(m_port, &TcpServer::connected, &loop, [this, &loop](const QString &peerIp) {
-        m_peer = peerIp;
-        loop.quit();
-    }, static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::SingleShotConnection));
+    connect(m_port, &TcpServer::connected, this, &Ftp::handleConnected);
+    connect(m_port, &TcpServer::readyRead, this, &Ftp::handleReadyRead);
+    connect(m_port, &TcpServer::disconnected, this, &Ftp::handleDisconnected);
 
     QString exception{};
-
     QMetaObject::invokeMethod(m_port, [&exception, this] {
         if (!m_port->open()) exception = "open failed";
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 
-    if (m_timeout >= 0) QTimer::singleShot(m_timeout, &loop, &QEventLoop::quit);
+    QEventLoop loop{};
+    QTimer timer{};
+    connect(&timer, &QTimer::timeout, &loop, [&loop] {
+        if (QThread::currentThread()->isInterruptionRequested()) loop.quit();
+    });
+    timer.start(100);
     loop.exec();
-    if (m_peer.isEmpty()) throw sol::error(m_portName + ": accept timeout");
 
-    QMetaObject::invokeMethod(m_port, [&exception, this] {
-        const auto response = assembler(StatusCode::ServiceReady);
-        if (!m_port->write(response, m_peer, "utf-8", "null")) {
-            exception = "write failed";
-        }
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+    disconnect(m_port, nullptr, this, nullptr);
+    m_sessions.clear();
 }
 
-void Ftp::stateSet(const int state) {
+// private
+void Ftp::handleConnected(const QString &peerIp) {
+    m_sessions.insert(peerIp, Session{});
+
+    bool written{};
+    QMetaObject::invokeMethod(m_port, [&written, &peerIp, this] {
+        written = m_port->write(assembler(StatusCode::ServiceReady), peerIp, "utf-8", "null");
+    }, Qt::BlockingQueuedConnection);
+    if (!written) m_sessions.remove(peerIp);
+}
+
+void Ftp::handleDisconnected(const QString &peerIp) {
+    m_sessions.remove(peerIp);
+}
+
+void Ftp::handleReadyRead(const QString &peerIp) {
+    auto it = m_sessions.find(peerIp);
+    if (it == m_sessions.end()) return;
+    auto &session = it.value();
+
+    while (true) {
+        QByteArray rxData{};
+        QMetaObject::invokeMethod(m_port, [&rxData, &peerIp, this] {
+            rxData = m_port->readUntil("\r\n", 0, peerIp, "utf-8");
+        }, Qt::BlockingQueuedConnection);
+        if (rxData.isEmpty()) return;
+
+        auto parsed = parser(rxData);
+        int statusCode = parsed.value("statusCode").toInt();
+
+        switch (session.state) {
+            case StatusCode::ServiceReady: {
+                switch (statusCode) {
+                    case StatusCode::SystemType:
+                        break;
+                    case StatusCode::UserNameOkay:
+                        session.username = parsed.value("username").toByteArray();
+                        break;
+                    case StatusCode::SyntaxError:
+                        break;
+                    default:
+                        statusCode = StatusCode::BadSequenceOfCommands;
+                        break;
+                }
+            }
+            break;
+            case StatusCode::UserLoggedIn: {
+                switch (statusCode) {
+                    case StatusCode::SystemType:
+                    case StatusCode::PathnameCreated:
+                    case StatusCode::SyntaxError:
+                        break;
+                    default:
+                        statusCode = StatusCode::BadSequenceOfCommands;
+                        break;
+                }
+            }
+            break;
+            case StatusCode::UserNameOkay: {
+                switch (statusCode) {
+                    case StatusCode::SystemType:
+                        break;
+                    case StatusCode::UserLoggedIn: {
+                        const auto password = parsed.value("password").toByteArray();
+                        const bool authenticated =
+                                // anonymous
+                                (m_options.allowAnonymous
+                                 && (session.username.compare("anonymous", Qt::CaseInsensitive) == 0
+                                     || session.username.compare("ftp", Qt::CaseInsensitive) == 0))
+                                // username & password
+                                || (!m_options.username.isEmpty()
+                                    && session.username == m_options.username
+                                    && password == m_options.password);
+                        statusCode = authenticated ? StatusCode::UserLoggedIn : StatusCode::NotLoggedIn;
+                        break;
+                    }
+                    case StatusCode::SyntaxError:
+                        break;
+                    default:
+                        statusCode = StatusCode::BadSequenceOfCommands;
+                        break;
+                }
+            }
+            break;
+            default: statusCode = StatusCode::BadSequenceOfCommands;
+                break;
+        }
+
+        bool written{};
+        QMetaObject::invokeMethod(m_port, [&written, &peerIp, &statusCode, this] {
+            written = m_port->write(assembler(statusCode), peerIp, "utf-8", "null");
+        }, Qt::BlockingQueuedConnection);
+        if (!written) return;
+
+        stateSet(session, statusCode);
+        if (statusCode == StatusCode::NotLoggedIn) {
+            session.username.clear();
+            if (++session.attempts >= m_options.maxAttempts) {
+                QMetaObject::invokeMethod(m_port, [peerIp, this] {
+                    m_port->disconnectPeer(peerIp);
+                }, Qt::BlockingQueuedConnection);
+                return;
+            }
+        }
+    }
+}
+
+void Ftp::stateSet(Session &session, const int state) {
     switch (state) {
         case StatusCode::ServiceReady:
         case StatusCode::UserLoggedIn:
         case StatusCode::UserNameOkay:
-            m_state = state;
+            session.state = state;
             break;
         case StatusCode::NotLoggedIn:
-            m_state = StatusCode::ServiceReady;
+            session.state = StatusCode::ServiceReady;
             break;
         default:
             break;

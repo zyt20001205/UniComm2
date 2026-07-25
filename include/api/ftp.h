@@ -7,6 +7,8 @@
 #include <string>
 
 class TcpServer;
+class QTcpServer;
+class QTcpSocket;
 
 class Ftp final : public QObject {
     Q_OBJECT
@@ -75,9 +77,28 @@ private:
         };
     };
 
-    void accept();
+    struct Options {
+        QByteArray username{};
+        QByteArray password{};
+        bool allowAnonymous{true};
+        int maxAttempts{1};
+    };
 
-    void stateSet(int state);
+    struct Session {
+        int state{StatusCode::ServiceReady};
+        QByteArray username{};
+        int attempts{};
+        QTcpServer *dataServer{};
+        QTcpSocket *dataSocket{};
+    };
+
+    void handleConnected(const QString &peerIp);
+
+    void handleDisconnected(const QString &peerIp);
+
+    void handleReadyRead(const QString &peerIp);
+
+    static void stateSet(Session &session, int state);
 
     [[nodiscard]] static QVariantHash parser(const QByteArray &rxData);
 
@@ -85,9 +106,9 @@ private:
 
     std::string m_portName{};
     int m_timeout{};
-    QString m_peer{};
     TcpServer *m_port{};
-    int m_state{StatusCode::ServiceReady};
+    Options m_options{};
+    QHash<QString, Session> m_sessions{};
 };
 
 #endif //UNICOMM_FTP_H

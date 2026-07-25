@@ -11,13 +11,13 @@ Ftp = {}
 
 ---Create an FTP server instance over an existing TCP server port.
 ---@param name portName Target TCP server port name.
----@param timeout? integer (default: 30000) Maximum time in **milliseconds** to wait for protocol data.
+---@param timeout? integer (default: 30000) Timeout in **milliseconds** for blocking FTP operations.
 ---@return ftp
 function Ftp.new(name, timeout) end
 
 ---@class ftp
 ftp = {}
 
----Wait for one client, send the `220` response, and run the FTP command state machine.
+---Start the FTP service and handle each connected peer with an independent state machine.
 ---@param options FtpStartOptions Authentication options.
 function ftp:start(options) end
