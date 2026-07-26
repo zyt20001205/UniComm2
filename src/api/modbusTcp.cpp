@@ -6,166 +6,154 @@
 #include "port/basePort.h"
 #include "port/portModule.h"
 
+// public
 ModbusTcp::ModbusTcp(QObject *parent)
     : QObject(parent) {
 }
 
-std::string ModbusTcp::readHoldingRegisters(const std::string &portName, const int transactionId, const int unitId, const int startAddr, const int quantity, const int timeout) {
-    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
-    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
+void ModbusTcp::init(const std::string &portName, const int transactionId, const int unitId, const int timeout) {
+    const auto port = g_port->m_portHash.constFind(QString::fromStdString(portName));
+    if (port == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
 
-    QString exception{};
-    QByteArray rxData{};
-    auto *port = portIt.value();
+    m_portName = portName;
+    m_transactionId = transactionId;
+    m_unitId = unitId;
+    m_timeout = timeout;
+    m_port = port.value();
+}
+
+std::string ModbusTcp::readHoldingRegisters(const int startAddr, const int quantity) const {
+    Result result{};
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
-    constexpr int funcCode = 0x03;
     QByteArray txData{};
-    txData.append(static_cast<qint8>(transactionId >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(transactionId & 0xFF));
-    txData.append(protocolId >> 8 & 0xFF);
-    txData.append(protocolId & 0xFF);
-    txData.append(txLength >> 8 & 0xFF);
-    txData.append(txLength & 0xFF);
-    txData.append(static_cast<qint8>(unitId));
-    txData.append(funcCode);
+    txData.append(static_cast<qint8>(m_transactionId >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(m_transactionId & 0xFF));
+    txData.append(static_cast<qint8>(protocolId >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(protocolId & 0xFF));
+    txData.append(static_cast<qint8>(txLength >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(txLength & 0xFF));
+    txData.append(static_cast<qint8>(m_unitId));
+    txData.append(FuncCode::ReadHoldingRegisters);
     txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
     txData.append(static_cast<qint8>(startAddr & 0xFF));
     txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
     txData.append(static_cast<qint8>(quantity & 0xFF));
     const int rxLength = quantity * 2 + 9;
 
-    QMetaObject::invokeMethod(port, [&exception, &rxData, &port, &txData, &rxLength, &timeout] {
-        if (!port->write(txData, "hex", "null")) {
-            exception = "write failed";
-            return;
-        }
+    QMetaObject::invokeMethod(m_port, [this, &txData, rxLength] -> Result {
+        if (!m_port->write(txData, "hex", "null")) return {{}, "write failed"};
 
-        rxData = port->read(rxLength, timeout, "hex");
-        if (rxData.isEmpty()) exception = "read timeout";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+        auto rxData = m_port->read(rxLength, m_timeout, "hex");
+        if (rxData.isEmpty()) rxData = m_port->read(0, 0, "hex");
 
-    if ((static_cast<quint8>(rxData.at(0)) << 8 | static_cast<quint8>(rxData.at(1))) != transactionId)
-        exception = "modbus tcp read holding registers transaction id inconsistent";
-    else if ((static_cast<quint8>(rxData.at(2)) << 8 | static_cast<quint8>(rxData.at(3))) != protocolId)
-        exception = "modbus tcp read holding registers protocol id inconsistent";
-    else if ((static_cast<quint8>(rxData.at(4)) << 8 | static_cast<quint8>(rxData.at(5))) != quantity * 2 + 3)
-        exception = "modbus tcp read holding registers length inconsistent";
-    else if (static_cast<quint8>(rxData.at(6)) != unitId)
-        exception = "modbus tcp read holding registers slave address inconsistent";
-    else if (static_cast<quint8>(rxData.at(7)) != funcCode)
-        exception = "modbus tcp read holding registers function code inconsistent";
-    else if (static_cast<quint8>(rxData.at(8)) != quantity * 2)
-        exception = "modbus tcp read holding registers byte count inconsistent";
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+        return parser(FuncCode::ReadHoldingRegisters, rxData);
+    }, Qt::BlockingQueuedConnection, &result);
+    if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
 
-    const QByteArray regData = rxData.mid(9);
+    if (result.data.size() != quantity * 2 + 1 || static_cast<quint8>(result.data.at(0)) != quantity * 2)
+        throw sol::error(m_portName + ": modbus tcp read holding registers byte count inconsistent");
+
+    const QByteArray regData = result.data.sliced(1);
     return {regData.constData(), static_cast<std::string::size_type>(regData.size())};
 }
 
-void ModbusTcp::writeSingleRegister(const std::string &portName, const int transactionId, const int unitId, const int regAddr, const std::string &data, const int timeout) {
-    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
-    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
-
-    QString exception{};
-    QByteArray rxData{};
-    auto *port = portIt.value();
+void ModbusTcp::writeSingleRegister(const int regAddr, const std::string &data) const {
+    Result result{};
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
-    constexpr int funcCode = 0x06;
+    const auto value = QByteArray::fromHex(QByteArray::fromStdString(data));
     QByteArray txData{};
-    txData.append(static_cast<qint8>(transactionId >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(transactionId & 0xFF));
-    txData.append(protocolId >> 8 & 0xFF);
-    txData.append(protocolId & 0xFF);
-    txData.append(txLength >> 8 & 0xFF);
-    txData.append(txLength & 0xFF);
-    txData.append(static_cast<qint8>(unitId));
-    txData.append(funcCode);
+    txData.append(static_cast<qint8>(m_transactionId >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(m_transactionId & 0xFF));
+    txData.append(static_cast<qint8>(protocolId >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(protocolId & 0xFF));
+    txData.append(static_cast<qint8>(txLength >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(txLength & 0xFF));
+    txData.append(static_cast<qint8>(m_unitId));
+    txData.append(FuncCode::WriteSingleRegister);
     txData.append(static_cast<qint8>(regAddr >> 8 & 0xFF));
     txData.append(static_cast<qint8>(regAddr & 0xFF));
-    txData += QByteArray::fromHex(QByteArray::fromStdString(data));
+    txData += value;
 
-    QMetaObject::invokeMethod(port, [&exception, &rxData, &port, &txData, &timeout] {
-        if (!port->write(txData, "hex", "null")) {
-            exception = "write failed";
-            return;
-        }
+    QMetaObject::invokeMethod(m_port, [this, &txData] -> Result {
+        if (!m_port->write(txData, "hex", "null")) return {{}, "write failed"};
 
-        rxData = port->read(12, timeout, "hex");
-        if (rxData.isEmpty()) exception = "read timeout";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+        auto rxData = m_port->read(12, m_timeout, "hex");
+        if (rxData.isEmpty()) rxData = m_port->read(0, 0, "hex");
 
-    if ((static_cast<quint8>(rxData.at(0)) << 8 | static_cast<quint8>(rxData.at(1))) != transactionId)
-        exception = "modbus tcp write single register transaction id inconsistent";
-    else if ((static_cast<quint8>(rxData.at(2)) << 8 | static_cast<quint8>(rxData.at(3))) != protocolId)
-        exception = "modbus tcp write single register protocol id inconsistent";
-    else if ((static_cast<quint8>(rxData.at(4)) << 8 | static_cast<quint8>(rxData.at(5))) != txLength)
-        exception = "modbus tcp write single register length inconsistent";
-    else if (static_cast<quint8>(rxData.at(6)) != unitId)
-        exception = "modbus tcp write single register unit id inconsistent";
-    else if (static_cast<quint8>(rxData.at(7)) != funcCode)
-        exception = "modbus tcp write single register function code inconsistent";
-    else if ((static_cast<quint8>(rxData.at(8)) << 8 | static_cast<quint8>(rxData.at(9))) != regAddr)
-        exception = "modbus tcp write single register register address inconsistent";
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+        return parser(FuncCode::WriteSingleRegister, rxData);
+    }, Qt::BlockingQueuedConnection, &result);
+    if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
+
+    if (result.data.size() != 4)
+        throw sol::error(m_portName + ": invalid modbus tcp write single register response");
+    if ((static_cast<quint8>(result.data.at(0)) << 8 | static_cast<quint8>(result.data.at(1))) != regAddr)
+        throw sol::error(m_portName + ": modbus tcp write single register register address inconsistent");
+    if (result.data.sliced(2) != value)
+        throw sol::error(m_portName + ": modbus tcp write single register register value inconsistent");
 }
 
-void ModbusTcp::writeMultipleRegisters(const std::string &portName, const int transactionId, const int unitId, const int startAddr, const std::string &data, const int timeout) {
-    const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
-    if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");
-
-    QString exception{};
-    QByteArray rxData{};
-    auto *port = portIt.value();
+void ModbusTcp::writeMultipleRegisters(const int startAddr, const std::string &data) const {
+    Result result{};
     constexpr int protocolId = 0x00;
-    const auto size = static_cast<qsizetype>(data.size() / 2);
-    const auto txLength = size + 7;
-    constexpr int funcCode = 0x10;
-    const int regCount = static_cast<int>(size) / 2;
-    const int byteCount = static_cast<int>(size);
+    const auto value = QByteArray::fromHex(QByteArray::fromStdString(data));
+    const int txLength = static_cast<int>(value.size()) + 7;
+    const int regCount = static_cast<int>(value.size()) / 2;
+    const int byteCount = static_cast<int>(value.size());
     QByteArray txData{};
-    txData.append(static_cast<qint8>(transactionId >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(transactionId & 0xFF));
-    txData.append(protocolId >> 8 & 0xFF);
-    txData.append(protocolId & 0xFF);
-    txData.append(static_cast<qint8>(txLength) >> 8 & 0xFF);
-    txData.append(static_cast<qint8>(txLength) & 0xFF);
-    txData.append(static_cast<qint8>(unitId));
-    txData.append(funcCode);
+    txData.append(static_cast<qint8>(m_transactionId >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(m_transactionId & 0xFF));
+    txData.append(static_cast<qint8>(protocolId >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(protocolId & 0xFF));
+    txData.append(static_cast<qint8>(txLength >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(txLength & 0xFF));
+    txData.append(static_cast<qint8>(m_unitId));
+    txData.append(FuncCode::WriteMultipleRegisters);
     txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
     txData.append(static_cast<qint8>(startAddr & 0xFF));
     txData.append(static_cast<qint8>(regCount >> 8 & 0xFF));
     txData.append(static_cast<qint8>(regCount & 0xFF));
     txData.append(static_cast<qint8>(byteCount));
-    txData += QByteArray::fromHex(QByteArray::fromStdString(data));
-    constexpr int rxLength = 6;
+    txData += value;
 
-    QMetaObject::invokeMethod(port, [&exception, &rxData, &port, &txData, &timeout] {
-        if (!port->write(txData, "hex", "null")) {
-            exception = "write failed";
-            return;
-        }
-        rxData = port->read(12, timeout, "hex");
-        if (rxData.isEmpty()) exception = "read timeout";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+    QMetaObject::invokeMethod(m_port, [this, &txData] -> Result {
+        if (!m_port->write(txData, "hex", "null")) return {{}, "write failed"};
 
-    if ((static_cast<quint8>(rxData.at(0)) << 8 | static_cast<quint8>(rxData.at(1))) != transactionId)
-        exception = "modbus tcp write multiple registers transaction id inconsistent";
-    else if ((static_cast<quint8>(rxData.at(2)) << 8 | static_cast<quint8>(rxData.at(3))) != protocolId)
-        exception = "modbus tcp write multiple registers protocol id inconsistent";
-    else if ((static_cast<quint8>(rxData.at(4)) << 8 | static_cast<quint8>(rxData.at(5))) != rxLength)
-        exception = "modbus tcp write multiple registers length inconsistent";
-    else if (static_cast<quint8>(rxData.at(6)) != unitId)
-        exception = "modbus tcp write multiple registers unit id inconsistent";
-    else if (static_cast<quint8>(rxData.at(7)) != funcCode)
-        exception = "modbus tcp write multiple registers function code inconsistent";
-    else if ((static_cast<quint8>(rxData.at(8)) << 8 | static_cast<quint8>(rxData.at(9))) != startAddr)
-        exception = "modbus tcp write multiple registers start address inconsistent";
-    else if ((static_cast<quint8>(rxData.at(10)) << 8 | static_cast<quint8>(rxData.at(11))) != regCount)
-        exception = "modbus tcp write multiple registers register count inconsistent";
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+        auto rxData = m_port->read(12, m_timeout, "hex");
+        if (rxData.isEmpty()) rxData = m_port->read(0, 0, "hex");
+
+        return parser(FuncCode::WriteMultipleRegisters, rxData);
+    }, Qt::BlockingQueuedConnection, &result);
+    if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
+
+    if (result.data.size() != 4)
+        throw sol::error(m_portName + ": invalid modbus tcp write multiple registers response");
+    if ((static_cast<quint8>(result.data.at(0)) << 8 | static_cast<quint8>(result.data.at(1))) != startAddr)
+        throw sol::error(m_portName + ": modbus tcp write multiple registers start address inconsistent");
+    if ((static_cast<quint8>(result.data.at(2)) << 8 | static_cast<quint8>(result.data.at(3))) != regCount)
+        throw sol::error(m_portName + ": modbus tcp write multiple registers register count inconsistent");
+}
+
+// private
+ModbusTcp::Result ModbusTcp::parser(const int funcCode, const QByteArray &rxData) const {
+    if (rxData.isEmpty()) return {{}, "read timeout"};
+    if (rxData.size() < 9) return {{}, "invalid modbus tcp response"};
+
+    const int transactionId = static_cast<quint8>(rxData.at(0)) << 8 | static_cast<quint8>(rxData.at(1));
+    if (transactionId != m_transactionId) return {{}, "modbus tcp transaction id inconsistent"};
+
+    const int protocolId = static_cast<quint8>(rxData.at(2)) << 8 | static_cast<quint8>(rxData.at(3));
+    if (protocolId != 0) return {{}, "modbus tcp protocol id inconsistent"};
+
+    const int length = static_cast<quint8>(rxData.at(4)) << 8 | static_cast<quint8>(rxData.at(5));
+    if (length != rxData.size() - 6) return {{}, "modbus tcp length inconsistent"};
+    if (static_cast<quint8>(rxData.at(6)) != m_unitId) return {{}, "modbus tcp unit id inconsistent"};
+
+    const auto rxFuncCode = static_cast<quint8>(rxData.at(7));
+    if (rxFuncCode == (funcCode | FuncCode::ExceptionMask))
+        return {{}, "modbus exception(" + QString::number(static_cast<quint8>(rxData.at(8))) + ")"};
+    if (rxFuncCode != funcCode) return {{}, "modbus tcp function code inconsistent"};
+
+    return {rxData.sliced(8), {}};
 }

@@ -13,8 +13,6 @@ class File;
 class Imap;
 class IO;
 class Key;
-class ModbusAscii;
-class ModbusTcp;
 class Mouse;
 class Mqtt;
 class Port;
@@ -71,8 +69,6 @@ private:
     Imap *m_imap{};
     IO *m_io{};
     Key *m_key{};
-    ModbusAscii *m_modbusAscii{};
-    ModbusTcp *m_modbusTcp{};
     Mouse *m_mouse{};
     Mqtt *m_mqtt{};
     Port *m_port{};
