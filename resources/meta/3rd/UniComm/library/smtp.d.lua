@@ -3,7 +3,11 @@
 ---@class Smtp
 Smtp = {}
 
+---
 ---Create an SMTP instance.
+---
+---[SMTP demo](../demo/smtp.lua)
+---
 ---@param name portName
 ---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return smtp
@@ -21,25 +25,29 @@ function Smtp.new(name, timeout) end
 ---@class smtp
 smtp = {}
 
+---
 ---Send AUTH LOGIN command to authenticate with SMTP server.
+---
 ---@param username string SMTP username/email address.
 ---@param password password SMTP password.
 ---@return nil
 function smtp:authLogin(username, password) end
 
+---
 ---Send EHLO (Extended Hello) command to SMTP server to initiate session and discover server capabilities.
+---
 ---@return nil
 function smtp:ehlo() end
 
 ---
 ---Send an email with MAIL, RCPT and DATA commands.
 ---
----[SMTP demo](../demo/smtp.lua)
----
 ---@param mail SmtpMail
 ---@return nil
 function smtp:send(mail) end
 
+---
 ---Send QUIT command to SMTP server to end communication.
+---
 ---@return nil
 function smtp:quit() end

@@ -37,7 +37,6 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
       m_io(new IO(this)),
       m_key(new Key(this)),
       m_modbusAscii(new ModbusAscii(this)),
-      m_modbusRtu(new ModbusRtu(this)),
       m_modbusTcp(new ModbusTcp(this)),
       m_mouse(new Mouse(this)),
       m_mqtt(new Mqtt(this)),
@@ -159,23 +158,27 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         key.set_function("type", [](const std::string &text) { Key::type(text); });
         m_lua["key"] = key;
     }
+    // ModbusRtu lib (instance)
+    {
+        m_lua.new_usertype<ModbusRtu>(
+            "ModbusRtu",
+            sol::no_constructor,
+            sol::meta_function::garbage_collect, [](ModbusRtu *) {
+            },
+            "readHoldingRegisters", &ModbusRtu::readHoldingRegisters,
+            "writeSingleRegister", &ModbusRtu::writeSingleRegister,
+            "writeMultipleRegisters", &ModbusRtu::writeMultipleRegisters
+        );
+        auto modbusRtu = m_lua.create_table();
+        modbusRtu.set_function("new", [this](const std::string &portName, const int slaveAddr, const sol::optional<int> timeout) {
+            auto *obj = new ModbusRtu(this);
+            obj->init(portName, slaveAddr, timeout.value_or(1000));
+            return obj;
+        });
+        m_lua["ModbusRtu"] = modbusRtu;
+    }
     // LuaModbus lib (static)
     {
-        auto modbusRtu = m_lua.create_table();
-        modbusRtu.set_function("readHoldingRegisters",
-                               [](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-                                   return ModbusRtu::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
-                               });
-        modbusRtu.set_function("writeSingleRegister",
-                               [](const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const sol::optional<int> timeout) {
-                                   ModbusRtu::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
-                               });
-        modbusRtu.set_function("writeMultipleRegisters",
-                               [](const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const sol::optional<int> timeout) {
-                                   ModbusRtu::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
-                               });
-        m_lua["modbusRtu"] = modbusRtu;
-
         sol::table modbusAscii = m_lua.create_table();
         modbusAscii.set_function("readHoldingRegisters",
                                  [](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {

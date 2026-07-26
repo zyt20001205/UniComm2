@@ -14,7 +14,6 @@ class Imap;
 class IO;
 class Key;
 class ModbusAscii;
-class ModbusRtu;
 class ModbusTcp;
 class Mouse;
 class Mqtt;
@@ -73,7 +72,6 @@ private:
     IO *m_io{};
     Key *m_key{};
     ModbusAscii *m_modbusAscii{};
-    ModbusRtu *m_modbusRtu{};
     ModbusTcp *m_modbusTcp{};
     Mouse *m_mouse{};
     Mqtt *m_mqtt{};

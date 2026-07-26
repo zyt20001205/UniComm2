@@ -5,7 +5,6 @@
 
 #include "globals.h"
 #include "port/visa.h"
-#include "util/suffixUtils.h"
 #include "util/uniCast.h"
 
 // public
@@ -91,8 +90,8 @@ bool Visa::write(const QByteArray &txData, const QString &txFormat, const QStrin
     if (!txSuffix.isEmpty()) m_portConfig["txSuffix"] = txSuffix;
     QByteArray f_txData = txData;
     if (m_portConfig["txSuffix"].toString() == "crlf") f_txData += "\r\n";
-    else if (m_portConfig["txSuffix"].toString() == "modbus crc") f_txData += modbusCRC(f_txData);
-    else if (m_portConfig["txSuffix"].toString() == "modbus lrc") f_txData += modbusLRC(f_txData);
+    else if (m_portConfig["txSuffix"].toString() == "modbus crc") f_txData += uni_cast<ModbusCRC>(f_txData).value;
+    else if (m_portConfig["txSuffix"].toString() == "modbus lrc") f_txData += uni_cast<ModbusLRC>(f_txData).value;
     // call handle write
     return handleWrite(f_txData);
 }

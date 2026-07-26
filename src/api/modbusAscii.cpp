@@ -5,7 +5,7 @@
 #include "globals.h"
 #include "port/basePort.h"
 #include "port/portModule.h"
-#include "util/suffixUtils.h"
+#include "util/uniCast.h"
 
 ModbusAscii::ModbusAscii(QObject *parent)
     : QObject(parent) {
@@ -46,7 +46,7 @@ std::string ModbusAscii::readHoldingRegisters(const std::string &portName, const
         exception = "modbus ascii read holding registers function code inconsistent";
     else if (rxData.mid(5, 2).toUInt(nullptr, 16) != quantity * 2)
         exception = "modbus ascii read holding registers byte count inconsistent";
-    else if (rxData.right(4) != modbusLRC(rxData.chopped(4)))
+    else if (rxData.right(4) != uni_cast<ModbusLRC>(rxData.chopped(4)).value)
         exception = "modbus ascii read holding registers checksum error";
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 
@@ -88,7 +88,7 @@ void ModbusAscii::writeSingleRegister(const std::string &portName, const int sla
         exception = "modbus ascii write single register function code inconsistent";
     else if (rxData.mid(5, 4).toUInt(nullptr, 16) != regAddr)
         exception = "modbus ascii write single register register address inconsistent";
-    else if (rxData.right(4) != modbusLRC(rxData.chopped(4)))
+    else if (rxData.right(4) != uni_cast<ModbusLRC>(rxData.chopped(4)).value)
         exception = "modbus ascii write single register checksum error";
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
@@ -131,7 +131,7 @@ void ModbusAscii::writeMultipleRegisters(const std::string &portName, const int 
         exception = "modbus ascii write multiple registers function code inconsistent";
     else if (rxData.mid(5, 4).toUInt(nullptr, 16) != startAddr)
         exception = "modbus ascii write multiple registers register address inconsistent";
-    else if (rxData.right(4) != modbusLRC(rxData.chopped(4)))
+    else if (rxData.right(4) != uni_cast<ModbusLRC>(rxData.chopped(4)).value)
         exception = "modbus ascii write multiple registers checksum error";
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }

@@ -7,8 +7,16 @@
 #include <vterm.h>
 #include <vterm_keycodes.h>
 
-struct TerminalCell;
+template<typename D, typename S>
+[[nodiscard]] D uni_cast(const S& s, int depth = 0);
 
+template<typename D, typename S>
+[[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
+
+template<typename D, typename S>
+[[nodiscard]] D uni_cast(const VTermScreen *vts, const S& s, int depth = 0);
+
+// lua -> qt
 struct LUrl {
     QString value;
     LUrl(QString s) : value(std::move(s)) {}
@@ -21,46 +29,6 @@ struct LPath {
     operator QString() const { return value; }
 };
 
-struct QFileIcon {
-    QUrl value;
-    QFileIcon(QUrl s) : value(std::move(s)) {}
-    operator QUrl() const { return value; }
-};
-
-struct QHtmlString {
-    QString value;
-    QHtmlString(QString s) : value(std::move(s)) {}
-    operator QString() const { return value; }
-};
-
-struct QFullHtmlString {
-    QString value;
-    QFullHtmlString(QString s) : value(std::move(s)) {}
-    operator QString() const { return value; }
-};
-
-struct QLifetime {
-    QString value;
-    QLifetime(QString s) : value(std::move(s)) {}
-    operator QString() const { return value; }
-};
-
-struct VTermButton {
-    int value;
-    VTermButton(int s) : value(s) {}
-    operator int() const { return value; }
-};
-
-template<typename D, typename S>
-[[nodiscard]] D uni_cast(const S& s, int depth = 0);
-
-template<typename D, typename S>
-[[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
-
-template<typename D, typename S>
-[[nodiscard]] D uni_cast(const VTermScreen *vts, const S& s, int depth = 0);
-
-// lua -> qt
 template<>
 [[nodiscard]] QUrl uni_cast<QUrl, LUrl>(const LUrl &s, int depth);
 
@@ -94,6 +62,30 @@ template<>
 [[nodiscard]] sol::table uni_cast<sol::table, QSet<QString>>(sol::this_state ts, const QSet<QString> &s, int depth);
 
 // qt -> qt
+struct QFileIcon {
+    QUrl value;
+    QFileIcon(QUrl s) : value(std::move(s)) {}
+    operator QUrl() const { return value; }
+};
+
+struct QHtmlString {
+    QString value;
+    QHtmlString(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
+struct QFullHtmlString {
+    QString value;
+    QFullHtmlString(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
+struct QLifetime {
+    QString value;
+    QLifetime(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
 template<>
 [[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);
 
@@ -109,11 +101,38 @@ template<>
 template<>
 [[nodiscard]] QLifetime uni_cast<QLifetime, qint64>(const qint64 &s, int depth);
 
+// qt -> suffix
+struct ModbusCRC {
+    QByteArray value;
+    ModbusCRC(QByteArray s) : value(std::move(s)) {}
+    operator QByteArray() const { return value; }
+};
+
+template<>
+[[nodiscard]] ModbusCRC uni_cast<ModbusCRC, QByteArray>(const QByteArray &s, int depth);
+
+struct ModbusLRC {
+    QByteArray value;
+    ModbusLRC(QByteArray s) : value(std::move(s)) {}
+    operator QByteArray() const { return value; }
+};
+
+template<>
+[[nodiscard]] ModbusLRC uni_cast<ModbusLRC, QByteArray>(const QByteArray &s, int depth);
+
 // vterm -> qt
+struct TerminalCell;
+
 template<>
 [[nodiscard]] TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, const VTermScreenCell &s, int depth);
 
 // qt-> vterm
+struct VTermButton {
+    int value;
+    VTermButton(int s) : value(s) {}
+    operator int() const { return value; }
+};
+
 template<>
 [[nodiscard]] VTermButton uni_cast<VTermButton, int>(const int &s, int depth);
 
