@@ -3,18 +3,18 @@
 ---@class Http
 Http = {}
 
+---Create an HTTP instance over an existing port.
+---@param name portName Target port name.
+---@param timeout? integer (default: 30000) Maximum time in **milliseconds** to wait for data to arrive.
+---@return http
+function Http.new(name, timeout) end
+
 ---@class HttpResponse
 ---@field version string HTTP version from the status line.
 ---@field statusCode integer HTTP status code.
 ---@field reason string HTTP reason phrase.
 ---@field header table<string, string> Response headers with lowercase names.
 ---@field body string Raw response body. Empty for a HEAD response.
-
----Create an HTTP instance over an existing port.
----@param name portName Target port name.
----@param timeout? integer (default: 30000) Maximum time in **milliseconds** to wait for data to arrive.
----@return http
-function Http.new(name, timeout) end
 
 ---@class http
 http = {}

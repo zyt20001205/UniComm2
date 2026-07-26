@@ -1,5 +1,7 @@
 #include "document/assistant/dwellWidget.h"
 
+#include <QCoreApplication>
+#include <QDir>
 #include <QJsonArray>
 
 #include "globals.h"

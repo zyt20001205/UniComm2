@@ -9,6 +9,15 @@ Smtp = {}
 ---@return smtp
 function Smtp.new(name, timeout) end
 
+---@class (exact) SmtpMail
+---@field from string Sender email address.
+---@field to string|string[] Primary recipient or list of recipients.
+---@field cc? string|string[] Carbon-copy recipient or list of recipients.
+---@field bcc? string|string[] Blind-carbon-copy recipient or list of recipients.
+---@field subject string Message subject.
+---@field body string Message body.
+---@field attachment? string|string[] Attachment path or list of attachment paths.
+
 ---@class smtp
 smtp = {}
 
@@ -22,16 +31,14 @@ function smtp:authLogin(username, password) end
 ---@return nil
 function smtp:ehlo() end
 
+---
 ---Send an email with MAIL, RCPT and DATA commands.
----@param from string
----@param to string | table
----@param cc string | table | nil
----@param bcc string | table | nil
----@param subject string
----@param body string
----@param attachment? string (default: "") Path to the attachment; when omitted, no attachment is sent.
+---
+---[SMTP demo](../demo/smtp.lua)
+---
+---@param mail SmtpMail
 ---@return nil
-function smtp:send(from, to, cc, bcc, subject, body, attachment) end
+function smtp:send(mail) end
 
 ---Send QUIT command to SMTP server to end communication.
 ---@return nil

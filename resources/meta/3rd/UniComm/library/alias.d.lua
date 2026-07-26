@@ -4,7 +4,9 @@
 ---| string
 ---| '"__PLACEHOLDER__PORTNAME__"'
 
----@alias password "__PLACEHOLDER__PASSWORD__"
+---@alias password
+---| string
+---| '"__PLACEHOLDER__PASSWORD__"'
 
 ---Shows an input dialog for variable assignment.
 ---@return string

@@ -4,11 +4,7 @@
 #include <QVariant>
 #include <sol/table.hpp>
 
-#include <string>
-
-class TcpServer;
-class QTcpServer;
-class QTcpSocket;
+class BasePort;
 
 class Ftp final : public QObject {
     Q_OBJECT
@@ -78,39 +74,11 @@ private:
         };
     };
 
-    struct Options {
-        QByteArray username{};
-        QByteArray password{};
-        bool allowAnonymous{true};
-        int maxAttempts{1};
-    };
-
-    struct Session {
-        int state{StatusCode::ServiceReady};
-        QByteArray username{};
-        QByteArray transferType{"A"};
-        int attempts{};
-        QTcpServer *dataServer{};
-        QTcpSocket *dataSocket{};
-    };
-
-    void handleConnected(const QString &peerIp);
-
-    void handleDisconnected(const QString &peerIp);
-
-    void handleReadyRead(const QString &peerIp);
-
-    static void closeDataConnection(Session &session);
-
-    [[nodiscard]] QVariantHash parser(const QString &peerIp, Session &session, const QByteArray &rxData);
-
-    [[nodiscard]] static QByteArray assembler(int statusCode, quint16 dataPort = 0);
+    [[nodiscard]] QVariantHash parser(const QByteArray &rxData);
 
     std::string m_portName{};
     int m_timeout{};
-    TcpServer *m_port{};
-    Options m_options{};
-    QHash<QString, Session> m_sessions{};
+    BasePort *m_port{};
 };
 
 #endif //UNICOMM_FTP_H

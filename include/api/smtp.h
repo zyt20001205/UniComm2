@@ -2,7 +2,7 @@
 #define UNICOMM_SMTP_H
 
 #include <QObject>
-#include <sol/object.hpp>
+#include <sol/table.hpp>
 
 class BasePort;
 
@@ -20,21 +20,11 @@ public:
 
     void ehlo() const;
 
-    void _send(const std::string &from, const sol::object &to, const sol::object &cc, const sol::object &bcc, const std::string &subject, const std::string &body,
-              const std::string &attachment) const;
-
-    void send(const std::string &from, const sol::object &to, const sol::object &cc, const sol::object &bcc, const std::string &subject, const std::string &body,
-              const sol::optional<std::string> &attachment) const;
+    void send(const sol::table &mail) const;
 
     void quit() const;
 
 private:
-    [[nodiscard]] static QString parser(const QByteArray &rxData);
-
-    std::string m_portName{};
-    int m_timeout{};
-    BasePort *m_port{};
-
     struct StatusCode {
         // https://www.iana.org/assignments/smtp-enhanced-status-codes/smtp-enhanced-status-codes.xhtml#smtp-enhanced-status-codes-3
         enum {
@@ -90,6 +80,17 @@ private:
             DomainDoesNotAcceptMail = 556
         };
     };
+
+    struct Result {
+        int code{};
+        QString exception{};
+    };
+
+    [[nodiscard]] static Result parser(const QByteArray &rxData);
+
+    std::string m_portName{};
+    int m_timeout{};
+    BasePort *m_port{};
 };
 
 #endif //UNICOMM_SMTP_H
