@@ -55,9 +55,7 @@ sol::object Http::put(const sol::this_state ts, const std::string &target, const
 // private
 sol::object Http::request(const sol::this_state ts, const QByteArray &method, const std::string &target, const sol::optional<sol::table> &header,
                           const sol::optional<std::string> &body) const {
-    QString exception{};
-    QVariantHash parsed{};
-
+    Result result{};
     QByteArray txData = method + " " + QByteArray::fromStdString(target) + " HTTP/1.1\r\n";
     txData += "Host: " + m_remoteHost + "\r\n";
     const auto _body = body.has_value() ? QByteArray::fromStdString(body.value()) : QByteArray{};
@@ -77,38 +75,24 @@ sol::object Http::request(const sol::this_state ts, const QByteArray &method, co
     txData += "\r\n";
     if (body.has_value()) txData += _body;
 
-    QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &method, &txData] {
-        if (!m_port->open()) {
-            exception = "open failed";
-            return;
-        }
+    QMetaObject::invokeMethod(m_port, [this, &method, &txData]() -> Result {
+        if (!m_port->open()) return {.exception = "open failed"};
 
-        if (!m_port->write(txData, "utf-8", "null")) {
-            exception = "write failed";
-            return;
-        }
+        if (!m_port->write(txData, "utf-8", "null")) return {.exception = "write failed"};
 
         const QByteArray rxHeader = m_port->readUntil("\r\n\r\n", m_timeout, "utf-8");
-        if (rxHeader.isEmpty()) {
-            exception = "read timeout";
-            return;
-        }
+        if (rxHeader.isEmpty()) return {.exception = "read timeout"};
 
-        parsed = parser(rxHeader);
-        exception = parsed.take("exception").toString();
-        if (!exception.isEmpty() || method == "HEAD") return;
+        auto parsed = parser(rxHeader);
+        if (!parsed.exception.isEmpty() || method == "HEAD") return parsed;
 
-        const auto responseHeader = parsed.value("header").toHash();
         QByteArray rxBody{};
 
-        if (responseHeader.value("transfer-encoding").toString().contains("chunked", Qt::CaseInsensitive)) {
+        if (parsed.header.value("transfer-encoding").toString().contains("chunked", Qt::CaseInsensitive)) {
             while (true) {
                 // size line
                 auto sizeLine = m_port->readUntil("\r\n", m_timeout, "utf-8");
-                if (sizeLine.isEmpty()) {
-                    exception = "read timeout";
-                    return;
-                }
+                if (sizeLine.isEmpty()) return {.exception = "read timeout"};
                 // remove eol
                 sizeLine.chop(2);
                 // remove trailer: "1000;some-extension=value\r\n"
@@ -117,63 +101,60 @@ sol::object Http::request(const sol::this_state ts, const QByteArray &method, co
                 // get chunk size
                 bool ok{};
                 const auto chunkSize = sizeLine.trimmed().toInt(&ok, 16);
-                if (!ok || chunkSize < 0) {
-                    exception = "invalid HTTP chunk size";
-                    return;
-                }
+                if (!ok || chunkSize < 0) return {.exception = "invalid HTTP chunk size"};
 
                 // dump trailer
                 if (chunkSize == 0) {
                     while (true) {
                         const auto trailer = m_port->readUntil("\r\n", m_timeout, "utf-8");
-                        if (trailer.isEmpty()) {
-                            exception = "read timeout";
-                            return;
-                        }
+                        if (trailer.isEmpty()) return {.exception = "read timeout"};
                         if (trailer == "\r\n") break;
                     }
                     break;
                 }
                 // read chunk
                 const auto data = m_port->read(chunkSize, m_timeout, "utf-8");
-                if (data.size() != chunkSize) {
-                    exception = "read timeout";
-                    return;
-                }
+                if (data.size() != chunkSize) return {.exception = "read timeout"};
                 rxBody += data;
                 // dump delimiter
-                if (m_port->read(2, m_timeout, "utf-8") != "\r\n") {
-                    exception = "invalid HTTP chunk delimiter";
-                    return;
-                }
+                if (m_port->read(2, m_timeout, "utf-8") != "\r\n") return {.exception = "invalid HTTP chunk delimiter"};
             }
         } else {
-            const int contentLength = responseHeader.value("content-length").toInt();
+            const int contentLength = parsed.header.value("content-length").toInt();
             if (contentLength > 0) {
                 rxBody = m_port->read(contentLength, m_timeout, "utf-8");
-                if (rxBody.size() != contentLength) {
-                    exception = "read timeout";
-                    return;
-                }
+                if (rxBody.size() != contentLength) return {.exception = "read timeout"};
             }
         }
-        parsed["body"] = rxBody;
-    }, Qt::BlockingQueuedConnection);
+        parsed.body = rxBody;
+        return parsed;
+    }, Qt::BlockingQueuedConnection, &result);
 
-    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
-    return uni_cast<sol::object>(ts, parsed);
+    if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
+    const QVariantHash response{
+        {"version", result.version},
+        {"statusCode", result.statusCode},
+        {"reason", result.reason},
+        {"header", result.header},
+        {"body", result.body}
+    };
+    return uni_cast<sol::object>(ts, response);
 }
 
-QVariantHash Http::parser(const QByteArray &rxData) {
+Http::Result Http::parser(const QByteArray &rxData) {
     // status line
     const auto eol = rxData.indexOf("\r\n");
-    if (eol == -1) return {{"exception", "invalid HTTP status line"}};
+    if (eol == -1) return {.exception = "invalid HTTP status line"};
     const auto line = rxData.first(eol);
-    const auto space = line.indexOf(' ');
-    if (space == -1) return {{"exception", "invalid HTTP status line"}};
-    const auto version = QString::fromUtf8(line.first(space));
-    const auto statusCode = line.mid(space + 1, 3).toInt();
-    const auto reason = QString::fromUtf8(line.mid(space + 5));
+    const auto space1 = line.indexOf(' ');
+    if (space1 == -1) return {.exception = "invalid HTTP status line"};
+    const auto space2 = line.indexOf(' ', space1 + 1);
+    bool validStatusCode{};
+    const auto version = QString::fromUtf8(line.first(space1));
+    const auto status = space2 == -1 ? line.sliced(space1 + 1) : line.sliced(space1 + 1, space2 - space1 - 1);
+    const auto statusCode = status.toInt(&validStatusCode);
+    const auto reason = space2 == -1 ? QString{} : QString::fromUtf8(line.sliced(space2 + 1));
+    if (!validStatusCode) return {.exception = "invalid HTTP status line"};
 
     // header
     QVariantHash header{};
@@ -194,11 +175,5 @@ QVariantHash Http::parser(const QByteArray &rxData) {
         pos = _eol + 2;
     }
 
-    return {
-        {"version", version},
-        {"statusCode", statusCode},
-        {"reason", reason},
-        {"header", header},
-        {"body", QByteArray{}}
-    };
+    return {version, statusCode, reason, header, {}, {}};
 }

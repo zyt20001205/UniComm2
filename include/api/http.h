@@ -32,16 +32,6 @@ public:
     [[nodiscard]] sol::object put(sol::this_state ts, const std::string &target, const sol::optional<sol::table> &header, const sol::optional<std::string> &body) const;
 
 private:
-    [[nodiscard]] sol::object request(sol::this_state ts, const QByteArray &method, const std::string &target, const sol::optional<sol::table> &header,
-                                      const sol::optional<std::string> &body) const;
-
-    [[nodiscard]] static QVariantHash parser(const QByteArray &rxData);
-
-    std::string m_portName{};
-    int m_timeout{};
-    QByteArray m_remoteHost{};
-    BasePort *m_port{};
-
     struct StatusCode {
         // https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
         enum {
@@ -116,6 +106,25 @@ private:
             NetworkAuthenticationRequired = 511
         };
     };
+
+    struct Result {
+        QString version{};
+        int statusCode{};
+        QString reason{};
+        QVariantHash header{};
+        QByteArray body{};
+        QString exception{};
+    };
+
+    [[nodiscard]] sol::object request(sol::this_state ts, const QByteArray &method, const std::string &target, const sol::optional<sol::table> &header,
+                                      const sol::optional<std::string> &body) const;
+
+    [[nodiscard]] static Result parser(const QByteArray &rxData);
+
+    std::string m_portName{};
+    int m_timeout{};
+    QByteArray m_remoteHost{};
+    BasePort *m_port{};
 };
 
 #endif //UNICOMM_HTTP_H
