@@ -2,7 +2,9 @@
 #define UNICOMM_IMAP_H
 
 #include <QObject>
+#include <QVariant>
 #include <sol/object.hpp>
+#include <variant>
 
 class BasePort;
 
@@ -30,7 +32,26 @@ signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
 private:
-    [[nodiscard]] QVariantHash parser(const QByteArray &command, const QByteArray &rxData);
+    struct Untagged {
+        QByteArray value{};
+    };
+
+    struct Continuation {
+        QByteArray value{};
+    };
+
+    struct Tagged {
+        QByteArray tag{};
+        QByteArray code{};
+        QByteArray text{};
+    };
+
+    struct Result {
+        std::variant<std::monostate, Untagged, Continuation, Tagged> value{};
+        QString exception{};
+    };
+
+    [[nodiscard]] static Result parser(const QByteArray &rxData);
 
     [[nodiscard]] static QString continuationParser(const QByteArray &command, const QByteArray &rxData);
 

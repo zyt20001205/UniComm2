@@ -24,345 +24,358 @@ void Imap::init(const std::string &portName, const int timeout) {
     m_port = port.value();
 
     QString exception{};
-    QMetaObject::invokeMethod(m_port, [&exception, this] {
-        if (!m_port->open()) {
-            exception = "open failed";
-            return;
-        }
 
-        QByteArray rxData{};
+    QMetaObject::invokeMethod(m_port, [this]() -> QString {
+        if (!m_port->open()) return "open failed";
 
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            const auto session = parser("GREET", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-        else return;
-    }, Qt::BlockingQueuedConnection);
+        const auto rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+        const auto result = parser(rxData);
+        if (!result.exception.isEmpty()) return result.exception;
+        const auto untagged = std::get_if<Untagged>(&result.value);
+        if (!untagged) return "invalid imap greeting";
+
+        const auto space = untagged->value.indexOf(' ');
+        if (space == -1) return "invalid imap greeting";
+        const auto code = untagged->value.first(space);
+        if (code == "OK" || code == "PREAUTH") return {};
+
+        const auto text = QString::fromUtf8(untagged->value.sliced(space + 1));
+        if (!text.isEmpty()) return text;
+        return "unexpected imap response(" + QString::fromUtf8(code) + ")";
+    }, Qt::BlockingQueuedConnection, &exception);
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
 int Imap::idle(const sol::optional<int> timeout) {
-    QString exception{};
-    int sequenceNumber{};
-    const auto _timeout = timeout.value_or(600000);
-
-    const QByteArray txData =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "IDLE";
-
-    QMetaObject::invokeMethod(m_port, [&exception, &sequenceNumber, this, &txData, &_timeout] {
-        QByteArray rxData{};
-        QVariantHash session{};
-
-        if (!m_port->write(txData, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-        else return;
-
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", _timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") {
-            sequenceNumber = session["EXISTS"].toInt();
-            exception = "";
-        } else return;
-
-        if (!m_port->write("DONE", "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-        else return;
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
-    return sequenceNumber;
+    // QString exception{};
+    // int sequenceNumber{};
+    // const auto _timeout = timeout.value_or(600000);
+    //
+    // const QByteArray txData =
+    //         'A'
+    //         + QByteArray::number(m_count).rightJustified(3, '0')
+    //         + ' '
+    //         + "IDLE";
+    //
+    // QMetaObject::invokeMethod(m_port, [&exception, &sequenceNumber, this, &txData, &_timeout] {
+    //     QByteArray rxData{};
+    //     QVariantHash session{};
+    //
+    //     if (!m_port->write(txData, "utf-8", "crlf")) {
+    //         exception = "write failed";
+    //         return;
+    //     }
+    //
+    //     while (exception.isEmpty()) {
+    //         rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //         session = parser("IDLE", rxData);
+    //         exception = session["exception"].toString();
+    //     }
+    //     if (exception == "end") exception = "";
+    //     else return;
+    //
+    //     while (exception.isEmpty()) {
+    //         rxData = m_port->readUntil("\r\n", _timeout, "utf-8");
+    //         session = parser("IDLE", rxData);
+    //         exception = session["exception"].toString();
+    //     }
+    //     if (exception == "end") {
+    //         sequenceNumber = session["EXISTS"].toInt();
+    //         exception = "";
+    //     } else return;
+    //
+    //     if (!m_port->write("DONE", "utf-8", "crlf")) {
+    //         exception = "write failed";
+    //         return;
+    //     }
+    //
+    //     while (exception.isEmpty()) {
+    //         rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //         session = parser("IDLE", rxData);
+    //         exception = session["exception"].toString();
+    //     }
+    //     if (exception == "end") exception = "";
+    //     else return;
+    // }, Qt::BlockingQueuedConnection);
+    // if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+    // return sequenceNumber;
+    return {};
 }
 
 void Imap::login(const std::string &username, const std::string &password) {
-    QString exception{};
-    const QByteArray txData =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "LOGIN"
-            + ' '
-            + QByteArray::fromStdString(username)
-            + ' '
-            + QByteArray::fromStdString(password);
-
-    QMetaObject::invokeMethod(m_port, [&exception, this, &txData] {
-        QByteArray rxData{};
-
-        if (!m_port->write(txData, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            exception = parser("LOGIN", rxData)["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-        else return;
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+    // QString exception{};
+    // const QByteArray txData =
+    //         'A'
+    //         + QByteArray::number(m_count).rightJustified(3, '0')
+    //         + ' '
+    //         + "LOGIN"
+    //         + ' '
+    //         + QByteArray::fromStdString(username)
+    //         + ' '
+    //         + QByteArray::fromStdString(password);
+    //
+    // QMetaObject::invokeMethod(m_port, [&exception, this, &txData] {
+    //     QByteArray rxData{};
+    //
+    //     if (!m_port->write(txData, "utf-8", "crlf")) {
+    //         exception = "write failed";
+    //         return;
+    //     }
+    //
+    //     while (exception.isEmpty()) {
+    //         rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //         exception = parser("LOGIN", rxData)["exception"].toString();
+    //     }
+    //     if (exception == "end") exception = "";
+    //     else return;
+    // }, Qt::BlockingQueuedConnection);
+    // if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
 void Imap::select(const std::string &mailbox) {
-    QString exception{};
-    const QByteArray txData =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "SELECT"
-            + ' '
-            + QByteArray::fromStdString(mailbox);
-
-    QMetaObject::invokeMethod(m_port, [&exception, this, &txData] {
-        QByteArray rxData{};
-
-        if (!m_port->write(txData, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            const auto session = parser("SELECT", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+    // QString exception{};
+    // const QByteArray txData =
+    //         'A'
+    //         + QByteArray::number(m_count).rightJustified(3, '0')
+    //         + ' '
+    //         + "SELECT"
+    //         + ' '
+    //         + QByteArray::fromStdString(mailbox);
+    //
+    // QMetaObject::invokeMethod(m_port, [&exception, this, &txData] {
+    //     QByteArray rxData{};
+    //
+    //     if (!m_port->write(txData, "utf-8", "crlf")) {
+    //         exception = "write failed";
+    //         return;
+    //     }
+    //
+    //     while (exception.isEmpty()) {
+    //         rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //         const auto session = parser("SELECT", rxData);
+    //         exception = session["exception"].toString();
+    //     }
+    //     if (exception == "end") exception = "";
+    // }, Qt::BlockingQueuedConnection);
+    // if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
 sol::object Imap::fetch(const sol::this_state ts, const int sequenceNumber) {
-    QString exception{};
-    QVariantHash parsed{};
-    const QByteArray txData =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "FETCH"
-            + ' '
-            + QByteArray::number(sequenceNumber)
-            + ' '
-            + "BODY.PEEK[]";
-
-    QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &txData] {
-        QByteArray rxData{};
-        QVariantHash session{};
-        int size{};
-
-        if (!m_port->write(txData, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            session = parser("FETCH", rxData);
-            exception = session["exception"].toString();
-            size = session["size"].toInt();
-        }
-        if (exception == "end") exception = "";
-
-        rxData = m_port->read(size, m_timeout, "utf-8");
-        parsed = fetchParser(rxData);
-        // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
-        rxData = m_port->read(3, m_timeout, "utf-8");
-
-        while (exception.isEmpty()) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
-    return uni_cast<sol::object>(ts, parsed);
+    // QString exception{};
+    // QVariantHash parsed{};
+    // const QByteArray txData =
+    //         'A'
+    //         + QByteArray::number(m_count).rightJustified(3, '0')
+    //         + ' '
+    //         + "FETCH"
+    //         + ' '
+    //         + QByteArray::number(sequenceNumber)
+    //         + ' '
+    //         + "BODY.PEEK[]";
+    //
+    // QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &txData] {
+    //     QByteArray rxData{};
+    //     QVariantHash session{};
+    //     int size{};
+    //
+    //     if (!m_port->write(txData, "utf-8", "crlf")) {
+    //         exception = "write failed";
+    //         return;
+    //     }
+    //
+    //     while (exception.isEmpty()) {
+    //         rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //         session = parser("FETCH", rxData);
+    //         exception = session["exception"].toString();
+    //         size = session["size"].toInt();
+    //     }
+    //     if (exception == "end") exception = "";
+    //
+    //     rxData = m_port->read(size, m_timeout, "utf-8");
+    //     parsed = fetchParser(rxData);
+    //     // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
+    //     rxData = m_port->read(3, m_timeout, "utf-8");
+    //
+    //     while (exception.isEmpty()) {
+    //         rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //         session = parser("IDLE", rxData);
+    //         exception = session["exception"].toString();
+    //     }
+    //     if (exception == "end") exception = "";
+    // }, Qt::BlockingQueuedConnection);
+    // if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+    // return uni_cast<sol::object>(ts, parsed);
+    return {};
 }
 
 void Imap::receive(const sol::optional<std::string> &from, const sol::optional<std::string> &path, const sol::optional<int> timeout) {
-    QString exception{};
-    QVariantHash parsed{};
-    const auto _from = from.value_or("");
-    const auto _path = path.value_or("");
-    const auto _timeout = timeout.value_or(600000);
-
-    QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &_from, &_timeout] {
-        QElapsedTimer timer{};
-        timer.start();
-
-        QByteArray rxData{};
-        QVariantHash session{};
-        int sequenceNumber{};
-        int size{};
-
-        while (true) {
-            // IDLE
-            const QByteArray txData1 =
-                    'A'
-                    + QByteArray::number(m_count).rightJustified(3, '0')
-                    + ' '
-                    + "IDLE";
-
-            if (!m_port->write(txData1, "utf-8", "crlf")) {
-                exception = "write failed";
-                return;
-            }
-
-            while (exception.isEmpty()) {
-                rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-                session = parser("IDLE", rxData);
-                exception = session["exception"].toString();
-            }
-            if (exception == "end") exception = "";
-            else return;
-
-            while (exception.isEmpty()) {
-                const int remaining = _timeout - static_cast<int>(timer.elapsed());
-                qDebug() << "remaining" << remaining;
-                rxData = m_port->readUntil("\r\n", remaining, "utf-8");
-                session = parser("IDLE", rxData);
-                exception = session["exception"].toString();
-            }
-            if (exception == "end") {
-                sequenceNumber = session["EXISTS"].toInt();
-                exception = "";
-            } else return;
-
-            if (!m_port->write("DONE", "utf-8", "crlf")) {
-                exception = "write failed";
-                return;
-            }
-
-            while (exception.isEmpty()) {
-                rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-                session = parser("IDLE", rxData);
-                exception = session["exception"].toString();
-            }
-            if (exception == "end") exception = "";
-            else return;
-
-            // FETCH
-            const QByteArray txData2 =
-                    'A'
-                    + QByteArray::number(m_count).rightJustified(3, '0')
-                    + ' '
-                    + "FETCH"
-                    + ' '
-                    + QByteArray::number(sequenceNumber)
-                    + ' '
-                    + "BODY.PEEK[]";
-
-            if (!m_port->write(txData2, "utf-8", "crlf")) {
-                exception = "write failed";
-                return;
-            }
-
-            while (exception.isEmpty()) {
-                rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-                session = parser("FETCH", rxData);
-                exception = session["exception"].toString();
-                size = session["size"].toInt();
-            }
-            if (exception == "end") exception = "";
-            else return;
-
-            rxData = m_port->read(size, m_timeout, "utf-8");
-            parsed = fetchParser(rxData);
-            // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
-            rxData = m_port->read(3, m_timeout, "utf-8");
-
-            while (exception.isEmpty()) {
-                rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-                session = parser("IDLE", rxData);
-                exception = session["exception"].toString();
-            }
-            if (exception == "end") exception = "";
-            else return;
-
-            // check sender
-            if (_from.empty()) break;
-            const auto sender = QString::fromStdString(_from);
-            const auto header = parsed["header"].toHash();
-            if (header["From"].toString().contains(sender)) break;
-        }
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
-    const LPath luaPath = QString::fromStdString(_path);
-    const auto folderUrl = uni_cast<QUrl>(luaPath);
-    const QDir dir(folderUrl.toLocalFile());
-    if (!dir.exists()) {
-        if (!dir.mkpath(".")) throw sol::error("invalid path");
-    }
-    // save body
-    const auto bodyList = parsed["body"].toList();
-    for (const auto &value: bodyList) {
-        const auto body = value.toHash();
-        const auto type = body["Content-Type"].toString();
-        QString fileName{};
-        if (type.contains("text/plain")) {
-            fileName = "body.txt";
-        } else if (type.contains("text/html")) {
-            fileName = "body.html";
-        } else {
-            emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported body (content-type:%1)").arg(type));
-            continue;
-        }
-        QFile file(dir.filePath(fileName));
-        if (file.open(QIODevice::WriteOnly)) {
-            file.write(body["Data"].toByteArray());
-            file.close();
-        }
-    }
-    // save attachment
-    const auto attachmentList = parsed["attachment"].toList();
-    for (const auto &value: attachmentList) {
-        const auto attachment = value.toHash();
-        const auto disposition = attachment["Content-Disposition"].toByteArray();
-        // extract fileName
-        const auto quote1 = disposition.indexOf('"', disposition.indexOf("filename"));
-        if (quote1 == -1) continue;
-        const auto quote2 = disposition.indexOf('"', quote1 + 1);
-        if (quote2 == -1) continue;
-        const auto fileName = rfc2047Parser(disposition.mid(quote1 + 1, quote2 - quote1 - 1));
-        QFile file(dir.filePath(fileName));
-        if (file.open(QIODevice::WriteOnly)) {
-            file.write(attachment["Data"].toByteArray());
-            file.close();
-        }
-    }
+    // QString exception{};
+    // QVariantHash parsed{};
+    // const auto _from = from.value_or("");
+    // const auto _path = path.value_or("");
+    // const auto _timeout = timeout.value_or(600000);
+    //
+    // QMetaObject::invokeMethod(m_port, [&exception, &parsed, this, &_from, &_timeout] {
+    //     QElapsedTimer timer{};
+    //     timer.start();
+    //
+    //     QByteArray rxData{};
+    //     QVariantHash session{};
+    //     int sequenceNumber{};
+    //     int size{};
+    //
+    //     while (true) {
+    //         // IDLE
+    //         const QByteArray txData1 =
+    //                 'A'
+    //                 + QByteArray::number(m_count).rightJustified(3, '0')
+    //                 + ' '
+    //                 + "IDLE";
+    //
+    //         if (!m_port->write(txData1, "utf-8", "crlf")) {
+    //             exception = "write failed";
+    //             return;
+    //         }
+    //
+    //         while (exception.isEmpty()) {
+    //             rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //             session = parser("IDLE", rxData);
+    //             exception = session["exception"].toString();
+    //         }
+    //         if (exception == "end") exception = "";
+    //         else return;
+    //
+    //         while (exception.isEmpty()) {
+    //             const int remaining = _timeout - static_cast<int>(timer.elapsed());
+    //             qDebug() << "remaining" << remaining;
+    //             rxData = m_port->readUntil("\r\n", remaining, "utf-8");
+    //             session = parser("IDLE", rxData);
+    //             exception = session["exception"].toString();
+    //         }
+    //         if (exception == "end") {
+    //             sequenceNumber = session["EXISTS"].toInt();
+    //             exception = "";
+    //         } else return;
+    //
+    //         if (!m_port->write("DONE", "utf-8", "crlf")) {
+    //             exception = "write failed";
+    //             return;
+    //         }
+    //
+    //         while (exception.isEmpty()) {
+    //             rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //             session = parser("IDLE", rxData);
+    //             exception = session["exception"].toString();
+    //         }
+    //         if (exception == "end") exception = "";
+    //         else return;
+    //
+    //         // FETCH
+    //         const QByteArray txData2 =
+    //                 'A'
+    //                 + QByteArray::number(m_count).rightJustified(3, '0')
+    //                 + ' '
+    //                 + "FETCH"
+    //                 + ' '
+    //                 + QByteArray::number(sequenceNumber)
+    //                 + ' '
+    //                 + "BODY.PEEK[]";
+    //
+    //         if (!m_port->write(txData2, "utf-8", "crlf")) {
+    //             exception = "write failed";
+    //             return;
+    //         }
+    //
+    //         while (exception.isEmpty()) {
+    //             rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //             session = parser("FETCH", rxData);
+    //             exception = session["exception"].toString();
+    //             size = session["size"].toInt();
+    //         }
+    //         if (exception == "end") exception = "";
+    //         else return;
+    //
+    //         rxData = m_port->read(size, m_timeout, "utf-8");
+    //         parsed = fetchParser(rxData);
+    //         // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
+    //         rxData = m_port->read(3, m_timeout, "utf-8");
+    //
+    //         while (exception.isEmpty()) {
+    //             rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
+    //             session = parser("IDLE", rxData);
+    //             exception = session["exception"].toString();
+    //         }
+    //         if (exception == "end") exception = "";
+    //         else return;
+    //
+    //         // check sender
+    //         if (_from.empty()) break;
+    //         const auto sender = QString::fromStdString(_from);
+    //         const auto header = parsed["header"].toHash();
+    //         if (header["From"].toString().contains(sender)) break;
+    //     }
+    // }, Qt::BlockingQueuedConnection);
+    // if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+    // const LPath luaPath = QString::fromStdString(_path);
+    // const auto folderUrl = uni_cast<QUrl>(luaPath);
+    // const QDir dir(folderUrl.toLocalFile());
+    // if (!dir.exists()) {
+    //     if (!dir.mkpath(".")) throw sol::error("invalid path");
+    // }
+    // // save body
+    // const auto bodyList = parsed["body"].toList();
+    // for (const auto &value: bodyList) {
+    //     const auto body = value.toHash();
+    //     const auto type = body["Content-Type"].toString();
+    //     QString fileName{};
+    //     if (type.contains("text/plain")) {
+    //         fileName = "body.txt";
+    //     } else if (type.contains("text/html")) {
+    //         fileName = "body.html";
+    //     } else {
+    //         emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported body (content-type:%1)").arg(type));
+    //         continue;
+    //     }
+    //     QFile file(dir.filePath(fileName));
+    //     if (file.open(QIODevice::WriteOnly)) {
+    //         file.write(body["Data"].toByteArray());
+    //         file.close();
+    //     }
+    // }
+    // // save attachment
+    // const auto attachmentList = parsed["attachment"].toList();
+    // for (const auto &value: attachmentList) {
+    //     const auto attachment = value.toHash();
+    //     const auto disposition = attachment["Content-Disposition"].toByteArray();
+    //     // extract fileName
+    //     const auto quote1 = disposition.indexOf('"', disposition.indexOf("filename"));
+    //     if (quote1 == -1) continue;
+    //     const auto quote2 = disposition.indexOf('"', quote1 + 1);
+    //     if (quote2 == -1) continue;
+    //     const auto fileName = rfc2047Parser(disposition.mid(quote1 + 1, quote2 - quote1 - 1));
+    //     QFile file(dir.filePath(fileName));
+    //     if (file.open(QIODevice::WriteOnly)) {
+    //         file.write(attachment["Data"].toByteArray());
+    //         file.close();
+    //     }
+    // }
 }
 
 // private
-QVariantHash Imap::parser(const QByteArray &command, const QByteArray &rxData) {
-    if (rxData.isEmpty()) return {{"exception", "read timeout"}};
-    if (rxData.startsWith('+')) return {{"exception", continuationParser(command, rxData.trimmed())}};
-    if (rxData.startsWith('A')) return {{"exception", taggedParser(command, rxData.trimmed())}};
-    if (rxData.startsWith('*')) return untaggedParser(command, rxData.trimmed());
-    return {{"exception", "contact author: unsupported tagged response(" + QString::fromUtf8(rxData) + ")"}};
+Imap::Result Imap::parser(const QByteArray &rxData) {
+    if (rxData.isEmpty()) return {std::monostate{}, "read timeout"};
+
+    const auto response = rxData.trimmed();
+    // Continuation
+    if (response.startsWith('+')) return {Continuation{response.sliced(1).trimmed()}, {}};
+    // Untagged
+    if (response.startsWith('*')) return {Untagged{response.sliced(1).trimmed()}, {}};
+    // Tagged
+    const auto space1 = response.indexOf(' ');
+    if (space1 == -1) return {std::monostate{}, "invalid imap tagged response"};
+    const auto space2 = response.indexOf(' ', space1 + 1);
+    if (space2 == -1) return {std::monostate{}, "invalid imap tagged response"};
+    return {Tagged{response.first(space1), response.sliced(space1 + 1, space2 - space1 - 1), response.sliced(space2 + 1)}, {}};
 }
 
 QString Imap::continuationParser(const QByteArray &command, const QByteArray &rxData) {
