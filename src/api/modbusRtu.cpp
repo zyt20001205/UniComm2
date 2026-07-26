@@ -1,6 +1,7 @@
 #include "api/modbusRtu.h"
 
 #include <sol/error.hpp>
+#include <sol/state_view.hpp>
 
 #include "globals.h"
 #include "port/basePort.h"
@@ -22,32 +23,50 @@ void ModbusRtu::init(const std::string &portName, const int slaveAddr, const int
     m_port = port.value();
 }
 
+sol::table ModbusRtu::readCoils(const sol::this_state ts, const int startAddr, const int quantity) const {
+    return readBits(ts, FuncCode::ReadCoils, startAddr, quantity);
+}
+
+sol::table ModbusRtu::readDiscreteInputs(const sol::this_state ts, const int startAddr, const int quantity) const {
+    return readBits(ts, FuncCode::ReadDiscreteInputs, startAddr, quantity);
+}
+
 std::string ModbusRtu::readHoldingRegisters(const int startAddr, const int quantity) const {
+    return readRegisters(FuncCode::ReadHoldingRegisters, startAddr, quantity);
+}
+
+std::string ModbusRtu::readInputRegisters(const int startAddr, const int quantity) const {
+    return readRegisters(FuncCode::ReadInputRegisters, startAddr, quantity);
+}
+
+void ModbusRtu::writeSingleCoil(const int coilAddr, const bool value) const {
     Result result{};
+    QByteArray coilValue{};
+    coilValue.append(static_cast<char>(value ? 0xFF : 0x00));
+    coilValue.append('\0');
     QByteArray txData{};
     txData.append(static_cast<qint8>(m_slaveAddr));
-    txData.append(FuncCode::ReadHoldingRegisters);
-    txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(startAddr & 0xFF));
-    txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(quantity & 0xFF));
-    const int length = quantity * 2 + 5;
+    txData.append(FuncCode::WriteSingleCoil);
+    txData.append(static_cast<qint8>(coilAddr >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(coilAddr & 0xFF));
+    txData += coilValue;
 
-    QMetaObject::invokeMethod(m_port, [this, &txData, &length] -> Result {
+    QMetaObject::invokeMethod(m_port, [this, &txData] -> Result {
         if (!m_port->write(txData, "hex", "modbus crc")) return {{}, "write failed"};
 
-        auto rxData = m_port->read(length, m_timeout, "hex");
+        auto rxData = m_port->read(8, m_timeout, "hex");
         if (rxData.isEmpty()) rxData = m_port->read(0, 0, "hex");
 
-        return parser(FuncCode::ReadHoldingRegisters, rxData);
+        return parser(FuncCode::WriteSingleCoil, rxData);
     }, Qt::BlockingQueuedConnection, &result);
     if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
 
-    if (static_cast<quint8>(result.data.at(0)) != quantity * 2)
-        throw sol::error(m_portName + ": modbus rtu read holding registers byte count inconsistent");
-
-    const QByteArray regData = result.data.sliced(1);
-    return {regData.constData(), static_cast<std::string::size_type>(regData.size())};
+    if (result.data.size() != 4)
+        throw sol::error(m_portName + ": invalid modbus rtu write single coil response");
+    if ((static_cast<quint8>(result.data.at(0)) << 8 | static_cast<quint8>(result.data.at(1))) != coilAddr)
+        throw sol::error(m_portName + ": modbus rtu write single coil coil address inconsistent");
+    if (result.data.sliced(2) != coilValue)
+        throw sol::error(m_portName + ": modbus rtu write single coil coil value inconsistent");
 }
 
 void ModbusRtu::writeSingleRegister(const int regAddr, const std::string &data) const {
@@ -76,6 +95,44 @@ void ModbusRtu::writeSingleRegister(const int regAddr, const std::string &data) 
         throw sol::error(m_portName + ": modbus rtu write single register register address inconsistent");
     if (result.data.sliced(2) != value)
         throw sol::error(m_portName + ": modbus rtu write single register register value inconsistent");
+}
+
+void ModbusRtu::writeMultipleCoils(const int startAddr, const sol::table &values) const {
+    Result result{};
+    const int quantity = static_cast<int>(values.size());
+    const int byteCount = (quantity + 7) / 8;
+    QByteArray coilData(byteCount, '\0');
+    for (int i = 0; i < quantity; ++i) {
+        if (values.get<bool>(i + 1))
+            coilData[i / 8] = static_cast<char>(static_cast<quint8>(coilData.at(i / 8)) | 1U << (i % 8));
+    }
+
+    QByteArray txData{};
+    txData.append(static_cast<qint8>(m_slaveAddr));
+    txData.append(FuncCode::WriteMultipleCoils);
+    txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(startAddr & 0xFF));
+    txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(quantity & 0xFF));
+    txData.append(static_cast<qint8>(byteCount));
+    txData += coilData;
+
+    QMetaObject::invokeMethod(m_port, [this, &txData] -> Result {
+        if (!m_port->write(txData, "hex", "modbus crc")) return {{}, "write failed"};
+
+        auto rxData = m_port->read(8, m_timeout, "hex");
+        if (rxData.isEmpty()) rxData = m_port->read(0, 0, "hex");
+
+        return parser(FuncCode::WriteMultipleCoils, rxData);
+    }, Qt::BlockingQueuedConnection, &result);
+    if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
+
+    if (result.data.size() != 4)
+        throw sol::error(m_portName + ": invalid modbus rtu write multiple coils response");
+    if ((static_cast<quint8>(result.data.at(0)) << 8 | static_cast<quint8>(result.data.at(1))) != startAddr)
+        throw sol::error(m_portName + ": modbus rtu write multiple coils start address inconsistent");
+    if ((static_cast<quint8>(result.data.at(2)) << 8 | static_cast<quint8>(result.data.at(3))) != quantity)
+        throw sol::error(m_portName + ": modbus rtu write multiple coils quantity inconsistent");
 }
 
 void ModbusRtu::writeMultipleRegisters(const int startAddr, const std::string &data) const {
@@ -112,6 +169,68 @@ void ModbusRtu::writeMultipleRegisters(const int startAddr, const std::string &d
 }
 
 // private
+sol::table ModbusRtu::readBits(const sol::this_state ts, const int funcCode, const int startAddr, const int quantity) const {
+    Result result{};
+    QByteArray txData{};
+    txData.append(static_cast<qint8>(m_slaveAddr));
+    txData.append(static_cast<qint8>(funcCode));
+    txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(startAddr & 0xFF));
+    txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(quantity & 0xFF));
+    const int byteCount = (quantity + 7) / 8;
+    const int length = byteCount + 5;
+
+    QMetaObject::invokeMethod(m_port, [this, &txData, length, funcCode] -> Result {
+        if (!m_port->write(txData, "hex", "modbus crc")) return {{}, "write failed"};
+
+        auto rxData = m_port->read(length, m_timeout, "hex");
+        if (rxData.isEmpty()) rxData = m_port->read(0, 0, "hex");
+
+        return parser(funcCode, rxData);
+    }, Qt::BlockingQueuedConnection, &result);
+    if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
+
+    if (result.data.size() != byteCount + 1 || static_cast<quint8>(result.data.at(0)) != byteCount)
+        throw sol::error(m_portName + ": modbus rtu read bits byte count inconsistent");
+
+    const QByteArray bitData = result.data.sliced(1);
+    sol::state_view lua(ts);
+    auto values = lua.create_table(quantity, 0);
+    for (int i = 0; i < quantity; ++i)
+        values[i + 1] = (static_cast<quint8>(bitData.at(i / 8)) & 1U << (i % 8)) != 0;
+    return values;
+}
+
+std::string ModbusRtu::readRegisters(const int funcCode, const int startAddr, const int quantity) const {
+    Result result{};
+    QByteArray txData{};
+    txData.append(static_cast<qint8>(m_slaveAddr));
+    txData.append(static_cast<qint8>(funcCode));
+    txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(startAddr & 0xFF));
+    txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(quantity & 0xFF));
+    const int byteCount = quantity * 2;
+    const int length = byteCount + 5;
+
+    QMetaObject::invokeMethod(m_port, [this, &txData, length, funcCode] -> Result {
+        if (!m_port->write(txData, "hex", "modbus crc")) return {{}, "write failed"};
+
+        auto rxData = m_port->read(length, m_timeout, "hex");
+        if (rxData.isEmpty()) rxData = m_port->read(0, 0, "hex");
+
+        return parser(funcCode, rxData);
+    }, Qt::BlockingQueuedConnection, &result);
+    if (!result.exception.isEmpty()) throw sol::error(m_portName + ": " + result.exception.toStdString());
+
+    if (result.data.size() != byteCount + 1 || static_cast<quint8>(result.data.at(0)) != byteCount)
+        throw sol::error(m_portName + ": modbus rtu read registers byte count inconsistent");
+
+    const QByteArray regData = result.data.sliced(1);
+    return {regData.constData(), static_cast<std::string::size_type>(regData.size())};
+}
+
 ModbusRtu::Result ModbusRtu::parser(const int funcCode, const QByteArray &rxData) const {
     if (rxData.isEmpty()) return {{}, "read timeout"};
     if (rxData.size() < 5) return {{}, "invalid modbus rtu response"};

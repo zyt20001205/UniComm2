@@ -2,6 +2,12 @@
 port.open("COM10")
 local modbusAscii = ModbusAscii.new("COM10", 1, 1000)
 
+-- Read multiple coil states.
+local coils = modbusAscii:readCoils(0, 10)
+
+-- Read multiple discrete input states.
+local inputs = modbusAscii:readDiscreteInputs(0, 10)
+
 -- Read a single 16-bit register.
 local raw = modbusAscii:readHoldingRegisters(0, 1)
 local data = string.unpack(">i2", raw)
@@ -10,9 +16,24 @@ local data = string.unpack(">i2", raw)
 local raw = modbusAscii:readHoldingRegisters(0, 2)
 local data = string.unpack(">i4", raw)
 
+-- Read two consecutive 16-bit input registers.
+local raw = modbusAscii:readInputRegisters(0, 2)
+local data = string.unpack(">i4", raw)
+
+-- Write a single coil state.
+modbusAscii:writeSingleCoil(0, true)
+
 -- Write a single 16-bit value.
 local raw = string.pack(">i2", 200)
 modbusAscii:writeSingleRegister(0, string.toHex(raw))
+
+-- Write multiple coil states.
+modbusAscii:writeMultipleCoils(0, {
+    true,
+    false,
+    true,
+    true
+})
 
 -- Write multiple consecutive 16-bit registers.
 local raw = string.pack(">i4", 1000000)

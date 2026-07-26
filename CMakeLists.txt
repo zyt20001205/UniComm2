@@ -252,6 +252,10 @@ target_compile_options(UniComm PRIVATE
         $<$<CONFIG:Release>:-g1>
 )
 
+if(MINGW)
+    set_source_files_properties(src/runtime/luaInterpreter.cpp PROPERTIES COMPILE_OPTIONS "-Wa,-mbig-obj")
+endif()
+
 if(FALSE)
     #auto deploy(do not use)
     add_custom_command(TARGET UniComm POST_BUILD

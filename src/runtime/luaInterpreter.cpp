@@ -163,8 +163,13 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](ModbusAscii *) {
             },
+            "readCoils", &ModbusAscii::readCoils,
+            "readDiscreteInputs", &ModbusAscii::readDiscreteInputs,
             "readHoldingRegisters", &ModbusAscii::readHoldingRegisters,
+            "readInputRegisters", &ModbusAscii::readInputRegisters,
+            "writeSingleCoil", &ModbusAscii::writeSingleCoil,
             "writeSingleRegister", &ModbusAscii::writeSingleRegister,
+            "writeMultipleCoils", &ModbusAscii::writeMultipleCoils,
             "writeMultipleRegisters", &ModbusAscii::writeMultipleRegisters
         );
         auto modbusAscii = m_lua.create_table();
@@ -182,8 +187,13 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](ModbusRtu *) {
             },
+            "readCoils", &ModbusRtu::readCoils,
+            "readDiscreteInputs", &ModbusRtu::readDiscreteInputs,
             "readHoldingRegisters", &ModbusRtu::readHoldingRegisters,
+            "readInputRegisters", &ModbusRtu::readInputRegisters,
+            "writeSingleCoil", &ModbusRtu::writeSingleCoil,
             "writeSingleRegister", &ModbusRtu::writeSingleRegister,
+            "writeMultipleCoils", &ModbusRtu::writeMultipleCoils,
             "writeMultipleRegisters", &ModbusRtu::writeMultipleRegisters
         );
         auto modbusRtu = m_lua.create_table();
@@ -201,8 +211,13 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](ModbusTcp *) {
             },
+            "readCoils", &ModbusTcp::readCoils,
+            "readDiscreteInputs", &ModbusTcp::readDiscreteInputs,
             "readHoldingRegisters", &ModbusTcp::readHoldingRegisters,
+            "readInputRegisters", &ModbusTcp::readInputRegisters,
+            "writeSingleCoil", &ModbusTcp::writeSingleCoil,
             "writeSingleRegister", &ModbusTcp::writeSingleRegister,
+            "writeMultipleCoils", &ModbusTcp::writeMultipleCoils,
             "writeMultipleRegisters", &ModbusTcp::writeMultipleRegisters
         );
         auto modbusTcp = m_lua.create_table();

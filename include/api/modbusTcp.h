@@ -2,6 +2,7 @@
 #define UNICOMM_MODBUSTCP_H
 
 #include <QObject>
+#include <sol/table.hpp>
 
 class BasePort;
 
@@ -15,9 +16,19 @@ public:
 
     void init(const std::string &portName, int transactionId, int unitId, int timeout);
 
+    [[nodiscard]] sol::table readCoils(sol::this_state ts, int startAddr, int quantity) const;
+
+    [[nodiscard]] sol::table readDiscreteInputs(sol::this_state ts, int startAddr, int quantity) const;
+
     [[nodiscard]] std::string readHoldingRegisters(int startAddr, int quantity) const;
 
+    [[nodiscard]] std::string readInputRegisters(int startAddr, int quantity) const;
+
+    void writeSingleCoil(int coilAddr, bool value) const;
+
     void writeSingleRegister(int regAddr, const std::string &data) const;
+
+    void writeMultipleCoils(int startAddr, const sol::table &values) const;
 
     void writeMultipleRegisters(int startAddr, const std::string &data) const;
 
@@ -57,6 +68,10 @@ private:
         QByteArray data{};
         QString exception{};
     };
+
+    [[nodiscard]] sol::table readBits(sol::this_state ts, int funcCode, int startAddr, int quantity) const;
+
+    [[nodiscard]] std::string readRegisters(int funcCode, int startAddr, int quantity) const;
 
     [[nodiscard]] Result parser(int funcCode, const QByteArray &rxData) const;
 
