@@ -10,13 +10,11 @@ class QEventLoop;
 class QStandardItemModel;
 class Data;
 class File;
-class Imap;
 class IO;
 class Key;
 class Mouse;
 class Mqtt;
 class Port;
-class Smtp;
 class String;
 class Thread;
 
@@ -66,13 +64,11 @@ private:
     QVariantMap m_luaSession{};
     Data *m_data{};
     File *m_file{};
-    Imap *m_imap{};
     IO *m_io{};
     Key *m_key{};
     Mouse *m_mouse{};
     Mqtt *m_mqtt{};
     Port *m_port{};
-    Smtp *m_smtp{};
     String *m_string{};
     Thread *m_thread{};
 };

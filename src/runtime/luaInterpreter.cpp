@@ -33,13 +33,11 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
       m_luaSession(luaSession),
       m_data(new Data(this)),
       m_file(new File(this)),
-      m_imap(new Imap(this)),
       m_io(new IO(this)),
       m_key(new Key(this)),
       m_mouse(new Mouse(this)),
       m_mqtt(new Mqtt(this)),
       m_port(new Port(this)),
-      m_smtp(new Smtp(this)),
       m_string(new String(this)),
       m_thread(new Thread(this)) {
     // LuaStandard lib
