@@ -18,15 +18,12 @@ public:
 
     void init(const std::string &portName, int timeout);
 
-    [[nodiscard]] int idle(sol::optional<int> timeout);
-
     void login(const std::string &username, const std::string &password);
 
-    void select(const std::string &mailbox);
+    [[nodiscard]] sol::object receive(sol::this_state ts, const sol::optional<std::string> &from,
+                                      const sol::optional<std::string> &path, sol::optional<int> timeout);
 
-    [[nodiscard]] sol::object fetch(sol::this_state ts, int sequenceNumber);
-
-    void receive(const sol::optional<std::string> &from, const sol::optional<std::string> &path, sol::optional<int> timeout);
+    void logout();
 
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
@@ -53,13 +50,9 @@ private:
 
     [[nodiscard]] static Result parser(const QByteArray &rxData);
 
-    [[nodiscard]] static QString continuationParser(const QByteArray &command, const QByteArray &rxData);
+    [[nodiscard]] QByteArray nextTag();
 
-    [[nodiscard]] QString taggedParser(const QByteArray &command, const QByteArray &rxData);
-
-    [[nodiscard]] static QVariantHash untaggedParser(const QByteArray &command, const QByteArray &rxData);
-
-    [[nodiscard]] static QVariantHash fetchParser(const QByteArray &rxData);
+    [[nodiscard]] static QVariantHash mailParser(const QByteArray &rxData);
 
     [[nodiscard]] QByteArray rfc2047Parser(const QByteArray &text);
 
