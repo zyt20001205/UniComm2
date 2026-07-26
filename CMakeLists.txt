@@ -250,6 +250,7 @@ target_compile_definitions(UniComm PRIVATE
 target_compile_options(UniComm PRIVATE
         $<$<CONFIG:Debug>:-g>
         $<$<CONFIG:Release>:-g1>
+        $<$<CONFIG:Release>:-fno-omit-frame-pointer>
 )
 
 if(MINGW)
