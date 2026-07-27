@@ -87,16 +87,6 @@ void ConfigManager::workspaceInit() {
         // validation document config
         {
             QJsonObject documentConfig = jsonObject["documentConfig"].toObject();
-            // remove invalid document url in document list
-            QJsonArray validDocumentList;
-            for (const auto &value: documentConfig["documentList"].toArray()) {
-                if (const auto documentUrl = QUrl(value.toString()); QFileInfo::exists(documentUrl.toLocalFile())) {
-                    validDocumentList.append(value);
-                } else {
-                    qDebug() << "invalid document url found in document list:" << documentUrl;
-                }
-            }
-            documentConfig["documentList"] = validDocumentList;
             // remove invalid document url in breakpoint hash
             QJsonObject breakpointHash = documentConfig["breakpointHash"].toObject();
             QJsonObject validBreakpointHash;

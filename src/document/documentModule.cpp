@@ -74,15 +74,12 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
 
-    for (const auto &value: m_config["documentList"].toArray()) {
-        documentOpen(QUrl(value.toString()));
-    }
-    const auto focusedUrl = QUrl(m_config["documentFocused"].toString());
-    if (!focusedUrl.isEmpty() && m_pageHash.contains(focusedUrl)) {
-        QTimer::singleShot(0, this, [this, focusedUrl] {
-            m_pageHash[focusedUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
-        });
-    }
+    // const auto focusedUrl = QUrl(m_config["documentFocused"].toString());
+    // if (!focusedUrl.isEmpty() && m_pageHash.contains(focusedUrl)) {
+    //     QTimer::singleShot(0, this, [this, focusedUrl] {
+    //         m_pageHash[focusedUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+    //     });
+    // }
 
     m_welcomePage->propertySet(QVariantHash{
     });
@@ -93,12 +90,9 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
 void DocumentModule::documentConfigSave() {
     m_watcher->blockSignals(true);
     // save config
-    QJsonArray documentList{};
     for (const auto &url: m_pageHash.keys()) {
         documentSave(url);
-        documentList.append(url.toString());
     }
-    m_config["documentList"] = documentList;
     if (m_focusedUrl.isEmpty()) {
         m_config["documentFocused"] = "";
     } else {
@@ -121,141 +115,146 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 }
 
 // public: file
+BasePage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
+    BasePage *documentPage{};
+    // special page
+    if (g_globalManager->gitEnabledGet()) {
+        QProcess process{};
+        process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
+        process.start("git", {"diff", "--name-only", "--diff-filter=U", "--", documentUrl.toLocalFile()});
+        process.waitForFinished(300);
+        if (process.exitCode() == 0 && !process.readAllStandardOutput().isEmpty()) {
+            documentPage = new ConflictPage(m_config, documentUrl);
+            auto *conflictPage = qobject_cast<ConflictPage *>(documentPage);
+            conflictPage->propertySet(QVariantHash{
+                {"theme", m_theme},
+                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
+            });
+            connect(conflictPage, &ConflictPage::isFocusedChanged, this, [this, conflictPage](const bool status) { documentFocus(conflictPage, status); });
+            connect(conflictPage, &ConflictPage::changeSelection, this, &DocumentModule::changeSelection);
+            connect(conflictPage, &ConflictPage::reloadDocument, this, &DocumentModule::documentReload);
+        }
+    }
+    // normal page
+    if (!documentPage) {
+        const auto documentPath = documentUrl.toLocalFile();
+        const QFileInfo documentInfo(documentPath);
+        const auto suffix = documentInfo.suffix().toLower();
+        const QStringList codeType = {"lua"};
+        // image page
+        if (QImageReader::supportedImageFormats().contains(suffix)) {
+            documentPage = new ImagePage(m_config, documentUrl);
+            auto *imagePage = qobject_cast<ImagePage *>(documentPage);
+            imagePage->propertySet(QVariantHash{
+            });
+        }
+        // code page
+        else if (codeType.contains(suffix)) {
+            documentPage = new CodePage(m_config, documentUrl);
+            auto *codePage = qobject_cast<CodePage *>(documentPage);
+            codePage->propertySet(QVariantHash{
+                {"theme", m_theme},
+                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
+                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
+                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
+                {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
+            });
+            connect(codePage, &CodePage::isFocusedChanged, this, [this, codePage](const bool status) { documentFocus(codePage, status); });
+            connect(codePage, &CodePage::appendLog, this, &DocumentModule::appendLog);
+            connect(codePage, &CodePage::startThread, this, &DocumentModule::startThread);
+            connect(codePage, &CodePage::changeSelection, this, &DocumentModule::changeSelection);
+            connect(codePage, &CodePage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
+            connect(codePage, &CodePage::removeBreakpoint, this, &DocumentModule::removeBreakpoint);
+            connect(codePage, &CodePage::notificationJson, this, &DocumentModule::notificationJson);
+            connect(codePage, &CodePage::requestCompletion, this, &DocumentModule::completionRequest);
+            connect(codePage, &CodePage::requestDefinition, this, &DocumentModule::definitionRequest);
+            connect(codePage, &CodePage::requestDocumentHighlight, this, &DocumentModule::documentHighlightRequest);
+            connect(codePage, &CodePage::requestDocumentSymbol, this, &DocumentModule::documentSymbolRequest);
+            connect(codePage, &CodePage::requestFoldingRange, this, &DocumentModule::foldingRangeRequest);
+            connect(codePage, &CodePage::requestFormatting, this, &DocumentModule::formattingRequest);
+            connect(codePage, &CodePage::requestHover, this, &DocumentModule::hoverRequest);
+            connect(codePage, &CodePage::requestImplementation, this, &DocumentModule::implementationRequest);
+            connect(codePage, &CodePage::requestOnTypeFormatting, this, &DocumentModule::onTypeFormattingRequest);
+            connect(codePage, &CodePage::requestReferences, this, &DocumentModule::referencesRequest);
+            connect(codePage, &CodePage::requestSemanticTokens, this, &DocumentModule::semanticTokensRequest);
+            connect(codePage, &CodePage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
+            connect(codePage, &CodePage::requestSpellCheck, this, &DocumentModule::requestSpellCheck);
+            connect(codePage, &CodePage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
+            connect(codePage, &CodePage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
+            codePage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
+        }
+        // markdown page
+        else if (suffix == "md") {
+            documentPage = new MarkdownPage(m_config, documentUrl);
+            auto *markdownPage = qobject_cast<MarkdownPage *>(documentPage);
+            markdownPage->propertySet(QVariantHash{
+                {"theme", m_theme},
+                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
+                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)}
+            });
+            connect(markdownPage, &MarkdownPage::isFocusedChanged, this, [this, markdownPage](const bool status) { documentFocus(markdownPage, status); });
+            connect(markdownPage, &MarkdownPage::changeSelection, this, &DocumentModule::changeSelection);
+        }
+        // pdf page
+        else if (suffix == "pdf") {
+            documentPage = new PdfPage(m_config, documentUrl);
+            auto *pdfPage = qobject_cast<PdfPage *>(documentPage);
+            pdfPage->propertySet(QVariantHash{
+            });
+        }
+        // text page
+        else {
+            documentPage = new TextPage(m_config, documentUrl);
+            auto *textPage = qobject_cast<TextPage *>(documentPage);
+            textPage->propertySet(QVariantHash{
+                {"theme", m_theme},
+                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
+                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
+            });
+            connect(textPage, &TextPage::isFocusedChanged, this, [this, textPage](const bool status) { documentFocus(textPage, status); });
+            connect(textPage, &TextPage::appendLog, this, &DocumentModule::appendLog);
+            connect(textPage, &TextPage::changeSelection, this, &DocumentModule::changeSelection);
+        }
+    }
+    // path disambiguation
+    bool conflict = false;
+    for (const auto &url: m_pageHash.keys()) {
+        if (url.fileName() == documentUrl.fileName()) {
+            conflict = true;
+            auto *page = m_pageHash[url];
+            page->pathDisambiguation();
+        }
+    }
+    if (conflict) documentPage->pathDisambiguation();
+    m_watcher->addPath(documentUrl.toLocalFile());
+    m_pageHash[documentUrl] = documentPage;
+    connect(documentPage, &BasePage::closeDocument, this, &DocumentModule::documentClose);
+    return documentPage;
+}
+
 void DocumentModule::documentOpen(const QUrl &documentUrl) {
     // open page
     if (!m_pageHash.contains(documentUrl)) {
-        BasePage *newPage{};
-        // special page
-        if (g_globalManager->gitEnabledGet()) {
-            QProcess process{};
-            process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
-            process.start("git", {"diff", "--name-only", "--diff-filter=U", "--", documentUrl.toLocalFile()});
-            process.waitForFinished(300);
-            if (process.exitCode() == 0 && !process.readAllStandardOutput().isEmpty()) {
-                newPage = new ConflictPage(m_config, documentUrl);
-                auto *conflictPage = qobject_cast<ConflictPage *>(newPage);
-                conflictPage->propertySet(QVariantHash{
-                    {"theme", m_theme},
-                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
-                });
-                connect(conflictPage, &ConflictPage::isFocusedChanged, this, [this, conflictPage](const bool status) { documentFocus(conflictPage, status); });
-                connect(conflictPage, &ConflictPage::changeSelection, this, &DocumentModule::changeSelection);
-                connect(conflictPage, &ConflictPage::reloadDocument, this, &DocumentModule::documentReload);
-            }
-        }
-        // normal page
-        if (!newPage) {
-            const auto documentPath = documentUrl.toLocalFile();
-            const QFileInfo documentInfo(documentPath);
-            const auto suffix = documentInfo.suffix().toLower();
-            const QStringList codeType = {"lua"};
-            // image page
-            if (QImageReader::supportedImageFormats().contains(suffix)) {
-                newPage = new ImagePage(m_config, documentUrl);
-                auto *imagePage = qobject_cast<ImagePage *>(newPage);
-                imagePage->propertySet(QVariantHash{
-                });
-            }
-            // code page
-            else if (codeType.contains(suffix)) {
-                newPage = new CodePage(m_config, documentUrl);
-                auto *codePage = qobject_cast<CodePage *>(newPage);
-                codePage->propertySet(QVariantHash{
-                    {"theme", m_theme},
-                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-                    {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
-                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                    {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
-                    {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
-                });
-                connect(codePage, &CodePage::isFocusedChanged, this, [this, codePage](const bool status) { documentFocus(codePage, status); });
-                connect(codePage, &CodePage::appendLog, this, &DocumentModule::appendLog);
-                connect(codePage, &CodePage::startThread, this, &DocumentModule::startThread);
-                connect(codePage, &CodePage::changeSelection, this, &DocumentModule::changeSelection);
-                connect(codePage, &CodePage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
-                connect(codePage, &CodePage::removeBreakpoint, this, &DocumentModule::removeBreakpoint);
-                connect(codePage, &CodePage::notificationJson, this, &DocumentModule::notificationJson);
-                connect(codePage, &CodePage::requestCompletion, this, &DocumentModule::completionRequest);
-                connect(codePage, &CodePage::requestDefinition, this, &DocumentModule::definitionRequest);
-                connect(codePage, &CodePage::requestDocumentHighlight, this, &DocumentModule::documentHighlightRequest);
-                connect(codePage, &CodePage::requestDocumentSymbol, this, &DocumentModule::documentSymbolRequest);
-                connect(codePage, &CodePage::requestFoldingRange, this, &DocumentModule::foldingRangeRequest);
-                connect(codePage, &CodePage::requestFormatting, this, &DocumentModule::formattingRequest);
-                connect(codePage, &CodePage::requestHover, this, &DocumentModule::hoverRequest);
-                connect(codePage, &CodePage::requestImplementation, this, &DocumentModule::implementationRequest);
-                connect(codePage, &CodePage::requestOnTypeFormatting, this, &DocumentModule::onTypeFormattingRequest);
-                connect(codePage, &CodePage::requestReferences, this, &DocumentModule::referencesRequest);
-                connect(codePage, &CodePage::requestSemanticTokens, this, &DocumentModule::semanticTokensRequest);
-                connect(codePage, &CodePage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
-                connect(codePage, &CodePage::requestSpellCheck, this, &DocumentModule::requestSpellCheck);
-                connect(codePage, &CodePage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
-                connect(codePage, &CodePage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
-                codePage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
-            }
-            // markdown page
-            else if (suffix == "md") {
-                newPage = new MarkdownPage(m_config, documentUrl);
-                auto *markdownPage = qobject_cast<MarkdownPage *>(newPage);
-                markdownPage->propertySet(QVariantHash{
-                    {"theme", m_theme},
-                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                    {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)}
-                });
-                connect(markdownPage, &MarkdownPage::isFocusedChanged, this, [this, markdownPage](const bool status) { documentFocus(markdownPage, status); });
-                connect(markdownPage, &MarkdownPage::changeSelection, this, &DocumentModule::changeSelection);
-            }
-            // pdf page
-            else if (suffix == "pdf") {
-                newPage = new PdfPage(m_config, documentUrl);
-                auto *pdfPage = qobject_cast<PdfPage *>(newPage);
-                pdfPage->propertySet(QVariantHash{
-                });
-            }
-            // text page
-            else {
-                newPage = new TextPage(m_config, documentUrl);
-                auto *textPage = qobject_cast<TextPage *>(newPage);
-                textPage->propertySet(QVariantHash{
-                    {"theme", m_theme},
-                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                    {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
-                });
-                connect(textPage, &TextPage::isFocusedChanged, this, [this, textPage](const bool status) { documentFocus(textPage, status); });
-                connect(textPage, &TextPage::appendLog, this, &DocumentModule::appendLog);
-                connect(textPage, &TextPage::changeSelection, this, &DocumentModule::changeSelection);
-            }
-        }
-        // path disambiguation
-        bool conflict = false;
-        for (const auto &url: m_pageHash.keys()) {
-            if (url.fileName() == documentUrl.fileName()) {
-                conflict = true;
-                auto *page = m_pageHash[url];
-                page->pathDisambiguation();
-            }
-        }
-        if (conflict) newPage->pathDisambiguation();
-        m_watcher->addPath(documentUrl.toLocalFile());
-        m_pageHash[documentUrl] = newPage;
-        if (qobject_cast<MarkdownPage *>(newPage)) {
-            newPage->setFloating(true);
-            newPage->open();
+        const auto documentPage = documentConstruct(documentUrl);
+        if (qobject_cast<MarkdownPage *>(documentPage)) {
+            documentPage->setFloating(true);
+            documentPage->open();
         }
         if (m_focusedUrl.isEmpty()) {
             m_welcomePage->open();
-            m_welcomePage->addDockWidgetAsTab(newPage);
+            m_welcomePage->addDockWidgetAsTab(documentPage);
             m_welcomePage->close();
         } else {
-            m_pageHash[m_focusedUrl]->addDockWidgetAsTab(newPage);
+            m_pageHash[m_focusedUrl]->addDockWidgetAsTab(documentPage);
         }
-        connect(newPage, &BasePage::closeDocument, this, &DocumentModule::documentClose);
         emit appendLog(LogLevel::Info, "document opened", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
     }
     m_pageHash[documentUrl]->raise();

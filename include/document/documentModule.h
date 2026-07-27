@@ -38,6 +38,8 @@ public:
 
     void scriptFontSave(const QJsonObject &fontConfigScript);
 
+    [[nodiscard]] BasePage* documentConstruct(const QUrl &documentUrl);
+
     Q_INVOKABLE void documentOpen(const QUrl &documentUrl);
 
     void documentGoto(const QUrl &documentUrl) const;
