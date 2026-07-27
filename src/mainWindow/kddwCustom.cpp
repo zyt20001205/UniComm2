@@ -2,10 +2,23 @@
 
 #include <QPainter>
 
+#include "document/documentModule.h"
+#include "document/page/basePage.h"
 #include "globals.h"
 
-CustomWidgetFactory::CustomWidgetFactory(const int theme) {
-    f_theme = theme;
+namespace {
+int f_theme{};
+}
+
+KDDockWidgets::Core::DockWidget *dockWidgetFactory(const QString &uniqueName) {
+    const QUrl documentUrl(uniqueName);
+    if (!g_document || !documentUrl.isLocalFile()) return nullptr;
+    if (auto *page = g_document->documentConstruct(documentUrl)) return page->dockWidget();
+    return nullptr;
+}
+
+CustomWidgetFactory::CustomWidgetFactory() {
+    f_theme = g_mainConfig["theme"].toInt();
 }
 
 KDDockWidgets::Core::View * CustomWidgetFactory::createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const {

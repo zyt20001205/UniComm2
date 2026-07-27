@@ -7,13 +7,13 @@
 
 #include <QString>
 
-static int f_theme{};
+KDDockWidgets::Core::DockWidget *dockWidgetFactory(const QString &uniqueName);
 
 class CustomWidgetFactory final : public KDDockWidgets::QtWidgets::ViewFactory {
     Q_OBJECT
 
 public:
-    explicit CustomWidgetFactory(int theme);
+    explicit CustomWidgetFactory();
 
     KDDockWidgets::Core::View *createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const override;
 

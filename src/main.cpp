@@ -7,9 +7,6 @@
 #include <QStyleFactory>
 
 #include "core/configManager.h"
-#include "document/documentModule.h"
-#include "document/page/basePage.h"
-#include "globals.h"
 #include "mainWindow/kddwCustom.h"
 
 int main(int argc, char *argv[]) {
@@ -31,15 +28,8 @@ int main(int argc, char *argv[]) {
     KDDockWidgets::Config::self().setSeparatorThickness(5);
     // config init
     if (ConfigManager::mainConfigLoad()) return 1;
-    KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(g_mainConfig["theme"].toInt()));
-    KDDockWidgets::Config::self().setDockWidgetFactoryFunc(
-        [](const QString &uniqueName) -> KDDockWidgets::Core::DockWidget * {
-            const QUrl documentUrl(uniqueName);
-            if (!g_document || !documentUrl.isLocalFile()) return nullptr;
-            if (auto *page = g_document->documentConstruct(documentUrl)) return page->dockWidget();
-            return nullptr;
-        }
-    );
+    KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory());
+    KDDockWidgets::Config::self().setDockWidgetFactoryFunc(dockWidgetFactory);
     auto *mainWindow = new MainWindow();
     mainWindow->show();
     // application exec
