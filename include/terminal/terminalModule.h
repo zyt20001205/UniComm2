@@ -31,6 +31,8 @@ public:
 
     Q_INVOKABLE void terminalSwap(int src, int dst) const;
 
+    [[nodiscard]] TerminalPage* terminalConstruct(const QUrl &terminalUrl);
+
     Q_INVOKABLE void terminalOpen(const QString &name, const QVariantHash &session);
 
 private:
@@ -49,7 +51,7 @@ public:
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
-    [[nodiscard]] int rowCountGet () const {
+    [[nodiscard]] int rowCountGet() const {
         return rowCount();
     }
 

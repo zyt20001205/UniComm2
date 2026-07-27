@@ -13,7 +13,7 @@
 
 // public
 ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : BasePage(documentUrl),
+    : DocumentPage(documentUrl),
       m_widget(new QWidget(this)),
       m_conflictWidget(new ConflictWidget(documentConfig, documentUrl, m_widget)),
       m_resolveWidget(new ResolveWidget(m_widget)) {

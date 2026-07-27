@@ -1,12 +1,12 @@
 #ifndef UNICOMM_CODEPAGE_H
 #define UNICOMM_CODEPAGE_H
 
-#include "basePage.h"
+#include "documentPage.h"
 #include "document/module/codeWidget.h"
 
 class SymbolWidget;
 
-class CodePage final : public BasePage {
+class CodePage final : public DocumentPage {
     Q_OBJECT
 
 public:

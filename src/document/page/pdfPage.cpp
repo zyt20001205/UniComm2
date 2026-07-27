@@ -6,7 +6,7 @@
 
 // public
 PdfPage::PdfPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : BasePage(documentUrl),
+    : DocumentPage(documentUrl),
       m_pdfWidget(new QQuickWidget()),
       m_doc(new QPdfDocument(this)) {
     setWidget(m_pdfWidget);

@@ -1,12 +1,12 @@
 #ifndef UNICOMM_PDFPAGE_H
 #define UNICOMM_PDFPAGE_H
 
-#include "basePage.h"
+#include "documentPage.h"
 
 class QPdfDocument;
 class QQuickWidget;
 
-class PdfPage final: public BasePage {
+class PdfPage final: public DocumentPage {
     Q_OBJECT
 
 public:

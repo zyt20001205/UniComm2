@@ -115,8 +115,8 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 }
 
 // public: file
-BasePage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
-    BasePage *documentPage{};
+DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
+    DocumentPage *documentPage{};
     // special page
     if (g_globalManager->gitEnabledGet()) {
         QProcess process{};
@@ -236,7 +236,7 @@ BasePage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
     if (conflict) documentPage->pathDisambiguation();
     m_watcher->addPath(documentUrl.toLocalFile());
     m_pageHash[documentUrl] = documentPage;
-    connect(documentPage, &BasePage::closeDocument, this, &DocumentModule::documentClose);
+    connect(documentPage, &DocumentPage::closeDocument, this, &DocumentModule::documentClose);
     return documentPage;
 }
 
@@ -285,11 +285,11 @@ void DocumentModule::documentSave(const QUrl &documentUrl) const {
 void DocumentModule::documentReload(const QString &documentPath) {
     const auto documentUrl = QUrl::fromLocalFile(documentPath);
     if (m_pageHash.contains(documentUrl)) {
-        auto *basePage = m_pageHash.value(documentUrl);
-        connect(basePage, &BasePage::destroyed, this, [this, documentUrl, documentPath] {
+        auto *documentPage = m_pageHash.value(documentUrl);
+        connect(documentPage, &DocumentPage::destroyed, this, [this, documentUrl, documentPath] {
             if (QFileInfo::exists(documentPath)) documentOpen(documentUrl);
         });
-        basePage->documentClose(true);
+        documentPage->documentClose(true);
     }
 }
 
@@ -951,11 +951,11 @@ void DocumentModule::spellCheckResponse(const QUrl &documentUrl, const QVariantL
 }
 
 // private
-void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
-    if (const auto *codePage = qobject_cast<CodePage *>(basePage)) {
+void DocumentModule::documentFocus(DocumentPage *documentPage, const bool status) {
+    if (const auto *codePage = qobject_cast<CodePage *>(documentPage)) {
         if (status) {
             codePage->handler()->focusSet(true);
-            m_focusedUrl = basePage->documentUrl();
+            m_focusedUrl = documentPage->documentUrl();
             const QVariantHash session = {
                 {"codePage", codePage->handler()->codePageGet()},
                 {"eolMode", codePage->handler()->eolModeGet()}
@@ -966,20 +966,20 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
             codePage->handler()->indicatorClear(ScintillaIndicator::Read);
             codePage->handler()->indicatorClear(ScintillaIndicator::Write);
         }
-    } else if (const auto *markdown = qobject_cast<MarkdownPage *>(basePage)) {
+    } else if (const auto *markdown = qobject_cast<MarkdownPage *>(documentPage)) {
         if (status) {
             markdown->handler()->focusSet(true);
-            m_focusedUrl = basePage->documentUrl();
+            m_focusedUrl = documentPage->documentUrl();
             const QVariantHash session = {
                 {"codePage", markdown->handler()->codePageGet()},
                 {"eolMode", markdown->handler()->eolModeGet()}
             };
             emit focusDocument(m_focusedUrl, session);
         }
-    } else if (const auto *textPage = qobject_cast<TextPage *>(basePage)) {
+    } else if (const auto *textPage = qobject_cast<TextPage *>(documentPage)) {
         if (status) {
             textPage->handler()->focusSet(true);
-            m_focusedUrl = basePage->documentUrl();
+            m_focusedUrl = documentPage->documentUrl();
             const QVariantHash session = {
                 {"codePage", textPage->handler()->codePageGet()},
                 {"eolMode", textPage->handler()->eolModeGet()}

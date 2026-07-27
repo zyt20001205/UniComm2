@@ -8,7 +8,7 @@
 
 // public
 ImagePage::ImagePage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : BasePage(documentUrl),
+    : DocumentPage(documentUrl),
       m_imageWidget(new QQuickWidget()) {
     setWidget(m_imageWidget);
 }

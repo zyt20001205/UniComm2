@@ -1,12 +1,12 @@
 #ifndef UNICOMM_MARKDOWNPAGE_H
 #define UNICOMM_MARKDOWNPAGE_H
 
-#include "basePage.h"
+#include "documentPage.h"
 #include "document/module/editorWidget.h"
 
 class WebviewWidget;
 
-class MarkdownPage final : public BasePage {
+class MarkdownPage final : public DocumentPage {
     Q_OBJECT
 
 public:

@@ -1,11 +1,11 @@
 #ifndef UNICOMM_IMAGEPAGE_H
 #define UNICOMM_IMAGEPAGE_H
 
-#include "basePage.h"
+#include "documentPage.h"
 
 class QQuickWidget;
 
-class ImagePage final: public BasePage {
+class ImagePage final: public DocumentPage {
     Q_OBJECT
 
 public:

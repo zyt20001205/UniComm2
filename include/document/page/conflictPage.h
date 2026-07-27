@@ -1,14 +1,14 @@
 #ifndef UNICOMM_CONFLICTPAGE_H
 #define UNICOMM_CONFLICTPAGE_H
 
-#include "basePage.h"
+#include "documentPage.h"
 #include "document/module/conflictWidget.h"
 
 class QWidget;
 
 class ResolveWidget;
 
-class ConflictPage final : public BasePage {
+class ConflictPage final : public DocumentPage {
     Q_OBJECT
 
 public:

@@ -1,10 +1,10 @@
 #ifndef UNICOMM_TEXTPAGE_H
 #define UNICOMM_TEXTPAGE_H
 
-#include "basePage.h"
+#include "documentPage.h"
 #include "document/module/editorWidget.h"
 
-class TextPage final : public BasePage {
+class TextPage final : public DocumentPage {
     Q_OBJECT
 
 public:

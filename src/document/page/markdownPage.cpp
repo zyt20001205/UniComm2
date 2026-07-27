@@ -10,7 +10,7 @@
 
 // public
 MarkdownPage::MarkdownPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : BasePage(documentUrl),
+    : DocumentPage(documentUrl),
       m_editorWidget(new EditorWidget(documentConfig, documentUrl)),
       m_webviewWidget(new WebviewWidget()) {
     auto *splitter = new QSplitter(Qt::Horizontal); // NOLINT

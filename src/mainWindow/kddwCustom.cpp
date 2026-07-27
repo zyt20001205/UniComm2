@@ -3,7 +3,7 @@
 #include <QPainter>
 
 #include "document/documentModule.h"
-#include "document/page/basePage.h"
+#include "document/page/documentPage.h"
 #include "globals.h"
 
 namespace {

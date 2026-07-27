@@ -95,6 +95,11 @@ void TerminalModule::terminalSwap(const int src, const int dst) const {
     m_terminalModel->insertRow(dst, row);
 }
 
+TerminalPage * TerminalModule::terminalConstruct(const QUrl &terminalUrl) {
+    TerminalPage *terminalPage{};
+    return terminalPage;
+}
+
 void TerminalModule::terminalOpen(const QString &name, const QVariantHash &session) {
     int index = 0;
     while (m_terminalHash.contains(index)) {

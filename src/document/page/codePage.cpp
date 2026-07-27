@@ -8,7 +8,7 @@
 
 // public
 CodePage::CodePage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : BasePage(documentUrl),
+    : DocumentPage(documentUrl),
       m_codeWidget(new CodeWidget(documentConfig, documentUrl, this)),
       m_symbolWidget(new SymbolWidget(this)) {
     auto *widget = new QWidget(); // NOLINT

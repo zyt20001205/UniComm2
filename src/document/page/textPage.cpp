@@ -10,7 +10,7 @@
 
 // public
 TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : BasePage(documentUrl),
+    : DocumentPage(documentUrl),
       m_editorWidget(new EditorWidget(documentConfig, documentUrl, this)) {
     setWidget(m_editorWidget);
     connect(m_editorWidget, &EditorWidget::appendLog, this, &TextPage::appendLog);

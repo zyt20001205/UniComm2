@@ -12,7 +12,7 @@ class QTableWidget;
 class QTabWidget;
 class QTextBrowser;
 
-class BasePage;
+class DocumentPage;
 class CodeAssistant;
 class CodePage;
 class EditorWidget;
@@ -38,7 +38,7 @@ public:
 
     void scriptFontSave(const QJsonObject &fontConfigScript);
 
-    [[nodiscard]] BasePage* documentConstruct(const QUrl &documentUrl);
+    [[nodiscard]] DocumentPage* documentConstruct(const QUrl &documentUrl);
 
     Q_INVOKABLE void documentOpen(const QUrl &documentUrl);
 
@@ -186,7 +186,7 @@ signals:
     void requestSpellSuggest(const QUrl &documentUrl, const QString &word);
 
 private:
-    void documentFocus(BasePage *basePage, bool status);
+    void documentFocus(DocumentPage *documentPage, bool status);
 
     void documentClose(const QUrl &documentUrl);
 
@@ -210,7 +210,7 @@ private:
     QTimer *m_watcherTimer{};
     WelcomePage *m_welcomePage{}; // TODO: inherits base page later
     CodeAssistant *m_codeAssistant{};
-    QHash<QUrl, BasePage *> m_pageHash{};
+    QHash<QUrl, DocumentPage *> m_pageHash{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QHash<QUrl, QJsonArray> m_symbolHash{};
     QVariantHash m_navigationHistory{};
