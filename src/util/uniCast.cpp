@@ -557,6 +557,14 @@ ModbusLRC uni_cast<ModbusLRC, QByteArray>(const QByteArray &s, const int depth) 
 
 // vterm -> qt
 template<>
+QColor uni_cast<QColor, VTermColor>(const VTermScreen *vts, const VTermColor &s, const int depth) {
+    Q_UNUSED(depth);
+    VTermColor d = s;
+    vterm_screen_convert_color_to_rgb(vts, &d);
+    return {d.rgb.red, d.rgb.green, d.rgb.blue};
+}
+
+template<>
 TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, const VTermScreenCell &s, const int depth) {
     Q_UNUSED(depth);
     TerminalCell d{};
@@ -578,13 +586,8 @@ TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, con
     d.italic = s.attrs.italic;
     d.strike = s.attrs.strike;
 
-    VTermColor foreground = s.fg;
-    vterm_screen_convert_color_to_rgb(vts, &foreground);
-    d.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
-
-    VTermColor background = s.bg;
-    vterm_screen_convert_color_to_rgb(vts, &background);
-    d.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
+    d.foreground = uni_cast<QColor>(vts, s.fg);
+    d.background = uni_cast<QColor>(vts, s.bg);
 
     d.uri = s.uri;
     d.dim = s.attrs.dim;
@@ -604,6 +607,14 @@ TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, con
 }
 
 // qt-> vterm
+template<>
+VTermColor uni_cast<VTermColor, QColor>(const QColor &s, const int depth) {
+    Q_UNUSED(depth);
+    VTermColor d{};
+    vterm_color_rgb(&d, s.red(), s.green(), s.blue());
+    return d;
+}
+
 template<>
 VTermButton uni_cast<VTermButton, int>(const int &s, const int depth) {
     Q_UNUSED(depth);

@@ -1,6 +1,7 @@
 #ifndef UNICOMM_UNICAST_H
 #define UNICOMM_UNICAST_H
 
+#include <QColor>
 #include <QUrl>
 #include <QVariant>
 #include <sol/object.hpp>
@@ -124,6 +125,9 @@ template<>
 struct TerminalCell;
 
 template<>
+[[nodiscard]] QColor uni_cast<QColor, VTermColor>(const VTermScreen *vts, const VTermColor &s, int depth);
+
+template<>
 [[nodiscard]] TerminalCell uni_cast<TerminalCell, VTermScreenCell>(const VTermScreen *vts, const VTermScreenCell &s, int depth);
 
 // qt-> vterm
@@ -132,6 +136,9 @@ struct VTermButton {
     VTermButton(int s) : value(s) {}
     operator int() const { return value; }
 };
+
+template<>
+[[nodiscard]] VTermColor uni_cast<VTermColor, QColor>(const QColor &s, int depth);
 
 template<>
 [[nodiscard]] VTermButton uni_cast<VTermButton, int>(const int &s, int depth);
