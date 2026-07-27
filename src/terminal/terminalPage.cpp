@@ -3,6 +3,7 @@
 #include <QCloseEvent>
 #include <QQmlContext>
 #include <QQuickWidget>
+#include <QTimer>
 
 #include "globals.h"
 #include "core/globalManager.h"
@@ -84,6 +85,8 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
 
     m_vtermWidget->resize(m_rows, m_cols);
     start();
+    m_widget->setFocus(Qt::OtherFocusReason);
+    m_terminalWidget->forceActiveFocus(Qt::OtherFocusReason);
 }
 
 bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {

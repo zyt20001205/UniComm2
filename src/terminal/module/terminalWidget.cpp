@@ -18,7 +18,6 @@ TerminalWidget::TerminalWidget(QQuickItem *parent)
     setFlag(ItemAcceptsInputMethod, true);
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::AllButtons);
-    forceActiveFocus();
     metricsUpdate();
 
     m_blinkTimer->setInterval(500);
