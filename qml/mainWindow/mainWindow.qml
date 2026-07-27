@@ -5,6 +5,7 @@ import QtQuick.Controls.impl
 import QtQuick.Controls.FluentWinUI3.impl
 import QtQuick.Dialogs
 import QtQuick.Layouts
+import QtQml
 
 Item {
     id: mainItem
@@ -2044,12 +2045,27 @@ Item {
             explorerModuleFileNameTextField.clear()
             explorerModuleFileNameTextField.forceActiveFocus()
         }
-        onAccepted: fileModule.fileNew(explorerModuleFileNewDialog.documentUrl + "/" + explorerModuleFileNameTextField.text)
+        onAccepted: {
+            if (!explorerModuleFileNameTextField.acceptableInput) {
+                return
+            }
+            fileModule.fileNew(explorerModuleFileNewDialog.documentUrl + "/" + explorerModuleFileNameTextField.text)
+        }
+
+        Binding {
+            target: explorerModuleFileNewDialog.visible
+                ? explorerModuleFileNewDialog.standardButton(Dialog.Ok) : null
+            property: "enabled"
+            value: explorerModuleFileNameTextField.acceptableInput
+        }
 
         TextField {
             id: explorerModuleFileNameTextField
             width: parent.width
             placeholderText: qsTr("Enter file name:")
+            validator: RegularExpressionValidator {
+                regularExpression: /.*\..*/
+            }
 
             onAccepted: explorerModuleFileNewDialog.accept()
             Keys.onEscapePressed: explorerModuleFileNewDialog.reject()
@@ -2552,6 +2568,8 @@ Item {
 
                 Label {
                     id: fileModulePropertyAbsolutePathLabel
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
                 }
             }
 
