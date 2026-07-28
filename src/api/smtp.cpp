@@ -27,19 +27,11 @@ void Smtp::init(const std::string &portName, const int timeout) {
     QString exception{};
 
     QMetaObject::invokeMethod(m_port, [this]() -> QString {
-        QByteArray rxData{};
-        Result result{};
-
         if (!m_port->open()) return "open failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::ServiceReady) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        const auto result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::ServiceReady) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         return {};
     }, Qt::BlockingQueuedConnection, &exception);
@@ -52,41 +44,23 @@ void Smtp::authLogin(const std::string &username, const std::string &password) c
     const auto _password = QByteArray::fromStdString(password).toBase64();
 
     QMetaObject::invokeMethod(m_port, [this, &_username, &_password]() -> QString {
-        QByteArray rxData{};
-        Result result{};
-
         if (!m_port->write("AUTH LOGIN", "utf-8", "crlf")) return "write failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::AuthenticationChallenge) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        auto result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::AuthenticationChallenge) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         if (!m_port->write(_username, "utf-8", "crlf")) return "write failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::AuthenticationChallenge) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::AuthenticationChallenge) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         if (!m_port->write(_password, "utf-8", "crlf")) return "write failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::AuthenticationSucceeded) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::AuthenticationSucceeded) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         return {};
     }, Qt::BlockingQueuedConnection, &exception);
@@ -97,19 +71,11 @@ void Smtp::ehlo() const {
     QString exception{};
 
     QMetaObject::invokeMethod(m_port, [this]() -> QString {
-        QByteArray rxData{};
-        Result result{};
-
         if (!m_port->write("EHLO localhost", "utf-8", "crlf")) return "write failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::RequestedMailActionOkay) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        const auto result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedMailActionOkay) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         return {};
     }, Qt::BlockingQueuedConnection, &exception);
@@ -231,58 +197,35 @@ void Smtp::send(const sol::table &mail) const {
     data += "--" + boundary + "--\r\n.";
 
     QMetaObject::invokeMethod(m_port, [this, &from, &to, &data]() -> QString {
-        QByteArray rxData{};
-        Result result{};
-
         // from
         if (!m_port->write(from, "utf-8", "crlf")) return "write failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::RequestedMailActionOkay) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        auto result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedMailActionOkay) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         // to
         for (const auto &value: to) {
             if (!m_port->write(value, "utf-8", "crlf")) return "write failed";
 
-            while (true) {
-                rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-                result = parser(rxData);
-                if (!result.exception.isEmpty()) return result.exception;
-                if (result.code == 0) continue;
-                if (result.code != StatusCode::RequestedMailActionOkay && result.code != StatusCode::UserNotLocalWillForward)
-                    return "unexpected smtp response(" + QString::number(result.code) + ")";
-                break;
-            }
+            result = response();
+            if (!result.exception.isEmpty()) return result.exception;
+            if (result.code != StatusCode::RequestedMailActionOkay && result.code != StatusCode::UserNotLocalWillForward)
+                return "unexpected smtp response(" + QString::number(result.code) + ")";
         }
 
         // data
         if (!m_port->write("DATA", "utf-8", "crlf")) return "write failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::StartMailInput) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::StartMailInput) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         if (!m_port->write(data, "utf-8", "crlf")) return "write failed";
 
-        while (true) {
-            rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");
-            result = parser(rxData);
-            if (!result.exception.isEmpty()) return result.exception;
-            if (result.code == 0) continue;
-            if (result.code != StatusCode::RequestedMailActionOkay) return "unexpected smtp response(" + QString::number(result.code) + ")";
-            break;
-        }
+        result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedMailActionOkay) return "unexpected smtp response(" + QString::number(result.code) + ")";
 
         return {};
     }, Qt::BlockingQueuedConnection, &exception);
@@ -301,6 +244,13 @@ void Smtp::quit() const {
 }
 
 // private
+Smtp::Result Smtp::response() const {
+    while (true) {
+        const auto result = parser(m_port->readUntil("\r\n", m_timeout, "utf-8"));
+        if (!result.exception.isEmpty() || result.code != 0) return result;
+    }
+}
+
 Smtp::Result Smtp::parser(const QByteArray &rxData) {
     if (rxData.isEmpty()) return {0, "read timeout"};
     if (rxData.size() < 4) return {0, "invalid smtp response"};

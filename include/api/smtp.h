@@ -86,6 +86,8 @@ private:
         QString exception{};
     };
 
+    [[nodiscard]] Result response() const;
+
     [[nodiscard]] static Result parser(const QByteArray &rxData);
 
     std::string m_portName{};

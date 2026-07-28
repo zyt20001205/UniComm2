@@ -1,8 +1,11 @@
 #ifndef UNICOMM_FTP_H
 #define UNICOMM_FTP_H
 
-#include <QVariant>
-#include <sol/table.hpp>
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+
+#include <string>
 
 class BasePort;
 
@@ -15,8 +18,6 @@ public:
     ~Ftp() override = default;
 
     void init(const std::string &portName, int timeout);
-
-    void start(const sol::table &options);
 
 private:
     struct StatusCode {
@@ -74,7 +75,15 @@ private:
         };
     };
 
-    [[nodiscard]] QVariantHash parser(const QByteArray &rxData);
+    struct Result {
+        int code{};
+        QString text{};
+        QString exception{};
+    };
+
+    [[nodiscard]] Result response() const;
+
+    [[nodiscard]] static Result parser(const QByteArray &rxData);
 
     std::string m_portName{};
     int m_timeout{};
