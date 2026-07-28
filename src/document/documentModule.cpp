@@ -13,6 +13,7 @@
 #include "core/globalManager.h"
 #include "document/assistant/codeAssistant.h"
 #include "document/module/scintillaWidget.h"
+#include "document/page/webPage.h"
 #include "document/page/imagePage.h"
 #include "document/page/codePage.h"
 #include "document/page/pdfPage.h"
@@ -117,8 +118,16 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 // public: file
 DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
     DocumentPage *documentPage{};
-    // special page
-    if (g_globalManager->gitEnabledGet()) {
+    const auto scheme = documentUrl.scheme().toLower();
+    // web page
+    if (scheme == "http" || scheme == "https") {
+        documentPage = new WebPage(m_config, documentUrl);
+        auto *webPage = qobject_cast<WebPage *>(documentPage);
+        webPage->propertySet(QVariantHash{
+        });
+    }
+    // conflict page
+    else if (g_globalManager->gitEnabledGet()) {
         QProcess process{};
         process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
         process.start("git", {"diff", "--name-only", "--diff-filter=U", "--", documentUrl.toLocalFile()});
@@ -225,16 +234,18 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
         }
     }
     // path disambiguation
-    bool conflict = false;
-    for (const auto &url: m_pageHash.keys()) {
-        if (url.fileName() == documentUrl.fileName()) {
-            conflict = true;
-            auto *page = m_pageHash[url];
-            page->pathDisambiguation();
+    if (scheme == "file") {
+        bool conflict = false;
+        for (const auto &url: m_pageHash.keys()) {
+            if (url.fileName() == documentUrl.fileName()) {
+                conflict = true;
+                auto *page = m_pageHash[url];
+                page->pathDisambiguation();
+            }
         }
+        if (conflict) documentPage->pathDisambiguation();
+        m_watcher->addPath(documentUrl.toLocalFile());
     }
-    if (conflict) documentPage->pathDisambiguation();
-    m_watcher->addPath(documentUrl.toLocalFile());
     m_pageHash[documentUrl] = documentPage;
     connect(documentPage, &DocumentPage::closeDocument, this, &DocumentModule::documentClose);
     return documentPage;
@@ -244,6 +255,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     // open page
     if (!m_pageHash.contains(documentUrl)) {
         const auto documentPage = documentConstruct(documentUrl);
+        if (!documentPage) return;
         if (qobject_cast<MarkdownPage *>(documentPage)) {
             documentPage->setFloating(true);
             documentPage->open();
@@ -990,7 +1002,7 @@ void DocumentModule::documentFocus(DocumentPage *documentPage, const bool status
 }
 
 void DocumentModule::documentClose(const QUrl &documentUrl) {
-    m_watcher->removePath(documentUrl.toLocalFile());
+    if (documentUrl.isLocalFile()) m_watcher->removePath(documentUrl.toLocalFile());
     m_pageHash.remove(documentUrl);
     if (g_terminating) return;
     if (m_pageHash.isEmpty()) {

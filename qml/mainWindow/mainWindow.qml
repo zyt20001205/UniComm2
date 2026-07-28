@@ -1673,12 +1673,7 @@ Item {
                         acceptedButtons: Qt.LeftButton
                         onTapped: {
                             if (documentModuleDwellHoverTextArea.hoveredLink) {
-                                const link = documentModuleDwellHoverTextArea.hoveredLink
-                                if (link.toLowerCase().startsWith("file:") && link.toLowerCase().endsWith(".lua")) {
-                                    documentModule.documentOpen(link)
-                                } else {
-                                    Qt.openUrlExternally(link)
-                                }
+                                documentModule.documentOpen(documentModuleDwellHoverTextArea.hoveredLink)
                             }
                         }
                     }
