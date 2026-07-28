@@ -5,15 +5,23 @@
 #include "document/documentModule.h"
 #include "document/page/documentPage.h"
 #include "globals.h"
+#include "terminal/terminalModule.h"
+#include "terminal/terminalPage.h"
 
 namespace {
 int f_theme{};
 }
 
 KDDockWidgets::Core::DockWidget *dockWidgetFactory(const QString &uniqueName) {
-    const QUrl documentUrl(uniqueName);
-    if (!g_document || !documentUrl.isLocalFile()) return nullptr;
-    if (auto *page = g_document->documentConstruct(documentUrl)) return page->dockWidget();
+    const QUrl url(uniqueName);
+    // file
+    if (url.isLocalFile()) {
+        if (auto *page = g_document->documentConstruct(url)) return page->dockWidget();
+    }
+    // terminal
+    if (url.scheme() == QStringLiteral("terminal")) {
+        if (auto *page = g_terminal->terminalConstruct(url)) return page->dockWidget();
+    }
     return nullptr;
 }
 
@@ -23,6 +31,10 @@ CustomWidgetFactory::CustomWidgetFactory() {
 
 KDDockWidgets::Core::View * CustomWidgetFactory::createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const {
     return new MyStack(controller, KDDockWidgets::QtCommon::View_qt::asQWidget(parent));
+}
+
+KDDockWidgets::Core::View *CustomWidgetFactory::createTabBar(KDDockWidgets::Core::TabBar *controller, KDDockWidgets::Core::View *parent) const {
+    return new MyTabBar(controller, KDDockWidgets::QtCommon::View_qt::asQWidget(parent));
 }
 
 KDDockWidgets::Core::View *CustomWidgetFactory::createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent) const {
@@ -40,6 +52,19 @@ void MyStack::paintEvent(QPaintEvent *event) {
     QPainter p(this);
     if (f_theme == Theme::Light) p.fillRect(QWidget::rect(), "#ffffff");
     else p.fillRect(QWidget::rect(), "#292929");
+}
+
+MyTabBar::MyTabBar(KDDockWidgets::Core::TabBar *controller, QWidget *parent)
+    : TabBar(controller, parent) {
+    setExpanding(false);
+    setElideMode(Qt::ElideRight);
+    setUsesScrollButtons(true);
+}
+
+QSize MyTabBar::tabSizeHint(const int index) const {
+    auto size = TabBar::tabSizeHint(index);
+    size.setWidth(qMin(size.width(), 240));
+    return size;
 }
 
 MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent)

@@ -447,6 +447,7 @@ void MainWindow::moduleInit() {
     g_log = m_logModule;
     g_nuspell = m_nuspellModule;
     g_port = m_portModule;
+    g_terminal = m_terminalModule;
     g_thread = m_threadpoolModule;
     g_undo = m_undoModule;
 

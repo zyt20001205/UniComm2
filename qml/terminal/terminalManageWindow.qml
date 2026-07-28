@@ -189,7 +189,7 @@ Item {
                         anchors.fill: parent
                         leftPadding: 6
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display || ""
+                        text: model.session.name || ""
                         elide: Text.ElideRight
                     }
 
@@ -227,7 +227,7 @@ Item {
                         leftPadding: 6
                         rightPadding: 6
                         verticalAlignment: Text.AlignVCenter
-                        text: display || ""
+                        text: session.name || ""
                         selectByMouse: true
                         background: Rectangle {
                             color: global.backSelected
@@ -240,7 +240,10 @@ Item {
                         }
 
                         TableView.onCommit: {
-                            display = text.trim()
+                            const index = terminalModel.index(row, column)
+                            const session = terminalModel.data(index, Qt.UserRole + 2)
+                            session.name = text.trim()
+                            terminalModel.setData(index, session, Qt.UserRole + 2)
                         }
                     }
                 }
@@ -272,9 +275,9 @@ Item {
 
                     onEditingFinished: {
                         const index = terminalModel.index(tableView.selectedRow, 0)
-                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        const session = terminalModel.data(index, Qt.UserRole + 2)
                         session.program = programTextField.text
-                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                        terminalModel.setData(index, session, Qt.UserRole + 2)
                     }
                 }
 
@@ -301,9 +304,9 @@ Item {
                     onAccepted: {
                         programTextField.text = selectedFile
                         const index = terminalModel.index(tableView.selectedRow, 0)
-                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        const session = terminalModel.data(index, Qt.UserRole + 2)
                         session.program = selectedFile
-                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                        terminalModel.setData(index, session, Qt.UserRole + 2)
                     }
                 }
             }
@@ -319,9 +322,9 @@ Item {
 
                 onEditingFinished: {
                     const index = terminalModel.index(tableView.selectedRow, 0)
-                    const session = terminalModel.data(index, Qt.UserRole + 1)
+                    const session = terminalModel.data(index, Qt.UserRole + 2)
                     session.arguments = argumentsTextField.text
-                    terminalModel.setData(index, session, Qt.UserRole + 1)
+                    terminalModel.setData(index, session, Qt.UserRole + 2)
                 }
             }
 
@@ -339,9 +342,9 @@ Item {
 
                     onEditingFinished: {
                         const index = terminalModel.index(tableView.selectedRow, 0)
-                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        const session = terminalModel.data(index, Qt.UserRole + 2)
                         session.workingDirectory = workingDirectoryTextField.text
-                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                        terminalModel.setData(index, session, Qt.UserRole + 2)
                     }
                 }
 
@@ -365,9 +368,9 @@ Item {
                     onAccepted: {
                         workingDirectoryTextField.text = selectedFolder
                         const index = terminalModel.index(tableView.selectedRow, 0)
-                        const session = terminalModel.data(index, Qt.UserRole + 1)
+                        const session = terminalModel.data(index, Qt.UserRole + 2)
                         session.workingDirectory = selectedFolder
-                        terminalModel.setData(index, session, Qt.UserRole + 1)
+                        terminalModel.setData(index, session, Qt.UserRole + 2)
                     }
                 }
             }
@@ -384,9 +387,9 @@ Item {
 
                 onEditingFinished: {
                     const index = terminalModel.index(tableView.selectedRow, 0)
-                    const session = terminalModel.data(index, Qt.UserRole + 1)
+                    const session = terminalModel.data(index, Qt.UserRole + 2)
                     session.environment = text
-                    terminalModel.setData(index, session, Qt.UserRole + 1)
+                    terminalModel.setData(index, session, Qt.UserRole + 2)
                 }
             }
         }

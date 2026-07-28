@@ -13,6 +13,7 @@ GitModule *g_git = nullptr;
 LogModule *g_log = nullptr;
 NuspellModule *g_nuspell = nullptr;
 PortModule *g_port = nullptr;
+TerminalModule *g_terminal = nullptr;
 ThreadpoolModule *g_thread = nullptr;
 UndoModule *g_undo = nullptr;
 

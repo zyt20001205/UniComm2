@@ -3,6 +3,7 @@
 
 #include <QJsonObject>
 #include <QStandardItemModel>
+#include <QUrl>
 
 class QQuickView;
 
@@ -31,16 +32,16 @@ public:
 
     Q_INVOKABLE void terminalSwap(int src, int dst) const;
 
-    [[nodiscard]] TerminalPage* terminalConstruct(const QUrl &terminalUrl);
+    [[nodiscard]] TerminalPage *terminalConstruct(const QUrl &terminalUrl);
 
-    Q_INVOKABLE void terminalOpen(const QString &name, const QVariantHash &session);
+    Q_INVOKABLE void terminalOpen(const QString &uuid);
 
 private:
     QJsonObject m_config{};
     QQuickView *m_manageWindow{};
 
     TerminalModel *m_terminalModel{};
-    QHash<int, TerminalPage *> m_terminalHash{};
+    QHash<QString, TerminalPage *> m_terminalPageHash{};
 };
 
 class TerminalModel final : public QStandardItemModel {
@@ -48,6 +49,11 @@ class TerminalModel final : public QStandardItemModel {
 
 public:
     using QStandardItemModel::QStandardItemModel;
+
+    enum Role {
+        UuidRole = Qt::UserRole + 1,
+        SessionRole
+    };
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 

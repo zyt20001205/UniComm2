@@ -3,6 +3,7 @@
 
 #include <kddockwidgets/qtwidgets/Separator.h>
 #include <kddockwidgets/qtwidgets/Stack.h>
+#include <kddockwidgets/qtwidgets/TabBar.h>
 #include <kddockwidgets/qtwidgets/ViewFactory.h>
 
 #include <QString>
@@ -17,6 +18,8 @@ public:
 
     KDDockWidgets::Core::View *createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const override;
 
+    KDDockWidgets::Core::View *createTabBar(KDDockWidgets::Core::TabBar *controller, KDDockWidgets::Core::View *parent) const override;
+
     KDDockWidgets::Core::View *createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent = nullptr) const override;
 
     // [[nodiscard]] QString classicIndicatorsPath() const override;
@@ -30,6 +33,16 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+};
+
+class MyTabBar final : public KDDockWidgets::QtWidgets::TabBar {
+public:
+    explicit MyTabBar(KDDockWidgets::Core::TabBar *controller, QWidget *parent);
+
+    ~MyTabBar() override = default;
+
+protected:
+    [[nodiscard]] QSize tabSizeHint(int index) const override;
 };
 
 class MySeparator final : public KDDockWidgets::QtWidgets::Separator {

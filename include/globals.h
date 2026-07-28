@@ -17,6 +17,7 @@ class LogModule;
 class PortModule;
 class DocumentModule;
 class StructureModule;
+class TerminalModule;
 class ThreadpoolModule;
 class UndoModule;
 
@@ -33,6 +34,7 @@ extern GitModule *g_git;
 extern LogModule *g_log;
 extern NuspellModule *g_nuspell;
 extern PortModule *g_port;
+extern TerminalModule *g_terminal;
 extern ThreadpoolModule *g_thread;
 extern UndoModule *g_undo;
 

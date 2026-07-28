@@ -3774,11 +3774,11 @@ Item {
                 id: terminalModuleTerminalInstantiator
                 model: terminalModuleTerminalMenu.terminalModel
                 delegate: MenuItem {
-                    text: model.display
-                    onTriggered: terminalModule.terminalOpen(model.display, model.session)
+                    text: model.session.name
+                    onTriggered: terminalModule.terminalOpen(model.uuid)
                 }
 
-                onObjectAdded: (index, object) => terminalModuleTerminalMenu.addItem(object)
+                onObjectAdded: (index, object) => terminalModuleTerminalMenu.insertItem(index + 2, object)
                 onObjectRemoved: (index, object) => terminalModuleTerminalMenu.removeItem(object)
             }
         }
