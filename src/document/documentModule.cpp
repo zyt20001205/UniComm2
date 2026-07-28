@@ -255,7 +255,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     // open page
     if (!m_pageHash.contains(documentUrl)) {
         const auto documentPage = documentConstruct(documentUrl);
-        if (!documentPage) return;
         if (qobject_cast<MarkdownPage *>(documentPage)) {
             documentPage->setFloating(true);
             documentPage->open();
