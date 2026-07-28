@@ -19,6 +19,10 @@ public:
 
     void init(const std::string &portName, int timeout);
 
+    void login(const std::string &username, const std::string &password) const;
+
+    void quit() const;
+
 private:
     struct StatusCode {
         // https://www.iana.org/assignments/ftp-commands-extensions/ftp-commands-extensions.xhtml#ftp-commands-extensions-2

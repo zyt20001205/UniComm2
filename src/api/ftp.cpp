@@ -37,6 +37,41 @@ void Ftp::init(const std::string &portName, const int timeout) {
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
+void Ftp::login(const std::string &username, const std::string &password) const {
+    QString exception{};
+    const auto _username = QByteArray::fromStdString(username);
+    const auto _password = QByteArray::fromStdString(password);
+
+    QMetaObject::invokeMethod(m_port, [this, &_username, &_password]() -> QString {
+        if (!m_port->write("USER " + _username, "utf-8", "crlf")) return "write failed";
+
+        auto result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code == StatusCode::UserLoggedIn) return {};
+        if (result.code != StatusCode::UserNameOkay) return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        if (!m_port->write("PASS " + _password, "utf-8", "crlf")) return "write failed";
+
+        result = response();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::UserLoggedIn) return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
+void Ftp::quit() const {
+    QString exception{};
+
+    QMetaObject::invokeMethod(m_port, [this]() -> QString {
+        if (!m_port->write("QUIT", "utf-8", "crlf")) return "write failed";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
 // private
 Ftp::Result Ftp::response() const {
     QByteArray rxData = m_port->readUntil("\r\n", m_timeout, "utf-8");

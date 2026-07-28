@@ -15,3 +15,17 @@ function Ftp.new(name, timeout) end
 
 ---@class ftp
 ftp = {}
+
+---
+---Send USER and PASS commands to authenticate with FTP server.
+---
+---@param username string FTP username.
+---@param password password FTP password.
+---@return nil
+function ftp:login(username, password) end
+
+---
+---Send QUIT command and close the FTP session.
+---
+---@return nil
+function ftp:quit() end

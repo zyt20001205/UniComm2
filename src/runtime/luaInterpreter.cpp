@@ -81,7 +81,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             "Ftp",
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](Ftp *) {
-            }
+            },
+            "login", &Ftp::login,
+            "quit", &Ftp::quit
         );
         auto ftp = m_lua.create_table();
         ftp.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
