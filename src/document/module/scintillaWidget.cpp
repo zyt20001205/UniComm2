@@ -436,8 +436,10 @@ QString ScintillaWidget::textGet(const int startLine, const int startCharacter, 
         endPosition = lengthGet();
         length = lengthGet();
     } else {
+        const auto lineCount = lineCountGet();
+        if (startLine < 0 || startLine >= lineCount || endLine < startLine) return {};
         startPosition = positionGet(startLine, startCharacter);
-        endPosition = positionGet(endLine, endCharacter);
+        endPosition = positionGet(qMin(endLine, lineCount - 1), endCharacter);
         length = endPosition - startPosition;
     }
     if (length < 0 || length > static_cast<int>(lengthGet())) return {};

@@ -195,13 +195,8 @@ QString FileModule::textGet(const QUrl &documentUrl, const int startLine, const 
         const auto line = in.readLine();
         lines.append(line);
     }
-    QString text{};
-    QTextStream out(&text);
-    for (int i = startLine; i <= endLine; ++i) {
-        out << lines.at(i);
-        if (i < endLine) out << Qt::endl;
-    }
-    return text;
+    if (startLine < 0 || startLine >= lines.size() || endLine < startLine) return {};
+    return lines.mid(startLine, qMin(endLine, static_cast<int>(lines.size() - 1)) - startLine + 1).join('\n');
 }
 
 void FileModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {

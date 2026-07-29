@@ -1,6 +1,7 @@
 #include "agent/module/toolsModule.h"
 
 #include <QDir>
+#include <limits>
 
 #include "globals.h"
 #include "agent/agentModule.h"
@@ -285,10 +286,10 @@ void ToolsModule::initialize() {
                     {"name", "text_get"},
                     {
                         "description",
-                        "Read text from a document using a range. "
-                        "For text files, use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to read the whole document, use x/0/x/-1 to read only line x. "
-                        "For a partial text range, use concrete line numbers; character 0 is the beginning of a line and -1 is the end of a line. "
-                        "For PDF files, one call can read only one page, use start_line/start_character/end_line/end_character = x/-1/-1/-1 to read only page x. "
+                        "Read lines from a document. For text files, each returned line is prefixed with its 0-based line number in the form line|content. "
+                        "Use start_line = 0 and line_count = -1 to read the whole document. A line_count of -1 reads from start_line to the end of the document. "
+                        "If the requested range extends past the end of the document, all remaining lines are returned. "
+                        "For PDF files, start_line is the page index (0-based) and line_count is ignored."
                     },
                     {
                         "parameters", QJsonObject{
@@ -306,38 +307,18 @@ void ToolsModule::initialize() {
                                             {"type", "integer"},
                                             {
                                                 "description",
-                                                "The starting line number (0-based). For text files, pass -1 only with all range values set to -1 to read the whole document. "
+                                                "The starting line number (0-based). "
                                                 "For PDF files, this is the page index (0-based)."
                                             }
                                         }
                                     },
                                     {
-                                        "start_character", QJsonObject{
+                                        "line_count", QJsonObject{
                                             {"type", "integer"},
                                             {
                                                 "description",
-                                                "The starting character offset within the start line (0-based). Pass 0 to start from the first character; pass -1 to start at the end of the line. "
-                                                "For PDF files, pass -1."
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "end_line", QJsonObject{
-                                            {"type", "integer"},
-                                            {
-                                                "description",
-                                                "The ending line number (0-based, inclusive). For a partial text range, provide a concrete line number. "
-                                                "For PDF files, pass -1."
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "end_character", QJsonObject{
-                                            {"type", "integer"},
-                                            {
-                                                "description",
-                                                "The ending character offset within the end line. Pass -1 to read until the end of the line. "
-                                                "For PDF files, pass -1."
+                                                "The number of lines to read. Pass -1 to read to the end of a text document. "
+                                                "For PDF files, this value is ignored."
                                             }
                                         }
                                     }
@@ -347,9 +328,7 @@ void ToolsModule::initialize() {
                                 "required", QJsonArray{
                                     "document_url",
                                     "start_line",
-                                    "start_character",
-                                    "end_line",
-                                    "end_character"
+                                    "line_count"
                                 }
                             }
                         }
@@ -365,10 +344,8 @@ void ToolsModule::initialize() {
                     {"name", "text_set"},
                     {
                         "description",
-                        "Write text to a document using a range. "
-                        "Use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to replace the whole document. "
-                        "For a partial range, use concrete line numbers; character 0 is the beginning of a line and -1 is the end of a line. "
-                        "To replace only line x, use x/0/x/-1."
+                        "Replace the content of whole lines in a text document. "
+                        "A line_count of -1 replaces from start_line to the end of the document."
                     },
                     {
                         "parameters", QJsonObject{
@@ -384,7 +361,7 @@ void ToolsModule::initialize() {
                                     {
                                         "text", QJsonObject{
                                             {"type", "string"},
-                                            {"description", "The new text to insert or replace with."}
+                                            {"description", "The replacement text without line-number prefixes. Pass an empty string to clear the target lines."}
                                         }
                                     },
                                     {
@@ -392,32 +369,17 @@ void ToolsModule::initialize() {
                                             {"type", "integer"},
                                             {
                                                 "description",
-                                                "The starting line number (0-based). Pass -1 only with all range values set to -1 to replace the whole document."
+                                                "The starting line number (0-based)."
                                             }
                                         }
                                     },
                                     {
-                                        "start_character", QJsonObject{
+                                        "line_count", QJsonObject{
                                             {"type", "integer"},
                                             {
                                                 "description",
-                                                "The starting character offset within the start line (0-based). Pass 0 to start from the first character; pass -1 to start at the end of the line."
+                                                "The number of existing lines to replace. Pass -1 to replace from start_line to the end of the document."
                                             }
-                                        }
-                                    },
-                                    {
-                                        "end_line", QJsonObject{
-                                            {"type", "integer"},
-                                            {
-                                                "description",
-                                                "The ending line number (0-based, inclusive). For a partial range, provide a concrete line number."
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "end_character", QJsonObject{
-                                            {"type", "integer"},
-                                            {"description", "The ending character offset within the end line. Pass -1 to replace until the end of the line."}
                                         }
                                     }
                                 }
@@ -427,9 +389,7 @@ void ToolsModule::initialize() {
                                     "document_url",
                                     "text",
                                     "start_line",
-                                    "start_character",
-                                    "end_line",
-                                    "end_character"
+                                    "line_count"
                                 }
                             }
                         }
@@ -479,8 +439,7 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
     const auto object = doc.object();
     chatCreate(name, object);
     if (!permissionGet(mode, name, object)) return {"User denied permission to execute this tool."};
-    const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath())
-                               .filePath("lua-language-server/meta/3rd/UniComm"));
+    const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath()).filePath("lua-language-server/meta/3rd/UniComm"));
     const QDir apiDir(uniCommDir.filePath("library"));
     const QDir demoDir(uniCommDir.filePath("demo"));
     // UniComm tools
@@ -571,21 +530,32 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
     }
     if (name == "text_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter = object.value("start_character").toInt(-1);
-        const auto endLine = object.value("end_line").toInt(-1);
-        const auto endCharacter = object.value("end_character").toInt(-1);
-        return g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
+        const auto startLine = object.value("start_line").toInt();
+        const auto lineCount = object.value("line_count").toInt();
+        if (startLine < 0) return {"Text get failed: start_line is out of range."};
+        if (lineCount == 0 || lineCount < -1) return {"Text get failed: line_count is out of range."};
+
+        const auto endLine = lineCount == -1 ? std::numeric_limits<int>::max() : startLine + lineCount - 1;
+        auto text = g_document->textGet(documentUrl, startLine, 0, endLine, -1);
+        if (text.isEmpty()) return {};
+        auto lines = text.split('\n');
+        for (qsizetype i = 0; i < lines.size(); ++i) {
+            if (lines[i].endsWith('\r')) lines[i].chop(1);
+            lines[i].prepend(QString::number(startLine + i) + "|");
+        }
+        return lines.join('\n');
     }
     if (name == "text_set") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto text = object.value("text").toString();
-        const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter = object.value("start_character").toInt(-1);
-        const auto endLine = object.value("end_line").toInt(-1);
-        const auto endCharacter = object.value("end_character").toInt(-1);
-        g_document->textSet(documentUrl, text, startLine, startCharacter, endLine, endCharacter);
-        return "\"Text set finished.\"}";
+        const auto startLine = object.value("start_line").toInt();
+        const auto lineCount = object.value("line_count").toInt();
+        if (startLine < 0) return {"Text set failed: start_line is out of range."};
+        if (lineCount == 0 || lineCount < -1) return {"Text set failed: line_count is out of range."};
+
+        const auto endLine = lineCount == -1 ? std::numeric_limits<int>::max() : startLine + lineCount - 1;
+        g_document->textSet(documentUrl, text, startLine, 0, endLine, -1);
+        return {"Text set finished."};
     }
     if (name == "thread_start") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -632,19 +602,17 @@ void ToolsModule::chatCreate(const QString &name, const QJsonObject &object) {
     } else if (name == "text_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter = object.value("start_character").toInt(-1);
-        const auto endLine = object.value("end_line").toInt(-1);
-        const auto endCharacter = object.value("end_character").toInt(-1);
-        chatText = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                          QString::number(endCharacter));
+        const auto lineCount = object.value("line_count").toInt(-1);
+        chatText = lineCount == -1
+                       ? QString("Read %1 from line %2 to the end").arg(documentName, QString::number(startLine))
+                       : QString("Read %1 from line %2 (%3 lines)").arg(documentName, QString::number(startLine), QString::number(lineCount));
     } else if (name == "text_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter = object.value("start_character").toInt(-1);
-        const auto endLine = object.value("end_line").toInt(-1);
-        const auto endCharacter = object.value("end_character").toInt(-1);
-        chatText = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                           QString::number(endCharacter));
+        const auto lineCount = object.value("line_count").toInt(-1);
+        chatText = lineCount == -1
+                       ? QString("Write %1 from line %2 to the end").arg(documentName, QString::number(startLine))
+                       : QString("Write %1 from line %2 (%3 lines)").arg(documentName, QString::number(startLine), QString::number(lineCount));
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Run %1").arg(documentName);
@@ -708,19 +676,17 @@ void ToolsModule::statusSet(const QString &name, const QJsonObject &object) {
     } else if (name == "text_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter = object.value("start_character").toInt(-1);
-        const auto endLine = object.value("end_line").toInt(-1);
-        const auto endCharacter = object.value("end_character").toInt(-1);
-        statusText = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                                       QString::number(endCharacter));
+        const auto lineCount = object.value("line_count").toInt(-1);
+        statusText = lineCount == -1
+                         ? QString("I want to read %1 from line %2 to the end.").arg(documentName, QString::number(startLine))
+                         : QString("I want to read %1 from line %2 (%3 lines).").arg(documentName, QString::number(startLine), QString::number(lineCount));
     } else if (name == "text_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter = object.value("start_character").toInt(-1);
-        const auto endLine = object.value("end_line").toInt(-1);
-        const auto endCharacter = object.value("end_character").toInt(-1);
-        statusText = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                                       QString::number(endCharacter));
+        const auto lineCount = object.value("line_count").toInt(-1);
+        statusText = lineCount == -1
+                         ? QString("I want to edit %1 from line %2 to the end.").arg(documentName, QString::number(startLine))
+                         : QString("I want to edit %1 from line %2 (%3 lines).").arg(documentName, QString::number(startLine), QString::number(lineCount));
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         statusText = QString("I want to run %1.").arg(documentName);
