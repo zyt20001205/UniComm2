@@ -13,6 +13,20 @@ Imap = {}
 ---@return imap
 function Imap.new(name, timeout) end
 
+---@class (exact) ImapBody
+---@field contentType string MIME content type.
+---@field data string Body content after supported transfer decoding.
+
+---@class (exact) ImapAttachment
+---@field name string Attachment file name.
+---@field contentType string MIME content type.
+---@field data string Binary content after supported transfer decoding.
+
+---@class (exact) ImapMail
+---@field header table<string, string> Message header fields.
+---@field body ImapBody[] Message body parts.
+---@field attachments ImapAttachment[] Message attachments.
+
 ---@class imap
 imap = {}
 
@@ -25,13 +39,12 @@ imap = {}
 function imap:login(username, password) end
 
 ---
----Wait for a new message in INBOX, optionally filter by sender, then save its body and attachments.
+---Wait for a new message in INBOX, optionally filter by sender, then return its parsed content.
 ---
 ---@param from? string (default: "") Expected sender; when omitted accept any sender.
----@param path? string (default: "") Relative directory under the workspace; when omitted uses workspace root.
 ---@param timeout? integer (default: 600000) Maximum total time in **milliseconds** to wait for mail to arrive.
----@return table<string, string> header Message header fields.
-function imap:receive(from, path, timeout) end
+---@return ImapMail mail Parsed message content.
+function imap:receive(from, timeout) end
 
 ---
 ---Send LOGOUT command and close the IMAP session.

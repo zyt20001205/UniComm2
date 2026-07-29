@@ -1,8 +1,10 @@
 #ifndef UNICOMM_IMAP_H
 #define UNICOMM_IMAP_H
 
+#include <QByteArray>
+#include <QList>
 #include <QObject>
-#include <QVariant>
+#include <QVariantHash>
 #include <sol/object.hpp>
 #include <variant>
 
@@ -21,7 +23,7 @@ public:
     void login(const std::string &username, const std::string &password);
 
     [[nodiscard]] sol::object receive(sol::this_state ts, const sol::optional<std::string> &from,
-                                      const sol::optional<std::string> &path, sol::optional<int> timeout);
+                                      sol::optional<int> timeout);
 
     void logout();
 
@@ -48,11 +50,28 @@ private:
         QString exception{};
     };
 
+    struct MailBody {
+        QString contentType{};
+        QByteArray data{};
+    };
+
+    struct MailAttachment {
+        QString name{};
+        QString contentType{};
+        QByteArray data{};
+    };
+
+    struct Mail {
+        QVariantHash header{};
+        QList<MailBody> body{};
+        QList<MailAttachment> attachments{};
+    };
+
     [[nodiscard]] static Result parser(const QByteArray &rxData);
 
     [[nodiscard]] QByteArray nextTag();
 
-    [[nodiscard]] static QVariantHash mailParser(const QByteArray &rxData);
+    [[nodiscard]] Mail mailParser(const QByteArray &rxData);
 
     [[nodiscard]] QByteArray rfc2047Parser(const QByteArray &text);
 

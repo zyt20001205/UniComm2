@@ -3,6 +3,36 @@ local account = "receiver@example.com"
 local imap = Imap.new("IMAP", 30000)
 
 imap:login(account, "app-password")
-local header = imap:receive("", "mail", 600000)
-io.log(header)
+
+-- An empty sender accepts the next message from anyone.
+-- receive() waits up to ten minutes and returns all parsed content in memory.
+local mail = imap:receive("", 600000)
+io.log(mail.header)
+
+-- body is an array because multipart messages can contain plain-text and HTML alternatives.
+for index, body in ipairs(mail.body) do
+    local extension = "bin"
+    if body.contentType:find("text/plain", 1, true) then
+        extension = "txt"
+    elseif body.contentType:find("text/html", 1, true) then
+        extension = "html"
+    end
+
+    local path = "imap-body-" .. index .. "." .. extension
+    filesystem.open(path, "wb")
+    filesystem.write(path, body.data)
+    filesystem.close(path)
+end
+
+-- Attachment names are sender-controlled, so this demo only logs the original name
+-- and writes each binary payload to a generated workspace-relative path.
+for index, attachment in ipairs(mail.attachments) do
+    io.log(attachment.name, attachment.contentType)
+
+    local path = "imap-attachment-" .. index .. ".bin"
+    filesystem.open(path, "wb")
+    filesystem.write(path, attachment.data)
+    filesystem.close(path)
+end
+
 imap:logout()

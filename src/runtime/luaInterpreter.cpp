@@ -65,15 +65,15 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         datatable.set_function("export", [](const sol::optional<std::string> &fileName) { Data::datatableExport(fileName.value_or("")); });
         m_lua["datatable"] = datatable;
     }
-    // File lib (static)
+    // Filesystem lib (static)
     {
-        auto f = m_lua.create_table();
-        f.set_function("close", [this](const std::string &path) { m_file->close(path); });
-        f.set_function("open", [this](const std::string &path, const sol::optional<const std::string> &mode) { m_file->open(path, mode.value_or("r")); });
-        f.set_function("popen", [](const std::string &path) { File::_popen(path); });
-        f.set_function("read", [this](const std::string &path, const sol::variadic_args &args) { return m_file->read(path, args); });
-        f.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
-        m_lua["f"] = f;
+        auto filesystem = m_lua.create_table();
+        filesystem.set_function("close", [this](const std::string &path) { m_file->close(path); });
+        filesystem.set_function("open", [this](const std::string &path, const sol::optional<const std::string> &mode) { m_file->open(path, mode.value_or("r")); });
+        filesystem.set_function("popen", [](const std::string &path) { File::_popen(path); });
+        filesystem.set_function("read", [this](const std::string &path, const sol::variadic_args &args) { return m_file->read(path, args); });
+        filesystem.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
+        m_lua["filesystem"] = filesystem;
     }
     // Ftp lib (instance)
     {
@@ -83,7 +83,17 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             sol::meta_function::garbage_collect, [](Ftp *) {
             },
             "login", &Ftp::login,
+            "pwd", &Ftp::pwd,
+            "cd", &Ftp::cd,
             "list", &Ftp::list,
+            "stat", &Ftp::stat,
+            "exists", &Ftp::exists,
+            "mkdir", &Ftp::mkdir,
+            "rmdir", &Ftp::rmdir,
+            "delete", &Ftp::remove,
+            "rename", &Ftp::rename,
+            "download", &Ftp::download,
+            "upload", &Ftp::upload,
             "quit", &Ftp::quit
         );
         auto ftp = m_lua.create_table();

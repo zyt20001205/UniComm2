@@ -1,8 +1,6 @@
 #include "api/imap.h"
 
-#include <QDir>
 #include <QElapsedTimer>
-#include <QFile>
 #include <QRegularExpression>
 #include <sol/error.hpp>
 
@@ -84,14 +82,13 @@ void Imap::login(const std::string &username, const std::string &password) {
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
-sol::object Imap::receive(const sol::this_state ts, const sol::optional<std::string> &from, const sol::optional<std::string> &path, const sol::optional<int> timeout) {
+sol::object Imap::receive(const sol::this_state ts, const sol::optional<std::string> &from, const sol::optional<int> timeout) {
     QString exception{};
-    QVariantHash parsed{};
+    Mail mail{};
     const auto _from = QString::fromStdString(from.value_or(""));
-    const auto _path = path.value_or("");
     const auto _timeout = timeout.value_or(600000);
 
-    QMetaObject::invokeMethod(m_port, [this, &parsed, &_from, _timeout]() -> QString {
+    QMetaObject::invokeMethod(m_port, [this, &mail, &_from, _timeout]() -> QString {
         const auto selectTag = nextTag();
         if (!m_port->write(selectTag + " SELECT INBOX", "utf-8", "crlf")) return "write failed";
 
@@ -228,53 +225,39 @@ sol::object Imap::receive(const sol::this_state ts, const sol::optional<std::str
                 return "unexpected imap response(" + QString::fromUtf8(tagged->code) + ")";
             }
 
-            parsed = mailParser(rxData);
+            mail = mailParser(rxData);
             if (_from.isEmpty()) break;
-            if (parsed["header"].toHash()["From"].toString().contains(_from)) break;
+            if (mail.header.value("From").toString().contains(_from)) break;
         }
 
         return {};
     }, Qt::BlockingQueuedConnection, &exception);
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 
-    const LPath luaPath = QString::fromStdString(_path);
-    const auto folderUrl = uni_cast<QUrl>(luaPath);
-    const QDir dir(folderUrl.toLocalFile());
-    if (!dir.exists() && !dir.mkpath(".")) throw sol::error("invalid path");
-
-    const auto bodyList = parsed["body"].toList();
-    for (const auto &value: bodyList) {
-        const auto body = value.toHash();
-        const auto type = body["Content-Type"].toString();
-        QString fileName{};
-        if (type.contains("text/plain")) {
-            fileName = "body.txt";
-        } else if (type.contains("text/html")) {
-            fileName = "body.html";
-        } else {
-            emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported body (content-type:%1)").arg(type));
-            continue;
-        }
-
-        QFile file(dir.filePath(fileName));
-        if (file.open(QIODevice::WriteOnly)) file.write(body["Data"].toByteArray());
+    QVariantList body{};
+    body.reserve(mail.body.size());
+    for (const auto &part: mail.body) {
+        body.append(QVariantHash{
+            {"contentType", part.contentType},
+            {"data", part.data}
+        });
     }
 
-    const auto attachmentList = parsed["attachment"].toList();
-    for (const auto &value: attachmentList) {
-        const auto attachment = value.toHash();
-        const auto disposition = attachment["Content-Disposition"].toByteArray();
-        const auto quote1 = disposition.indexOf('"', disposition.indexOf("filename"));
-        if (quote1 == -1) continue;
-        const auto quote2 = disposition.indexOf('"', quote1 + 1);
-        if (quote2 == -1) continue;
-
-        const auto fileName = rfc2047Parser(disposition.sliced(quote1 + 1, quote2 - quote1 - 1));
-        QFile file(dir.filePath(fileName));
-        if (file.open(QIODevice::WriteOnly)) file.write(attachment["Data"].toByteArray());
+    QVariantList attachments{};
+    attachments.reserve(mail.attachments.size());
+    for (const auto &attachment: mail.attachments) {
+        attachments.append(QVariantHash{
+            {"name", attachment.name},
+            {"contentType", attachment.contentType},
+            {"data", attachment.data}
+        });
     }
 
-    return uni_cast<sol::object>(ts, parsed["header"].toHash());
+    return uni_cast<sol::object>(ts, QVariantHash{
+        {"header", mail.header},
+        {"body", body},
+        {"attachments", attachments}
+    });
 }
 
 void Imap::logout() {
@@ -310,11 +293,9 @@ QByteArray Imap::nextTag() {
     return 'A' + QByteArray::number(m_count++).rightJustified(3, '0');
 }
 
-QVariantHash Imap::mailParser(const QByteArray &rxData) {
-    QVariantHash parsed{};
+Imap::Mail Imap::mailParser(const QByteArray &rxData) {
+    Mail mail{};
     QList<QByteArray> boundaries{{"\r\n\r\n"}};
-    QVariantList bodyList{};
-    QVariantList attachmentList{};
     qsizetype pos = 0;
     bool first = true;
 
@@ -395,23 +376,34 @@ QVariantHash Imap::mailParser(const QByteArray &rxData) {
         }
 
         if (first) {
-            auto header = hash;
-            header.remove("Data");
-            parsed["header"] = header;
+            mail.header = hash;
+            mail.header.remove("Data");
             first = false;
         }
 
-        if (hash.contains("Content-Disposition")) {
-            attachmentList.append(hash);
+        if (hash.contains("Content-Disposition") && hash.contains("Data")) {
+            const auto disposition = hash.value("Content-Disposition").toByteArray();
+            const auto quote1 = disposition.indexOf('"', disposition.indexOf("filename"));
+            if (quote1 != -1) {
+                const auto quote2 = disposition.indexOf('"', quote1 + 1);
+                if (quote2 != -1) {
+                    mail.attachments.append({
+                        QString::fromUtf8(rfc2047Parser(disposition.sliced(quote1 + 1, quote2 - quote1 - 1))),
+                        hash.value("Content-Type").toString(),
+                        hash.value("Data").toByteArray()
+                    });
+                }
+            }
         } else if (hash.contains("Data")) {
-            bodyList.append(hash);
+            mail.body.append({
+                hash.value("Content-Type").toString(),
+                hash.value("Data").toByteArray()
+            });
         }
         pos = start;
     }
 
-    parsed["body"] = bodyList;
-    parsed["attachment"] = attachmentList;
-    return parsed;
+    return mail;
 }
 
 QByteArray Imap::rfc2047Parser(const QByteArray &text) {

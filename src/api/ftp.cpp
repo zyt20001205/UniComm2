@@ -65,6 +65,59 @@ void Ftp::login(const std::string &username, const std::string &password) const 
     if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
+std::string Ftp::pwd() const {
+    QString path{};
+    QString exception{};
+
+    QMetaObject::invokeMethod(m_port, [this, &path]() -> QString {
+        if (!m_port->write("PWD", "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::PathnameCreated)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+        if (!result.text.startsWith('"')) return "invalid PWD response";
+
+        bool terminated{};
+        for (qsizetype i = 1; i < result.text.size(); ++i) {
+            if (result.text.at(i) != '"') {
+                path += result.text.at(i);
+                continue;
+            }
+            if (i + 1 < result.text.size() && result.text.at(i + 1) == '"') {
+                path += '"';
+                ++i;
+                continue;
+            }
+            terminated = true;
+            break;
+        }
+        if (!terminated) return "invalid PWD response";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+
+    return path.toStdString();
+}
+
+void Ftp::cd(const std::string &path) const {
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+
+    QMetaObject::invokeMethod(m_port, [this, &_path]() -> QString {
+        if (!m_port->write("CWD " + _path, "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedFileActionOkay)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
 sol::table Ftp::list(const sol::this_state ts, const sol::optional<std::string> &path) const {
     DataResult result{};
     const auto _path = QByteArray::fromStdString(path.value_or(""));
@@ -125,6 +178,210 @@ sol::table Ftp::list(const sol::this_state ts, const sol::optional<std::string> 
     }
 
     return uni_cast<sol::table>(ts, entries);
+}
+
+sol::object Ftp::stat(const sol::this_state ts, const std::string &path) const {
+    CtrlResult result{};
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+
+    QMetaObject::invokeMethod(m_port, [this, &_path, &result]() -> QString {
+        if (!m_port->write("MLST " + _path, "utf-8", "crlf")) return "write failed";
+
+        result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedFileActionOkay)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+
+    QVariantHash entry{};
+    bool found{};
+    for (auto line: result.text.toUtf8().split('\n')) {
+        if (line.startsWith(' ')) line.removeFirst();
+
+        const auto space = line.indexOf(' ');
+        if (space <= 0 || !line.first(space).contains('=')) continue;
+
+        QByteArray type{};
+        QByteArray size{};
+        QByteArray modified{};
+
+        for (const auto &fact: line.first(space).split(';')) {
+            if (fact.isEmpty()) continue;
+            const auto equal = fact.indexOf('=');
+            if (equal <= 0) throw sol::error(m_portName + ": invalid MLST response");
+
+            const auto key = fact.first(equal).toLower();
+            const auto value = fact.sliced(equal + 1);
+            if (key == "type") type = value.toLower();
+            else if (key == "size") size = value;
+            else if (key == "modify") modified = value;
+        }
+
+        QString entryType{"unknown"};
+        if (type == "file") entryType = "file";
+        else if (type == "dir" || type == "cdir" || type == "pdir") entryType = "directory";
+        else if (type.contains("slink")) entryType = "link";
+
+        entry = {
+            {"name", QString::fromUtf8(line.sliced(space + 1))},
+            {"type", entryType}
+        };
+
+        if (!size.isEmpty()) {
+            bool validSize{};
+            const auto value = size.toLongLong(&validSize);
+            if (!validSize || value < 0) throw sol::error(m_portName + ": invalid MLST response");
+            entry["size"] = value;
+        }
+        if (!modified.isEmpty()) entry["modified"] = QString::fromLatin1(modified);
+
+        found = true;
+        break;
+    }
+    if (!found) throw sol::error(m_portName + ": invalid MLST response");
+
+    return uni_cast<sol::object>(ts, entry);
+}
+
+bool Ftp::exists(const std::string &path) const {
+    bool exists{};
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+
+    QMetaObject::invokeMethod(m_port, [this, &_path, &exists]() -> QString {
+        if (!m_port->write("MLST " + _path, "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (result.code == StatusCode::RequestedFileActionOkay) {
+            exists = true;
+            return {};
+        }
+        if (result.code == StatusCode::FileUnavailable) return {};
+        if (!result.exception.isEmpty()) return result.exception;
+        return "unexpected ftp response(" + QString::number(result.code) + ")";
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+
+    return exists;
+}
+
+void Ftp::mkdir(const std::string &path) const {
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+
+    QMetaObject::invokeMethod(m_port, [this, &_path]() -> QString {
+        if (!m_port->write("MKD " + _path, "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::PathnameCreated)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
+void Ftp::rmdir(const std::string &path) const {
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+
+    QMetaObject::invokeMethod(m_port, [this, &_path]() -> QString {
+        if (!m_port->write("RMD " + _path, "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedFileActionOkay)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
+void Ftp::remove(const std::string &path) const {
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+
+    QMetaObject::invokeMethod(m_port, [this, &_path]() -> QString {
+        if (!m_port->write("DELE " + _path, "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedFileActionOkay)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
+void Ftp::rename(const std::string &from, const std::string &to) const {
+    QString exception{};
+    const auto _from = QByteArray::fromStdString(from);
+    const auto _to = QByteArray::fromStdString(to);
+
+    QMetaObject::invokeMethod(m_port, [this, &_from, &_to]() -> QString {
+        if (!m_port->write("RNFR " + _from, "utf-8", "crlf")) return "write failed";
+
+        auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedFileActionPending)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        if (!m_port->write("RNTO " + _to, "utf-8", "crlf")) return "write failed";
+
+        result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::RequestedFileActionOkay)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return {};
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
+std::string Ftp::download(const std::string &path) const {
+    DataResult dataResult{};
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+
+    QMetaObject::invokeMethod(m_port, [this, &_path, &dataResult]() -> QString {
+        if (!m_port->write("TYPE I", "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::CommandOkay)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        dataResult = dataResponse("RETR " + _path);
+        return dataResult.exception;
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+
+    return {dataResult.data.constData(), static_cast<std::size_t>(dataResult.data.size())};
+}
+
+void Ftp::upload(const std::string &path, const std::string &data) const {
+    QString exception{};
+    const auto _path = QByteArray::fromStdString(path);
+    const QByteArray _data(data.data(), static_cast<qsizetype>(data.size()));
+
+    QMetaObject::invokeMethod(m_port, [this, &_path, &_data]() -> QString {
+        if (!m_port->write("TYPE I", "utf-8", "crlf")) return "write failed";
+
+        const auto result = ctrlResponse();
+        if (!result.exception.isEmpty()) return result.exception;
+        if (result.code != StatusCode::CommandOkay)
+            return "unexpected ftp response(" + QString::number(result.code) + ")";
+
+        return dataRequest("STOR " + _path, _data);
+    }, Qt::BlockingQueuedConnection, &exception);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
 }
 
 void Ftp::quit() const {
@@ -203,6 +460,14 @@ Ftp::CtrlResult Ftp::ctrlParser(const QByteArray &rxData) {
 }
 
 Ftp::DataResult Ftp::dataResponse(const QByteArray &command) const {
+    return dataTransfer(command, nullptr);
+}
+
+QString Ftp::dataRequest(const QByteArray &command, const QByteArray &data) const {
+    return dataTransfer(command, &data).exception;
+}
+
+Ftp::DataResult Ftp::dataTransfer(const QByteArray &command, const QByteArray *data) const {
     QByteArray rxData{};
 
     // try EPSV first
@@ -265,16 +530,36 @@ Ftp::DataResult Ftp::dataResponse(const QByteArray &command) const {
     if (result.code != StatusCode::DataConnectionAlreadyOpen && result.code != StatusCode::FileStatusOkay)
         return {.exception = "unexpected ftp response(" + QString::number(result.code) + ")"};
 
-    const QDeadlineTimer deadline(m_timeout);
-    while (socket.state() != QAbstractSocket::UnconnectedState) {
-        if (deadline.hasExpired()) {
-            socket.abort();
-            return {.exception = "data read timeout"};
+    if (data) {
+        qsizetype written{};
+        while (written < data->size()) {
+            const auto length = socket.write(data->constData() + written, data->size() - written);
+            if (length <= 0) return {.exception = "data write failed: " + socket.errorString()};
+            written += length;
+
+            while (socket.bytesToWrite() > 0) {
+                if (!socket.waitForBytesWritten(m_timeout))
+                    return {.exception = "data write failed: " + socket.errorString()};
+            }
         }
-        socket.waitForReadyRead(10);
+
+        socket.disconnectFromHost();
+        if (socket.state() != QAbstractSocket::UnconnectedState && !socket.waitForDisconnected(m_timeout)) {
+            socket.abort();
+            return {.exception = "data disconnect timeout"};
+        }
+    } else {
+        const QDeadlineTimer deadline(m_timeout);
+        while (socket.state() != QAbstractSocket::UnconnectedState) {
+            if (deadline.hasExpired()) {
+                socket.abort();
+                return {.exception = "data read timeout"};
+            }
+            socket.waitForReadyRead(10);
+            rxData += socket.readAll();
+        }
         rxData += socket.readAll();
     }
-    rxData += socket.readAll();
 
     result = ctrlResponse();
     if (!result.exception.isEmpty()) return {.exception = result.exception};

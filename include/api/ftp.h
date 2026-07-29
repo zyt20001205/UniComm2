@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QString>
 
+#include <sol/object.hpp>
 #include <sol/table.hpp>
 
 #include <string>
@@ -23,7 +24,27 @@ public:
 
     void login(const std::string &username, const std::string &password) const;
 
+    [[nodiscard]] std::string pwd() const;
+
+    void cd(const std::string &path) const;
+
     [[nodiscard]] sol::table list(sol::this_state ts, const sol::optional<std::string> &path) const;
+
+    [[nodiscard]] sol::object stat(sol::this_state ts, const std::string &path) const;
+
+    [[nodiscard]] bool exists(const std::string &path) const;
+
+    void mkdir(const std::string &path) const;
+
+    void rmdir(const std::string &path) const;
+
+    void remove(const std::string &path) const;
+
+    void rename(const std::string &from, const std::string &to) const;
+
+    [[nodiscard]] std::string download(const std::string &path) const;
+
+    void upload(const std::string &path, const std::string &data) const;
 
     void quit() const;
 
@@ -100,6 +121,10 @@ private:
     [[nodiscard]] static CtrlResult ctrlParser(const QByteArray &rxData);
 
     [[nodiscard]] DataResult dataResponse(const QByteArray &command) const;
+
+    [[nodiscard]] QString dataRequest(const QByteArray &command, const QByteArray &data) const;
+
+    [[nodiscard]] DataResult dataTransfer(const QByteArray &command, const QByteArray *data) const;
 
     std::string m_portName{};
     int m_timeout{};
