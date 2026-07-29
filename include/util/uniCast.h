@@ -2,6 +2,8 @@
 #define UNICOMM_UNICAST_H
 
 #include <QColor>
+#include <QList>
+#include <QSet>
 #include <QUrl>
 #include <QVariant>
 #include <sol/object.hpp>
@@ -61,6 +63,9 @@ template<>
 
 template<>
 [[nodiscard]] sol::table uni_cast<sol::table, QSet<QString>>(sol::this_state ts, const QSet<QString> &s, int depth);
+
+template<>
+[[nodiscard]] sol::table uni_cast<sol::table, QList<QVariant>>(sol::this_state ts, const QList<QVariant> &s, int depth);
 
 // qt -> qt
 struct QFileIcon {

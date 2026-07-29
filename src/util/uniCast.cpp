@@ -254,6 +254,16 @@ sol::table uni_cast<sol::table, QSet<QString> >(const sol::this_state ts, const 
     return d;
 }
 
+template<>
+sol::table uni_cast<sol::table, QList<QVariant> >(const sol::this_state ts, const QList<QVariant> &s, const int depth) {
+    sol::state_view lua(ts);
+    sol::table d = lua.create_table();
+    for (int i = 0; i < s.size(); ++i) {
+        d[i + 1] = uni_cast<sol::object>(ts, s[i], depth + 1);
+    }
+    return d;
+}
+
 // qt -> qt
 template<>
 QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {

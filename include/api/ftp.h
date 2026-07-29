@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QString>
 
+#include <sol/table.hpp>
+
 #include <string>
 
 class BasePort;
@@ -20,6 +22,8 @@ public:
     void init(const std::string &portName, int timeout);
 
     void login(const std::string &username, const std::string &password) const;
+
+    [[nodiscard]] sol::table list(sol::this_state ts, const sol::optional<std::string> &path) const;
 
     void quit() const;
 
@@ -70,6 +74,7 @@ private:
             CommandNotImplemented = 502,
             BadSequenceOfCommands = 503,
             CommandNotImplementedForParameter = 504,
+            NetworkProtocolNotSupported = 522,
             NotLoggedIn = 530,
             NeedAccountForStoringFiles = 532,
             FileUnavailable = 550,
@@ -79,15 +84,22 @@ private:
         };
     };
 
-    struct Result {
+    struct CtrlResult {
         int code{};
         QString text{};
         QString exception{};
     };
 
-    [[nodiscard]] Result response() const;
+    struct DataResult {
+        QByteArray data{};
+        QString exception{};
+    };
 
-    [[nodiscard]] static Result parser(const QByteArray &rxData);
+    [[nodiscard]] CtrlResult ctrlResponse() const;
+
+    [[nodiscard]] static CtrlResult ctrlParser(const QByteArray &rxData);
+
+    [[nodiscard]] DataResult dataResponse(const QByteArray &command) const;
 
     std::string m_portName{};
     int m_timeout{};

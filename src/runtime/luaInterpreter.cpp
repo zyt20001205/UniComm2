@@ -83,6 +83,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             sol::meta_function::garbage_collect, [](Ftp *) {
             },
             "login", &Ftp::login,
+            "list", &Ftp::list,
             "quit", &Ftp::quit
         );
         auto ftp = m_lua.create_table();
