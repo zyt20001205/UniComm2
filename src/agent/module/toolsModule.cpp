@@ -287,6 +287,7 @@ void ToolsModule::initialize() {
                         "description",
                         "Read text from a document using a range. "
                         "For text files, use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to read the whole document, use x/0/x/-1 to read only line x. "
+                        "For a partial text range, use concrete line numbers; character 0 is the beginning of a line and -1 is the end of a line. "
                         "For PDF files, one call can read only one page, use start_line/start_character/end_line/end_character = x/-1/-1/-1 to read only page x. "
                     },
                     {
@@ -305,7 +306,7 @@ void ToolsModule::initialize() {
                                             {"type", "integer"},
                                             {
                                                 "description",
-                                                "The starting line number (0-based). Pass -1 to start from the beginning of the file. "
+                                                "The starting line number (0-based). For text files, pass -1 only with all range values set to -1 to read the whole document. "
                                                 "For PDF files, this is the page index (0-based)."
                                             }
                                         }
@@ -315,7 +316,7 @@ void ToolsModule::initialize() {
                                             {"type", "integer"},
                                             {
                                                 "description",
-                                                "The starting character offset within the start line (0-based). Pass -1 to start from the first character. "
+                                                "The starting character offset within the start line (0-based). Pass 0 to start from the first character; pass -1 to start at the end of the line. "
                                                 "For PDF files, pass -1."
                                             }
                                         }
@@ -325,7 +326,7 @@ void ToolsModule::initialize() {
                                             {"type", "integer"},
                                             {
                                                 "description",
-                                                "The ending line number (0-based, inclusive). Pass -1 to read until the end of the file. "
+                                                "The ending line number (0-based, inclusive). For a partial text range, provide a concrete line number. "
                                                 "For PDF files, pass -1."
                                             }
                                         }
@@ -366,6 +367,7 @@ void ToolsModule::initialize() {
                         "description",
                         "Write text to a document using a range. "
                         "Use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to replace the whole document. "
+                        "For a partial range, use concrete line numbers; character 0 is the beginning of a line and -1 is the end of a line. "
                         "To replace only line x, use x/0/x/-1."
                     },
                     {
@@ -388,19 +390,28 @@ void ToolsModule::initialize() {
                                     {
                                         "start_line", QJsonObject{
                                             {"type", "integer"},
-                                            {"description", "The starting line number (0-based). Pass -1 to start from the beginning of the file."}
+                                            {
+                                                "description",
+                                                "The starting line number (0-based). Pass -1 only with all range values set to -1 to replace the whole document."
+                                            }
                                         }
                                     },
                                     {
                                         "start_character", QJsonObject{
                                             {"type", "integer"},
-                                            {"description", "The starting character offset within the start line (0-based). Pass -1 to start from the first character."}
+                                            {
+                                                "description",
+                                                "The starting character offset within the start line (0-based). Pass 0 to start from the first character; pass -1 to start at the end of the line."
+                                            }
                                         }
                                     },
                                     {
                                         "end_line", QJsonObject{
                                             {"type", "integer"},
-                                            {"description", "The ending line number (0-based, inclusive). Pass -1 to replace until the end of the file."}
+                                            {
+                                                "description",
+                                                "The ending line number (0-based, inclusive). For a partial range, provide a concrete line number."
+                                            }
                                         }
                                     },
                                     {
