@@ -478,7 +478,7 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
         const auto entries = apiDir.entryInfoList({"*.d.lua"}, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
         for (const auto &entry: entries) {
             const auto packageName = entry.fileName().chopped(QStringLiteral(".d.lua").size());
-            if (!QStringList({"mqtt"}).contains(packageName)) {
+            if (!QStringList({"mqtt", "types"}).contains(packageName)) {
                 array.append(packageName);
             }
         }

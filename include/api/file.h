@@ -2,39 +2,43 @@
 #define UNICOMM_FILE_H
 
 #include <QFile>
-#include <QHash>
-#include <QObject>
+#include <sol/object.hpp>
+#include <sol/optional.hpp>
 #include <sol/variadic_args.hpp>
 
-namespace sol {
-    struct variadic_args;
-}
+#include <memory>
+#include <string>
 
-class File final : public QObject {
-    Q_OBJECT
+class QTextStream;
 
+class File final {
 public:
-    explicit File(QObject *parent = nullptr);
+    File(const QString &path, const std::string &mode);
 
-    ~File() override = default;
+    ~File();
 
-    void open(const std::string &path, const std::string &mode);
+    [[nodiscard]] bool atEnd() const;
 
-    void close(const std::string &path);
+    bool close();
 
-    static void _popen(const std::string &path);
+    bool flush();
 
-    [[nodiscard]] sol::object read(const std::string &path, const sol::variadic_args &args);
+    [[nodiscard]] qint64 pos() const;
 
-    void write(const std::string &path, const sol::variadic_args &args);
+    [[nodiscard]] sol::object read(const sol::variadic_args &args);
+
+    [[nodiscard]] qint64 seek(const sol::optional<std::string> &whence, const sol::optional<qint64> &offset);
+
+    [[nodiscard]] qint64 size();
+
+    [[nodiscard]] File *write(const sol::variadic_args &args);
 
 private:
-    struct FileHandle {
-        QFile file;
-        bool binary = false;
-    };
+    void ensureOpen() const;
 
-    QHash<QUrl, std::shared_ptr<FileHandle> > m_handleHash;
+    QFile m_file{};
+    std::unique_ptr<QTextStream> m_textStream{};
+    bool m_binary{};
 };
 
 #endif //UNICOMM_FILE_H

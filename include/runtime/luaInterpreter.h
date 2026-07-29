@@ -9,7 +9,6 @@
 class QEventLoop;
 class QStandardItemModel;
 class Data;
-class File;
 class IO;
 class Key;
 class Mouse;
@@ -63,7 +62,6 @@ private:
     sol::state m_lua{};
     QVariantMap m_luaSession{};
     Data *m_data{};
-    File *m_file{};
     IO *m_io{};
     Key *m_key{};
     Mouse *m_mouse{};

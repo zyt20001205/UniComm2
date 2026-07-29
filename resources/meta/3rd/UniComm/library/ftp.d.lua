@@ -13,12 +13,6 @@ Ftp = {}
 ---@return ftp
 function Ftp.new(name, timeout) end
 
----@class (exact) FtpEntry
----@field name string Entry name.
----@field type "file"|"directory"|"link"|"unknown" Entry type.
----@field size? integer File size in bytes.
----@field modified? string UTC modification time in `YYYYMMDDHHMMSS[.sss]` format.
-
 ---@class ftp
 ftp = {}
 
@@ -47,14 +41,14 @@ function ftp:cd(path) end
 ---List remote directory entries through a temporary passive data connection.
 ---
 ---@param path? string (default: "") Remote directory path; when omitted uses the current directory.
----@return FtpEntry[]
+---@return FileInfo[]
 function ftp:list(path) end
 
 ---
 ---Return facts about one remote file or directory through the control connection.
 ---
 ---@param path string Remote file or directory path.
----@return FtpEntry
+---@return FileInfo
 function ftp:stat(path) end
 
 ---

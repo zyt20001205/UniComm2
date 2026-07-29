@@ -19,9 +19,8 @@ for index, body in ipairs(mail.body) do
     end
 
     local path = "imap-body-" .. index .. "." .. extension
-    filesystem.open(path, "wb")
-    filesystem.write(path, body.data)
-    filesystem.close(path)
+    local output <close> = filesystem.open(path, "wb")
+    output:write(body.data)
 end
 
 -- Attachment names are sender-controlled, so this demo only logs the original name
@@ -30,9 +29,8 @@ for index, attachment in ipairs(mail.attachments) do
     io.log(attachment.name, attachment.contentType)
 
     local path = "imap-attachment-" .. index .. ".bin"
-    filesystem.open(path, "wb")
-    filesystem.write(path, attachment.data)
-    filesystem.close(path)
+    local output <close> = filesystem.open(path, "wb")
+    output:write(attachment.data)
 end
 
 imap:logout()

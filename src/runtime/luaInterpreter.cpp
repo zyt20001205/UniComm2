@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "api/data.h"
 #include "api/file.h"
+#include "api/filesystem.h"
 #include "api/ftp.h"
 #include "api/http.h"
 #include "api/imap.h"
@@ -32,7 +33,6 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
       m_data(new Data(this)),
-      m_file(new File(this)),
       m_io(new IO(this)),
       m_key(new Key(this)),
       m_mouse(new Mouse(this)),
@@ -67,12 +67,33 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     }
     // Filesystem lib (static)
     {
+        m_lua.new_usertype<File>(
+            "FileHandle",
+            sol::no_constructor,
+            "__close", [](File &file) { file.close(); },
+            "close", &File::close,
+            "flush", &File::flush,
+            "atEnd", &File::atEnd,
+            "pos", &File::pos,
+            "seek", &File::seek,
+            "size", &File::size,
+            "read", &File::read,
+            "write", &File::write
+        );
+
         auto filesystem = m_lua.create_table();
-        filesystem.set_function("close", [this](const std::string &path) { m_file->close(path); });
-        filesystem.set_function("open", [this](const std::string &path, const sol::optional<const std::string> &mode) { m_file->open(path, mode.value_or("r")); });
-        filesystem.set_function("popen", [](const std::string &path) { File::_popen(path); });
-        filesystem.set_function("read", [this](const std::string &path, const sol::variadic_args &args) { return m_file->read(path, args); });
-        filesystem.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
+        filesystem.set_function("open", [](const std::string &path, const sol::optional<std::string> &mode) {
+            return Filesystem::open(path, mode.value_or("r"));
+        });
+        filesystem.set_function("exists", &Filesystem::exists);
+        filesystem.set_function("list", &Filesystem::list);
+        filesystem.set_function("stat", &Filesystem::stat);
+        filesystem.set_function("copy", &Filesystem::copy);
+        filesystem.set_function("mkdir", &Filesystem::mkdir);
+        filesystem.set_function("remove", &Filesystem::remove);
+        filesystem.set_function("rename", &Filesystem::rename);
+        filesystem.set_function("rmdir", &Filesystem::rmdir);
+        filesystem.set_function("openExternal", &Filesystem::openExternal);
         m_lua["filesystem"] = filesystem;
     }
     // Ftp lib (instance)
