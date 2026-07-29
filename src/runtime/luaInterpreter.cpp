@@ -73,10 +73,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             "__close", [](File &file) { file.close(); },
             "close", &File::close,
             "flush", &File::flush,
-            "atEnd", &File::atEnd,
-            "pos", &File::pos,
             "seek", &File::seek,
-            "size", &File::size,
             "read", &File::read,
             "write", &File::write
         );
@@ -85,15 +82,8 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         filesystem.set_function("open", [](const std::string &path, const sol::optional<std::string> &mode) {
             return Filesystem::open(path, mode.value_or("r"));
         });
-        filesystem.set_function("exists", &Filesystem::exists);
-        filesystem.set_function("list", &Filesystem::list);
-        filesystem.set_function("stat", &Filesystem::stat);
-        filesystem.set_function("copy", &Filesystem::copy);
-        filesystem.set_function("mkdir", &Filesystem::mkdir);
         filesystem.set_function("remove", &Filesystem::remove);
         filesystem.set_function("rename", &Filesystem::rename);
-        filesystem.set_function("rmdir", &Filesystem::rmdir);
-        filesystem.set_function("openExternal", &Filesystem::openExternal);
         m_lua["filesystem"] = filesystem;
     }
     // Ftp lib (instance)

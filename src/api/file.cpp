@@ -1,9 +1,8 @@
 #include "api/file.h"
 
-#include <QTextStream>
+#include <QDataStream>
 #include <sol/error.hpp>
-
-#include <limits>
+#include <sol/variadic_args.hpp>
 
 #include "util/uniCast.h"
 
@@ -27,129 +26,65 @@ File::File(const QString &path, const std::string &mode) {
 
     m_file.setFileName(path);
     if (!m_file.open(flags)) throw sol::error("file open failed: " + m_file.errorString().toStdString());
-    if (!m_binary) m_textStream = std::make_unique<QTextStream>(&m_file);
-}
-
-File::~File() {
-    if (!m_file.isOpen()) return;
-    if (m_textStream) m_textStream->flush();
-    m_textStream.reset();
-    m_file.close();
-}
-
-bool File::atEnd() const {
-    ensureOpen();
-    if (m_textStream) return m_textStream->atEnd();
-    return m_file.atEnd();
 }
 
 bool File::close() {
     if (!m_file.isOpen()) return true;
-
-    try {
-        if (m_file.isWritable()) flush();
-    } catch (...) {
-        m_textStream.reset();
-        m_file.close();
-        throw;
-    }
-
-    m_textStream.reset();
     m_file.close();
     return true;
 }
 
 bool File::flush() {
-    ensureOpen();
+    if (!m_file.isOpen()) throw sol::error("file is closed");
     if (!m_file.isWritable()) return true;
-
-    if (m_textStream) {
-        m_textStream->flush();
-        if (m_textStream->status() == QTextStream::WriteFailed)
-            throw sol::error("file flush failed: " + m_file.errorString().toStdString());
-        return true;
-    }
-
     if (!m_file.flush()) throw sol::error("file flush failed: " + m_file.errorString().toStdString());
     return true;
 }
 
-qint64 File::pos() const {
-    ensureOpen();
-    if (m_textStream) return m_textStream->pos();
-    return m_file.pos();
-}
-
 sol::object File::read(const sol::variadic_args &args) {
-    ensureOpen();
-    if (!m_file.isReadable()) throw sol::error("file is not readable");
+    if (!m_file.isOpen()) throw sol::error("file is closed");
 
     QVariantList results{};
     auto formats = uni_cast<QVariantList>(args);
-    if (formats.isEmpty()) formats.append("l");
-
+    if (formats.isEmpty()) formats = QVariantList({"l"});
     if (m_binary) {
+        QDataStream stream(&m_file);
         for (const auto &format: formats) {
-            if (format.typeId() == QMetaType::Int || format.typeId() == QMetaType::LongLong) {
-                const auto length = format.toLongLong();
-                if (length < 0 || length > QByteArray::maxSize()) throw sol::error("invalid read length");
-                if (length == 0) {
-                    results.append(m_file.atEnd() ? QVariant{} : QVariant{QByteArray{}});
-                    continue;
-                }
-
-                const auto data = m_file.read(length);
-                if (m_file.error() != QFileDevice::NoError)
-                    throw sol::error("file read failed: " + m_file.errorString().toStdString());
-                results.append(data.isEmpty() && m_file.atEnd() ? QVariant{} : QVariant{data});
-                continue;
+            if (format.typeId() == QMetaType::Int) {
+                const int length = format.toInt();
+                QByteArray data(length, Qt::Uninitialized);
+                const auto read = stream.readRawData(data.data(), length);
+                if (read <= 0) results.append(QVariant{});
+                else results.append(data.left(static_cast<int>(read)));
+            } else if (format.typeId() == QMetaType::QString && format.toString() == "a") {
+                results.append(m_file.readAll());
+            } else {
+                throw sol::error("invalid read mode: " + format.toString().toStdString());
             }
-
-            if (format.typeId() == QMetaType::QString && format.toString() == "a") {
-                const auto data = m_file.readAll();
-                if (m_file.error() != QFileDevice::NoError)
-                    throw sol::error("file read failed: " + m_file.errorString().toStdString());
-                results.append(data);
-                continue;
-            }
-
-            throw sol::error("invalid binary read format: " + format.toString().toStdString());
         }
     } else {
+        QTextStream stream(&m_file);
         for (const auto &format: formats) {
-            if (format.typeId() == QMetaType::Int || format.typeId() == QMetaType::LongLong) {
-                const auto length = format.toLongLong();
-                if (length < 0 || length > std::numeric_limits<qsizetype>::max()) throw sol::error("invalid read length");
-                if (length == 0) {
-                    results.append(m_textStream->atEnd() ? QVariant{} : QVariant{QString{}});
-                    continue;
-                }
-                const auto data = m_textStream->read(length);
+            if (format.typeId() == QMetaType::Int) {
+                const auto data = stream.read(format.toInt());
                 results.append(data.isNull() ? QVariant{} : QVariant{data});
-                continue;
-            }
-
-            if (format.typeId() != QMetaType::QString)
-                throw sol::error("invalid read format: " + format.toString().toStdString());
-
-            const auto value = format.toString();
-            if (value == "n") {
-                double number{};
-                *m_textStream >> number;
-                if (m_textStream->status() == QTextStream::Ok) {
-                    results.append(number);
+            } else if (format.typeId() == QMetaType::QString) {
+                const auto value = format.toString();
+                if (value == "n") {
+                    double number{};
+                    stream >> number;
+                    results.append(stream.status() == QTextStream::Ok ? QVariant{number} : QVariant{});
+                } else if (value == "a") {
+                    results.append(stream.readAll());
+                } else if (value == "l") {
+                    results.append(stream.atEnd() ? QVariant{} : QVariant{stream.readLine()});
+                } else if (value == "L") {
+                    results.append(stream.atEnd() ? QVariant{} : QVariant{stream.readLine() + "\n"});
                 } else {
-                    results.append(QVariant{});
-                    m_textStream->resetStatus();
+                    throw sol::error("invalid read format: " + value.toStdString());
                 }
-            } else if (value == "a") {
-                results.append(m_textStream->readAll());
-            } else if (value == "l") {
-                results.append(m_textStream->atEnd() ? QVariant{} : QVariant{m_textStream->readLine()});
-            } else if (value == "L") {
-                results.append(m_textStream->atEnd() ? QVariant{} : QVariant{m_textStream->readLine() + '\n'});
             } else {
-                throw sol::error("invalid read format: " + value.toStdString());
+                throw sol::error("invalid read mode: " + format.toString().toStdString());
             }
         }
     }
@@ -158,70 +93,38 @@ sol::object File::read(const sol::variadic_args &args) {
 }
 
 qint64 File::seek(const sol::optional<std::string> &whence, const sol::optional<qint64> &offset) {
-    ensureOpen();
-    if (m_file.isWritable()) flush();
+    if (!m_file.isOpen()) throw sol::error("file is closed");
 
     const auto origin = whence.value_or("cur");
     qint64 base{};
     if (origin == "set") base = 0;
-    else if (origin == "cur") base = pos();
-    else if (origin == "end") base = size();
+    else if (origin == "cur") base = m_file.pos();
+    else if (origin == "end") base = m_file.size();
     else throw sol::error("invalid seek origin: " + origin);
 
-    const auto delta = offset.value_or(0);
-    if (delta < 0) {
-        if (delta < -base) throw sol::error("invalid seek offset");
-    } else if (base > std::numeric_limits<qint64>::max() - delta) {
-        throw sol::error("invalid seek offset");
-    }
-    const auto target = base + delta;
-
-    const bool success = m_textStream ? m_textStream->seek(target) : m_file.seek(target);
-    if (!success) throw sol::error("file seek failed: " + m_file.errorString().toStdString());
+    const auto target = base + offset.value_or(0);
+    if (!m_file.seek(target)) throw sol::error("file seek failed: " + m_file.errorString().toStdString());
     return target;
 }
 
-qint64 File::size() {
-    ensureOpen();
-    if (m_file.isWritable()) flush();
-    return m_file.size();
-}
-
 File *File::write(const sol::variadic_args &args) {
-    ensureOpen();
-    if (!m_file.isWritable()) throw sol::error("file is not writable");
+    if (!m_file.isOpen()) throw sol::error("file is closed");
 
-    for (const sol::object &arg: args) {
-        QByteArray bytes{};
-        if (arg.is<std::string>()) {
-            const auto value = arg.as<std::string>();
-            bytes = QByteArray(value.data(), static_cast<qsizetype>(value.size()));
-        } else if (arg.is<lua_Integer>()) {
-            bytes = QByteArray::number(arg.as<lua_Integer>());
-        } else if (arg.is<lua_Number>()) {
-            bytes = QByteArray::number(arg.as<lua_Number>(), 'g', 14);
-        } else {
-            throw sol::error("file write expects string or number");
+    if (m_binary) {
+        QDataStream stream(&m_file);
+        for (const sol::object &arg: args) {
+            const auto bytes = arg.as<std::string>();
+            stream.writeRawData(bytes.data(), static_cast<int>(bytes.size()));
         }
-
-        if (m_binary) {
-            qsizetype written{};
-            while (written < bytes.size()) {
-                const auto length = m_file.write(bytes.constData() + written, bytes.size() - written);
-                if (length <= 0) throw sol::error("file write failed: " + m_file.errorString().toStdString());
-                written += length;
-            }
-        } else {
-            *m_textStream << QString::fromUtf8(bytes);
-            if (m_textStream->status() == QTextStream::WriteFailed)
-                throw sol::error("file write failed: " + m_file.errorString().toStdString());
-        }
+        if (stream.status() != QDataStream::Ok)
+            throw sol::error("file write failed: " + m_file.errorString().toStdString());
+    } else {
+        QTextStream stream(&m_file);
+        for (const auto &arg: uni_cast<QVariantList>(args)) stream << arg.toString();
+        stream.flush();
+        if (m_file.error() != QFileDevice::NoError)
+            throw sol::error("file write failed: " + m_file.errorString().toStdString());
     }
 
     return this;
-}
-
-// private
-void File::ensureOpen() const {
-    if (!m_file.isOpen()) throw sol::error("file is closed");
 }
