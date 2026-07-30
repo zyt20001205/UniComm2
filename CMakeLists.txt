@@ -25,6 +25,7 @@ find_package(Qt6 REQUIRED COMPONENTS
         Sql
         Svg
         TextToSpeech
+        WebSockets
         Widgets
 )
 
@@ -221,6 +222,7 @@ target_link_libraries(UniComm PRIVATE
         Qt6::Sql
         Qt6::Svg
         Qt6::TextToSpeech
+        Qt6::WebSockets
         Qt6::Widgets
         ${CMARK_LIB}
         ${DRMINGW_LIB}

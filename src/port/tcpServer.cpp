@@ -298,34 +298,19 @@ QByteArray TcpServer::handleReadUntil(const QByteArray &text, const int timeout,
 }
 
 void TcpServer::handleLog(const int type, const QByteArray &data, const QTcpSocket *tcpServerPeer) {
+    QString message{};
+    const QString format = type == LogLevel::Transmit ? m_portConfig["txFormat"].toString() : m_portConfig["rxFormat"].toString();
+    if (format == "raw") {
+        message.reserve(data.size() * 4);
+        for (const char c: data) message += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
+    } else if (format == "hex") message = data.toHex(' ').toUpper();
+    else if (format == "ascii") message = QString::fromLatin1(data);
+    else message = QString::fromUtf8(data);
+
     const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
     if (type == LogLevel::Transmit) {
-        // tx message reformat
-        QString txMessage{};
-        // 1: encode tx message according to tx format
-        if (m_portConfig["txFormat"].toString() == "raw") {
-            txMessage.reserve(data.size() * 4);
-            for (const char c: data) {
-                txMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
-            }
-        } else if (m_portConfig["txFormat"].toString() == "hex") txMessage = data.toHex(' ').toUpper();
-        else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
-        else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
-        // 2: add port info
-        emit appendLog(type, QString("[%1:%2 -&gt; %3]").arg(m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt()), peerIp), txMessage);
+        emit appendLog(type, QString("[%1:%2 -&gt; %3]").arg(m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt()), peerIp), message);
     } else {
-        // rx message reformat
-        QString rxMessage{};
-        // 1: encode rx message according to rx format
-        if (m_portConfig["rxFormat"].toString() == "raw") {
-            rxMessage.reserve(data.size() * 4);
-            for (const char c: data) {
-                rxMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
-            }
-        } else if (m_portConfig["rxFormat"].toString() == "hex") rxMessage = data.toHex(' ').toUpper();
-        else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
-        else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
-        // 2: add port info
-        emit appendLog(type, QString("[%1:%2 &lt;- %3]").arg(m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt()), peerIp), rxMessage);
+        emit appendLog(type, QString("[%1:%2 &lt;- %3]").arg(m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt()), peerIp), message);
     }
 }

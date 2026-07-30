@@ -97,14 +97,32 @@ private:
     QObject *m_tcpClientNameTextField{};
     QObject *m_tcpClientRemoteHostTextField{};
     QObject *m_tcpClientRemotePortSpinBox{};
-    // ssl client
-    QObject *m_sslClientNameTextField{};
-    QObject *m_sslClientRemoteHostTextField{};
-    QObject *m_sslClientRemotePortSpinBox{};
     // tcp server
     QObject *m_tcpServerNameTextField{};
     QObject *m_tcpServerLocalHostComboBox{};
     QObject *m_tcpServerLocalPortSpinBox{};
+    // ssl client
+    QObject *m_sslClientNameTextField{};
+    QObject *m_sslClientRemoteHostTextField{};
+    QObject *m_sslClientRemotePortSpinBox{};
+    // ssl server
+    QObject *m_sslServerNameTextField{};
+    QObject *m_sslServerLocalHostComboBox{};
+    QObject *m_sslServerLocalPortSpinBox{};
+    QObject *m_sslServerCertificateTextField{};
+    QObject *m_sslServerPrivateKeyTextField{};
+    // web socket client
+    QObject *m_webSocketClientNameTextField{};
+    QObject *m_webSocketClientUrlTextField{};
+    QObject *m_webSocketClientMessageTypeComboBox{};
+    // web socket server
+    QObject *m_webSocketServerNameTextField{};
+    QObject *m_webSocketServerLocalHostComboBox{};
+    QObject *m_webSocketServerLocalPortSpinBox{};
+    QObject *m_webSocketServerSecureSwitch{};
+    QObject *m_webSocketServerCertificateTextField{};
+    QObject *m_webSocketServerPrivateKeyTextField{};
+    QObject *m_webSocketServerMessageTypeComboBox{};
     // udp socket
     QObject *m_udpSocketNameTextField{};
     QObject *m_udpSocketLocalHostComboBox{};

@@ -80,8 +80,11 @@ namespace PortType {
         SerialPort,
         Visa,
         TcpClient,
-        SslClient,
         TcpServer,
+        SslClient,
+        SslServer,
+        WebSocketClient,
+        WebSocketServer,
         UdpSocket,
         VideoStream
     };

@@ -15,9 +15,12 @@
 #include "port/basePort.h"
 #include "port/portSetting.h"
 #include "port/serialPort.h"
-#include "port/sslClient.h"
 #include "port/tcpClient.h"
 #include "port/tcpServer.h"
+#include "port/sslClient.h"
+#include "port/sslServer.h"
+#include "port/webSocketClient.h"
+#include "port/webSocketServer.h"
 #include "port/udpSocket.h"
 #include "port/videoStream.h"
 #include "port/visa.h"
@@ -120,12 +123,24 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
             port = new TcpClient(portConfig);
             break;
         }
+        case PortType::TcpServer: {
+            port = new TcpServer(portConfig);
+            break;
+        }
         case PortType::SslClient: {
             port = new SslClient(portConfig);
             break;
         }
-        case PortType::TcpServer: {
-            port = new TcpServer(portConfig);
+        case PortType::SslServer: {
+            port = new SslServer(portConfig);
+            break;
+        }
+        case PortType::WebSocketClient: {
+            port = new WebSocketClient(portConfig);
+            break;
+        }
+        case PortType::WebSocketServer: {
+            port = new WebSocketServer(portConfig);
             break;
         }
         case PortType::UdpSocket: {

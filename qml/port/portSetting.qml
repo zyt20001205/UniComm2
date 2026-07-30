@@ -38,7 +38,7 @@ Item {
                     id: tumbler
                     currentIndex: rootItem.portType
                     delegate: delegateComponent
-                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Ssl Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Vedio Stream")]
+                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Ssl Client"), qsTr("Ssl Server"), qsTr("WebSocket Client"), qsTr("WebSocket Server"), qsTr("Udp Socket"), qsTr("Video Stream")]
                     wrap: false
                     Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -80,12 +80,18 @@ Item {
                                 case 2:
                                     return "qrc:/icon/tcpClient.svg"
                                 case 3:
-                                    return ""
-                                case 4:
                                     return "qrc:/icon/tcpServer.svg"
+                                case 4:
+                                    return ""
                                 case 5:
-                                    return "qrc:/icon/udpSocket.svg"
+                                    return ""
                                 case 6:
+                                    return ""
+                                case 7:
+                                    return ""
+                                case 8:
+                                    return "qrc:/icon/udpSocket.svg"
+                                case 9:
                                     return "qrc:/icon/video.svg"
                                 default:
                                     return ""
@@ -109,12 +115,18 @@ Item {
                                 case 2:
                                     return qsTr("A device that initiates a connection with a TCP server to send and receive reliable, ordered data over a network.")
                                 case 3:
-                                    return qsTr("A secure client that establishes encrypted connections with SSL/TLS servers to ensure data confidentiality and integrity during transmission.")
-                                case 4:
                                     return qsTr("A device that listens on a network port, accepts incoming connections from TCP clients, and manages reliable, ordered data exchange.")
+                                case 4:
+                                    return qsTr("A secure client that establishes encrypted connections with SSL/TLS servers to ensure data confidentiality and integrity during transmission.")
                                 case 5:
-                                    return qsTr("A device that uses the User Datagram Protocol to send independent, connectionless messages (datagrams) over an IP network.")
+                                    return qsTr("A secure server that accepts encrypted SSL/TLS byte-stream connections from multiple clients.")
                                 case 6:
+                                    return qsTr("A client that establishes a full-duplex WebSocket connection and exchanges text or binary messages.")
+                                case 7:
+                                    return qsTr("A server that accepts multiple WebSocket clients over ws or wss and manages each peer independently.")
+                                case 8:
+                                    return qsTr("A device that uses the User Datagram Protocol to send independent, connectionless messages (datagrams) over an IP network.")
+                                case 9:
                                     return qsTr("Video stream for image processing and OCR text recognition.")
                                 default:
                                     return ""
@@ -319,6 +331,55 @@ Item {
                         }
                     }
 
+                    // tcp server
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: tcpServerNameTextField
+                            font.pointSize: 12
+                            placeholderText: qsTr("Tcp Server")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Host")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: tcpServerLocalHostComboBox
+                            font.pointSize: 12
+                            model: localHostStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Port")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: tcpServerLocalPortSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 0
+                            to: 65535
+                            Layout.fillWidth: true
+                        }
+                    }
+
                     // ssl client
                     GridLayout {
                         columns: 2
@@ -365,7 +426,7 @@ Item {
                         }
                     }
 
-                    // tcp server
+                    // ssl server
                     GridLayout {
                         columns: 2
                         columnSpacing: 20; rowSpacing: 20
@@ -377,9 +438,9 @@ Item {
                         }
 
                         TextField {
-                            id: tcpServerNameTextField
+                            id: sslServerNameTextField
                             font.pointSize: 12
-                            placeholderText: qsTr("Tcp Server")
+                            placeholderText: qsTr("Ssl Server")
                             Layout.fillWidth: true
                         }
 
@@ -390,7 +451,7 @@ Item {
                         }
 
                         ComboBox {
-                            id: tcpServerLocalHostComboBox
+                            id: sslServerLocalHostComboBox
                             font.pointSize: 12
                             model: localHostStandardItemModel
                             textRole: "display"
@@ -405,11 +466,203 @@ Item {
                         }
 
                         SpinBox {
-                            id: tcpServerLocalPortSpinBox
+                            id: sslServerLocalPortSpinBox
                             font.pointSize: 12
                             editable: true
                             from: 0
                             to: 65535
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Certificate")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: sslServerCertificateTextField
+                            font.pointSize: 12
+                            placeholderText: qsTr("PEM certificate path")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Private Key")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: sslServerPrivateKeyTextField
+                            font.pointSize: 12
+                            placeholderText: qsTr("PEM private key path")
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    // web socket client
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: webSocketClientNameTextField
+                            font.pointSize: 12
+                            placeholderText: qsTr("WebSocket Client")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("URL")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: webSocketClientUrlTextField
+                            font.pointSize: 12
+                            placeholderText: "ws://127.0.0.1:8080"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Message Type")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: webSocketClientMessageTypeComboBox
+                            font.pointSize: 12
+                            model: ListModel {
+                                ListElement {
+                                    text: qsTr("Binary"); value: "binary"
+                                }
+                                ListElement {
+                                    text: qsTr("Text"); value: "text"
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    // web socket server
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: webSocketServerNameTextField
+                            font.pointSize: 12
+                            placeholderText: qsTr("WebSocket Server")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Host")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: webSocketServerLocalHostComboBox
+                            font.pointSize: 12
+                            model: localHostStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Port")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: webSocketServerLocalPortSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 0
+                            to: 65535
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Secure")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Switch {
+                            id: webSocketServerSecureSwitch
+                            Layout.alignment: Qt.AlignLeft
+                        }
+
+                        Label {
+                            text: qsTr("Certificate")
+                            enabled: webSocketServerSecureSwitch.checked
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: webSocketServerCertificateTextField
+                            enabled: webSocketServerSecureSwitch.checked
+                            font.pointSize: 12
+                            placeholderText: qsTr("PEM certificate path")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Private Key")
+                            enabled: webSocketServerSecureSwitch.checked
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: webSocketServerPrivateKeyTextField
+                            enabled: webSocketServerSecureSwitch.checked
+                            font.pointSize: 12
+                            placeholderText: qsTr("PEM private key path")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Message Type")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: webSocketServerMessageTypeComboBox
+                            font.pointSize: 12
+                            model: ListModel {
+                                ListElement {
+                                    text: qsTr("Binary"); value: "binary"
+                                }
+                                ListElement {
+                                    text: qsTr("Text"); value: "text"
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
                             Layout.fillWidth: true
                         }
                     }
@@ -531,7 +784,7 @@ Item {
             // port format
             StackLayout {
                 currentIndex: {
-                    if ([0, 1, 2, 3, 4, 5].includes(rootItem.portType)) {
+                    if ([0, 1, 2, 3, 4, 5, 6, 7, 8].includes(rootItem.portType)) {
                         return 0
                     } else {
                         return 1
@@ -1820,6 +2073,19 @@ Item {
                             }
                                 break
                             case 3: {
+                                if (!tcpServerNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!tcpServerLocalHostComboBox.currentText) {
+                                    portNameValidator.text = qsTr("Invalid Local Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
+                            case 4: {
                                 if (!sslClientNameTextField.text) {
                                     portNameValidator.text = qsTr("Invalid Port Name")
                                     portNameValidatorTimer.start()
@@ -1838,20 +2104,46 @@ Item {
                                 // }
                             }
                                 break
-                            case 4: {
-                                if (!tcpServerNameTextField.text) {
+                            case 5: {
+                                if (!sslServerNameTextField.text) {
                                     portNameValidator.text = qsTr("Invalid Port Name")
                                     portNameValidatorTimer.start()
                                     return
                                 }
-                                if (!tcpServerLocalHostComboBox.currentText) {
+                                if (!sslServerLocalHostComboBox.currentText) {
                                     portNameValidator.text = qsTr("Invalid Local Host")
                                     portNameValidatorTimer.start()
                                     return
                                 }
                             }
                                 break
-                            case 5: {
+                            case 6: {
+                                if (!webSocketClientNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!webSocketClientUrlTextField.text) {
+                                    portNameValidator.text = qsTr("Empty URL")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
+                            case 7: {
+                                if (!webSocketServerNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!webSocketServerLocalHostComboBox.currentText) {
+                                    portNameValidator.text = qsTr("Invalid Local Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
+                            case 8: {
                                 if (!udpSocketNameTextField.text) {
                                     portNameValidator.text = qsTr("Invalid Port Name")
                                     portNameValidatorTimer.start()
@@ -1875,7 +2167,7 @@ Item {
                                 // }
                             }
                                 break
-                            case 6: {
+                            case 9: {
                                 portSetting.videoCapture()
                             }
                                 break
@@ -2362,14 +2654,32 @@ Item {
             "tcpClientNameTextField": tcpClientNameTextField,
             "tcpClientRemoteHostTextField": tcpClientRemoteHostTextField,
             "tcpClientRemotePortSpinBox": tcpClientRemotePortSpinBox,
-            // ssl client
-            "sslClientNameTextField": sslClientNameTextField,
-            "sslClientRemoteHostTextField": sslClientRemoteHostTextField,
-            "sslClientRemotePortSpinBox": sslClientRemotePortSpinBox,
             // tcp server
             "tcpServerNameTextField": tcpServerNameTextField,
             "tcpServerLocalHostComboBox": tcpServerLocalHostComboBox,
             "tcpServerLocalPortSpinBox": tcpServerLocalPortSpinBox,
+            // ssl client
+            "sslClientNameTextField": sslClientNameTextField,
+            "sslClientRemoteHostTextField": sslClientRemoteHostTextField,
+            "sslClientRemotePortSpinBox": sslClientRemotePortSpinBox,
+            // ssl server
+            "sslServerNameTextField": sslServerNameTextField,
+            "sslServerLocalHostComboBox": sslServerLocalHostComboBox,
+            "sslServerLocalPortSpinBox": sslServerLocalPortSpinBox,
+            "sslServerCertificateTextField": sslServerCertificateTextField,
+            "sslServerPrivateKeyTextField": sslServerPrivateKeyTextField,
+            // web socket client
+            "webSocketClientNameTextField": webSocketClientNameTextField,
+            "webSocketClientUrlTextField": webSocketClientUrlTextField,
+            "webSocketClientMessageTypeComboBox": webSocketClientMessageTypeComboBox,
+            // web socket server
+            "webSocketServerNameTextField": webSocketServerNameTextField,
+            "webSocketServerLocalHostComboBox": webSocketServerLocalHostComboBox,
+            "webSocketServerLocalPortSpinBox": webSocketServerLocalPortSpinBox,
+            "webSocketServerSecureSwitch": webSocketServerSecureSwitch,
+            "webSocketServerCertificateTextField": webSocketServerCertificateTextField,
+            "webSocketServerPrivateKeyTextField": webSocketServerPrivateKeyTextField,
+            "webSocketServerMessageTypeComboBox": webSocketServerMessageTypeComboBox,
             // udp socket
             "udpSocketNameTextField": udpSocketNameTextField,
             "udpSocketLocalHostComboBox": udpSocketLocalHostComboBox,

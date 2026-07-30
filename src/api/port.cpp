@@ -77,7 +77,7 @@ void Port::write(const std::string &portName, const std::string &data, const std
     auto *port = portIt.value();
     const QByteArray txData(data.data(), static_cast<qsizetype>(data.size()));
 
-    if (port->type() == PortType::TcpServer) {
+    if (port->type() == PortType::TcpServer || port->type() == PortType::SslServer || port->type() == PortType::WebSocketServer) {
         QMetaObject::invokeMethod(port, [&status, &port, &txData, &peerIp] {
             status = port->write(txData, QString::fromStdString(peerIp), "", "");
         }, Qt::BlockingQueuedConnection);
@@ -97,7 +97,7 @@ sol::object Port::read(const sol::this_state ts, const std::string &portName, co
     QByteArray rxData{};
     auto *port = portIt.value();
 
-    if (port->type() == PortType::TcpServer) {
+    if (port->type() == PortType::TcpServer || port->type() == PortType::SslServer || port->type() == PortType::WebSocketServer) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout, &peerIp] {
             if (peerIp.empty()) rxData = port->read(length, timeout, "");
             else rxData = port->read(length, timeout, QString::fromStdString(peerIp), "");
@@ -133,7 +133,7 @@ sol::object Port::readUntil(const sol::this_state ts, const std::string &portNam
     auto *port = portIt.value();
     const QByteArray textData(text.data(), static_cast<qsizetype>(text.size()));
 
-    if (port->type() == PortType::TcpServer) {
+    if (port->type() == PortType::TcpServer || port->type() == PortType::SslServer || port->type() == PortType::WebSocketServer) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &textData, &timeout, &peerIp] {
             if (peerIp.empty()) rxData = port->readUntil(textData, timeout, "");
             else rxData = port->readUntil(textData, timeout, QString::fromStdString(peerIp), "");

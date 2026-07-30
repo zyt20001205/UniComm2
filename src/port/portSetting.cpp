@@ -73,15 +73,33 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_tcpClientNameTextField = qvariant_cast<QObject *>(objects["tcpClientNameTextField"]);
     m_tcpClientRemoteHostTextField = qvariant_cast<QObject *>(objects["tcpClientRemoteHostTextField"]);
     m_tcpClientRemotePortSpinBox = qvariant_cast<QObject *>(objects["tcpClientRemotePortSpinBox"]);
-    // ssl client
-    m_sslClientNameTextField = qvariant_cast<QObject *>(objects["sslClientNameTextField"]);
-    m_sslClientRemoteHostTextField = qvariant_cast<QObject *>(objects["sslClientRemoteHostTextField"]);
-    m_sslClientRemotePortSpinBox = qvariant_cast<QObject *>(objects["sslClientRemotePortSpinBox"]);
     // tcp server
     m_tcpServerNameTextField = qvariant_cast<QObject *>(objects["tcpServerNameTextField"]);
     m_tcpServerLocalHostComboBox = qvariant_cast<QObject *>(objects["tcpServerLocalHostComboBox"]);
     m_tcpServerLocalPortSpinBox = qvariant_cast<QObject *>(objects["tcpServerLocalPortSpinBox"]);
-    // udp server
+    // ssl client
+    m_sslClientNameTextField = qvariant_cast<QObject *>(objects["sslClientNameTextField"]);
+    m_sslClientRemoteHostTextField = qvariant_cast<QObject *>(objects["sslClientRemoteHostTextField"]);
+    m_sslClientRemotePortSpinBox = qvariant_cast<QObject *>(objects["sslClientRemotePortSpinBox"]);
+    // ssl server
+    m_sslServerNameTextField = qvariant_cast<QObject *>(objects["sslServerNameTextField"]);
+    m_sslServerLocalHostComboBox = qvariant_cast<QObject *>(objects["sslServerLocalHostComboBox"]);
+    m_sslServerLocalPortSpinBox = qvariant_cast<QObject *>(objects["sslServerLocalPortSpinBox"]);
+    m_sslServerCertificateTextField = qvariant_cast<QObject *>(objects["sslServerCertificateTextField"]);
+    m_sslServerPrivateKeyTextField = qvariant_cast<QObject *>(objects["sslServerPrivateKeyTextField"]);
+    // web socket client
+    m_webSocketClientNameTextField = qvariant_cast<QObject *>(objects["webSocketClientNameTextField"]);
+    m_webSocketClientUrlTextField = qvariant_cast<QObject *>(objects["webSocketClientUrlTextField"]);
+    m_webSocketClientMessageTypeComboBox = qvariant_cast<QObject *>(objects["webSocketClientMessageTypeComboBox"]);
+    // web socket server
+    m_webSocketServerNameTextField = qvariant_cast<QObject *>(objects["webSocketServerNameTextField"]);
+    m_webSocketServerLocalHostComboBox = qvariant_cast<QObject *>(objects["webSocketServerLocalHostComboBox"]);
+    m_webSocketServerLocalPortSpinBox = qvariant_cast<QObject *>(objects["webSocketServerLocalPortSpinBox"]);
+    m_webSocketServerSecureSwitch = qvariant_cast<QObject *>(objects["webSocketServerSecureSwitch"]);
+    m_webSocketServerCertificateTextField = qvariant_cast<QObject *>(objects["webSocketServerCertificateTextField"]);
+    m_webSocketServerPrivateKeyTextField = qvariant_cast<QObject *>(objects["webSocketServerPrivateKeyTextField"]);
+    m_webSocketServerMessageTypeComboBox = qvariant_cast<QObject *>(objects["webSocketServerMessageTypeComboBox"]);
+    // udp socket
     m_udpSocketNameTextField = qvariant_cast<QObject *>(objects["udpSocketNameTextField"]);
     m_udpSocketLocalHostComboBox = qvariant_cast<QObject *>(objects["udpSocketLocalHostComboBox"]);
     m_udpSocketLocalPortSpinBox = qvariant_cast<QObject *>(objects["udpSocketLocalPortSpinBox"]);
@@ -128,16 +146,38 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_tcpClientNameTextField->setProperty("text", "");
         m_tcpClientRemoteHostTextField->setProperty("text", "");
         m_tcpClientRemotePortSpinBox->setProperty("value", 0);
-        // ssl client
-        m_sslClientNameTextField->setProperty("text", "");
-        m_sslClientRemoteHostTextField->setProperty("text", "");
-        m_sslClientRemotePortSpinBox->setProperty("value", 0);
         // tcp server
         m_tcpServerNameTextField->setProperty("text", "");
         if (m_tcpServerLocalHostComboBox->property("count").toInt()) {
             m_tcpServerLocalHostComboBox->setProperty("currentIndex", 0);
         }
         m_tcpServerLocalPortSpinBox->setProperty("value", 0);
+        // ssl client
+        m_sslClientNameTextField->setProperty("text", "");
+        m_sslClientRemoteHostTextField->setProperty("text", "");
+        m_sslClientRemotePortSpinBox->setProperty("value", 0);
+        // ssl server
+        m_sslServerNameTextField->setProperty("text", "");
+        if (m_sslServerLocalHostComboBox->property("count").toInt()) {
+            m_sslServerLocalHostComboBox->setProperty("currentIndex", 0);
+        }
+        m_sslServerLocalPortSpinBox->setProperty("value", 0);
+        m_sslServerCertificateTextField->setProperty("text", "");
+        m_sslServerPrivateKeyTextField->setProperty("text", "");
+        // web socket client
+        m_webSocketClientNameTextField->setProperty("text", "");
+        m_webSocketClientUrlTextField->setProperty("text", "");
+        m_webSocketClientMessageTypeComboBox->setProperty("currentValue", "binary");
+        // web socket server
+        m_webSocketServerNameTextField->setProperty("text", "");
+        if (m_webSocketServerLocalHostComboBox->property("count").toInt()) {
+            m_webSocketServerLocalHostComboBox->setProperty("currentIndex", 0);
+        }
+        m_webSocketServerLocalPortSpinBox->setProperty("value", 0);
+        m_webSocketServerSecureSwitch->setProperty("checked", false);
+        m_webSocketServerCertificateTextField->setProperty("text", "");
+        m_webSocketServerPrivateKeyTextField->setProperty("text", "");
+        m_webSocketServerMessageTypeComboBox->setProperty("currentValue", "binary");
         // udp socket
         m_udpSocketNameTextField->setProperty("text", "");
         if (m_udpSocketLocalHostComboBox->property("count").toInt()) {
@@ -191,6 +231,16 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
+            case PortType::TcpServer: {
+                m_tcpServerNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_tcpServerLocalHostComboBox->setProperty("currentValue", portConfig["localHost"].toString());
+                m_tcpServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
+            }
+            break;
             case PortType::SslClient: {
                 m_sslClientNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_sslClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
@@ -201,10 +251,36 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
-            case PortType::TcpServer: {
-                m_tcpServerNameTextField->setProperty("text", portConfig["portName"].toString());
-                m_tcpServerLocalHostComboBox->setProperty("currentValue", portConfig["localHost"].toString());
-                m_tcpServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
+            case PortType::SslServer: {
+                m_sslServerNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_sslServerLocalHostComboBox->setProperty("currentValue", portConfig["localHost"].toString());
+                m_sslServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
+                m_sslServerCertificateTextField->setProperty("text", portConfig["certificate"].toString());
+                m_sslServerPrivateKeyTextField->setProperty("text", portConfig["privateKey"].toString());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
+            }
+            break;
+            case PortType::WebSocketClient: {
+                m_webSocketClientNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_webSocketClientUrlTextField->setProperty("text", portConfig["url"].toString());
+                m_webSocketClientMessageTypeComboBox->setProperty("currentValue", portConfig["messageType"].toString());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
+            }
+            break;
+            case PortType::WebSocketServer: {
+                m_webSocketServerNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_webSocketServerLocalHostComboBox->setProperty("currentValue", portConfig["localHost"].toString());
+                m_webSocketServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
+                m_webSocketServerSecureSwitch->setProperty("checked", portConfig["secure"].toBool());
+                m_webSocketServerCertificateTextField->setProperty("text", portConfig["certificate"].toString());
+                m_webSocketServerPrivateKeyTextField->setProperty("text", portConfig["privateKey"].toString());
+                m_webSocketServerMessageTypeComboBox->setProperty("currentValue", portConfig["messageType"].toString());
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
@@ -296,6 +372,19 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
+        case PortType::TcpServer: {
+            portConfig = {
+                {"portType", portType},
+                {"portName", m_tcpServerNameTextField->property("text").toString()},
+                {"localHost", m_tcpServerLocalHostComboBox->property("currentValue").toString()},
+                {"localPort", m_tcpServerLocalPortSpinBox->property("value").toInt()},
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
+            };
+        }
+        break;
         case PortType::SslClient: {
             portConfig = {
                 {"portType", portType},
@@ -309,12 +398,44 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case PortType::TcpServer: {
+        case PortType::SslServer: {
             portConfig = {
                 {"portType", portType},
-                {"portName", m_tcpServerNameTextField->property("text").toString()},
-                {"localHost", m_tcpServerLocalHostComboBox->property("currentValue").toString()},
-                {"localPort", m_tcpServerLocalPortSpinBox->property("value").toInt()},
+                {"portName", m_sslServerNameTextField->property("text").toString()},
+                {"localHost", m_sslServerLocalHostComboBox->property("currentValue").toString()},
+                {"localPort", m_sslServerLocalPortSpinBox->property("value").toInt()},
+                {"certificate", m_sslServerCertificateTextField->property("text").toString()},
+                {"privateKey", m_sslServerPrivateKeyTextField->property("text").toString()},
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
+            };
+        }
+        break;
+        case PortType::WebSocketClient: {
+            portConfig = {
+                {"portType", portType},
+                {"portName", m_webSocketClientNameTextField->property("text").toString()},
+                {"url", m_webSocketClientUrlTextField->property("text").toString()},
+                {"messageType", m_webSocketClientMessageTypeComboBox->property("currentValue").toString()},
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
+            };
+        }
+        break;
+        case PortType::WebSocketServer: {
+            portConfig = {
+                {"portType", portType},
+                {"portName", m_webSocketServerNameTextField->property("text").toString()},
+                {"localHost", m_webSocketServerLocalHostComboBox->property("currentValue").toString()},
+                {"localPort", m_webSocketServerLocalPortSpinBox->property("value").toInt()},
+                {"secure", m_webSocketServerSecureSwitch->property("checked").toBool()},
+                {"certificate", m_webSocketServerCertificateTextField->property("text").toString()},
+                {"privateKey", m_webSocketServerPrivateKeyTextField->property("text").toString()},
+                {"messageType", m_webSocketServerMessageTypeComboBox->property("currentValue").toString()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
                 {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
