@@ -10,6 +10,7 @@
 
 #include "globals.h"
 #include "agent/module/mcpModule.h"
+#include "agent/module/sqlModule.h"
 #include "agent/module/toolsModule.h"
 #include "agent/provider/bigmodelProvider.h"
 #include "agent/provider/deepseekProvider.h"
@@ -32,10 +33,12 @@ AgentModule::AgentModule()
           "Use io.log() instead of print() for assistant."),
       m_topicStandardItemModel(new QStandardItemModel(this)),
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
+      m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
       m_toolsModule(new ToolsModule(this)),
       m_bigmodelProvider(new BigmodelProvider(this)),
       m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
+    qDebug() << "SQLite probe:" << (m_sqlModule->probe() ? "passed" : "failed");
 
     const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath(".unicomm/llm");
     for (const auto &value: QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {

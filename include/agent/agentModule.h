@@ -11,6 +11,7 @@ class QQuickWidget;
 class QStandardItemModel;
 
 class McpModule;
+class SqlModule;
 class ToolsModule;
 class BigmodelProvider;
 class DeepseekProvider;
@@ -111,6 +112,7 @@ private:
     QHash<QString, QString> m_owner{};
     QHash<QString, QJsonArray> m_tools{};
     McpModule *m_mcpModule{};
+    SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};
     BigmodelProvider *m_bigmodelProvider{};
     DeepseekProvider *m_deepseekProvider{};

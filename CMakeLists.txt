@@ -22,6 +22,7 @@ find_package(Qt6 REQUIRED COMPONENTS
         QuickControls2
         QuickWidgets
         SerialPort
+        Sql
         Svg
         TextToSpeech
         Widgets
@@ -217,6 +218,7 @@ target_link_libraries(UniComm PRIVATE
         Qt6::QuickControls2
         Qt6::QuickWidgets
         Qt6::SerialPort
+        Qt6::Sql
         Qt6::Svg
         Qt6::TextToSpeech
         Qt6::Widgets
