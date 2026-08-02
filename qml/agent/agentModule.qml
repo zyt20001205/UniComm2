@@ -119,7 +119,7 @@ Item {
                         opacity: turnTumbler.hoveredIndex < 0 ? 1 : 1 - turnDelegate.hoverDistance * 0.15
 
                         Behavior on width {
-                            NumberAnimation { duration: 100 }
+                            NumberAnimation { duration: 150 }
                         }
                     }
 
