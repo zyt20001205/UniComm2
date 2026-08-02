@@ -57,19 +57,23 @@ public:
 
     Q_INVOKABLE void apikeySet(const QString &key, const QString &apikey) const;
 
-    Q_INVOKABLE void modeSet(const QString &mode);
+    Q_INVOKABLE void conversationsGet();
 
-    Q_INVOKABLE void modelSet(const QString &model);
-
-    Q_INVOKABLE void conversationRename(const QString &id, const QString &title);
+    Q_INVOKABLE void conversationGet(const QString &id);
 
     Q_INVOKABLE void conversationInsert();
 
-    Q_INVOKABLE void conversationDelete(const QString &id);
+    Q_INVOKABLE void conversationRename(const QString &title);
 
-    Q_INVOKABLE void conversationLoad(const QString &id);
+    Q_INVOKABLE void conversationDelete();
 
-    Q_INVOKABLE void conversationUndo();
+    Q_INVOKABLE void conversationModeSet(const QString &mode);
+
+    Q_INVOKABLE void conversationModelSet(const QString &model);
+
+    void conversationAppend(const QString &role, const QString &content, const QString &reasoningContent = {}, const QString &toolCallId = {}, const QJsonArray &toolCalls = {});
+
+    Q_INVOKABLE void conversationRollback();
 
     Q_INVOKABLE void permissionSet(bool status) const;
 
@@ -77,16 +81,14 @@ signals:
     void stateChanged();
 
 private:
+    struct TurnContext {
+        QString id{};
+        QList<SqlModule::Message> messages{};
+    };
+
     void conversationSend();
 
-    void messageInsert(const QString &role, const QString &content, const QString &reasoningContent = {},
-                       const QString &toolCallId = {}, const QJsonArray &toolCalls = {});
-
-    [[nodiscard]] QJsonArray messageJsonGet() const;
-
-    void chatClear() const;
-
-    QString chatCreate(const QString &role, const QString &text);
+    QString chatCreate(const QString &role, const QString &text) const;
 
     void chatAppend(const QString &messageId, const QString &text) const;
 
@@ -95,14 +97,13 @@ private:
     [[nodiscard]] QJsonArray toolsList(const QStringList &names);
 
     QJsonObject m_config{};
-    QString m_conversationId{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_mcpMenu{};
     QObject *m_modeMenu{};
     QObject *m_modelMenu{};
-    QObject *m_topicComboBox{};
+    QObject *m_conversationComboBox{};
     QObject *m_textArea{};
     QObject *m_messageLabel{};
     QObject *m_modeButton{};
@@ -110,15 +111,12 @@ private:
     QObject *m_micButton{};
 
     QString m_system{};
-    ConversationModel *m_topicStandardItemModel{};
-    QHash<QString, SqlModule::Conversation> m_conversations{};
-    SqlModule::Conversation m_conversation{};
-    QList<SqlModule::Message> m_messages{};
-    QString m_turnId{};
+    QString m_conversationId{};
+    ConversationModel *m_conversationModel{};
+    TurnContext m_turn{};
 
     int m_state{AgentState::Ready};
     QNetworkReply *m_reply{};
-    int m_id{0};
     QHash<QString, QString> m_owner{};
     QHash<QString, QJsonArray> m_tools{};
     McpModule *m_mcpModule{};

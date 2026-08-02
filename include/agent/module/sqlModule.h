@@ -13,7 +13,6 @@ class SqlModule final : public QObject {
 public:
     struct Conversation {
         QString id{};
-        QString legacyTopic{};
         QString title{};
         QString mode{};
         QString model{};
@@ -38,7 +37,9 @@ public:
 
     ~SqlModule() override;
 
-    [[nodiscard]] QList<Conversation> conversationGet() const;
+    [[nodiscard]] QList<Conversation> conversationsGet() const;
+
+    [[nodiscard]] QPair<Conversation, QList<Message>> conversationGet(const QString &id) const;
 
     void conversationInsert(const Conversation &conversation) const;
 
@@ -50,11 +51,9 @@ public:
 
     void conversationModelSet(const QString &id, const QString &model) const;
 
-    [[nodiscard]] QList<Message> messageGet(const QString &conversationId) const;
+    void conversationAppend(const QString &conversationId, const QList<Message> &messages) const;
 
-    void messageInsert(const Message &message) const;
-
-    void messageDeleteFrom(const QString &conversationId, qint64 sequence) const;
+    void conversationRollback(const QString &conversationId, const QString &turnId) const;
 
 private:
     [[nodiscard]] bool initialize() const;

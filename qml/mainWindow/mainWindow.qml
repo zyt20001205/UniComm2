@@ -338,8 +338,7 @@ Item {
         modal: true
         title: qsTr("Rename Conversation")
         standardButtons: Dialog.Ok
-        property string conversationId
-        property string oldTopic
+        property string oldTitle
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -347,11 +346,11 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            agentModuleRenameTextField.text = agentModuleRenameDialog.oldTopic
+            agentModuleRenameTextField.text = agentModuleRenameDialog.oldTitle
             agentModuleRenameTextField.forceActiveFocus()
             agentModuleRenameTextField.selectAll()
         }
-        onAccepted: agentModule.conversationRename(agentModuleRenameDialog.conversationId, agentModuleRenameTextField.text)
+        onAccepted: agentModule.conversationRename(agentModuleRenameTextField.text)
 
         TextField {
             id: agentModuleRenameTextField
@@ -390,7 +389,7 @@ Item {
             delegate: MenuItem {
                 checkable: true
                 text: model.display
-                // onTriggered: agentModule.modelSet(text)
+                // onTriggered: agentModule.conversationModelSet(text)
             }
 
             onObjectAdded: (index, object) => agentModuleMcpMenu.addItem(object)
@@ -410,7 +409,7 @@ Item {
         MenuItem {
             text: "chat"
 
-            onTriggered: agentModule.modeSet(text)
+            onTriggered: agentModule.conversationModeSet(text)
         }
 
         MenuSeparator {
@@ -418,17 +417,17 @@ Item {
 
         MenuItem {
             text: "read"
-            onTriggered: agentModule.modeSet(text)
+            onTriggered: agentModule.conversationModeSet(text)
         }
 
         MenuItem {
             text: "write"
-            onTriggered: agentModule.modeSet(text)
+            onTriggered: agentModule.conversationModeSet(text)
         }
 
         MenuItem {
             text: "full-access"
-            onTriggered: agentModule.modeSet(text)
+            onTriggered: agentModule.conversationModeSet(text)
         }
     }
 
@@ -470,7 +469,7 @@ Item {
                 model: agentModuleModelMenu.bigmodelModel
                 delegate: MenuItem {
                     text: model.display
-                    onTriggered: agentModule.modelSet(text)
+                    onTriggered: agentModule.conversationModelSet(text)
                 }
 
                 onObjectAdded: (index, object) => agentModuleBigmodelMenu.addItem(object)
@@ -503,7 +502,7 @@ Item {
                 model: agentModuleModelMenu.deepseekModel
                 delegate: MenuItem {
                     text: model.display
-                    onTriggered: agentModule.modelSet(text)
+                    onTriggered: agentModule.conversationModelSet(text)
                 }
 
                 onObjectAdded: (index, object) => agentModuleDeepseekMenu.addItem(object)

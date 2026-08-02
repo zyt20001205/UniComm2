@@ -23,14 +23,14 @@ Item {
             Layout.fillWidth: true; Layout.preferredHeight: 30
 
             ComboBox {
-                id: topicComboBox
+                id: conversationComboBox
                 enabled: agentModule.state === 0
-                model: topicStandardItemModel
+                model: conversationModel
                 textRole: "display"
                 valueRole: "id"
                 Layout.fillWidth: true; Layout.preferredHeight: 30
 
-                onCurrentValueChanged: agentModule.conversationLoad(topicComboBox.currentValue)
+                onCurrentValueChanged: agentModule.conversationGet(conversationComboBox.currentValue)
             }
 
             Button {
@@ -42,8 +42,7 @@ Item {
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onClicked: {
-                    renameDialog.conversationId = topicComboBox.currentValue
-                    renameDialog.oldTopic = topicComboBox.currentText
+                    renameDialog.oldTitle = conversationComboBox.currentText
                     renameDialog.open()
                 }
             }
@@ -62,7 +61,7 @@ Item {
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
-                enabled: topicComboBox.currentValue && agentModule.state === 0
+                enabled: conversationComboBox.currentValue && agentModule.state === 0
                 flat: true
                 icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
                 icon.width: 16; icon.height: 16
@@ -70,7 +69,7 @@ Item {
 
                 onToggled: {
                     if (!checked) {
-                        agentModule.conversationDelete(topicComboBox.currentValue)
+                        agentModule.conversationDelete()
                     }
                 }
 
@@ -350,7 +349,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: agentModule.conversationUndo()
+                onClicked: agentModule.conversationRollback()
             }
 
             Button {
@@ -483,7 +482,7 @@ Item {
 
     Component.onCompleted: {
         const objects = {
-            "topicComboBox": topicComboBox,
+            "conversationComboBox": conversationComboBox,
             "textArea": textArea,
             "messageLabel": messageLabel,
             "modeButton": modeButton,

@@ -31,13 +31,13 @@ SqlModule::~SqlModule() {
     QSqlDatabase::removeDatabase(m_connectionName);
 }
 
-QList<SqlModule::Conversation> SqlModule::conversationGet() const {
+QList<SqlModule::Conversation> SqlModule::conversationsGet() const {
     auto database = QSqlDatabase::database(m_connectionName, false);
     if (!database.isOpen()) return {};
 
     QSqlQuery query(database);
     if (!query.exec(R"(
-        SELECT id, legacy_topic, title, mode, model, created_at, updated_at
+        SELECT id, title, mode, model, created_at, updated_at
         FROM conversations
         ORDER BY updated_at DESC
     )")) {
@@ -49,15 +49,69 @@ QList<SqlModule::Conversation> SqlModule::conversationGet() const {
     while (query.next()) {
         conversations.append(Conversation{
             .id = query.value(0).toString(),
-            .legacyTopic = query.value(1).toString(),
-            .title = query.value(2).toString(),
-            .mode = query.value(3).toString(),
-            .model = query.value(4).toString(),
-            .createdAt = query.value(5).toLongLong(),
-            .updatedAt = query.value(6).toLongLong()
+            .title = query.value(1).toString(),
+            .mode = query.value(2).toString(),
+            .model = query.value(3).toString(),
+            .createdAt = query.value(4).toLongLong(),
+            .updatedAt = query.value(5).toLongLong()
         });
     }
     return conversations;
+}
+
+QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversationGet(const QString &id) const {
+    auto database = QSqlDatabase::database(m_connectionName, false);
+    if (!database.isOpen()) return {};
+
+    QSqlQuery query(database);
+    query.prepare(R"(
+        SELECT id, title, mode, model, created_at, updated_at
+        FROM conversations
+        WHERE id = :id
+    )");
+    query.bindValue(":id", id);
+    if (!query.exec() || !query.next()) return {};
+
+    const Conversation conversation{
+        .id = query.value(0).toString(),
+        .title = query.value(1).toString(),
+        .mode = query.value(2).toString(),
+        .model = query.value(3).toString(),
+        .createdAt = query.value(4).toLongLong(),
+        .updatedAt = query.value(5).toLongLong()
+    };
+
+    QSqlQuery messageQuery(database);
+    messageQuery.prepare(R"(
+        SELECT id, conversation_id, turn_id, sequence, role, content,
+               reasoning_content, tool_call_id, tool_calls, created_at
+        FROM messages
+        WHERE conversation_id = :conversationId
+        ORDER BY sequence
+    )");
+    messageQuery.bindValue(":conversationId", id);
+    if (!messageQuery.exec()) {
+        qDebug() << "agent database conversation get failed:" << messageQuery.lastError().text();
+        return {};
+    }
+
+    QList<Message> messages{};
+    while (messageQuery.next()) {
+        const auto toolCallsDocument = QJsonDocument::fromJson(messageQuery.value(8).toString().toUtf8());
+        messages.append(Message{
+            .id = messageQuery.value(0).toString(),
+            .conversationId = messageQuery.value(1).toString(),
+            .turnId = messageQuery.value(2).toString(),
+            .sequence = messageQuery.value(3).toLongLong(),
+            .role = messageQuery.value(4).toString(),
+            .content = messageQuery.value(5).toString(),
+            .reasoningContent = messageQuery.value(6).toString(),
+            .toolCallId = messageQuery.value(7).toString(),
+            .toolCalls = toolCallsDocument.isArray() ? toolCallsDocument.array() : QJsonArray{},
+            .createdAt = messageQuery.value(9).toLongLong()
+        });
+    }
+    return {conversation, messages};
 }
 
 void SqlModule::conversationInsert(const Conversation &conversation) const {
@@ -66,11 +120,10 @@ void SqlModule::conversationInsert(const Conversation &conversation) const {
 
     QSqlQuery query(database);
     query.prepare(R"(
-        INSERT INTO conversations (id, legacy_topic, title, mode, model, created_at, updated_at)
-        VALUES (:id, :legacyTopic, :title, :mode, :model, :createdAt, :updatedAt)
+        INSERT INTO conversations (id, title, mode, model, created_at, updated_at)
+        VALUES (:id, :title, :mode, :model, :createdAt, :updatedAt)
     )");
     query.bindValue(":id", conversation.id);
-    query.bindValue(":legacyTopic", conversation.legacyTopic.isEmpty() ? QVariant{} : QVariant(conversation.legacyTopic));
     query.bindValue(":title", conversation.title);
     query.bindValue(":mode", conversation.mode);
     query.bindValue(":model", conversation.model);
@@ -126,7 +179,7 @@ void SqlModule::conversationModeSet(const QString &id, const QString &mode) cons
 }
 
 void SqlModule::conversationModelSet(const QString &id, const QString &model) const {
-    auto database = QSqlDatabase::database(m_connectionName, false);
+    const auto database = QSqlDatabase::database(m_connectionName, false);
     if (!database.isOpen()) return;
 
     QSqlQuery query(database);
@@ -142,46 +195,26 @@ void SqlModule::conversationModelSet(const QString &id, const QString &model) co
     qDebug() << "agent database conversation model set failed:" << query.lastError().text();
 }
 
-QList<SqlModule::Message> SqlModule::messageGet(const QString &conversationId) const {
-    auto database = QSqlDatabase::database(m_connectionName, false);
-    if (!database.isOpen()) return {};
+void SqlModule::conversationAppend(const QString &conversationId, const QList<Message> &messages) const {
+    if (messages.isEmpty()) return;
 
-    QSqlQuery query(database);
-    query.prepare(R"(
-        SELECT id, conversation_id, turn_id, sequence, role, content,
-               reasoning_content, tool_call_id, tool_calls, created_at
+    auto database = QSqlDatabase::database(m_connectionName, false);
+    if (!database.isOpen() || !database.transaction()) return;
+
+    QSqlQuery sequenceQuery(database);
+    sequenceQuery.prepare(R"(
+        SELECT COALESCE(MAX(sequence) + 1, 0)
         FROM messages
         WHERE conversation_id = :conversationId
-        ORDER BY sequence
     )");
-    query.bindValue(":conversationId", conversationId);
-    if (!query.exec()) {
-        qDebug() << "agent database message get failed:" << query.lastError().text();
-        return {};
+    sequenceQuery.bindValue(":conversationId", conversationId);
+    if (!sequenceQuery.exec() || !sequenceQuery.next()) {
+        qDebug() << "agent database message sequence get failed:" << sequenceQuery.lastError().text();
+        database.rollback();
+        return;
     }
-
-    QList<Message> messages{};
-    while (query.next()) {
-        const auto toolCallsDocument = QJsonDocument::fromJson(query.value(8).toString().toUtf8());
-        messages.append(Message{
-            .id = query.value(0).toString(),
-            .conversationId = query.value(1).toString(),
-            .turnId = query.value(2).toString(),
-            .sequence = query.value(3).toLongLong(),
-            .role = query.value(4).toString(),
-            .content = query.value(5).toString(),
-            .reasoningContent = query.value(6).toString(),
-            .toolCallId = query.value(7).toString(),
-            .toolCalls = toolCallsDocument.isArray() ? toolCallsDocument.array() : QJsonArray{},
-            .createdAt = query.value(9).toLongLong()
-        });
-    }
-    return messages;
-}
-
-void SqlModule::messageInsert(const Message &message) const {
-    auto database = QSqlDatabase::database(m_connectionName, false);
-    if (!database.isOpen()) return;
+    auto sequence = sequenceQuery.value(0).toLongLong();
+    sequenceQuery.finish();
 
     QSqlQuery query(database);
     query.prepare(R"(
@@ -194,38 +227,40 @@ void SqlModule::messageInsert(const Message &message) const {
             :reasoningContent, :toolCallId, :toolCalls, :createdAt
         )
     )");
-    query.bindValue(":id", message.id);
-    query.bindValue(":conversationId", message.conversationId);
-    query.bindValue(":turnId", message.turnId.isEmpty() ? QVariant{} : QVariant(message.turnId));
-    query.bindValue(":sequence", message.sequence);
-    query.bindValue(":role", message.role);
-    query.bindValue(":content", message.content);
-    query.bindValue(":reasoningContent", message.reasoningContent.isEmpty() ? QVariant{} : QVariant(message.reasoningContent));
-    query.bindValue(":toolCallId", message.toolCallId.isEmpty() ? QVariant{} : QVariant(message.toolCallId));
-    query.bindValue(
-        ":toolCalls",
-        message.toolCalls.isEmpty()
-            ? QVariant{}
-            : QVariant(QString::fromUtf8(QJsonDocument(message.toolCalls).toJson(QJsonDocument::Compact)))
-    );
-    query.bindValue(":createdAt", message.createdAt);
-    if (query.exec()) return;
-    qDebug() << "agent database message insert failed:" << query.lastError().text();
+    for (const auto &message: messages) {
+        query.bindValue(":id", message.id);
+        query.bindValue(":conversationId", message.conversationId);
+        query.bindValue(":turnId", message.turnId);
+        query.bindValue(":sequence", sequence++);
+        query.bindValue(":role", message.role);
+        query.bindValue(":content", message.content);
+        query.bindValue(":reasoningContent", message.reasoningContent);
+        query.bindValue(":toolCallId", message.toolCallId);
+        query.bindValue(":toolCalls", QString::fromUtf8(QJsonDocument(message.toolCalls).toJson(QJsonDocument::Compact)));
+        query.bindValue(":createdAt", message.createdAt);
+        if (query.exec()) continue;
+
+        qDebug() << "agent database message insert failed:" << query.lastError().text();
+        database.rollback();
+        return;
+    }
+
+    if (!database.commit()) database.rollback();
 }
 
-void SqlModule::messageDeleteFrom(const QString &conversationId, const qint64 sequence) const {
-    auto database = QSqlDatabase::database(m_connectionName, false);
+void SqlModule::conversationRollback(const QString &conversationId, const QString &turnId) const {
+    const auto database = QSqlDatabase::database(m_connectionName, false);
     if (!database.isOpen()) return;
 
     QSqlQuery query(database);
     query.prepare(R"(
         DELETE FROM messages
-        WHERE conversation_id = :conversationId AND sequence >= :sequence
+        WHERE conversation_id = :conversationId AND turn_id = :turnId
     )");
     query.bindValue(":conversationId", conversationId);
-    query.bindValue(":sequence", sequence);
+    query.bindValue(":turnId", turnId);
     if (query.exec()) return;
-    qDebug() << "agent database message delete failed:" << query.lastError().text();
+    qDebug() << "agent database turn delete failed:" << query.lastError().text();
 }
 
 // private
@@ -257,10 +292,9 @@ bool SqlModule::initialize() const {
         R"(
             CREATE TABLE IF NOT EXISTS conversations (
                 id TEXT PRIMARY KEY,
-                legacy_topic TEXT UNIQUE,
                 title TEXT NOT NULL,
-                mode TEXT NOT NULL DEFAULT '',
-                model TEXT NOT NULL DEFAULT '',
+                mode TEXT,
+                model TEXT,
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL
             )

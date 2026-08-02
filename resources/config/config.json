@@ -16,8 +16,8 @@
     "fontSize": 10
   },
   "llmConfig": {
-    "mcp": {},
-    "topic": ""
+    "id": "",
+    "mcp": {}
   },
   "logConfig": {
     "fontFamily": "Segoe UI",
