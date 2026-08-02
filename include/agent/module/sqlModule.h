@@ -3,6 +3,7 @@
 
 #include <QJsonObject>
 #include <QObject>
+#include <QString>
 
 class SqlModule final : public QObject {
     Q_OBJECT
@@ -10,9 +11,13 @@ class SqlModule final : public QObject {
 public:
     explicit SqlModule(const QJsonObject &sqlConfig, QObject *parent = nullptr);
 
-    ~SqlModule() override = default;
+    ~SqlModule() override;
 
-    [[nodiscard]] bool probe() const;
+private:
+    [[nodiscard]] bool initialize() const;
+
+    QJsonObject m_config{};
+    QString m_connectionName{};
 };
 
 #endif //UNICOMM_SQLMODULE_H

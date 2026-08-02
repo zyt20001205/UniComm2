@@ -38,7 +38,6 @@ AgentModule::AgentModule()
       m_bigmodelProvider(new BigmodelProvider(this)),
       m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
-    qDebug() << "SQLite probe:" << (m_sqlModule->probe() ? "passed" : "failed");
 
     const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath(".unicomm/llm");
     for (const auto &value: QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
