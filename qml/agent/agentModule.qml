@@ -714,7 +714,7 @@ Item {
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer += text
         if (chat.role === "user") rootItem.turnMap[chat.turnId].prompt += text
-        else if (chat.role === "assistant") rootItem.turnMap[chat.turnId].response += text
+        else if (chat.role === "assistant") rootItem.turnMap[chat.turnId].response = chat.contentBuffer
         scrollTimer.restart()
     }
 
