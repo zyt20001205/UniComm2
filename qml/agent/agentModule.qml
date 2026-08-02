@@ -100,6 +100,13 @@ Item {
                     if (count > 0) currentIndex = count - 1
                 }
 
+                onMovingChanged: {
+                    if (moving) return
+                    const turn = chatColumn.children[currentIndex]
+                    scrollAnim.to = Math.min(turn.y / chatColumn.height, 1 - chatScrollBar.size)
+                    scrollAnim.restart()
+                }
+
                 delegate: Item {
                     id: turnDelegate
                     required property int index
@@ -139,6 +146,7 @@ Item {
                 rightPadding: 14
 
                 ScrollBar.vertical: ScrollBar {
+                    id: chatScrollBar
                     x: parent.mirrored ? 0 : parent.width - width
                     y: parent.topPadding
                     height: parent.availableHeight
