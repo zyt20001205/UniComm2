@@ -34,7 +34,7 @@ public:
 
     [[nodiscard]] TerminalPage *terminalConstruct(const QUrl &terminalUrl);
 
-    Q_INVOKABLE void terminalOpen(const QString &uuid);
+    Q_INVOKABLE void terminalOpen(const QString &id);
 
 private:
     QJsonObject m_config{};
@@ -51,7 +51,7 @@ public:
     using QStandardItemModel::QStandardItemModel;
 
     enum Role {
-        UuidRole = Qt::UserRole + 1,
+        IdRole = Qt::UserRole + 1,
         SessionRole
     };
 

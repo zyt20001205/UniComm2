@@ -31,11 +31,11 @@ void TerminalModule::propertySet(const QVariantHash &objects) {
     const auto terminals = m_config["terminals"];
     for (const auto &value: terminals.toArray()) {
         auto session = value.toObject().toVariantHash();
-        const auto uuid = session.take("uuid").toString();
-        if (uuid.isEmpty()) continue;
+        const auto id = session.take("id").toString();
+        if (id.isEmpty()) continue;
 
         auto *item = new QStandardItem(); // NOLINT
-        item->setData(uuid, TerminalModel::UuidRole);
+        item->setData(id, TerminalModel::IdRole);
         item->setData(session, TerminalModel::SessionRole);
         m_terminalModel->appendRow(item);
     }
@@ -67,9 +67,9 @@ void TerminalModule::terminalSave() {
     QJsonArray config{};
     for (int i = 0; i < m_terminalModel->rowCount(); ++i) {
         const auto *item = m_terminalModel->item(i, 0);
-        const auto uuid = item->data(TerminalModel::UuidRole).toString();
+        const auto id = item->data(TerminalModel::IdRole).toString();
         auto session = item->data(TerminalModel::SessionRole).toHash();
-        session["uuid"] = uuid;
+        session["id"] = id;
         config.append(QJsonObject::fromVariantHash(session));
     }
     m_config["terminals"] = config;
@@ -78,7 +78,7 @@ void TerminalModule::terminalSave() {
 int TerminalModule::terminalAdd() const {
     const int row = m_terminalModel->rowCount();
     auto *item = new QStandardItem(); // NOLINT
-    const auto uuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    const auto id = QUuid::createUuid().toString(QUuid::WithoutBraces);
     const auto session = QVariantHash({
         {"name", "new"},
         {"program", ""},
@@ -86,7 +86,7 @@ int TerminalModule::terminalAdd() const {
         {"workingDirectory", ""},
         {"environment", ""}
     });
-    item->setData(uuid, TerminalModel::UuidRole);
+    item->setData(id, TerminalModel::IdRole);
     item->setData(session, TerminalModel::SessionRole);
     m_terminalModel->appendRow(item);
     return row;
@@ -105,14 +105,14 @@ void TerminalModule::terminalSwap(const int src, const int dst) const {
 TerminalPage *TerminalModule::terminalConstruct(const QUrl &terminalUrl) {
     const auto parts = terminalUrl.path().split('/', Qt::SkipEmptyParts);
     if (parts.size() != 2) return nullptr;
-    const auto uuid = parts.at(0);
+    const auto id = parts.at(0);
 
     const auto uniqueName = terminalUrl.toString(QUrl::FullyEncoded);
     if (auto *terminalPage = m_terminalPageHash.value(uniqueName)) return terminalPage;
 
     for (const auto &value: m_config["terminals"].toArray()) {
         auto session = value.toObject().toVariantHash();
-        if (session.take("uuid").toString() != uuid) continue;
+        if (session.take("id").toString() != id) continue;
 
         auto *terminalPage = new TerminalPage(uniqueName, session, m_config); // NOLINT
         terminalPage->setTitle(session["name"].toString());
@@ -125,10 +125,10 @@ TerminalPage *TerminalModule::terminalConstruct(const QUrl &terminalUrl) {
     return nullptr;
 }
 
-void TerminalModule::terminalOpen(const QString &uuid) {
+void TerminalModule::terminalOpen(const QString &id) {
     QUrl terminalUrl{};
     terminalUrl.setScheme("terminal");
-    terminalUrl.setPath(QStringLiteral("/%1/%2").arg(uuid, QUuid::createUuid().toString(QUuid::WithoutBraces)));
+    terminalUrl.setPath(QStringLiteral("/%1/%2").arg(id, QUuid::createUuid().toString(QUuid::WithoutBraces)));
     auto *terminalPage = terminalConstruct(terminalUrl);
     if (!terminalPage) return;
     g_log->addDockWidgetAsTab(terminalPage);
@@ -137,7 +137,7 @@ void TerminalModule::terminalOpen(const QString &uuid) {
 // public
 QHash<int, QByteArray> TerminalModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[UuidRole] = "uuid";
+    roles[IdRole] = "id";
     roles[SessionRole] = "session";
     return roles;
 }

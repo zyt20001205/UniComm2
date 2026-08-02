@@ -3770,7 +3770,7 @@ Item {
                 model: terminalModuleTerminalMenu.terminalModel
                 delegate: MenuItem {
                     text: model.session.name
-                    onTriggered: terminalModule.terminalOpen(model.uuid)
+                    onTriggered: terminalModule.terminalOpen(model.id)
                 }
 
                 onObjectAdded: (index, object) => terminalModuleTerminalMenu.insertItem(index + 2, object)

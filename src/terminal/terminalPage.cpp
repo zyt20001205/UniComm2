@@ -1,6 +1,9 @@
 #include "terminal/terminalPage.h"
 
 #include <QCloseEvent>
+#include <QDir>
+#include <QFileIconProvider>
+#include <QFileInfo>
 #include <QQmlContext>
 #include <QQuickWidget>
 #include <QTimer>
@@ -21,6 +24,13 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
       m_vtermWidget(new VtermWidget(24, 80, this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
+
+    // set icon
+    const auto program = m_session["program"].toUrl();
+    if (program.isLocalFile()) {
+        const QFileIconProvider provider;
+        setIcon(provider.icon(QFileInfo(program.toLocalFile())));
+    }
 }
 
 TerminalPage::~TerminalPage() {
@@ -142,5 +152,8 @@ void TerminalPage::stop() const {
 }
 
 void TerminalPage::titleSet(const QString &title) {
-    setTitle(title);
+    auto displayTitle = title.trimmed();
+    const auto fileinfo = QFileInfo(QDir::fromNativeSeparators(displayTitle));
+    if (fileinfo.isAbsolute() && !fileinfo.fileName().isEmpty()) displayTitle = fileinfo.fileName();
+    setTitle(displayTitle);
 }
