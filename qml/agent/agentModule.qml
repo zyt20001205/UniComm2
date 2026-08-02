@@ -176,16 +176,19 @@ Item {
                 background: null
                 Layout.preferredWidth: 24; Layout.fillHeight: true
 
+                function scrollTo(index) {
+                    const turn = chatColumn.children[index]
+                    scrollAnim.to = Math.max(0, Math.min(turn.y / chatColumn.height, 1 - chatScrollBar.size))
+                    scrollAnim.restart()
+                }
+
                 onCountChanged: {
                     if (count > 0) currentIndex = count - 1
                 }
 
                 onMovingChanged: {
                     if (moving) return
-                    const turn = chatColumn.children[currentIndex]
-                    const targetY = turn.y + turn.height / 2 - chatView.availableHeight / 2
-                    scrollAnim.to = Math.max(0, Math.min(targetY / chatColumn.height, 1 - chatScrollBar.size))
-                    scrollAnim.restart()
+                    scrollTo(currentIndex)
                 }
 
                 delegate: Item {
@@ -228,6 +231,14 @@ Item {
                                 turnToolTip.prompt = ""
                                 turnToolTip.response = ""
                             }
+                        }
+                    }
+
+                    TapHandler {
+                        onTapped: {
+                            turnTumbler.currentIndex = turnDelegate.index
+                            turnTumbler.positionViewAtIndex(turnDelegate.index, Tumbler.Center)
+                            turnTumbler.scrollTo(turnDelegate.index)
                         }
                     }
                 }
