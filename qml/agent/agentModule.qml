@@ -168,7 +168,8 @@ Item {
                 model: chatColumn.children.length
                 visibleItemCount: Math.max(1, Math.floor(availableHeight / 12))
                 property int hoveredIndex: -1
-                readonly property real viewportTop: chatScrollBar.position * chatColumn.height
+                readonly property real viewportPosition: Math.max(0, Math.min(chatScrollBar.position, 1 - chatScrollBar.size))
+                readonly property real viewportTop: viewportPosition * chatColumn.height
                 readonly property real viewportBottom: viewportTop + chatView.availableHeight
                 wrap: false
                 padding: 0
@@ -251,9 +252,10 @@ Item {
 
                     onPositionChanged: {
                         if (scrollAnim.running) return
-                        let index = position === 0 ? 0 : turnTumbler.count - 1
-                        if (position > 0 && position < 1 - size) {
-                            const viewportY = position * chatColumn.height + chatView.availableHeight / 2
+                        const viewportPosition = turnTumbler.viewportPosition
+                        let index = viewportPosition === 0 ? 0 : turnTumbler.count - 1
+                        if (viewportPosition > 0 && viewportPosition < 1 - size) {
+                            const viewportY = viewportPosition * chatColumn.height + chatView.availableHeight / 2
                             for (let i = 0; i < chatColumn.children.length; ++i) {
                                 const turn = chatColumn.children[i]
                                 if (viewportY < turn.y + turn.height) {
