@@ -15,6 +15,83 @@ Item {
         color: global.back
     }
 
+    ToolTip {
+        id: turnToolTip
+        parent: Overlay.overlay
+        closePolicy: Popup.NoAutoClose
+        visible: prompt.length > 0
+        width: Math.min(implicitWidth, 320)
+        height: implicitHeight
+        property string prompt
+        property string response
+
+        FontMetrics {
+            id: turnToolTipFontMetrics
+            font: turnToolTip.font
+        }
+
+        contentItem: ColumnLayout {
+            spacing: 0
+
+            Label {
+                text: turnToolTip.prompt
+                elide: Text.ElideRight
+                color: global.fore
+                font: turnToolTip.font
+                Layout.fillWidth: true
+            }
+
+            TextArea {
+                visible: text.length > 0
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                textMargin: 0
+                readOnly: true
+                text: turnToolTip.response
+                textFormat: TextEdit.MarkdownText
+                wrapMode: TextEdit.Wrap
+                clip: true
+                color: global.stroke
+                font: turnToolTip.font
+                background: null
+                ContextMenu.menu: null
+                Layout.fillWidth: true
+                Layout.maximumHeight: turnToolTipFontMetrics.lineSpacing * 4
+            }
+        }
+
+        Behavior on width {
+            enabled: turnToolTip.visible
+            NumberAnimation {
+                duration: 80
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on height {
+            enabled: turnToolTip.visible
+            NumberAnimation {
+                duration: 80
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on x {
+            enabled: turnToolTip.visible
+            NumberAnimation {
+                duration: 80
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on y {
+            enabled: turnToolTip.visible
+            NumberAnimation {
+                duration: 80
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 6
@@ -138,8 +215,18 @@ Item {
                     HoverHandler {
                         id: hoverHandler
                         onHoveredChanged: {
-                            if (hovered) turnTumbler.hoveredIndex = turnDelegate.index
-                            else if (turnTumbler.hoveredIndex === turnDelegate.index) turnTumbler.hoveredIndex = -1
+                            if (hovered) {
+                                turnTumbler.hoveredIndex = turnDelegate.index
+                                const position = turnToolTip.parent.mapFromItem(parent, parent.width, parent.height / 2)
+                                turnToolTip.prompt = turnDelegate.turn.prompt
+                                turnToolTip.response = turnDelegate.turn.response
+                                turnToolTip.x = position.x + 10
+                                turnToolTip.y = position.y - turnToolTip.implicitHeight / 2
+                            } else if (turnTumbler.hoveredIndex === turnDelegate.index) {
+                                turnTumbler.hoveredIndex = -1
+                                turnToolTip.prompt = ""
+                                turnToolTip.response = ""
+                            }
                         }
                     }
                 }
@@ -471,6 +558,8 @@ Item {
             property double startedAt
             property double finishedAt: 0
             property int elapsedSeconds: 0
+            property string prompt
+            property string response
             property alias messages: messageColumn
             readonly property bool running: finishedAt === 0
 
@@ -532,6 +621,7 @@ Item {
             visible: buffer.length > 0
             Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 28)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
+            property string turnId
             property string messageId
             property string role
             property string reasoningBuffer
@@ -612,6 +702,7 @@ Item {
 
     function chatCreate(turnId, messageId, role) {
         const obj = chatComponent.createObject(rootItem.turnMap[turnId].messages, {
+            turnId: turnId,
             messageId: messageId,
             role: role,
         })
@@ -620,7 +711,10 @@ Item {
     }
 
     function chatAppend(messageId, text) {
-        rootItem.chatMap[messageId].contentBuffer += text
+        const chat = rootItem.chatMap[messageId]
+        chat.contentBuffer += text
+        if (chat.role === "user") rootItem.turnMap[chat.turnId].prompt += text
+        else if (chat.role === "assistant") rootItem.turnMap[chat.turnId].response += text
         scrollTimer.restart()
     }
 

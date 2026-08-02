@@ -277,18 +277,35 @@ Item {
             y = p.y + 10
         }
 
+        Behavior on width {
+            enabled: mainWindowToolTip.visible
+            NumberAnimation {
+                duration: 80
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on height {
+            enabled: mainWindowToolTip.visible
+            NumberAnimation {
+                duration: 80
+                easing.type: Easing.OutCubic
+            }
+        }
+
         Behavior on x {
             enabled: mainWindowToolTip.visible
             NumberAnimation {
-                duration: 50
-                easing.type: Easing.Linear
+                duration: 80
+                easing.type: Easing.OutCubic
             }
         }
+
         Behavior on y {
             enabled: mainWindowToolTip.visible
             NumberAnimation {
-                duration: 50
-                easing.type: Easing.Linear
+                duration: 80
+                easing.type: Easing.OutCubic
             }
         }
     }
