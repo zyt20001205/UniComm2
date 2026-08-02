@@ -92,7 +92,13 @@ void VtermWidget::keyPressed(const int key, const int modifiers, const QString &
     const auto &vtermModifier = uni_cast<VTermModifier>(modifiers);
     const auto &vtermKey = uni_cast<VTermKey>(key);
     if (vtermKey != VTERM_KEY_NONE) vterm_keyboard_key(m_vterm, vtermKey, vtermModifier);
-    else for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, vtermModifier);
+    else {
+        for (const auto ch: text.toUcs4()) {
+            auto characterModifier = vtermModifier;
+            if ((ch <= 0x1f || ch == 0x7f) && characterModifier & VTERM_MOD_CTRL) characterModifier = static_cast<VTermModifier>(characterModifier & ~VTERM_MOD_CTRL);
+            vterm_keyboard_unichar(m_vterm, ch, characterModifier);
+        }
+    }
     outputRead();
 }
 
