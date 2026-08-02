@@ -571,8 +571,10 @@ Item {
             property double startedAt
             property double finishedAt: 0
             property int elapsedSeconds: 0
+            property bool collapsed: false
             property string prompt
             property string response
+            property string lastId
             property alias messages: messageColumn
             readonly property bool running: finishedAt === 0
 
@@ -590,7 +592,20 @@ Item {
                 Layout.fillWidth: true
 
                 Label {
+                    verticalAlignment: Text.AlignVCenter
                     text: (turnItem.running ? "Working for " : "Worked for ") + turnItem.durationText()
+                    Layout.preferredHeight: 24
+                }
+
+                Button {
+                    visible: !turnItem.running
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    icon.source: turnItem.collapsed ? "qrc:/icon/arrowCollapse.svg" : "qrc:/icon/arrowExpand.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    onClicked: turnItem.collapsed = !turnItem.collapsed
                 }
 
                 Item {
@@ -631,10 +646,10 @@ Item {
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             ContextMenu.menu: null
-            visible: buffer.length > 0
+            visible: buffer.length > 0 && (!turn.collapsed || role === "user" || messageId === turn.lastId)
             Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 28)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
-            property string turnId
+            property var turn
             property string messageId
             property string role
             property string reasoningBuffer
@@ -702,7 +717,9 @@ Item {
     }
 
     function turnFinish(turnId, finishedAt) {
-        rootItem.turnMap[turnId].finishedAt = finishedAt
+        const turn = rootItem.turnMap[turnId]
+        turn.finishedAt = finishedAt
+        turn.collapsed = true
     }
 
     function chatClear() {
@@ -714,8 +731,9 @@ Item {
     }
 
     function chatCreate(turnId, messageId, role) {
-        const obj = chatComponent.createObject(rootItem.turnMap[turnId].messages, {
-            turnId: turnId,
+        const turn = rootItem.turnMap[turnId]
+        const obj = chatComponent.createObject(turn.messages, {
+            turn: turn,
             messageId: messageId,
             role: role,
         })
@@ -726,8 +744,11 @@ Item {
     function chatAppend(messageId, text) {
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer += text
-        if (chat.role === "user") rootItem.turnMap[chat.turnId].prompt += text
-        else if (chat.role === "assistant") rootItem.turnMap[chat.turnId].response = chat.contentBuffer
+        if (chat.role === "user") chat.turn.prompt += text
+        else if (chat.role === "assistant" && chat.contentBuffer.length > 0) {
+            chat.turn.response = chat.contentBuffer
+            chat.turn.lastId = messageId
+        }
         scrollTimer.restart()
     }
 
