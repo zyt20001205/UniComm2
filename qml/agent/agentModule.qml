@@ -81,26 +81,79 @@ Item {
             }
         }
 
-        ScrollView {
-            id: chatView
+        RowLayout {
             Layout.fillWidth: true; Layout.fillHeight: true
-            rightPadding: 14
+            spacing: 4
 
-            ScrollBar.vertical: ScrollBar {
-                x: parent.mirrored ? 0 : parent.width - width
-                y: parent.topPadding
-                height: parent.availableHeight
-                active: parent.ScrollBar.horizontal.active
-                policy: ScrollBar.AsNeeded
-                palette {
-                    mid: global.stroke
-                    dark: global.strokePressed
+            Tumbler {
+                id: turnTumbler
+                visible: count > 0
+                model: chatColumn.children.length
+                visibleItemCount: Math.max(1, Math.floor(availableHeight / 12))
+                property int hoveredIndex: -1
+                wrap: false
+                padding: 0
+                background: null
+                Layout.preferredWidth: 24; Layout.fillHeight: true
+
+                onCountChanged: {
+                    if (count > 0) currentIndex = count - 1
+                }
+
+                delegate: Item {
+                    id: turnDelegate
+                    required property int index
+                    implicitWidth: turnTumbler.width
+                    implicitHeight: 12
+                    readonly property int hoverDistance: turnTumbler.hoveredIndex < 0 ? 4 : Math.min(4, Math.abs(index - turnTumbler.hoveredIndex))
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 24 - turnDelegate.hoverDistance * 4
+                        height: 2
+                        radius: 1
+                        color: turnTumbler.hoveredIndex < 0
+                               ? turnDelegate.index === turnTumbler.currentIndex ? global.fore : global.stroke
+                               : hoverHandler.hovered ? global.fore : global.stroke
+                        opacity: turnTumbler.hoveredIndex < 0 ? 1 : 1 - turnDelegate.hoverDistance * 0.15
+
+                        Behavior on width {
+                            NumberAnimation { duration: 100 }
+                        }
+                    }
+
+                    HoverHandler {
+                        id: hoverHandler
+                        onHoveredChanged: {
+                            if (hovered) turnTumbler.hoveredIndex = turnDelegate.index
+                            else if (turnTumbler.hoveredIndex === turnDelegate.index) turnTumbler.hoveredIndex = -1
+                        }
+                    }
                 }
             }
 
-            ColumnLayout {
-                id: chatColumn
-                width: chatView.availableWidth
+            ScrollView {
+                id: chatView
+                Layout.fillWidth: true; Layout.fillHeight: true
+                rightPadding: 14
+
+                ScrollBar.vertical: ScrollBar {
+                    x: parent.mirrored ? 0 : parent.width - width
+                    y: parent.topPadding
+                    height: parent.availableHeight
+                    active: parent.ScrollBar.horizontal.active
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
+                }
+
+                ColumnLayout {
+                    id: chatColumn
+                    width: chatView.availableWidth
+                }
             }
         }
 
