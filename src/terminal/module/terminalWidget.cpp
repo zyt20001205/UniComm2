@@ -297,8 +297,9 @@ void TerminalWidget::metricsUpdate() {
     m_cellHeight = qMax<qreal>(1, metrics.lineSpacing());
     m_ascent = qMax<qreal>(1, metrics.ascent());
 
-    const int rows = qMax(1, static_cast<int>(height() / m_cellHeight));
-    const int cols = qMax(1, static_cast<int>(width() / m_cellWidth));
+    const int rows = static_cast<int>(height() / m_cellHeight);
+    const int cols = static_cast<int>(width() / m_cellWidth);
+    if (rows < 1 || cols < 1) return;
     if (rows == m_requestedRows && cols == m_requestedCols) return;
 
     m_requestedRows = rows;

@@ -45,8 +45,8 @@ private:
     ConptyWidget *m_conptyWidget{};
     TerminalWidget *m_terminalWidget{};
     VtermWidget *m_vtermWidget{};
-    int m_rows{1};
-    int m_cols{1};
+    int m_rows{24};
+    int m_cols{80};
 };
 
 #endif //UNICOMM_TERMINALPAGE_H

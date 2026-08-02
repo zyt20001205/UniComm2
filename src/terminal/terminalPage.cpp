@@ -18,7 +18,7 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
       m_session(session),
       m_widget(new QQuickWidget()),
       m_conptyWidget(new ConptyWidget(this)),
-      m_vtermWidget(new VtermWidget(1, 1, this)) {
+      m_vtermWidget(new VtermWidget(24, 80, this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 }
@@ -42,10 +42,6 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalItem = qvariant_cast<QObject *>(objects["terminalItem"]);
     auto *terminalItem = qobject_cast<QQuickItem *>(m_terminalItem);
     auto *damageOverlay = qobject_cast<QQuickItem *>(qvariant_cast<QObject *>(objects["damageOverlay"]));
-
-    auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
-    font.setFixedPitch(true);
-    font.setStyleHint(QFont::Monospace, QFont::ForceOutline);
 
     m_terminalWidget = new TerminalWidget(terminalItem);
     m_terminalWidget->setParentItem(terminalItem);
@@ -75,26 +71,34 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
 
     connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
 
-    connect(terminalItem, &QQuickItem::widthChanged, m_terminalWidget, [this, terminalItem] {m_terminalWidget->setWidth(terminalItem->width());});
-    connect(terminalItem, &QQuickItem::heightChanged, m_terminalWidget, [this, terminalItem] {m_terminalWidget->setHeight(terminalItem->height());});
     connect(m_terminalWidget, &TerminalWidget::resize, this, &TerminalPage::_resize);
-
-    m_terminalWidget->setWidth(terminalItem->width());
-    m_terminalWidget->setHeight(terminalItem->height());
-    m_terminalWidget->fontSet(font);
-
-    m_vtermWidget->resize(m_rows, m_cols);
     start();
-    m_widget->setFocus(Qt::OtherFocusReason);
-    m_terminalWidget->forceActiveFocus(Qt::OtherFocusReason);
 }
 
 bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == m_widget && event->type() == QEvent::KeyPress) {
-        const auto *keyEvent = static_cast<QKeyEvent *>(event);
-        if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab) {
-            if (m_vtermWidget) m_vtermWidget->keyPressed(keyEvent->key(), keyEvent->modifiers(), "\t");
-            return true;
+    if (watched == m_widget) {
+        if (event->type() == QEvent::Show) {
+            QTimer::singleShot(0, this, [this] {
+                auto *terminalItem = qobject_cast<QQuickItem *>(m_terminalItem);
+                if (m_terminalWidget->width() <= 0) {
+                    auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
+                    font.setFixedPitch(true);
+                    font.setStyleHint(QFont::Monospace, QFont::ForceOutline);
+                    m_terminalWidget->fontSet(font);
+                    m_terminalWidget->setWidth(terminalItem->width());
+                    m_terminalWidget->setHeight(terminalItem->height());
+                    connect(terminalItem, &QQuickItem::widthChanged, m_terminalWidget, [this, terminalItem] { m_terminalWidget->setWidth(terminalItem->width()); });
+                    connect(terminalItem, &QQuickItem::heightChanged, m_terminalWidget, [this, terminalItem] { m_terminalWidget->setHeight(terminalItem->height()); });
+                }
+                m_widget->setFocus(Qt::OtherFocusReason);
+                m_terminalWidget->forceActiveFocus(Qt::OtherFocusReason);
+            });
+        } else if (event->type() == QEvent::KeyPress) {
+            const auto *keyEvent = static_cast<QKeyEvent *>(event);
+            if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab) {
+                if (m_vtermWidget) m_vtermWidget->keyPressed(keyEvent->key(), keyEvent->modifiers(), "\t");
+                return true;
+            }
         }
     }
     return DockWidget::eventFilter(watched, event);
