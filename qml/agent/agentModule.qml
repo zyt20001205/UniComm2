@@ -91,6 +91,8 @@ Item {
                 model: chatColumn.children.length
                 visibleItemCount: Math.max(1, Math.floor(availableHeight / 12))
                 property int hoveredIndex: -1
+                readonly property real viewportTop: chatScrollBar.position * chatColumn.height
+                readonly property real viewportBottom: viewportTop + chatView.availableHeight
                 wrap: false
                 padding: 0
                 background: null
@@ -103,7 +105,8 @@ Item {
                 onMovingChanged: {
                     if (moving) return
                     const turn = chatColumn.children[currentIndex]
-                    scrollAnim.to = Math.min(turn.y / chatColumn.height, 1 - chatScrollBar.size)
+                    const targetY = turn.y + turn.height / 2 - chatView.availableHeight / 2
+                    scrollAnim.to = Math.max(0, Math.min(targetY / chatColumn.height, 1 - chatScrollBar.size))
                     scrollAnim.restart()
                 }
 
@@ -113,6 +116,8 @@ Item {
                     implicitWidth: turnTumbler.width
                     implicitHeight: 12
                     readonly property int hoverDistance: turnTumbler.hoveredIndex < 0 ? 4 : Math.min(4, Math.abs(index - turnTumbler.hoveredIndex))
+                    readonly property var turn: chatColumn.children[index]
+                    readonly property bool turnVisible: turn.y < turnTumbler.viewportBottom && turn.y + turn.height > turnTumbler.viewportTop
 
                     Rectangle {
                         anchors.left: parent.left
@@ -121,7 +126,7 @@ Item {
                         height: 2
                         radius: 1
                         color: turnTumbler.hoveredIndex < 0
-                               ? turnDelegate.index === turnTumbler.currentIndex ? global.fore : global.stroke
+                               ? turnDelegate.turnVisible ? global.fore : global.stroke
                                : hoverHandler.hovered ? global.fore : global.stroke
                         opacity: turnTumbler.hoveredIndex < 0 ? 1 : 1 - turnDelegate.hoverDistance * 0.15
 
@@ -155,6 +160,24 @@ Item {
                     palette {
                         mid: global.stroke
                         dark: global.strokePressed
+                    }
+
+                    onPositionChanged: {
+                        if (scrollAnim.running) return
+                        let index = position === 0 ? 0 : turnTumbler.count - 1
+                        if (position > 0 && position < 1 - size) {
+                            const viewportY = position * chatColumn.height + chatView.availableHeight / 2
+                            for (let i = 0; i < chatColumn.children.length; ++i) {
+                                const turn = chatColumn.children[i]
+                                if (viewportY < turn.y + turn.height) {
+                                    index = i
+                                    break
+                                }
+                            }
+                        }
+                        if (index === turnTumbler.currentIndex) return
+                        turnTumbler.currentIndex = index
+                        turnTumbler.positionViewAtIndex(index, Tumbler.Center)
                     }
                 }
 
