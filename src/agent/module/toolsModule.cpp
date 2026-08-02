@@ -434,11 +434,11 @@ void ToolsModule::initialize() {
     emit registerTools("UniComm", tools);
 }
 
-QString ToolsModule::toolsCall(const QString &mode, const QString &name, const QString &arguments) {
+QString ToolsModule::toolsCall(const QString &messageId, const QString &mode, const QString &name, const QString &arguments) {
     const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
     const auto object = doc.object();
-    chatCreate(name, object);
-    if (!permissionGet(mode, name, object)) return {"User denied permission to execute this tool."};
+    chatCreate(messageId, name, object);
+    if (!permissionGet(messageId, mode, name, object)) return {"User denied permission to execute this tool."};
     const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath()).filePath("lua-language-server/meta/3rd/UniComm"));
     const QDir apiDir(uniCommDir.filePath("library"));
     const QDir demoDir(uniCommDir.filePath("demo"));
@@ -567,7 +567,7 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
     return {"Unknown tool."};
 }
 
-void ToolsModule::chatCreate(const QString &name, const QJsonObject &object) {
+void ToolsModule::chatCreate(const QString &messageId, const QString &name, const QJsonObject &object) {
     QString chatText{};
     if (name == "api_list") {
         chatText = "Get available APIs";
@@ -617,7 +617,7 @@ void ToolsModule::chatCreate(const QString &name, const QJsonObject &object) {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Run %1").arg(documentName);
     }
-    emit createChat("tool", chatText);
+    emit createChat(messageId, "tool", chatText);
 }
 
 void ToolsModule::permissionSet(const bool status) {
@@ -625,7 +625,7 @@ void ToolsModule::permissionSet(const bool status) {
     m_eventloop->quit();
 }
 
-bool ToolsModule::permissionGet(const QString &mode, const QString &name, const QJsonObject &object) {
+bool ToolsModule::permissionGet(const QString &messageId, const QString &mode, const QString &name, const QJsonObject &object) {
     m_approved = true;
     if (mode == "read") {
         if (m_writeGroup.contains(name) || m_godGroup.contains(name)) m_approved = false;
@@ -633,15 +633,15 @@ bool ToolsModule::permissionGet(const QString &mode, const QString &name, const 
         if (m_godGroup.contains(name)) m_approved = false;
     }
     if (m_approved) {
-        emit appendChat("", " ✓");
+        emit appendChat(messageId, " ✓");
     } else {
-        statusSet(name, object);
+        statusSet(messageId, name, object);
         m_eventloop->exec();
     }
     return m_approved;
 }
 
-void ToolsModule::statusSet(const QString &name, const QJsonObject &object) {
+void ToolsModule::statusSet(const QString &messageId, const QString &name, const QJsonObject &object) {
     QString statusText{};
     if (name == "api_list") {
         statusText = "I want to get all available APIs.";
@@ -691,5 +691,8 @@ void ToolsModule::statusSet(const QString &name, const QJsonObject &object) {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         statusText = QString("I want to run %1.").arg(documentName);
     }
-    emit setState(AgentState::Permission, statusText);
+    emit setState(AgentState::Permission, QVariantMap{
+                      {"messageId", messageId},
+                      {"text", statusText}
+                  });
 }

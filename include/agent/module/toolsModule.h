@@ -3,6 +3,7 @@
 
 #include <QEventLoop>
 #include <QJsonArray>
+#include <QVariant>
 
 class ToolsModule final : public QObject {
     Q_OBJECT
@@ -14,25 +15,25 @@ public:
 
     void initialize();
 
-    [[nodiscard]] QString toolsCall(const QString &mode, const QString &name, const QString &arguments);
+    [[nodiscard]] QString toolsCall(const QString &messageId, const QString &mode, const QString &name, const QString &arguments);
 
-    void chatCreate(const QString &name, const QJsonObject &object);
+    void chatCreate(const QString &messageId, const QString &name, const QJsonObject &object);
 
     void permissionSet(bool status);
 
 signals:
     void registerTools(const QString &name, const QJsonArray &tools);
 
-    void createChat(const QString &role, const QString &text);
+    void createChat(const QString &messageId, const QString &role, const QString &text);
 
     void appendChat(const QString &messageId, const QString &text);
 
     void setState(int state, const QVariant &payload);
 
 private:
-    [[nodiscard]] bool permissionGet(const QString &mode, const QString &name, const QJsonObject &object);
+    [[nodiscard]] bool permissionGet(const QString &messageId, const QString &mode, const QString &name, const QJsonObject &object);
 
-    void statusSet(const QString &name, const QJsonObject &object);
+    void statusSet(const QString &messageId, const QString &name, const QJsonObject &object);
 
     QSet<QString> m_writeGroup{};
     QSet<QString> m_godGroup{};
@@ -40,4 +41,4 @@ private:
     bool m_approved{};
 };
 
-#endif //UNICOMM_TOOLSMODULE_H
+#endif //UNICOMM_TOOLS

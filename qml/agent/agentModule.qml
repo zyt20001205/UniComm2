@@ -7,8 +7,8 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+    property var turnMap: ({})
     property var chatMap: ({})
-    property var lastChatTextArea: null
 
     Rectangle {
         anchors.fill: parent
@@ -200,10 +200,7 @@ Item {
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    onClicked: {
-                        chatAppend("", " ✓")
-                        agentModule.permissionSet(true)
-                    }
+                    onClicked: agentModule.permissionSet(true)
                 }
 
                 Button {
@@ -214,10 +211,7 @@ Item {
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    onClicked: {
-                        chatAppend("", " ✗")
-                        agentModule.permissionSet(false)
-                    }
+                    onClicked: agentModule.permissionSet(false)
                 }
 
                 BusyIndicator {
@@ -382,6 +376,66 @@ Item {
     }
 
     Component {
+        id: turnComponent
+
+        ColumnLayout {
+            id: turnItem
+            Layout.fillWidth: true
+            Layout.preferredWidth: chatColumn.width
+            spacing: 6
+            property string turnId
+            property double startedAt
+            property double finishedAt: 0
+            property int elapsedSeconds: 0
+            property alias messages: messageColumn
+            readonly property bool running: finishedAt === 0
+
+            function elapsedUpdate() {
+                const end = finishedAt === 0 ? Date.now() : finishedAt
+                elapsedSeconds = Math.max(0, Math.floor((end - startedAt) / 1000))
+            }
+
+            function durationText() {
+                if (elapsedSeconds < 60) return elapsedSeconds + "s"
+                return Math.floor(elapsedSeconds / 60) + "m " + elapsedSeconds % 60 + "s"
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                Label {
+                    text: (turnItem.running ? "Working for " : "Worked for ") + turnItem.durationText()
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+
+            Rectangle {
+                color: global.stroke
+                Layout.fillWidth: true; Layout.preferredHeight: 1
+            }
+
+            ColumnLayout {
+                id: messageColumn
+                Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
+            }
+
+            Timer {
+                interval: 1000
+                repeat: true
+                running: turnItem.running
+                triggeredOnStart: true
+                onTriggered: turnItem.elapsedUpdate()
+            }
+
+            onFinishedAtChanged: elapsedUpdate()
+            Component.onCompleted: elapsedUpdate()
+        }
+    }
+
+    Component {
         id: chatComponent
 
         TextArea {
@@ -391,12 +445,14 @@ Item {
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             ContextMenu.menu: null
+            visible: buffer.length > 0
             Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 28)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property string messageId
             property string role
-            property string buffer
-
+            property string reasoningBuffer
+            property string contentBuffer
+            readonly property string buffer: contentBuffer.length > 0 ? contentBuffer : reasoningBuffer
             background: Rectangle {
                 color: chatTextArea.role === "user" ? global.brandBack :
                         chatTextArea.role === "assistant" ? global.stroke :
@@ -449,36 +505,49 @@ Item {
         easing.type: Easing.OutQuad
     }
 
+    function turnCreate(turnId, startedAt) {
+        const obj = turnComponent.createObject(chatColumn, {
+            turnId: turnId,
+            startedAt: startedAt,
+        })
+        rootItem.turnMap[turnId] = obj
+        scrollTimer.restart()
+    }
+
+    function turnFinish(turnId, finishedAt) {
+        rootItem.turnMap[turnId].finishedAt = finishedAt
+    }
+
     function chatClear() {
         for (let i = chatColumn.children.length - 1; i >= 0; --i) {
             chatColumn.children[i].destroy();
         }
+        rootItem.turnMap = ({})
         rootItem.chatMap = ({})
-        rootItem.lastChatTextArea = null
     }
 
-    function chatCreate(messageId, role, text) {
-        const obj = chatComponent.createObject(chatColumn, {
+    function chatCreate(turnId, messageId, role) {
+        const obj = chatComponent.createObject(rootItem.turnMap[turnId].messages, {
             messageId: messageId,
             role: role,
-            buffer: text,
         })
         rootItem.chatMap[messageId] = obj
-        rootItem.lastChatTextArea = obj
         scrollTimer.restart()
     }
 
     function chatAppend(messageId, text) {
-        if (messageId === "") {
-            rootItem.lastChatTextArea.buffer += text
-        } else {
-            rootItem.chatMap[messageId].buffer += text
-        }
+        rootItem.chatMap[messageId].contentBuffer += text
         scrollTimer.restart()
     }
 
-    function chatVisible(messageId, status) {
-        rootItem.chatMap[messageId].visible = status
+    function chatReasoningAppend(messageId, text) {
+        rootItem.chatMap[messageId].reasoningBuffer += text
+        scrollTimer.restart()
+    }
+
+    function chatFinish(messageId) {
+        rootItem.chatMap[messageId].reasoningBuffer = ""
+        scrollTimer.restart()
     }
 
     Component.onCompleted: {

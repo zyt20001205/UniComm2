@@ -71,11 +71,11 @@ public:
 
     Q_INVOKABLE void conversationModelSet(const QString &model);
 
-    void conversationAppend(const QString &role, const QString &content, const QString &reasoningContent = {}, const QString &toolCallId = {}, const QJsonArray &toolCalls = {});
+    qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
 
     Q_INVOKABLE void conversationRollback();
 
-    Q_INVOKABLE void permissionSet(bool status) const;
+    Q_INVOKABLE void permissionSet(bool status);
 
 signals:
     void stateChanged();
@@ -88,9 +88,17 @@ private:
 
     void conversationSend();
 
-    QString chatCreate(const QString &role, const QString &text) const;
+    void turnCreate(const QString &turnId, qint64 startedAt) const;
+
+    void turnFinish(const QString &turnId, qint64 finishedAt) const;
+
+    void chatCreate(const QString &turnId, const QString &messageId, const QString &role) const;
 
     void chatAppend(const QString &messageId, const QString &text) const;
+
+    void chatReasoningAppend(const QString &messageId, const QString &text) const;
+
+    void chatFinish(const QString &messageId) const;
 
     void toolsRegister(const QString &name, const QJsonArray &tools);
 
@@ -112,6 +120,7 @@ private:
 
     QString m_system{};
     QString m_conversationId{};
+    QString m_permissionMessageId{};
     ConversationModel *m_conversationModel{};
     TurnContext m_turn{};
 
@@ -139,4 +148,4 @@ public:
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
-#endif //UNICOMM_AGENTMODULE_H
+#endif //UNICOMM_AGE

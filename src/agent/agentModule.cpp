@@ -42,7 +42,10 @@ AgentModule::AgentModule()
 
     conversationsGet();
 
-    connect(m_toolsModule, &ToolsModule::createChat, this, &AgentModule::chatCreate);
+    connect(m_toolsModule, &ToolsModule::createChat, this, [this](const QString &messageId, const QString &role, const QString &text) {
+        chatCreate(m_turn.id, messageId, role);
+        chatAppend(messageId, text);
+    });
     connect(m_toolsModule, &ToolsModule::appendChat, this, &AgentModule::chatAppend);
     connect(m_toolsModule, &ToolsModule::setState, this, &AgentModule::stateSet);
 }
@@ -163,8 +166,13 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             m_turn = {
                 .id = QUuid::createUuid().toString(QUuid::WithoutBraces)
             };
-            chatCreate("user", text);
-            conversationAppend("user", text);
+            const auto messageIndex = conversationAppend("user");
+            auto &message = m_turn.messages[messageIndex];
+            message.content = text;
+            message.createdAt = QDateTime::currentMSecsSinceEpoch();
+            turnCreate(m_turn.id, message.createdAt);
+            chatCreate(m_turn.id, message.id, message.role);
+            chatAppend(message.id, message.content);
             conversationSend();
         }
         break;
@@ -176,7 +184,9 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Permission: {
-            m_messageLabel->setProperty("message", payload.toString());
+            const auto object = payload.toMap();
+            m_permissionMessageId = object.value("messageId").toString();
+            m_messageLabel->setProperty("message", object.value("text").toString());
         }
         break;
         case AgentState::Speak: {
@@ -230,24 +240,26 @@ void AgentModule::conversationGet(const QString &id) {
     }
 
     m_conversationId = id;
+    QString turnId{};
+    qint64 finishedAt{};
     for (const auto &message: messages) {
         const auto &role = message.role;
-        if (role == "system" || role == "tool") continue;
+        if (role == "system") continue;
+        if (message.turnId != turnId) {
+            if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
+            turnId = message.turnId;
+            turnCreate(turnId, message.createdAt);
+        }
+        finishedAt = message.createdAt;
+        if (role == "tool") continue;
         const auto &content = message.content;
-        if (!content.isEmpty()) chatCreate(role, content);
-        // const auto toolCalls = message.value("tool_calls").toArray();
-        // if (!toolCalls.isEmpty()) {
-        //     for (const auto &value: toolCalls) {
-        //         const auto toolCall = value.toObject();
-        //         const auto function = toolCall.value("function").toObject();
-        //         const auto name = function.value("name").toString();
-        //         const auto arguments = function.value("arguments").toString();
-        //         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-        //         const auto object = doc.object();
-        //         m_toolsModule->chatCreate(name, object);
-        //     }
-        // }
+        if (!content.isEmpty()) {
+            chatCreate(turnId, message.id, role);
+            chatAppend(message.id, content);
+            chatFinish(message.id);
+        }
     }
+    if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
     m_modeButton->setProperty("text", conversation.mode);
     m_modelButton->setProperty("text", conversation.model);
 }
@@ -295,18 +307,16 @@ void AgentModule::conversationModelSet(const QString &model) {
     conversationsGet();
 }
 
-void AgentModule::conversationAppend(const QString &role, const QString &content, const QString &reasoningContent, const QString &toolCallId, const QJsonArray &toolCalls) {
+qsizetype AgentModule::conversationAppend(const QString &role, const QString &toolCallId) {
+    const auto index = m_turn.messages.size();
     m_turn.messages.append(SqlModule::Message{
         .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
         .conversationId = m_conversationId,
         .turnId = m_turn.id,
         .role = role,
-        .content = content,
-        .reasoningContent = reasoningContent,
-        .toolCallId = toolCallId,
-        .toolCalls = toolCalls,
-        .createdAt = QDateTime::currentMSecsSinceEpoch()
+        .toolCallId = toolCallId
     });
+    return index;
 }
 
 void AgentModule::conversationRollback() {
@@ -323,7 +333,8 @@ void AgentModule::conversationRollback() {
     conversationGet(m_conversationId);
 }
 
-void AgentModule::permissionSet(const bool status) const {
+void AgentModule::permissionSet(const bool status) {
+    chatAppend(m_permissionMessageId, status ? " ✓" : " ✗");
     m_toolsModule->permissionSet(status);
 }
 
@@ -354,13 +365,12 @@ void AgentModule::conversationSend() {
     // auto *reply = g_networkAccessManager->post(m_bigmodelProvider->requestGet(), QJsonDocument(body).toJson());
     auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
-    auto reasoning = std::make_shared<QString>();
-    auto content = std::make_shared<QString>();
-    auto reasoningId = std::make_shared<QString>();
-    auto contentId = std::make_shared<QString>();
+    const auto assistantIndex = conversationAppend("assistant");
+    const auto assistantId = m_turn.messages.at(assistantIndex).id;
+    chatCreate(m_turn.id, assistantId, "assistant");
     auto toolCalls = std::make_shared<QVariantHash>();
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply, reasoning, content, reasoningId, contentId, toolCalls] {
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, assistantIndex, assistantId, toolCalls] {
         if (reply->error() != QNetworkReply::NoError) return;
         while (reply->canReadLine()) {
             auto line = reply->readLine().trimmed();
@@ -380,28 +390,22 @@ void AgentModule::conversationSend() {
 
             const auto _reasoning = delta.value("reasoning_content").toString();
             if (!_reasoning.isEmpty()) {
-                if (reasoningId->isEmpty()) {
-                    stateSet(AgentState::Think);
-                    *reasoningId = chatCreate("assistant", "");
-                }
-                reasoning->append(_reasoning);
-                chatAppend(*reasoningId, _reasoning);
+                auto &assistant = m_turn.messages[assistantIndex];
+                if (assistant.reasoningContent.isEmpty()) stateSet(AgentState::Think);
+                assistant.reasoningContent.append(_reasoning);
+                chatReasoningAppend(assistantId, _reasoning);
             }
 
             const auto _content = delta.value("content").toString();
             if (!_content.isEmpty()) {
-                if (contentId->isEmpty()) {
-                    stateSet(AgentState::Response);
-                    if (!reasoningId->isEmpty()) QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
-                    *contentId = chatCreate("assistant", "");
-                }
-                content->append(_content);
-                chatAppend(*contentId, _content);
+                auto &assistant = m_turn.messages[assistantIndex];
+                if (assistant.content.isEmpty()) stateSet(AgentState::Response);
+                assistant.content.append(_content);
+                chatAppend(assistantId, _content);
             }
 
             const auto _toolCalls = delta.value("tool_calls").toArray();
             if (!_toolCalls.isEmpty()) {
-                QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                 for (const auto &value: _toolCalls) {
                     const auto _toolCall = value.toObject();
 
@@ -419,13 +423,14 @@ void AgentModule::conversationSend() {
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls, mode = conversation.mode] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, assistantIndex, assistantId, toolCalls, mode = conversation.mode] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             stateSet(AgentState::Ready);
         } else if (reply->error() == QNetworkReply::NoError) {
+            m_turn.messages[assistantIndex].createdAt = QDateTime::currentMSecsSinceEpoch();
+            chatFinish(assistantId);
             // tool calls
             if (!toolCalls->isEmpty()) {
-                // append tool calls to m_message
                 QJsonArray _toolCalls{};
                 for (const auto &value: toolCalls->values()) {
                     const auto toolCall = value.toHash();
@@ -446,9 +451,7 @@ void AgentModule::conversationSend() {
                         }
                     });
                 }
-                if (!_toolCalls.isEmpty()) {
-                    conversationAppend("assistant", *content, *reasoning, {}, _toolCalls);
-                }
+                m_turn.messages[assistantIndex].toolCalls = _toolCalls;
                 // call tools
                 for (const auto &value: _toolCalls) {
                     stateSet(AgentState::Toolcall);
@@ -457,19 +460,26 @@ void AgentModule::conversationSend() {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
-                    QString content{};
+                    const auto toolIndex = conversationAppend("tool", id);
+                    const auto toolMessageId = m_turn.messages.at(toolIndex).id;
+                    QString result{};
                     const auto owner = m_owner.value(name);
-                    if (owner == "UniComm") content = m_toolsModule->toolsCall(mode, name, arguments);
-                    else content = m_mcpModule->toolsCall(owner, name, arguments);
-                    conversationAppend("tool", content, {}, id);
+                    if (owner == "UniComm") result = m_toolsModule->toolsCall(toolMessageId, mode, name, arguments);
+                    else result = m_mcpModule->toolsCall(owner, name, arguments);
+                    auto &tool = m_turn.messages[toolIndex];
+                    tool.content = result;
+                    tool.createdAt = QDateTime::currentMSecsSinceEpoch();
                 }
                 conversationSend();
             } else {
-                conversationAppend("assistant", *content, *reasoning);
+                const auto &assistant = m_turn.messages.at(assistantIndex);
+                const auto content = assistant.content;
+                const auto finishedAt = assistant.createdAt;
                 m_sqlModule->conversationAppend(m_conversationId, m_turn.messages);
+                turnFinish(m_turn.id, finishedAt);
                 m_turn = {};
                 if (m_micButton->property("checked").toBool()) {
-                    stateSet(AgentState::Speak, *content);
+                    stateSet(AgentState::Speak, content);
                 } else {
                     stateSet(AgentState::Ready);
                 }
@@ -486,14 +496,28 @@ void AgentModule::conversationSend() {
     });
 }
 
-QString AgentModule::chatCreate(const QString &role, const QString &text) const {
-    const auto messageId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, messageId), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
-    return messageId;
+void AgentModule::turnCreate(const QString &turnId, const qint64 startedAt) const {
+    QMetaObject::invokeMethod(m_root, "turnCreate", Q_ARG(QVariant, turnId), Q_ARG(QVariant, startedAt));
+}
+
+void AgentModule::turnFinish(const QString &turnId, const qint64 finishedAt) const {
+    QMetaObject::invokeMethod(m_root, "turnFinish", Q_ARG(QVariant, turnId), Q_ARG(QVariant, finishedAt));
+}
+
+void AgentModule::chatCreate(const QString &turnId, const QString &messageId, const QString &role) const {
+    QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, turnId), Q_ARG(QVariant, messageId), Q_ARG(QVariant, role));
 }
 
 void AgentModule::chatAppend(const QString &messageId, const QString &text) const {
     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, messageId), Q_ARG(QVariant, text));
+}
+
+void AgentModule::chatReasoningAppend(const QString &messageId, const QString &text) const {
+    QMetaObject::invokeMethod(m_root, "chatReasoningAppend", Q_ARG(QVariant, messageId), Q_ARG(QVariant, text));
+}
+
+void AgentModule::chatFinish(const QString &messageId) const {
+    QMetaObject::invokeMethod(m_root, "chatFinish", Q_ARG(QVariant, messageId));
 }
 
 void AgentModule::toolsRegister(const QString &name, const QJsonArray &tools) {
