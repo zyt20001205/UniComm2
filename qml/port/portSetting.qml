@@ -9,6 +9,7 @@ import QtQuick.Shapes
 Item {
     id: rootItem
     property int portType: 0
+    property bool bluetoothBusy: false
     property var patterns: {
         "ipv4": /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
         "ipv6": /[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){3}/
@@ -38,7 +39,7 @@ Item {
                     id: tumbler
                     currentIndex: rootItem.portType
                     delegate: delegateComponent
-                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Ssl Client"), qsTr("Ssl Server"), qsTr("WebSocket Client"), qsTr("WebSocket Server"), qsTr("Udp Socket"), qsTr("Video Stream")]
+                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Ssl Client"), qsTr("Ssl Server"), qsTr("WebSocket Client"), qsTr("WebSocket Server"), qsTr("Udp Socket"), qsTr("Video Stream"), qsTr("Bluetooth LE")]
                     wrap: false
                     Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -93,6 +94,8 @@ Item {
                                     return "qrc:/icon/udpSocket.svg"
                                 case 9:
                                     return "qrc:/icon/video.svg"
+                                case 10:
+                                    return ""
                                 default:
                                     return ""
                             }
@@ -128,6 +131,8 @@ Item {
                                     return qsTr("A device that uses the User Datagram Protocol to send independent, connectionless messages (datagrams) over an IP network.")
                                 case 9:
                                     return qsTr("Video stream for image processing and OCR text recognition.")
+                                case 10:
+                                    return qsTr("A Bluetooth Low Energy central that exchanges data through GATT characteristics.")
                                 default:
                                     return ""
                             }
@@ -763,6 +768,179 @@ Item {
                             Layout.fillWidth: true
                         }
                     }
+
+                    // bluetooth le
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 16; rowSpacing: 10
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: bluetoothNameTextField
+                            font.pointSize: 12
+                            placeholderText: qsTr("Bluetooth LE")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Adapter")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            ComboBox {
+                                id: bluetoothAdapterComboBox
+                                enabled: !rootItem.bluetoothBusy
+                                font.pointSize: 12
+                                model: bluetoothAdapterStandardItemModel
+                                textRole: "display"
+                                valueRole: "whatsThis"
+                                Layout.fillWidth: true
+                            }
+
+                            Button {
+                                text: qsTr("Scan")
+                                enabled: !rootItem.bluetoothBusy && bluetoothAdapterComboBox.currentIndex >= 0
+                                onClicked: portSetting.bluetoothScan(bluetoothAdapterComboBox.currentValue)
+                            }
+                        }
+
+                        Label {
+                            text: qsTr("Peripheral")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            ComboBox {
+                                id: bluetoothPeripheralComboBox
+                                enabled: !rootItem.bluetoothBusy
+                                font.pointSize: 12
+                                model: bluetoothPeripheralStandardItemModel
+                                textRole: "display"
+                                valueRole: "whatsThis"
+                                Layout.fillWidth: true
+                            }
+
+                            Button {
+                                text: qsTr("Discover")
+                                enabled: !rootItem.bluetoothBusy && bluetoothPeripheralComboBox.currentIndex >= 0
+                                onClicked: portSetting.bluetoothDiscover(bluetoothAdapterComboBox.currentValue, bluetoothPeripheralComboBox.currentValue)
+                            }
+                        }
+
+                        Label {
+                            text: qsTr("Service")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: bluetoothServiceComboBox
+                            enabled: !rootItem.bluetoothBusy
+                            font.pointSize: 12
+                            model: bluetoothServiceStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                            onActivated: portSetting.bluetoothServiceSelect(currentValue)
+                        }
+
+                        Label {
+                            text: qsTr("Tx Characteristic")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: bluetoothTxCharacteristicComboBox
+                            enabled: !rootItem.bluetoothBusy
+                            font.pointSize: 12
+                            model: bluetoothTxCharacteristicStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Write Type")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: bluetoothWriteTypeComboBox
+                            enabled: !rootItem.bluetoothBusy
+                            font.pointSize: 12
+                            model: ListModel {
+                                ListElement {
+                                    text: qsTr("Request"); value: "request"
+                                }
+                                ListElement {
+                                    text: qsTr("Command"); value: "command"
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Rx Characteristic")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: bluetoothRxCharacteristicComboBox
+                            enabled: !rootItem.bluetoothBusy
+                            font.pointSize: 12
+                            model: bluetoothRxCharacteristicStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Subscribe Type")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: bluetoothSubscribeTypeComboBox
+                            enabled: !rootItem.bluetoothBusy
+                            font.pointSize: 12
+                            model: ListModel {
+                                ListElement {
+                                    text: qsTr("Notify"); value: "notify"
+                                }
+                                ListElement {
+                                    text: qsTr("Indicate"); value: "indicate"
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            id: bluetoothStatusLabel
+                            horizontalAlignment: Text.AlignHCenter
+                            wrapMode: Text.WordWrap
+                            Layout.columnSpan: 2; Layout.fillWidth: true
+                        }
+                    }
                 }
 
                 Label {
@@ -784,7 +962,7 @@ Item {
             // port format
             StackLayout {
                 currentIndex: {
-                    if ([0, 1, 2, 3, 4, 5, 6, 7, 8].includes(rootItem.portType)) {
+                    if ([0, 1, 2, 3, 4, 5, 6, 7, 8, 10].includes(rootItem.portType)) {
                         return 0
                     } else {
                         return 1
@@ -2171,6 +2349,23 @@ Item {
                                 portSetting.videoCapture()
                             }
                                 break
+                            case 10: {
+                                if (!bluetoothNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (bluetoothAdapterComboBox.currentIndex < 0
+                                    || bluetoothPeripheralComboBox.currentIndex < 0
+                                    || bluetoothServiceComboBox.currentIndex < 0
+                                    || bluetoothTxCharacteristicComboBox.currentIndex < 0
+                                    || bluetoothRxCharacteristicComboBox.currentIndex < 0) {
+                                    portNameValidator.text = qsTr("Incomplete Bluetooth Configuration")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
                         }
                         swipeView.currentIndex = swipeView.currentIndex + 1
                     } else {
@@ -2688,6 +2883,16 @@ Item {
             "udpSocketRemotePortSpinBox": udpSocketRemotePortSpinBox,
             // video stream
             "videoStreamNameComboBox": videoStreamNameComboBox,
+            // bluetooth le
+            "bluetoothNameTextField": bluetoothNameTextField,
+            "bluetoothAdapterComboBox": bluetoothAdapterComboBox,
+            "bluetoothPeripheralComboBox": bluetoothPeripheralComboBox,
+            "bluetoothServiceComboBox": bluetoothServiceComboBox,
+            "bluetoothTxCharacteristicComboBox": bluetoothTxCharacteristicComboBox,
+            "bluetoothRxCharacteristicComboBox": bluetoothRxCharacteristicComboBox,
+            "bluetoothWriteTypeComboBox": bluetoothWriteTypeComboBox,
+            "bluetoothSubscribeTypeComboBox": bluetoothSubscribeTypeComboBox,
+            "bluetoothStatusLabel": bluetoothStatusLabel,
             // format
             "txFormatComboBox": txFormatComboBox,
             "txSuffixComboBox": txSuffixComboBox,

@@ -14,8 +14,10 @@ class QCamera;
 class QMediaCaptureSession;
 class QQuickItem;
 class QScreenCapture;
+class QThread;
 class QVideoSink;
 
+class BluetoothDiscovery;
 class ImageProvider;
 class RoiModel;
 class PipelineModel;
@@ -37,6 +39,12 @@ public:
     Q_INVOKABLE void portSettingExport();
 
     Q_INVOKABLE void dialogResize(int width, int height) const;
+
+    Q_INVOKABLE void bluetoothScan(const QString &adapterAddress);
+
+    Q_INVOKABLE void bluetoothDiscover(const QString &adapterAddress, const QString &peripheralAddress);
+
+    Q_INVOKABLE void bluetoothServiceSelect(const QString &serviceUuid);
 
     Q_INVOKABLE void videoCapture();
 
@@ -68,6 +76,18 @@ private:
 
     void videoStreamRefresh() const;
 
+    void bluetoothAdapterRefresh() const;
+
+    void bluetoothAdaptersUpdate(const QVariantList &adapters);
+
+    void bluetoothPeripheralsUpdate(const QVariantList &peripherals);
+
+    void bluetoothServicesUpdate(const QVariantList &services);
+
+    void bluetoothStatusUpdate(const QString &status) const;
+
+    void bluetoothBusyUpdate(bool busy) const;
+
     void processRefresh(const QJsonObject &portConfig) const;
 
     QQuickView *m_window{};
@@ -75,6 +95,13 @@ private:
     QStandardItemModel *m_visaStandardItemModel{};
     QStandardItemModel *m_localHostStandardItemModel{};
     QStandardItemModel *m_videoStreamStandardItemModel{};
+    QStandardItemModel *m_bluetoothAdapterStandardItemModel{};
+    QStandardItemModel *m_bluetoothPeripheralStandardItemModel{};
+    QStandardItemModel *m_bluetoothServiceStandardItemModel{};
+    QStandardItemModel *m_bluetoothTxCharacteristicStandardItemModel{};
+    QStandardItemModel *m_bluetoothRxCharacteristicStandardItemModel{};
+    QThread *m_bluetoothThread{};
+    BluetoothDiscovery *m_bluetoothDiscovery{};
     QMediaCaptureSession *m_mediaCaptureSession{};
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};
@@ -82,6 +109,8 @@ private:
     PipelineModel *m_pipelineModel{};
     ImageProvider *m_imageProvider{};
     QString m_oldPortName{};
+    QVariantList m_bluetoothServices{};
+    QJsonObject m_bluetoothConfig{};
 
     QObject *m_root{};
     QObject *m_swipeView{};
@@ -131,6 +160,16 @@ private:
     QObject *m_udpSocketRemotePortSpinBox{};
     // video stream
     QObject *m_videoStreamNameComboBox{};
+    // bluetooth le
+    QObject *m_bluetoothNameTextField{};
+    QObject *m_bluetoothAdapterComboBox{};
+    QObject *m_bluetoothPeripheralComboBox{};
+    QObject *m_bluetoothServiceComboBox{};
+    QObject *m_bluetoothTxCharacteristicComboBox{};
+    QObject *m_bluetoothRxCharacteristicComboBox{};
+    QObject *m_bluetoothWriteTypeComboBox{};
+    QObject *m_bluetoothSubscribeTypeComboBox{};
+    QObject *m_bluetoothStatusLabel{};
     // format
     QObject *m_txFormatComboBox{};
     QObject *m_txSuffixComboBox{};

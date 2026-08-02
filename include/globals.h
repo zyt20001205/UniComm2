@@ -86,7 +86,8 @@ namespace PortType {
         WebSocketClient,
         WebSocketServer,
         UdpSocket,
-        VideoStream
+        VideoStream,
+        BluetoothLe
     };
 }
 

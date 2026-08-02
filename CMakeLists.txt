@@ -157,6 +157,11 @@ set(SCINTILLA_INCLUDE "${SCINTILLA_DIR}/include")
 file(GLOB SCINTILLA_LIB "${SCINTILLA_DIR}/lib/*.a")
 set(SCINTILLA_BIN "${SCINTILLA_DIR}/bin")
 
+set(SIMPLEBLE_DIR "${CMAKE_SOURCE_DIR}/3rd/simpleble")
+set(SIMPLEBLE_INCLUDE "${SIMPLEBLE_DIR}/include")
+set(SIMPLEBLE_LIB "${SIMPLEBLE_DIR}/lib/libsimpleble.dll.a")
+set(SIMPLEBLE_BIN "${SIMPLEBLE_DIR}/bin")
+
 set(SOL2_DIR "${CMAKE_SOURCE_DIR}/3rd/sol2")
 set(SOL2_INCLUDE "${SOL2_DIR}/include")
 
@@ -198,6 +203,7 @@ target_include_directories(UniComm PRIVATE
         ${OPENCV_INCLUDE}
         ${QTKEYCHAIN_INCLUDE}
         ${SCINTILLA_INCLUDE}
+        ${SIMPLEBLE_INCLUDE}
         ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
         ${VISA_INCLUDE}
@@ -234,6 +240,7 @@ target_link_libraries(UniComm PRIVATE
         ${NUSPELL_LIB}
         ${QTKEYCHAIN_LIB}
         ${SCINTILLA_LIB}
+        ${SIMPLEBLE_LIB}
         ${TESSERACT_LIB}
         ${VISA_LIB}
         ${WHISPER_LIB}
@@ -404,6 +411,12 @@ else ()
             "${SCINTILLA_BIN}"
             "${CMAKE_BINARY_DIR}"
             COMMENT "SCINTILLA BIN COPIED")
+    #simpleble-1.0.0
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${SIMPLEBLE_BIN}"
+            "${CMAKE_BINARY_DIR}"
+            COMMENT "SIMPLEBLE BIN COPIED")
     #tesseract-5.5.2-1
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory

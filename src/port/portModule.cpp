@@ -13,6 +13,7 @@
 #include "globals.h"
 #include "core/globalManager.h"
 #include "port/basePort.h"
+#include "port/bluetoothLe.h"
 #include "port/portSetting.h"
 #include "port/serialPort.h"
 #include "port/tcpClient.h"
@@ -149,6 +150,10 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
         }
         case PortType::VideoStream: {
             port = new VideoStream(portConfig);
+            break;
+        }
+        case PortType::BluetoothLe: {
+            port = new BluetoothLe(portConfig);
             break;
         }
         default: {
