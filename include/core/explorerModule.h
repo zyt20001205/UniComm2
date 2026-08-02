@@ -59,6 +59,13 @@ class SortFilterProxyModel final : public QSortFilterProxyModel {
 public:
     explicit SortFilterProxyModel(const QHash<QUrl, QVariant> *documentStatus, QObject *parent = nullptr);
 
+    enum Role {
+        SourceRole = Qt::UserRole + 4,
+        IsDirRole,
+        DocumentUrlRole,
+        GitRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;

@@ -338,6 +338,7 @@ Item {
         modal: true
         title: qsTr("Rename Conversation")
         standardButtons: Dialog.Ok
+        property string conversationId
         property string oldTopic
 
         onOpened: {
@@ -350,7 +351,7 @@ Item {
             agentModuleRenameTextField.forceActiveFocus()
             agentModuleRenameTextField.selectAll()
         }
-        onAccepted: agentModule.conversationRename(agentModuleRenameDialog.oldTopic, agentModuleRenameTextField.text)
+        onAccepted: agentModule.conversationRename(agentModuleRenameDialog.conversationId, agentModuleRenameTextField.text)
 
         TextField {
             id: agentModuleRenameTextField

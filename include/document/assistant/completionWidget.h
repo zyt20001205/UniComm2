@@ -48,6 +48,10 @@ signals:
 private:
     void placeholderExpand(const QString &placeholder) const;
 
+    enum Role {
+        KindRole = Qt::UserRole + 1
+    };
+
     QObject *m_tooltip{};
     QObject *m_tableView{};
     QVariantHash m_completionSession{};

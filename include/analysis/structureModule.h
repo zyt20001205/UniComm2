@@ -55,6 +55,11 @@ class StructureModel final : public QStandardItemModel {
 public:
     using QStandardItemModel::QStandardItemModel;
 
+    enum Role {
+        DetailRole = Qt::UserRole + 1,
+        PositionRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 

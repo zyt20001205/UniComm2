@@ -27,10 +27,10 @@ Item {
                 enabled: agentModule.state === 0
                 model: topicStandardItemModel
                 textRole: "display"
-                valueRole: "display"
+                valueRole: "id"
                 Layout.fillWidth: true; Layout.preferredHeight: 30
 
-                onCurrentTextChanged: agentModule.conversationLoad(topicComboBox.currentText)
+                onCurrentValueChanged: agentModule.conversationLoad(topicComboBox.currentValue)
             }
 
             Button {
@@ -42,6 +42,7 @@ Item {
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onClicked: {
+                    renameDialog.conversationId = topicComboBox.currentValue
                     renameDialog.oldTopic = topicComboBox.currentText
                     renameDialog.open()
                 }
@@ -55,13 +56,13 @@ Item {
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: agentModule.conversationCreate()
+                onClicked: agentModule.conversationInsert()
             }
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
-                enabled: topicComboBox.currentText && agentModule.state === 0
+                enabled: topicComboBox.currentValue && agentModule.state === 0
                 flat: true
                 icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
                 icon.width: 16; icon.height: 16
@@ -69,7 +70,7 @@ Item {
 
                 onToggled: {
                     if (!checked) {
-                        agentModule.conversationDelete(topicComboBox.currentText)
+                        agentModule.conversationDelete(topicComboBox.currentValue)
                     }
                 }
 

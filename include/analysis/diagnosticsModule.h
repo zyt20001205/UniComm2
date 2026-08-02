@@ -47,6 +47,10 @@ class DiagnosticsModel final : public QStandardItemModel {
     Q_OBJECT
 
 public:
+    enum Role {
+        PositionRole = Qt::UserRole + 1
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;

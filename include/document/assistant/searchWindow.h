@@ -56,6 +56,11 @@ class SearchModel final : public QStandardItemModel {
 public:
     explicit SearchModel(QObject *parent = nullptr);
 
+    enum Role {
+        DocumentUrlRole = Qt::UserRole + 1,
+        LineRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] bool emptyGet() const {

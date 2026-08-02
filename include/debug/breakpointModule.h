@@ -68,6 +68,12 @@ class BreakpointModel final : public QStandardItemModel {
 public:
     explicit BreakpointModel(QObject *parent = nullptr);
 
+    enum Role {
+        DocumentUrlRole = Qt::UserRole + 1,
+        EnableRole,
+        ConditionRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] bool emptyGet() const {

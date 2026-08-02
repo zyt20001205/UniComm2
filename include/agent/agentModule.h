@@ -4,14 +4,16 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QStandardItemModel>
+
+#include "agent/module/sqlModule.h"
 
 class QNetworkReply;
 class QNetworkAccessManager;
 class QQuickWidget;
-class QStandardItemModel;
 
+class ConversationModel;
 class McpModule;
-class SqlModule;
 class ToolsModule;
 class BigmodelProvider;
 class DeepseekProvider;
@@ -59,13 +61,13 @@ public:
 
     Q_INVOKABLE void modelSet(const QString &model);
 
-    Q_INVOKABLE void conversationRename(const QString &oldTopic, const QString &newTopic);
+    Q_INVOKABLE void conversationRename(const QString &id, const QString &title);
 
-    Q_INVOKABLE void conversationCreate();
+    Q_INVOKABLE void conversationInsert();
 
-    Q_INVOKABLE void conversationDelete(const QString &topic);
+    Q_INVOKABLE void conversationDelete(const QString &id);
 
-    Q_INVOKABLE void conversationLoad(const QString &topic);
+    Q_INVOKABLE void conversationLoad(const QString &id);
 
     Q_INVOKABLE void conversationUndo();
 
@@ -76,6 +78,11 @@ signals:
 
 private:
     void conversationSend();
+
+    void messageInsert(const QString &role, const QString &content, const QString &reasoningContent = {},
+                       const QString &toolCallId = {}, const QJsonArray &toolCalls = {});
+
+    [[nodiscard]] QJsonArray messageJsonGet() const;
 
     void chatClear() const;
 
@@ -88,7 +95,7 @@ private:
     [[nodiscard]] QJsonArray toolsList(const QStringList &names);
 
     QJsonObject m_config{};
-    QString m_topic{};
+    QString m_conversationId{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
@@ -103,8 +110,11 @@ private:
     QObject *m_micButton{};
 
     QString m_system{};
-    QStandardItemModel *m_topicStandardItemModel{};
-    QHash<QString, QJsonObject> m_sessions{};
+    ConversationModel *m_topicStandardItemModel{};
+    QHash<QString, SqlModule::Conversation> m_conversations{};
+    SqlModule::Conversation m_conversation{};
+    QList<SqlModule::Message> m_messages{};
+    QString m_turnId{};
 
     int m_state{AgentState::Ready};
     QNetworkReply *m_reply{};
@@ -116,6 +126,19 @@ private:
     ToolsModule *m_toolsModule{};
     BigmodelProvider *m_bigmodelProvider{};
     DeepseekProvider *m_deepseekProvider{};
+};
+
+class ConversationModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    using QStandardItemModel::QStandardItemModel;
+
+    enum Role {
+        IdRole = Qt::UserRole + 1
+    };
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
 #endif //UNICOMM_AGENTMODULE_H

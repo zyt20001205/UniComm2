@@ -72,13 +72,13 @@ void BreakpointModule::breakpointInsert(const QUrl &documentUrl, const int line,
     }
     // update model
     auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
-    lineItem->setData(documentUrl, Qt::UserRole + 1);
-    lineItem->setData(session["enabled"].toBool(), Qt::UserRole + 2);
-    lineItem->setData(session["condition"].toString(), Qt::UserRole + 3);
+    lineItem->setData(documentUrl, BreakpointModel::DocumentUrlRole);
+    lineItem->setData(session["enabled"].toBool(), BreakpointModel::EnableRole);
+    lineItem->setData(session["condition"].toString(), BreakpointModel::ConditionRole);
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::UserRole + 1).toUrl() == documentUrl) {
+        if (indent1->data(BreakpointModel::DocumentUrlRole).toUrl() == documentUrl) {
             for (int j = 0; j < indent1->rowCount(); ++j) {
                 const auto *indent2 = indent1->child(j);
                 if (line < indent2->text().toInt()) {
@@ -91,7 +91,7 @@ void BreakpointModule::breakpointInsert(const QUrl &documentUrl, const int line,
         }
     }
     auto *urlItem = new QStandardItem(documentUrl.fileName()); // NOLINT
-    urlItem->setData(documentUrl, Qt::UserRole + 1);
+    urlItem->setData(documentUrl, BreakpointModel::DocumentUrlRole);
     urlItem->appendRow(lineItem);
     m_standardItemModel->appendRow(urlItem);
 }
@@ -107,7 +107,7 @@ void BreakpointModule::breakpointRemove(const QUrl &documentUrl, const int line)
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::UserRole + 1).toUrl() == documentUrl) {
+        if (indent1->data(BreakpointModel::DocumentUrlRole).toUrl() == documentUrl) {
             for (int j = 0; j < indent1->rowCount(); ++j) {
                 const auto *indent2 = indent1->child(j);
                 if (line == indent2->text().toInt()) {
@@ -144,7 +144,7 @@ void BreakpointModule::breakpointsDelete(const QUrl &documentUrl) {
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::UserRole + 1).toUrl() == documentUrl) {
+        if (indent1->data(BreakpointModel::DocumentUrlRole).toUrl() == documentUrl) {
             for (int j = indent1->rowCount() - 1; j >= 0; --j) {
                 const auto *indent2 = indent1->child(j);
                 const auto line = indent2->text().toInt();
@@ -158,7 +158,7 @@ void BreakpointModule::allDelete() {
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = indent0->rowCount() - 1; i >= 0; --i) {
         const auto *indent1 = indent0->child(i);
-        const auto documentUrl = indent1->data(Qt::UserRole + 1).toUrl();
+        const auto documentUrl = indent1->data(BreakpointModel::DocumentUrlRole).toUrl();
         breakpointsDelete(documentUrl);
     }
 }
@@ -198,8 +198,8 @@ BreakpointModel::BreakpointModel(QObject *parent)
 
 QHash<int, QByteArray> BreakpointModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "documentUrl";
-    roles[Qt::UserRole + 2] = "enable";
-    roles[Qt::UserRole + 3] = "condition";
+    roles[DocumentUrlRole] = "documentUrl";
+    roles[EnableRole] = "enable";
+    roles[ConditionRole] = "condition";
     return roles;
 }

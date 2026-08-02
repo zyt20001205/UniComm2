@@ -242,6 +242,12 @@ class BranchModel final : public QStandardItemModel {
 public:
     explicit BranchModel(QObject *parent = nullptr);
 
+    enum Role {
+        TypeRole = Qt::UserRole + 1,
+        HashRole,
+        CommitRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] bool emptyGet() const {
@@ -258,6 +264,12 @@ class LogModel final : public QStandardItemModel {
 public:
     using QStandardItemModel::QStandardItemModel;
 
+    enum Role {
+        HashRole = Qt::UserRole + 1,
+        PositionRole,
+        ParentRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
@@ -267,6 +279,11 @@ class ShowModel final : public QStandardItemModel {
 
 public:
     using QStandardItemModel::QStandardItemModel;
+
+    enum Role {
+        DocumentUrlRole = Qt::UserRole + 1,
+        StatusRole
+    };
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
@@ -294,6 +311,11 @@ class StatusModel final : public QStandardItemModel {
 public:
     explicit StatusModel(QObject *parent = nullptr);
 
+    enum Role {
+        DocumentUrlRole = Qt::UserRole + 1,
+        StatusRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] bool emptyGet() const {
@@ -310,6 +332,10 @@ class CommitModel final : public QStandardItemModel {
 
 public:
     explicit CommitModel(QObject *parent = nullptr);
+
+    enum Role {
+        HashRole = Qt::UserRole + 1
+    };
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 

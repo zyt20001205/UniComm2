@@ -62,6 +62,10 @@ class BackgroundModel final : public QStandardItemModel {
 public:
     explicit BackgroundModel(QObject *parent = nullptr);
 
+    enum Role {
+        TaskIdRole = Qt::UserRole + 1
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] QString titleGet() const {

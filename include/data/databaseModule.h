@@ -53,6 +53,10 @@ class DatabaseModel final : public QStandardItemModel {
 public:
     explicit DatabaseModel(QObject *parent = nullptr);
 
+    enum Role {
+        KeyRole = Qt::UserRole + 1
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;

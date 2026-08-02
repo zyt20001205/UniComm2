@@ -1,12 +1,13 @@
 #include "agent/agentModule.h"
 
-#include <QDir>
+#include <QDateTime>
 #include <QJsonArray>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
+#include <QUuid>
 
 #include "globals.h"
 #include "agent/module/mcpModule.h"
@@ -22,7 +23,7 @@
 AgentModule::AgentModule()
     : DockWidget("Agent"),
       m_config(g_workspaceConfig["llmConfig"].toObject()),
-      m_topic(m_config["topic"].toString()),
+      m_conversationId(m_config["topic"].toString()),
       m_widget(new QQuickWidget()),
       m_system("You are an IDE code assistant. "
           "When in chat mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to agent mode. "
@@ -31,7 +32,7 @@ AgentModule::AgentModule()
           "When dealing with files, highly prefer using 'symbol_get' to understand the code structure and locate exactly which lines you need to use with text_get or text_set. "
           "All code must be written in English (including comments, variable names, identifiers, and strings). "
           "Use io.log() instead of print() for assistant."),
-      m_topicStandardItemModel(new QStandardItemModel(this)),
+      m_topicStandardItemModel(new ConversationModel(this)),
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
       m_toolsModule(new ToolsModule(this)),
@@ -39,18 +40,11 @@ AgentModule::AgentModule()
       m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
 
-    const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath(".unicomm/llm");
-    for (const auto &value: QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
-        auto sessionFile = QFile(value.absoluteFilePath());
-        const auto topic = value.baseName();
-        if (sessionFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            const auto sessionDoc = QJsonDocument::fromJson(sessionFile.readAll());
-            sessionFile.close();
-            if (sessionDoc.isNull() || !sessionDoc.isObject()) continue;
-            if (sessionDoc.object().isEmpty()) continue;
-            m_topicStandardItemModel->appendRow(new QStandardItem(topic));
-            m_sessions[topic] = sessionDoc.object();
-        }
+    for (const auto &conversation: m_sqlModule->conversationGet()) {
+        auto *item = new QStandardItem(conversation.title); // NOLINT
+        item->setData(conversation.id, ConversationModel::IdRole);
+        m_topicStandardItemModel->appendRow(item);
+        m_conversations[conversation.id] = conversation;
     }
 
     connect(m_toolsModule, &ToolsModule::createChat, this, &AgentModule::chatCreate);
@@ -108,7 +102,8 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     });
     m_deepseekProvider->apikeyGet();
 
-    conversationLoad(m_topic);
+    if (!m_conversationId.isEmpty()) m_topicComboBox->setProperty("currentValue", m_conversationId);
+    conversationLoad(m_topicComboBox->property("currentValue").toString());
 }
 
 void AgentModule::propertyGet(const QVariantMap &objects) {
@@ -121,26 +116,8 @@ void AgentModule::propertyGet(const QVariantMap &objects) {
 }
 
 void AgentModule::agentConfigSave() {
-    m_config["topic"] = m_topic;
+    m_config["topic"] = m_conversationId;
     g_workspaceConfig["llmConfig"] = m_config;
-
-    const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath(".unicomm/llm");
-    if (!QDir().mkpath(dirPath)) return;
-    const QDir dir(dirPath);
-    for (const auto &value: dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
-        QFile::remove(value.absoluteFilePath());
-    }
-    for (auto it = m_sessions.constBegin(); it != m_sessions.constEnd(); ++it) {
-        const auto &topic = it.key();
-        if (topic.isEmpty()) continue;
-        const auto sessionPath = dir.filePath(topic + ".json");
-        auto sessionFile = QFile(sessionPath);
-        if (sessionFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-            const auto sessionDoc = QJsonDocument(it.value());
-            sessionFile.write(sessionDoc.toJson(QJsonDocument::Indented));
-            sessionFile.close();
-        }
-    }
 }
 
 void AgentModule::stateSet(const int state, const QVariant &payload) {
@@ -173,11 +150,12 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Request: {
-            // get topic
-            if (m_topicComboBox->property("currentText").toString().isEmpty()) conversationCreate();
-            m_topic = m_topicComboBox->property("currentText").toString();
+            // get conversation
+            if (m_topicComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
+            const auto conversationId = m_topicComboBox->property("currentValue").toString();
+            if (m_conversationId != conversationId) conversationLoad(conversationId);
             // check model
-            if (m_sessions[m_topic]["model"].toString().isEmpty()) {
+            if (m_conversation.model.isEmpty()) {
                 m_messageDialog->setProperty("title", tr("Error"));
                 m_messageDialog->setProperty("text", tr("Please select a model first."));
                 QMetaObject::invokeMethod(m_messageDialog, "open");
@@ -187,19 +165,16 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             // append message
             const auto text = m_textArea->property("text").toString();
             if (!text.isEmpty()) {
+                m_turnId = QUuid::createUuid().toString(QUuid::WithoutBraces);
                 chatCreate("user", text);
-                auto messages = m_sessions[m_topic]["messages"].toArray();
-                messages.append(QJsonObject{
-                    {"role", "user"},
-                    {"content", text}
-                });
-                m_sessions[m_topic]["messages"] = messages;
+                messageInsert("user", text);
             }
             conversationSend();
         }
         break;
         case AgentState::Abort: {
             m_reply->abort();
+            m_turnId.clear();
             stateSet(AgentState::Ready);
         }
         break;
@@ -222,67 +197,93 @@ void AgentModule::apikeySet(const QString &key, const QString &apikey) const {
 }
 
 void AgentModule::modeSet(const QString &mode) {
-    if (m_sessions[m_topic]["mode"].toString() == mode) return;
-    m_sessions[m_topic]["mode"] = mode;
-    m_modeButton->setProperty("text", m_sessions[m_topic]["mode"].toString());
+    if (m_conversation.id.isEmpty() || m_conversation.mode == mode) return;
+    m_conversation.mode = mode;
+    m_conversations[m_conversation.id] = m_conversation;
+    m_sqlModule->conversationModeSet(m_conversation.id, mode);
+    m_modeButton->setProperty("text", mode);
 }
 
 void AgentModule::modelSet(const QString &model) {
-    if (m_sessions[m_topic]["model"].toString() == model) return;
-    m_sessions[m_topic]["model"] = model;
-    m_modelButton->setProperty("text", m_sessions[m_topic]["model"].toString());
+    if (m_conversation.id.isEmpty() || m_conversation.model == model) return;
+    m_conversation.model = model;
+    m_conversations[m_conversation.id] = m_conversation;
+    m_sqlModule->conversationModelSet(m_conversation.id, model);
+    m_modelButton->setProperty("text", model);
 }
 
-void AgentModule::conversationRename(const QString &oldTopic, const QString &newTopic) {
-    const auto session = m_sessions.take(oldTopic);
-    m_sessions[newTopic] = session;
+void AgentModule::conversationRename(const QString &id, const QString &title) {
+    if (!m_conversations.contains(id) || title.isEmpty()) return;
+    m_conversations[id].title = title;
+    if (m_conversation.id == id) m_conversation.title = title;
+    m_sqlModule->conversationRename(id, title);
     for (int row = 0; row < m_topicStandardItemModel->rowCount(); ++row) {
         const auto item = m_topicStandardItemModel->item(row, 0);
-        if (item->text() == oldTopic) {
-            item->setText(newTopic);
+        if (item->data(ConversationModel::IdRole).toString() == id) {
+            item->setText(title);
             break;
         }
     }
 }
 
-void AgentModule::conversationCreate() {
-    const auto topic = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
-    m_topicStandardItemModel->appendRow(new QStandardItem(topic));
-    m_topicComboBox->setProperty("currentValue", topic);
-    m_sessions[topic] = QJsonObject{
-        {"mode", ""},
-        {"model", ""},
-        {
-            "messages", QJsonArray{
-                QJsonObject{
-                    {"role", "system"},
-                    {"content", m_system}
-                }
-            }
-        }
+void AgentModule::conversationInsert() {
+    const auto id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    const auto timestamp = QDateTime::currentMSecsSinceEpoch();
+    const SqlModule::Conversation conversation{
+        .id = id,
+        .title = id,
+        .createdAt = timestamp,
+        .updatedAt = timestamp
     };
+    m_sqlModule->conversationInsert(conversation);
+    m_sqlModule->messageInsert(SqlModule::Message{
+        .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
+        .conversationId = id,
+        .sequence = 0,
+        .role = "system",
+        .content = m_system,
+        .createdAt = timestamp
+    });
+    m_conversations[id] = conversation;
+
+    auto *item = new QStandardItem(id); // NOLINT
+    item->setData(id, ConversationModel::IdRole);
+    m_topicStandardItemModel->appendRow(item);
+    m_topicComboBox->setProperty("currentValue", id);
 }
 
-void AgentModule::conversationDelete(const QString &topic) {
+void AgentModule::conversationDelete(const QString &id) {
+    if (id.isEmpty()) return;
+    m_sqlModule->conversationDelete(id);
+    m_conversations.remove(id);
     for (int row = 0; row < m_topicStandardItemModel->rowCount(); ++row) {
-        if (m_topicStandardItemModel->item(row, 0)->text() == topic) {
+        if (m_topicStandardItemModel->item(row, 0)->data(ConversationModel::IdRole).toString() == id) {
             m_topicStandardItemModel->removeRow(row);
             break;
         }
     }
-    m_sessions.remove(topic);
+    if (m_topicStandardItemModel->rowCount() == 0) conversationLoad({});
 }
 
-void AgentModule::conversationLoad(const QString &topic) {
-    if (topic.isEmpty() || m_modeButton == nullptr || m_modelButton == nullptr) return;
-    m_topic = topic;
-    const auto session = m_sessions[m_topic];
+void AgentModule::conversationLoad(const QString &id) {
+    if (m_modeButton == nullptr || m_modelButton == nullptr) return;
     chatClear();
-    for (const auto &value: session["messages"].toArray()) {
-        const auto message = value.toObject();
-        const auto role = message.value("role").toString();
+    if (id.isEmpty() || !m_conversations.contains(id)) {
+        m_conversationId.clear();
+        m_conversation = {};
+        m_messages.clear();
+        m_modeButton->setProperty("text", "");
+        m_modelButton->setProperty("text", "");
+        return;
+    }
+
+    m_conversationId = id;
+    m_conversation = m_conversations.value(id);
+    m_messages = m_sqlModule->messageGet(id);
+    for (const auto &message: m_messages) {
+        const auto &role = message.role;
         if (role == "system" || role == "tool") continue;
-        const auto content = message.value("content").toString();
+        const auto &content = message.content;
         if (!content.isEmpty()) chatCreate(role, content);
         // const auto toolCalls = message.value("tool_calls").toArray();
         // if (!toolCalls.isEmpty()) {
@@ -297,23 +298,22 @@ void AgentModule::conversationLoad(const QString &topic) {
         //     }
         // }
     }
-    m_modeButton->setProperty("text", session["mode"].toString());
-    m_modelButton->setProperty("text", session["model"].toString());
+    m_modeButton->setProperty("text", m_conversation.mode);
+    m_modelButton->setProperty("text", m_conversation.model);
 }
 
 void AgentModule::conversationUndo() {
-    auto messages = m_sessions[m_topic]["messages"].toArray();
-    if (messages.size() <= 1) return;
-    for (auto i = messages.size() - 1; i >= 0; --i) {
-        const auto message = messages.takeAt(i).toObject();
-        if (message.value("role").toString() == "user") {
-            const auto content = message["content"].toString();
-            m_textArea->setProperty("text", content);
+    if (m_messages.size() <= 1) return;
+    for (auto i = m_messages.size() - 1; i >= 0; --i) {
+        const auto &message = m_messages.at(i);
+        if (message.role == "user") {
+            m_textArea->setProperty("text", message.content);
+            m_sqlModule->messageDeleteFrom(m_conversationId, message.sequence);
+            m_messages.erase(m_messages.begin() + i, m_messages.end());
             break;
         }
     }
-    m_sessions[m_topic]["messages"] = messages;
-    conversationLoad(m_topic);
+    conversationLoad(m_conversationId);
 }
 
 void AgentModule::permissionSet(const bool status) const {
@@ -321,13 +321,46 @@ void AgentModule::permissionSet(const bool status) const {
 }
 
 // private
+void AgentModule::messageInsert(const QString &role, const QString &content, const QString &reasoningContent,
+                                const QString &toolCallId, const QJsonArray &toolCalls) {
+    const auto sequence = m_messages.isEmpty() ? 0 : m_messages.constLast().sequence + 1;
+    const SqlModule::Message message{
+        .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
+        .conversationId = m_conversationId,
+        .turnId = m_turnId,
+        .sequence = sequence,
+        .role = role,
+        .content = content,
+        .reasoningContent = reasoningContent,
+        .toolCallId = toolCallId,
+        .toolCalls = toolCalls,
+        .createdAt = QDateTime::currentMSecsSinceEpoch()
+    };
+    m_sqlModule->messageInsert(message);
+    m_messages.append(message);
+}
+
+QJsonArray AgentModule::messageJsonGet() const {
+    QJsonArray result{};
+    for (const auto &message: m_messages) {
+        QJsonObject object{
+            {"role", message.role},
+            {"content", message.content}
+        };
+        if (!message.reasoningContent.isEmpty()) object["reasoning_content"] = message.reasoningContent;
+        if (!message.toolCallId.isEmpty()) object["tool_call_id"] = message.toolCallId;
+        if (!message.toolCalls.isEmpty()) object["tool_calls"] = message.toolCalls;
+        result.append(object);
+    }
+    return result;
+}
+
 void AgentModule::conversationSend() {
-    const auto session = m_sessions[m_topic];
     QJsonObject body{};
-    body["model"] = session["model"];
-    body["messages"] = session["messages"];
+    body["model"] = m_conversation.model;
+    body["messages"] = messageJsonGet();
     body["stream"] = true;
-    body["tools"] = session["mode"] == "chat" ? QJsonArray{} : toolsList({"Context7"});
+    body["tools"] = m_conversation.mode == "chat" ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
     // TODO: provider judge
     // auto *reply = g_networkAccessManager->post(m_bigmodelProvider->requestGet(), QJsonDocument(body).toJson());
@@ -426,14 +459,7 @@ void AgentModule::conversationSend() {
                     });
                 }
                 if (!_toolCalls.isEmpty()) {
-                    auto messages = m_sessions[m_topic]["messages"].toArray();
-                    messages.append(QJsonObject{
-                        {"role", "assistant"},
-                        {"content", *content},
-                        {"reasoning_content", *reasoning},
-                        {"tool_calls", _toolCalls}
-                    });
-                    m_sessions[m_topic]["messages"] = messages;
+                    messageInsert("assistant", *content, *reasoning, {}, _toolCalls);
                 }
                 // call tools
                 for (const auto &value: _toolCalls) {
@@ -445,24 +471,14 @@ void AgentModule::conversationSend() {
                     const auto name = function.value("name").toString();
                     QString content{};
                     const auto owner = m_owner.value(name);
-                    if (owner == "UniComm") content = m_toolsModule->toolsCall(m_sessions[m_topic]["mode"].toString(), name, arguments);
+                    if (owner == "UniComm") content = m_toolsModule->toolsCall(m_conversation.mode, name, arguments);
                     else content = m_mcpModule->toolsCall(owner, name, arguments);
-                    auto messages = m_sessions[m_topic]["messages"].toArray();
-                    messages.append(QJsonObject{
-                        {"role", "tool"},
-                        {"tool_call_id", id},
-                        {"content", content},
-                    });
-                    m_sessions[m_topic]["messages"] = messages;
+                    messageInsert("tool", content, {}, id);
                 }
                 conversationSend();
             } else {
-                auto messages = m_sessions[m_topic]["messages"].toArray();
-                messages.append(QJsonObject{
-                    {"role", "assistant"},
-                    {"content", *content}
-                });
-                m_sessions[m_topic]["messages"] = messages;
+                messageInsert("assistant", *content);
+                m_turnId.clear();
                 if (m_micButton->property("checked").toBool()) stateSet(AgentState::Speak, *content);
                 else stateSet(AgentState::Ready);
             }
@@ -470,6 +486,7 @@ void AgentModule::conversationSend() {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
+            m_turnId.clear();
             stateSet(AgentState::Error, reply->errorString());
         }
         reply->deleteLater();
@@ -506,4 +523,11 @@ QJsonArray AgentModule::toolsList(const QStringList &names) {
         }
     }
     return tools;
+}
+
+// public
+QHash<int, QByteArray> ConversationModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[IdRole] = "id";
+    return roles;
 }

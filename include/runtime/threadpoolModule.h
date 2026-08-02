@@ -84,6 +84,12 @@ class ThreadpoolModel final : public QStandardItemModel {
 public:
     explicit ThreadpoolModel(QObject *parent = nullptr);
 
+    enum Role {
+        ModeRole = Qt::UserRole + 1,
+        StatusRole,
+        ThreadIdRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;

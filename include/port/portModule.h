@@ -61,6 +61,17 @@ class PortModel final : public QStandardItemModel {
 public:
     explicit PortModel(QObject *parent = nullptr);
 
+    enum Role {
+        ActiveRole = Qt::UserRole + 1,
+        CapacityRole,
+        UsedRole,
+        LifetimeRole,
+        ReadCountRole,
+        ReadBytesRole,
+        WriteCountRole,
+        WriteBytesRole
+    };
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] bool emptyGet() const {
