@@ -245,6 +245,19 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
         return;
     }
 
+    query.prepare(R"(
+        UPDATE conversations
+        SET updated_at = :updatedAt
+        WHERE id = :conversationId
+    )");
+    query.bindValue(":conversationId", conversationId);
+    query.bindValue(":updatedAt", messages.constLast().createdAt);
+    if (!query.exec()) {
+        qDebug() << "agent database conversation update failed:" << query.lastError().text();
+        database.rollback();
+        return;
+    }
+
     if (!database.commit()) database.rollback();
 }
 
@@ -306,7 +319,7 @@ bool SqlModule::initialize() const {
                 turn_id TEXT,
                 sequence INTEGER NOT NULL,
                 role TEXT NOT NULL,
-                content TEXT NOT NULL DEFAULT '',
+                content TEXT,
                 reasoning_content TEXT,
                 tool_call_id TEXT,
                 tool_calls TEXT,

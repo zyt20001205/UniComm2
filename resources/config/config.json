@@ -15,7 +15,7 @@
     "fontFamily": "Consolas",
     "fontSize": 10
   },
-  "llmConfig": {
+  "agentConfig": {
     "id": "",
     "mcp": {}
   },

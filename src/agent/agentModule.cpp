@@ -22,7 +22,7 @@
 // public
 AgentModule::AgentModule()
     : DockWidget("Agent"),
-      m_config(g_workspaceConfig["llmConfig"].toObject()),
+      m_config(g_workspaceConfig["agentConfig"].toObject()),
       m_widget(new QQuickWidget()),
       m_system("You are an IDE code assistant. "
           "When in chat mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to agent mode. "
@@ -114,7 +114,7 @@ void AgentModule::propertyGet(const QVariantMap &objects) {
 
 void AgentModule::agentConfigSave() {
     m_config["id"] = m_conversationId;
-    g_workspaceConfig["llmConfig"] = m_config;
+    g_workspaceConfig["agentConfig"] = m_config;
 }
 
 void AgentModule::stateSet(const int state, const QVariant &payload) {

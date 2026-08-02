@@ -61,7 +61,7 @@ Item {
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
-                enabled: conversationComboBox.currentValue && agentModule.state === 0
+                enabled: conversationComboBox.currentIndex >= 0 && agentModule.state === 0
                 flat: true
                 icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
                 icon.width: 16; icon.height: 16
@@ -390,6 +390,7 @@ Item {
             readOnly: true
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
+            ContextMenu.menu: null
             Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 28)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property string messageId
