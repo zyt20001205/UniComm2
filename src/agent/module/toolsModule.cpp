@@ -11,10 +11,17 @@
 #include "runtime/threadpoolModule.h"
 #include "service/ripgrep.h"
 
+namespace {
+    int portTypeGet(const QString &portType) {
+        if (portType == "ssl_client") return PortType::SslClient;
+        return -1;
+    }
+}
+
 // public
 ToolsModule::ToolsModule(QObject *parent)
     : QObject(parent),
-      m_writeGroup{"text_set"},
+      m_writeGroup{"text_set", "port_create"},
       m_fullAccessGroup{"thread_start"} {
 }
 
@@ -139,6 +146,66 @@ void ToolsModule::initialize() {
                             {"type", "object"},
                             {"properties", QJsonObject{}},
                             {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // portConfigGet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "port_config_get"},
+                    {"description", "Get the required fields, defaults, constraints, and available options for creating a port of the specified type."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "port_type", QJsonObject{
+                                            {"type", "string"},
+                                            {"enum", QJsonArray{"ssl_client"}},
+                                            {"description", "The type of port to configure."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"port_type"}}
+                        }
+                    }
+                }
+            }
+        },
+        // portCreate
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "port_create"},
+                    {"description", "Create a configured port. Call port_config_get first and pass a configuration matching the returned definition."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "port_type", QJsonObject{
+                                            {"type", "string"},
+                                            {"enum", QJsonArray{"ssl_client"}},
+                                            {"description", "The type of port to create."}
+                                        }
+                                    },
+                                    {
+                                        "config", QJsonObject{
+                                            {"type", "object"},
+                                            {"description", "The type-specific configuration returned by port_config_get."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"port_type", "config"}}
                         }
                     }
                 }
@@ -499,6 +566,16 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
+    if (name == "port_config_get") {
+        const auto portType = portTypeGet(object.value("port_type").toString());
+        const auto config = PortModule::portConfigGet(portType);
+        if (config.isEmpty()) return "Unsupported port type.";
+        return QString::fromUtf8(QJsonDocument(config).toJson(QJsonDocument::Compact));
+    }
+    if (name == "port_create") {
+        const auto portType = portTypeGet(object.value("port_type").toString());
+        return g_port->portCreate(portType, object.value("config").toObject());
+    }
     if (name == "diagnostics_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto diagnostics = g_document->diagnosticsGet(documentUrl);
@@ -583,6 +660,12 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         chatText = "List available datatables";
     } else if (name == "port_list") {
         chatText = "List available ports";
+    } else if (name == "port_config_get") {
+        const auto portType = object.value("port_type").toString();
+        chatText = QString("Get %1 port configuration").arg(portType);
+    } else if (name == "port_create") {
+        const auto portName = object.value("config").toObject().value("port_name").toString();
+        chatText = QString("Create port %1").arg(portName);
     } else if (name == "log_get") {
         const auto blockCount = object.value("block_count").toInt(-1);
         chatText = QString("Get last %1 log blocks").arg(QString::number(blockCount));

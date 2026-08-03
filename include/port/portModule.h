@@ -28,9 +28,13 @@ public:
 
     [[nodiscard]] QSet<QString> portList() const;
 
+    [[nodiscard]] static QJsonObject portConfigGet(int portType);
+
+    [[nodiscard]] QString portCreate(int portType, const QJsonObject &config);
+
     Q_INVOKABLE void portSetting(int index = -1) const;
 
-    void portInsert(int index, const QJsonObject &portConfig = QJsonObject());
+    bool portInsert(int index, const QJsonObject &portConfig = QJsonObject());
 
     Q_INVOKABLE void portRemove(int index);
 
