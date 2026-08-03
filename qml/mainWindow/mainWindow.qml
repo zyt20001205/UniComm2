@@ -295,17 +295,17 @@ Item {
 
         Behavior on x {
             enabled: mainWindowToolTip.visible
-            NumberAnimation {
+            SmoothedAnimation {
                 duration: 80
-                easing.type: Easing.OutCubic
+                velocity: -1
             }
         }
 
         Behavior on y {
             enabled: mainWindowToolTip.visible
-            NumberAnimation {
+            SmoothedAnimation {
                 duration: 80
-                easing.type: Easing.OutCubic
+                velocity: -1
             }
         }
     }

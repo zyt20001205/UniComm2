@@ -176,19 +176,14 @@ Item {
                 background: null
                 Layout.preferredWidth: 24; Layout.fillHeight: true
 
-                function scrollTo(index) {
-                    const turn = chatColumn.children[index]
-                    scrollAnim.to = Math.max(0, Math.min(turn.y / chatColumn.height, 1 - chatScrollBar.size))
-                    scrollAnim.restart()
-                }
-
                 onCountChanged: {
                     if (count > 0) currentIndex = count - 1
                 }
 
                 onMovingChanged: {
                     if (moving) return
-                    scrollTo(currentIndex)
+                    const turn = chatColumn.children[currentIndex]
+                    rootItem.scrollStart(turn.y, true)
                 }
 
                 delegate: Item {
@@ -238,7 +233,7 @@ Item {
                         onTapped: {
                             turnTumbler.currentIndex = turnDelegate.index
                             turnTumbler.positionViewAtIndex(turnDelegate.index, Tumbler.Center)
-                            turnTumbler.scrollTo(turnDelegate.index)
+                            rootItem.scrollStart(turnDelegate.turn.y, true)
                         }
                     }
                 }
@@ -262,7 +257,7 @@ Item {
                     }
 
                     onPositionChanged: {
-                        if (scrollAnim.running) return
+                        if (followAnimation.running || navigationAnimation.running) return
                         const viewportPosition = turnTumbler.viewportPosition
                         let index = viewportPosition === 0 ? 0 : turnTumbler.count - 1
                         if (viewportPosition > 0 && viewportPosition < 1 - size) {
@@ -278,6 +273,11 @@ Item {
                         if (index === turnTumbler.currentIndex) return
                         turnTumbler.currentIndex = index
                         turnTumbler.positionViewAtIndex(index, Tumbler.Center)
+                    }
+
+                    onPressedChanged: {
+                        if (!pressed) return
+                        rootItem.scrollStop()
                     }
                 }
 
@@ -696,36 +696,86 @@ Item {
     Timer {
         id: scrollTimer
         interval: 50
+        property real position: -1
+        property bool force
+
         onTriggered: {
-            scrollAnim.to = 1.0 - chatView.ScrollBar.vertical.size
-            scrollAnim.restart()
+            const flickable = chatView.contentItem
+            const bottom = Math.max(flickable.originY, flickable.originY + flickable.contentHeight - flickable.height)
+            const target = position < 0 ? bottom : Math.max(flickable.originY, Math.min(position, bottom))
+            const animation = force ? navigationAnimation : followAnimation
+            animation.to = target
+            if (!animation.running) animation.start()
         }
     }
 
+    SmoothedAnimation {
+        id: followAnimation
+        target: chatView.contentItem
+        property: "contentY"
+        duration: 160
+        velocity: -1
+        maximumEasingTime: 60
+    }
+
     NumberAnimation {
-        id: scrollAnim
-        target: chatView.ScrollBar.vertical
-        property: "position"
-        duration: 300
-        easing.type: Easing.OutQuad
+        id: navigationAnimation
+        target: chatView.contentItem
+        property: "contentY"
+        duration: 220
+        easing.type: Easing.OutCubic
+    }
+
+    Connections {
+        target: chatView.contentItem
+
+        function onMovementStarted() {
+            rootItem.scrollStop()
+        }
+    }
+
+    function scrollStart(position = -1, force = false) {
+        if (!force && !chatView.contentItem.atYEnd && !followAnimation.running) return
+
+        if (force) {
+            scrollStop()
+            if (position >= 0) {
+                const flickable = chatView.contentItem
+                const bottom = Math.max(flickable.originY, flickable.originY + flickable.contentHeight - flickable.height)
+                navigationAnimation.to = Math.max(flickable.originY, Math.min(position, bottom))
+                navigationAnimation.restart()
+            }
+        }
+
+        scrollTimer.position = position
+        scrollTimer.force = force
+        scrollTimer.restart()
+    }
+
+    function scrollStop() {
+        scrollTimer.stop()
+        followAnimation.stop()
+        navigationAnimation.stop()
     }
 
     function turnCreate(turnId, startedAt) {
+        scrollStart()
         const obj = turnComponent.createObject(chatColumn, {
             turnId: turnId,
             startedAt: startedAt,
         })
         rootItem.turnMap[turnId] = obj
-        scrollTimer.restart()
     }
 
     function turnFinish(turnId, finishedAt) {
+        scrollStart()
         const turn = rootItem.turnMap[turnId]
         turn.finishedAt = finishedAt
         turn.collapsed = true
     }
 
     function chatClear() {
+        scrollStart(-1, true)
         for (let i = chatColumn.children.length - 1; i >= 0; --i) {
             chatColumn.children[i].destroy();
         }
@@ -734,6 +784,7 @@ Item {
     }
 
     function chatCreate(turnId, messageId, role) {
+        scrollStart()
         const turn = rootItem.turnMap[turnId]
         const obj = chatComponent.createObject(turn.messages, {
             turn: turn,
@@ -741,10 +792,10 @@ Item {
             role: role,
         })
         rootItem.chatMap[messageId] = obj
-        scrollTimer.restart()
     }
 
     function chatAppend(messageId, text) {
+        scrollStart()
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer += text
         if (chat.role === "user") chat.turn.prompt += text
@@ -752,17 +803,16 @@ Item {
             chat.turn.response = chat.contentBuffer
             chat.turn.lastId = messageId
         }
-        scrollTimer.restart()
     }
 
     function chatReasoningAppend(messageId, text) {
+        scrollStart()
         rootItem.chatMap[messageId].reasoningBuffer += text
-        scrollTimer.restart()
     }
 
     function chatFinish(messageId) {
+        scrollStart()
         rootItem.chatMap[messageId].reasoningBuffer = ""
-        scrollTimer.restart()
     }
 
     Component.onCompleted: {
