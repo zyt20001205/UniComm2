@@ -84,7 +84,7 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
     QSqlQuery messageQuery(database);
     messageQuery.prepare(R"(
         SELECT id, conversation_id, turn_id, sequence, role, content,
-               reasoning_content, tool_call_id, tool_calls, created_at
+               reasoning_content, tool_call_id, tool_calls, approved, created_at
         FROM messages
         WHERE conversation_id = :conversationId
         ORDER BY sequence
@@ -108,7 +108,8 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
             .reasoningContent = messageQuery.value(6).toString(),
             .toolCallId = messageQuery.value(7).toString(),
             .toolCalls = toolCallsDocument.isArray() ? toolCallsDocument.array() : QJsonArray{},
-            .createdAt = messageQuery.value(9).toLongLong()
+            .approved = messageQuery.value(9).toBool(),
+            .createdAt = messageQuery.value(10).toLongLong()
         });
     }
     return {conversation, messages};
@@ -220,11 +221,11 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
     query.prepare(R"(
         INSERT INTO messages (
             id, conversation_id, turn_id, sequence, role, content,
-            reasoning_content, tool_call_id, tool_calls, created_at
+            reasoning_content, tool_call_id, tool_calls, approved, created_at
         )
         VALUES (
             :id, :conversationId, :turnId, :sequence, :role, :content,
-            :reasoningContent, :toolCallId, :toolCalls, :createdAt
+            :reasoningContent, :toolCallId, :toolCalls, :approved, :createdAt
         )
     )");
     for (const auto &message: messages) {
@@ -237,6 +238,7 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
         query.bindValue(":reasoningContent", message.reasoningContent);
         query.bindValue(":toolCallId", message.toolCallId);
         query.bindValue(":toolCalls", QString::fromUtf8(QJsonDocument(message.toolCalls).toJson(QJsonDocument::Compact)));
+        query.bindValue(":approved", message.approved);
         query.bindValue(":createdAt", message.createdAt);
         if (query.exec()) continue;
 
@@ -323,6 +325,7 @@ bool SqlModule::initialize() const {
                 reasoning_content TEXT,
                 tool_call_id TEXT,
                 tool_calls TEXT,
+                approved INTEGER NOT NULL DEFAULT 0,
                 created_at INTEGER NOT NULL,
                 FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
                 UNIQUE (conversation_id, sequence)
@@ -330,7 +333,7 @@ bool SqlModule::initialize() const {
         )",
         "CREATE INDEX IF NOT EXISTS conversations_updated_at ON conversations(updated_at DESC)",
         "CREATE INDEX IF NOT EXISTS messages_turn_id ON messages(conversation_id, turn_id, sequence)",
-        "PRAGMA user_version = 1"
+        "PRAGMA user_version = 2"
     };
     for (const auto &statement: schema) {
         QSqlQuery query(database);

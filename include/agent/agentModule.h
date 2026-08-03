@@ -31,8 +31,9 @@ public:
             Abort,
             Think,
             Response,
-            Toolcall,
+            ToolCall,
             Permission,
+            ToolExec,
             Speak
         };
     };
@@ -79,9 +80,20 @@ signals:
     void stateChanged();
 
 private:
+    struct ToolCall {
+        QString id{};
+        QString name{};
+        QString arguments{};
+        qsizetype messageIndex{-1};
+        bool approved{false};
+    };
+
     struct TurnContext {
         QString id{};
+        QString mode{};
         QList<SqlModule::Message> messages{};
+        QList<ToolCall> toolCalls{};
+        qsizetype currentIndex{};
     };
 
     void conversationSend();
@@ -118,7 +130,6 @@ private:
 
     QString m_system{};
     QString m_conversationId{};
-    QString m_permissionMessageId{};
     ConversationModel *m_conversationModel{};
     TurnContext m_turn{};
 

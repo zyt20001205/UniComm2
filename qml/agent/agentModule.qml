@@ -310,11 +310,12 @@ Item {
                             return global.dangerBack3
                         case 6: // Think
                         case 7: // Response
-                        case 8: // Toolcall
+                        case 8: // ToolCall
                             return global.stroke
                         case 9: // Permission
                             return global.warningBack3
-                        case 10: // Speak
+                        case 10: // ToolExec
+                        case 11: // Speak
                             return global.stroke
                         default:
                             return global.stroke
@@ -362,11 +363,13 @@ Item {
                                 return qsTr("Thinking")
                             case 7: // Response
                                 return qsTr("Responding")
-                            case 8: // Toolcall
+                            case 8: // ToolCall
                                 return qsTr("Calling Tool")
                             case 9: // Permission
                                 return message
-                            case 10: // Speak
+                            case 10: // ToolExec
+                                return qsTr("Executing Tool")
+                            case 11: // Speak
                                 return qsTr("Speaking")
                             default:
                                 return ""
@@ -399,7 +402,7 @@ Item {
                 }
 
                 BusyIndicator {
-                    visible: [6, 7, 8, 10].includes(agentModule.state)
+                    visible: [6, 7, 8, 10, 11].includes(agentModule.state)
                     running: visible
                     Layout.preferredWidth: 16; Layout.preferredHeight: 16
                 }

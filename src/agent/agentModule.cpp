@@ -2,6 +2,7 @@
 
 #include <QDateTime>
 #include <QJsonArray>
+#include <QMap>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QQmlContext>
@@ -42,12 +43,6 @@ AgentModule::AgentModule()
 
     conversationsGet();
 
-    connect(m_toolsModule, &ToolsModule::createChat, this, [this](const QString &messageId, const QString &role, const QString &text) {
-        chatCreate(m_turn.id, messageId, role);
-        chatAppend(messageId, text);
-    });
-    connect(m_toolsModule, &ToolsModule::appendChat, this, &AgentModule::chatAppend);
-    connect(m_toolsModule, &ToolsModule::setState, this, &AgentModule::stateSet);
 }
 
 AgentModule::~AgentModule() {
@@ -150,43 +145,81 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Request: {
-            // get conversation
-            if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
-            // check model
-            const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
-            if (conversation.model.isEmpty()) {
-                m_messageDialog->setProperty("title", tr("Error"));
-                m_messageDialog->setProperty("text", tr("Please select a model first."));
-                QMetaObject::invokeMethod(m_messageDialog, "open");
-                stateSet(AgentState::Error);
-                break;
+            if (m_turn.id.isEmpty()) {
+                // get conversation
+                if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
+                // check model
+                const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
+                if (conversation.model.isEmpty()) {
+                    m_messageDialog->setProperty("title", tr("Error"));
+                    m_messageDialog->setProperty("text", tr("Please select a model first."));
+                    QMetaObject::invokeMethod(m_messageDialog, "open");
+                    stateSet(AgentState::Error);
+                    break;
+                }
+                // append user message
+                const auto text = m_textArea->property("text").toString();
+                m_turn = {
+                    .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
+                    .mode = conversation.mode
+                };
+                const auto messageIndex = conversationAppend("user");
+                auto &message = m_turn.messages[messageIndex];
+                message.content = text;
+                message.createdAt = QDateTime::currentMSecsSinceEpoch();
+                turnCreate(m_turn.id, message.createdAt);
+                chatCreate(m_turn.id, message.id, message.role);
+                chatAppend(message.id, message.content);
             }
-            // append message
-            const auto text = m_textArea->property("text").toString();
-            m_turn = {
-                .id = QUuid::createUuid().toString(QUuid::WithoutBraces)
-            };
-            const auto messageIndex = conversationAppend("user");
-            auto &message = m_turn.messages[messageIndex];
-            message.content = text;
-            message.createdAt = QDateTime::currentMSecsSinceEpoch();
-            turnCreate(m_turn.id, message.createdAt);
-            chatCreate(m_turn.id, message.id, message.role);
-            chatAppend(message.id, message.content);
             conversationSend();
         }
         break;
         case AgentState::Abort: {
-            m_reply->abort();
+            if (m_reply != nullptr) m_reply->abort();
             m_turn = {};
             conversationGet(m_conversationId);
             stateSet(AgentState::Ready);
         }
         break;
+        case AgentState::ToolCall: {
+            auto &toolCall = m_turn.toolCalls[m_turn.currentIndex];
+            const auto owner = m_owner.value(toolCall.name);
+            if (owner == "UniComm") {
+                const auto &message = m_turn.messages.at(toolCall.messageIndex);
+                const auto [approved, text] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
+                toolCall.approved = approved;
+                chatCreate(m_turn.id, message.id, "tool");
+                chatAppend(message.id, text);
+                if (approved) {
+                    chatAppend(message.id, " ✓");
+                    stateSet(AgentState::ToolExec);
+                } else {
+                    stateSet(AgentState::Permission, "Waiting for approval: " + text);
+                }
+            } else {
+                toolCall.approved = true;
+                stateSet(AgentState::ToolExec);
+            }
+        }
+        break;
         case AgentState::Permission: {
-            const auto object = payload.toMap();
-            m_permissionMessageId = object.value("messageId").toString();
-            m_messageLabel->setProperty("message", object.value("text").toString());
+            m_messageLabel->setProperty("message", payload.toString());
+        }
+        break;
+        case AgentState::ToolExec: {
+            auto &toolCall = m_turn.toolCalls[m_turn.currentIndex];
+            auto &message = m_turn.messages[toolCall.messageIndex];
+            if (!toolCall.approved) {
+                message.content = "User denied permission to execute this tool.";
+            } else {
+                const auto owner = m_owner.value(toolCall.name);
+                if (owner == "UniComm") message.content = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
+                else message.content = m_mcpModule->toolsCall(owner, toolCall.name, toolCall.arguments);
+            }
+            message.approved = toolCall.approved;
+            message.createdAt = QDateTime::currentMSecsSinceEpoch();
+            ++m_turn.currentIndex;
+            stateSet(m_turn.currentIndex < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
         }
         break;
         case AgentState::Speak: {
@@ -242,6 +275,7 @@ void AgentModule::conversationGet(const QString &id) {
     m_conversationId = id;
     QString turnId{};
     qint64 finishedAt{};
+    QHash<QString, ToolCall> toolCalls{};
     for (const auto &message: messages) {
         const auto &role = message.role;
         if (role == "system") continue;
@@ -251,7 +285,24 @@ void AgentModule::conversationGet(const QString &id) {
             turnCreate(turnId, message.createdAt);
         }
         finishedAt = message.createdAt;
-        if (role == "tool") continue;
+        for (const auto &value: message.toolCalls) {
+            const auto object = value.toObject();
+            const auto function = object.value("function").toObject();
+            const auto id = object.value("id").toString();
+            toolCalls[id] = ToolCall{
+                .id = id,
+                .name = function.value("name").toString(),
+                .arguments = function.value("arguments").toString()
+            };
+        }
+        if (role == "tool") {
+            const auto toolCall = toolCalls.value(message.toolCallId);
+            chatCreate(turnId, message.id, role);
+            chatAppend(message.id, m_toolsModule->toolTextGet(toolCall.name, toolCall.arguments));
+            chatAppend(message.id, message.approved ? " ✓" : " ✗");
+            chatFinish(message.id);
+            continue;
+        }
         const auto &content = message.content;
         if (!content.isEmpty()) {
             chatCreate(turnId, message.id, role);
@@ -334,8 +385,11 @@ void AgentModule::conversationRollback() {
 }
 
 void AgentModule::permissionSet(const bool status) {
-    chatAppend(m_permissionMessageId, status ? " ✓" : " ✗");
-    m_toolsModule->permissionSet(status);
+    auto &toolCall = m_turn.toolCalls[m_turn.currentIndex];
+    const auto &message = m_turn.messages.at(toolCall.messageIndex);
+    toolCall.approved = status;
+    chatAppend(message.id, status ? " ✓" : " ✗");
+    stateSet(AgentState::ToolExec);
 }
 
 // private
@@ -368,7 +422,7 @@ void AgentModule::conversationSend() {
     const auto assistantIndex = conversationAppend("assistant");
     const auto assistantId = m_turn.messages.at(assistantIndex).id;
     chatCreate(m_turn.id, assistantId, "assistant");
-    auto toolCalls = std::make_shared<QVariantHash>();
+    auto toolCalls = std::make_shared<QMap<int, ToolCall>>();
 
     connect(reply, &QNetworkReply::readyRead, this, [this, reply, assistantIndex, assistantId, toolCalls] {
         if (reply->error() != QNetworkReply::NoError) return;
@@ -410,20 +464,21 @@ void AgentModule::conversationSend() {
                     const auto _toolCall = value.toObject();
 
                     if (!_toolCall.contains("index")) continue;
-                    const QString index = QString::number(_toolCall.value("index").toInt());
-                    QVariantHash toolCall = toolCalls->value(index).toHash();
+                    const auto index = _toolCall.value("index").toInt();
+                    auto toolCall = toolCalls->value(index);
 
-                    if (_toolCall.contains("id")) toolCall["id"] = _toolCall.value("id").toString();
+                    if (_toolCall.contains("id")) toolCall.id = _toolCall.value("id").toString();
 
                     const auto function = _toolCall.value("function").toObject();
-                    if (function.contains("name")) toolCall["name"] = function.value("name").toString();
-                    if (function.contains("arguments")) toolCall["arguments"] = toolCall.value("arguments").toString() + function.value("arguments").toString();
+                    if (function.contains("name")) toolCall.name = function.value("name").toString();
+                    if (function.contains("arguments")) toolCall.arguments.append(function.value("arguments").toString());
                     (*toolCalls)[index] = toolCall;
                 }
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, assistantIndex, assistantId, toolCalls, mode = conversation.mode] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, assistantIndex, assistantId, toolCalls] {
+        if (m_reply == reply) m_reply = nullptr;
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             stateSet(AgentState::Ready);
         } else if (reply->error() == QNetworkReply::NoError) {
@@ -431,46 +486,25 @@ void AgentModule::conversationSend() {
             chatFinish(assistantId);
             // tool calls
             if (!toolCalls->isEmpty()) {
-                QJsonArray _toolCalls{};
-                for (const auto &value: toolCalls->values()) {
-                    const auto toolCall = value.toHash();
-                    const auto id = toolCall.value("id").toString();
-                    const auto name = toolCall.value("name").toString();
-                    const auto arguments = toolCall.value("arguments").toString();
+                QJsonArray assistantToolCalls{};
+                for (auto toolCall: toolCalls->values()) {
+                    if (toolCall.id.isEmpty() || toolCall.name.isEmpty()) continue;
 
-                    if (id.isEmpty() || name.isEmpty()) continue;
-
-                    _toolCalls.append(QJsonObject{
-                        {"id", id},
+                    assistantToolCalls.append(QJsonObject{
+                        {"id", toolCall.id},
                         {"type", "function"},
                         {
                             "function", QJsonObject{
-                                {"name", name},
-                                {"arguments", arguments}
+                                {"name", toolCall.name},
+                                {"arguments", toolCall.arguments}
                             }
                         }
                     });
+                    toolCall.messageIndex = conversationAppend("tool", toolCall.id);
+                    m_turn.toolCalls.append(toolCall);
                 }
-                m_turn.messages[assistantIndex].toolCalls = _toolCalls;
-                // call tools
-                for (const auto &value: _toolCalls) {
-                    stateSet(AgentState::Toolcall);
-                    const auto toolCall = value.toObject();
-                    const auto id = toolCall.value("id").toString();
-                    const auto function = toolCall.value("function").toObject();
-                    const auto arguments = function.value("arguments").toString();
-                    const auto name = function.value("name").toString();
-                    const auto toolIndex = conversationAppend("tool", id);
-                    const auto toolMessageId = m_turn.messages.at(toolIndex).id;
-                    QString result{};
-                    const auto owner = m_owner.value(name);
-                    if (owner == "UniComm") result = m_toolsModule->toolsCall(toolMessageId, mode, name, arguments);
-                    else result = m_mcpModule->toolsCall(owner, name, arguments);
-                    auto &tool = m_turn.messages[toolIndex];
-                    tool.content = result;
-                    tool.createdAt = QDateTime::currentMSecsSinceEpoch();
-                }
-                conversationSend();
+                m_turn.messages[assistantIndex].toolCalls = assistantToolCalls;
+                stateSet(AgentState::ToolCall);
             } else {
                 const auto &assistant = m_turn.messages.at(assistantIndex);
                 const auto content = assistant.content;

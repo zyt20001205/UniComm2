@@ -1,9 +1,11 @@
 #ifndef UNICOMM_TOOLSMODULE_H
 #define UNICOMM_TOOLSMODULE_H
 
-#include <QEventLoop>
 #include <QJsonArray>
-#include <QVariant>
+#include <QJsonObject>
+#include <QObject>
+#include <QPair>
+#include <QSet>
 
 class ToolsModule final : public QObject {
     Q_OBJECT
@@ -15,30 +17,20 @@ public:
 
     void initialize();
 
-    [[nodiscard]] QString toolsCall(const QString &messageId, const QString &mode, const QString &name, const QString &arguments);
+    [[nodiscard]] QPair<bool, QString> toolCall(const QString &mode, const QString &name, const QString &arguments) const;
 
-    void chatCreate(const QString &messageId, const QString &name, const QJsonObject &object);
+    [[nodiscard]] QString toolTextGet(const QString &name, const QString &arguments) const;
 
-    void permissionSet(bool status);
+    [[nodiscard]] QString toolExecute(const QString &name, const QString &arguments);
 
 signals:
     void registerTools(const QString &name, const QJsonArray &tools);
 
-    void createChat(const QString &messageId, const QString &role, const QString &text);
-
-    void appendChat(const QString &messageId, const QString &text);
-
-    void setState(int state, const QVariant &payload);
-
 private:
-    [[nodiscard]] bool permissionGet(const QString &messageId, const QString &mode, const QString &name, const QJsonObject &object);
-
-    void statusSet(const QString &messageId, const QString &name, const QJsonObject &object);
+    [[nodiscard]] bool permissionGet(const QString &mode, const QString &name) const;
 
     QSet<QString> m_writeGroup{};
-    QSet<QString> m_godGroup{};
-    QEventLoop *m_eventloop{};
-    bool m_approved{};
+    QSet<QString> m_fullAccessGroup{};
 };
 
-#endif //UNICOMM_TOOLS
+#endif //UNICOMM_TOOLSMODULE_H

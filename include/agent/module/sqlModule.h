@@ -30,6 +30,7 @@ public:
         QString reasoningContent{};
         QString toolCallId{};
         QJsonArray toolCalls{};
+        bool approved{false};
         qint64 createdAt{};
     };
 

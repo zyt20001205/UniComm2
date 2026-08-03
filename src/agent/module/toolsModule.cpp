@@ -4,7 +4,6 @@
 #include <limits>
 
 #include "globals.h"
-#include "agent/agentModule.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
@@ -12,14 +11,11 @@
 #include "runtime/threadpoolModule.h"
 #include "service/ripgrep.h"
 
-using AgentState = AgentModule::AgentState;
-
 // public
 ToolsModule::ToolsModule(QObject *parent)
     : QObject(parent),
       m_writeGroup{"text_set"},
-      m_godGroup{"thread_start"},
-      m_eventloop(new QEventLoop(this)) {
+      m_fullAccessGroup{"thread_start"} {
 }
 
 void ToolsModule::initialize() {
@@ -434,11 +430,12 @@ void ToolsModule::initialize() {
     emit registerTools("UniComm", tools);
 }
 
-QString ToolsModule::toolsCall(const QString &messageId, const QString &mode, const QString &name, const QString &arguments) {
-    const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-    const auto object = doc.object();
-    chatCreate(messageId, name, object);
-    if (!permissionGet(messageId, mode, name, object)) return {"User denied permission to execute this tool."};
+QPair<bool, QString> ToolsModule::toolCall(const QString &mode, const QString &name, const QString &arguments) const {
+    return {permissionGet(mode, name), toolTextGet(name, arguments)};
+}
+
+QString ToolsModule::toolExecute(const QString &name, const QString &arguments) {
+    const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
     const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath()).filePath("lua-language-server/meta/3rd/UniComm"));
     const QDir apiDir(uniCommDir.filePath("library"));
     const QDir demoDir(uniCommDir.filePath("demo"));
@@ -563,17 +560,17 @@ QString ToolsModule::toolsCall(const QString &messageId, const QString &mode, co
         const auto result = g_thread->threadStart(documentUrl, InterpreterMode::Agent, threadId);
         return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
     }
-    // MCP tools
     return {"Unknown tool."};
 }
 
-void ToolsModule::chatCreate(const QString &messageId, const QString &name, const QJsonObject &object) {
+QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) const {
+    const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
     QString chatText{};
     if (name == "api_list") {
-        chatText = "Get available APIs";
+        chatText = "List available APIs";
     } else if (name == "api_get") {
         const auto packageName = object.value("package_name").toString();
-        chatText = QString("Read %1 details").arg(packageName);
+        chatText = QString("Read %1 API details").arg(packageName);
     } else if (name == "demo_get") {
         const auto packageName = object.value("package_name").toString();
         chatText = QString("Read %1 demo").arg(packageName);
@@ -581,24 +578,24 @@ void ToolsModule::chatCreate(const QString &messageId, const QString &name, cons
         const auto pattern = object.value("pattern").toString();
         chatText = QString("Grep \"%1\"").arg(pattern);
     } else if (name == "database_list") {
-        chatText = "Get available database keys";
+        chatText = "List available databases";
     } else if (name == "datatable_list") {
-        chatText = "Get available datatable keys";
+        chatText = "List available datatables";
     } else if (name == "port_list") {
-        chatText = "Get available ports";
+        chatText = "List available ports";
     } else if (name == "log_get") {
         const auto blockCount = object.value("block_count").toInt(-1);
         chatText = QString("Get last %1 log blocks").arg(QString::number(blockCount));
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        chatText = QString("Check %1 diagnostics").arg(documentName);
+        chatText = QString("Check diagnostics for %1").arg(documentName);
     } else if (name == "symbol_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        chatText = QString("Understand %1 symbol").arg(documentName);
+        chatText = QString("Inspect symbols in %1").arg(documentName);
     } else if (name == "document_list") {
-        chatText = "Get available documents";
+        chatText = "List open documents";
     } else if (name == "document_focused") {
-        chatText = "Get current document";
+        chatText = "Get focused document";
     } else if (name == "text_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
@@ -617,82 +614,11 @@ void ToolsModule::chatCreate(const QString &messageId, const QString &name, cons
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Run %1").arg(documentName);
     }
-    emit createChat(messageId, "tool", chatText);
+    return chatText.isEmpty() ? name : chatText;
 }
 
-void ToolsModule::permissionSet(const bool status) {
-    m_approved = status;
-    m_eventloop->quit();
-}
-
-bool ToolsModule::permissionGet(const QString &messageId, const QString &mode, const QString &name, const QJsonObject &object) {
-    m_approved = true;
-    if (mode == "read") {
-        if (m_writeGroup.contains(name) || m_godGroup.contains(name)) m_approved = false;
-    } else if (mode == "write") {
-        if (m_godGroup.contains(name)) m_approved = false;
-    }
-    if (m_approved) {
-        emit appendChat(messageId, " ✓");
-    } else {
-        statusSet(messageId, name, object);
-        m_eventloop->exec();
-    }
-    return m_approved;
-}
-
-void ToolsModule::statusSet(const QString &messageId, const QString &name, const QJsonObject &object) {
-    QString statusText{};
-    if (name == "api_list") {
-        statusText = "I want to get all available APIs.";
-    } else if (name == "api_get") {
-        const auto packageName = object.value("package_name").toString();
-        statusText = QString("I want to read %1 details.").arg(packageName);
-    } else if (name == "demo_get") {
-        const auto packageName = object.value("package_name").toString();
-        statusText = QString("I want to see %1 demo.").arg(packageName);
-    } else if (name == "grep_search") {
-        const auto pattern = object.value("pattern").toString();
-        statusText = QString("I want to grep \"%1\".").arg(pattern);
-    } else if (name == "database_list") {
-        statusText = "I want to get all available database keys.";
-    } else if (name == "datatable_list") {
-        statusText = "I want to get all available datatable keys.";
-    } else if (name == "port_list") {
-        statusText = "I want to get all available ports.";
-    } else if (name == "log_get") {
-        const auto blockCount = object.value("block_count").toInt(-1);
-        statusText = QString("I want to read latest %1 log blocks.").arg(QString::number(blockCount));
-    } else if (name == "diagnostics_get") {
-        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        statusText = QString("I want to check %1 diagnostics.").arg(documentName);
-    } else if (name == "symbol_get") {
-        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        statusText = QString("I want to understand %1 symbol.").arg(documentName);
-    } else if (name == "document_list") {
-        statusText = "I want to get all available documents.";
-    } else if (name == "document_focused") {
-        statusText = "I want to know current document.";
-    } else if (name == "text_get") {
-        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        const auto startLine = object.value("start_line").toInt(-1);
-        const auto lineCount = object.value("line_count").toInt(-1);
-        statusText = lineCount == -1
-                         ? QString("I want to read %1 from line %2 to the end.").arg(documentName, QString::number(startLine))
-                         : QString("I want to read %1 from line %2 (%3 lines).").arg(documentName, QString::number(startLine), QString::number(lineCount));
-    } else if (name == "text_set") {
-        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        const auto startLine = object.value("start_line").toInt(-1);
-        const auto lineCount = object.value("line_count").toInt(-1);
-        statusText = lineCount == -1
-                         ? QString("I want to edit %1 from line %2 to the end.").arg(documentName, QString::number(startLine))
-                         : QString("I want to edit %1 from line %2 (%3 lines).").arg(documentName, QString::number(startLine), QString::number(lineCount));
-    } else if (name == "thread_start") {
-        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        statusText = QString("I want to run %1.").arg(documentName);
-    }
-    emit setState(AgentState::Permission, QVariantMap{
-                      {"messageId", messageId},
-                      {"text", statusText}
-                  });
+bool ToolsModule::permissionGet(const QString &mode, const QString &name) const {
+    if (mode == "read") return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
+    if (mode == "write") return !m_fullAccessGroup.contains(name);
+    return true;
 }
