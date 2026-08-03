@@ -331,9 +331,37 @@ bool SqlModule::initialize() const {
                 UNIQUE (conversation_id, sequence)
             )
         )",
+        R"(
+            CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+                content,
+                reasoning_content,
+                content = 'messages',
+                content_rowid = 'rowid'
+            )
+        )",
+        R"(
+            CREATE TRIGGER IF NOT EXISTS messages_fts_insert AFTER INSERT ON messages BEGIN
+                INSERT INTO messages_fts(rowid, content, reasoning_content)
+                VALUES (new.rowid, new.content, new.reasoning_content);
+            END
+        )",
+        R"(
+            CREATE TRIGGER IF NOT EXISTS messages_fts_delete AFTER DELETE ON messages BEGIN
+                INSERT INTO messages_fts(messages_fts, rowid, content, reasoning_content)
+                VALUES ('delete', old.rowid, old.content, old.reasoning_content);
+            END
+        )",
+        R"(
+            CREATE TRIGGER IF NOT EXISTS messages_fts_update AFTER UPDATE ON messages BEGIN
+                INSERT INTO messages_fts(messages_fts, rowid, content, reasoning_content)
+                VALUES ('delete', old.rowid, old.content, old.reasoning_content);
+                INSERT INTO messages_fts(rowid, content, reasoning_content)
+                VALUES (new.rowid, new.content, new.reasoning_content);
+            END
+        )",
         "CREATE INDEX IF NOT EXISTS conversations_updated_at ON conversations(updated_at DESC)",
         "CREATE INDEX IF NOT EXISTS messages_turn_id ON messages(conversation_id, turn_id, sequence)",
-        "PRAGMA user_version = 2"
+        "PRAGMA user_version = 3"
     };
     for (const auto &statement: schema) {
         QSqlQuery query(database);
