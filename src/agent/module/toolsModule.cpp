@@ -22,7 +22,7 @@ namespace {
 ToolsModule::ToolsModule(QObject *parent)
     : QObject(parent),
       m_writeGroup{"text_set", "port_create"},
-      m_fullAccessGroup{"thread_start"} {
+      m_fullAccessGroup{"port_delete", "thread_start"} {
 }
 
 void ToolsModule::initialize() {
@@ -206,6 +206,32 @@ void ToolsModule::initialize() {
                                 }
                             },
                             {"required", QJsonArray{"port_type", "config"}}
+                        }
+                    }
+                }
+            }
+        },
+        // portDelete
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "port_delete"},
+                    {"description", "Delete an existing configured port by name. Call port_list first to get the available port names."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "port_name", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The name of the port to delete."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"port_name"}}
                         }
                     }
                 }
@@ -576,6 +602,9 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         const auto portType = portTypeGet(object.value("port_type").toString());
         return g_port->portCreate(portType, object.value("config").toObject());
     }
+    if (name == "port_delete") {
+        return g_port->portDelete(object.value("port_name").toString());
+    }
     if (name == "diagnostics_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto diagnostics = g_document->diagnosticsGet(documentUrl);
@@ -666,6 +695,9 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
     } else if (name == "port_create") {
         const auto portName = object.value("config").toObject().value("port_name").toString();
         chatText = QString("Create port %1").arg(portName);
+    } else if (name == "port_delete") {
+        const auto portName = object.value("port_name").toString();
+        chatText = QString("Delete port %1").arg(portName);
     } else if (name == "log_get") {
         const auto blockCount = object.value("block_count").toInt(-1);
         chatText = QString("Get last %1 log blocks").arg(QString::number(blockCount));

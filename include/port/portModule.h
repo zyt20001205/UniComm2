@@ -32,6 +32,8 @@ public:
 
     [[nodiscard]] QString portCreate(int portType, const QJsonObject &config);
 
+    [[nodiscard]] QString portDelete(const QString &portName);
+
     Q_INVOKABLE void portSetting(int index = -1) const;
 
     bool portInsert(int index, const QJsonObject &portConfig = QJsonObject());

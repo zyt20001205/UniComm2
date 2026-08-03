@@ -152,6 +152,15 @@ QString PortModule::portCreate(const int portType, const QJsonObject &config) {
     return QString("Port '%1' created.").arg(portName);
 }
 
+QString PortModule::portDelete(const QString &portName) {
+    const auto name = portName.trimmed();
+    const auto items = g_portModel->findItems(name);
+    if (items.isEmpty()) return QString("Port delete failed: '%1' does not exist.").arg(name);
+
+    portRemove(items.constFirst()->row());
+    return QString("Port '%1' deleted.").arg(name);
+}
+
 void PortModule::portSetting(const int index) const {
     if (index == -1) {
         m_portSetting->portSettingImport();
