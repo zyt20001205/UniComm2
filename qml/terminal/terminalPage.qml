@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 
 Item {
     id: rootItem
@@ -20,6 +21,25 @@ Item {
             border.color: "#ff00ff"
             border.width: 1
             z: 100
+        }
+
+        ScrollBar {
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            z: 10
+
+            policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
+            size: vtermWidget.scrollSize
+            position: vtermWidget.scrollPosition
+
+            onPositionChanged: {
+                if (pressed) vtermWidget.scrollPosition = position
+            }
         }
     }
 

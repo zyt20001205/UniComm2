@@ -42,6 +42,7 @@ TerminalPage::~TerminalPage() {
 void TerminalPage::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("terminalPage", this);
+    m_widget->rootContext()->setContextProperty("vtermWidget", m_vtermWidget);
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/terminalPage.qml"));

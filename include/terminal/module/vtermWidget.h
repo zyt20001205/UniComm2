@@ -17,6 +17,8 @@ struct TerminalCell;
 
 class VtermWidget final : public QObject {
     Q_OBJECT
+    Q_PROPERTY(qreal scrollPosition READ scrollPositionGet WRITE scrollPositionSet NOTIFY scrollChanged)
+    Q_PROPERTY(qreal scrollSize READ scrollSizeGet NOTIFY scrollChanged)
 
 public:
     explicit VtermWidget(int rows = 24, int cols = 80, QObject *parent = nullptr);
@@ -43,6 +45,12 @@ public:
 
     void linkOpen(int uri) const;
 
+    [[nodiscard]] qreal scrollPositionGet() const;
+
+    void scrollPositionSet(qreal position);
+
+    [[nodiscard]] qreal scrollSizeGet() const;
+
 signals:
     void outputWrite(const QByteArray &bytes);
 
@@ -61,6 +69,8 @@ signals:
     void setCursorShape(int shape);
 
     void setCursorMode(int mode);
+
+    void scrollChanged();
 
 private:
     void renderScreen();

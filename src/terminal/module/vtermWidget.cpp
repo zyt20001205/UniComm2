@@ -66,6 +66,7 @@ void VtermWidget::resize(const int rows, const int cols) {
     vterm_set_size(m_vterm, m_rows, m_cols);
     vterm_screen_flush_damage(m_screen);
     renderScreen();
+    emit scrollChanged();
 }
 
 void VtermWidget::reset(const bool hard) {
@@ -74,10 +75,14 @@ void VtermWidget::reset(const bool hard) {
     vterm_screen_flush_damage(m_screen);
     m_scrollOffset = 0;
     renderScreen();
+    emit scrollChanged();
 }
 
 void VtermWidget::inputWrite(const QByteArray &bytes) {
     if (bytes.isEmpty()) return;
+    const int scrollbackSize = m_scrollback.size();
+    const int scrollOffset = m_scrollOffset;
+    const bool altScreen = m_altScreen;
     m_pendingDamage = {};
     vterm_input_write(m_vterm, bytes.constData(), static_cast<size_t>(bytes.size()));
     vterm_screen_flush_damage(m_screen);
@@ -86,6 +91,7 @@ void VtermWidget::inputWrite(const QByteArray &bytes) {
     const QRect damage = m_pendingDamage;
     m_pendingDamage = {};
     if (!damage.isEmpty()) renderDamage(damage);
+    if (scrollbackSize != m_scrollback.size() || scrollOffset != m_scrollOffset || altScreen != m_altScreen) emit scrollChanged();
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
@@ -145,8 +151,11 @@ void VtermWidget::mouseScrolled(const int lines) {
         }
         return;
     }
-    m_scrollOffset = qBound(0, m_scrollOffset + lines, m_scrollback.size());
+    const int scrollOffset = qBound(0, m_scrollOffset + lines, m_scrollback.size());
+    if (m_scrollOffset == scrollOffset) return;
+    m_scrollOffset = scrollOffset;
     renderScreen();
+    emit scrollChanged();
 }
 
 void VtermWidget::linkOpen(const int uri) const {
@@ -155,6 +164,35 @@ void VtermWidget::linkOpen(const int uri) const {
         const auto &url = QUrl(QString::fromUtf8(value));
         QDesktopServices::openUrl(url);
     }
+}
+
+qreal VtermWidget::scrollPositionGet() const {
+    if (m_altScreen) return 0;
+    const int totalRows = m_scrollback.size() + m_rows;
+    if (totalRows < 1) return 0;
+    return static_cast<qreal>(m_scrollback.size() - m_scrollOffset) / totalRows;
+}
+
+void VtermWidget::scrollPositionSet(const qreal position) {
+    if (m_altScreen) return;
+    const int totalRows = m_scrollback.size() + m_rows;
+    if (totalRows < 1) return;
+    const int scrollOffset = qBound(
+        0,
+        m_scrollback.size() - qRound(qBound<qreal>(0, position, 1) * totalRows),
+        m_scrollback.size()
+    );
+    if (m_scrollOffset == scrollOffset) return;
+    m_scrollOffset = scrollOffset;
+    renderScreen();
+    emit scrollChanged();
+}
+
+qreal VtermWidget::scrollSizeGet() const {
+    if (m_altScreen) return 1;
+    const int totalRows = m_scrollback.size() + m_rows;
+    if (totalRows < 1) return 1;
+    return qMin<qreal>(1, static_cast<qreal>(m_rows) / totalRows);
 }
 
 // private
@@ -294,10 +332,12 @@ int VtermWidget::linePush(const int cols, const VTermScreenCell *cells) {
         const auto &cell = uni_cast<TerminalCell>(m_screen, cells[col]);
         row.append(cell);
     }
+    if (m_scrollOffset > 0) ++m_scrollOffset;
     m_scrollback.append(row);
 
     constexpr int maxScrollbackLines = 10000;
     if (m_scrollback.size() > maxScrollbackLines) m_scrollback.removeFirst();
+    m_scrollOffset = qMin(m_scrollOffset, m_scrollback.size());
 
     return 1;
 }
