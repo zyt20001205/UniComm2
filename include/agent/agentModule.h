@@ -2,8 +2,6 @@
 #define UNICOMM_AGENTMODULE_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
-#include <QJsonArray>
-#include <QJsonObject>
 #include <QStandardItemModel>
 
 #include "agent/module/sqlModule.h"
