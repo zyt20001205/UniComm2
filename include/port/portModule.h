@@ -30,15 +30,15 @@ public:
 
     [[nodiscard]] static QJsonObject portConfigGet(int portType);
 
-    [[nodiscard]] QString portCreate(int portType, const QJsonObject &config);
+    [[nodiscard]] QString portCheck(const QJsonObject &portConfig) const;
 
-    [[nodiscard]] QString portDelete(const QString &portName);
+    QString portInsert(int index, QJsonObject portConfig);
 
     Q_INVOKABLE void portSetting(int index = -1) const;
 
-    bool portInsert(int index, const QJsonObject &portConfig = QJsonObject());
-
     Q_INVOKABLE void portRemove(int index);
+
+    [[nodiscard]] QString portRemove(const QString &portName);
 
     Q_INVOKABLE static void portSwap(int src, int dst);
 

@@ -88,33 +88,34 @@ QSet<QString> PortModule::portList() const {
 QJsonObject PortModule::portConfigGet(const int portType) {
     QJsonObject portConfig{};
     switch (portType) {
+        case PortType::TcpClient:
         case PortType::SslClient: {
             portConfig = {
                 {"type", "object"},
                 {
                     "required", QJsonArray{
-                        "port_name",
-                        "remote_host",
-                        "remote_port"
+                        "portName",
+                        "remoteHost",
+                        "remotePort"
                     }
                 },
                 {
                     "defaults", QJsonObject{
-                        {"tx_format", "utf-8"},
-                        {"tx_suffix", "null"},
-                        {"rx_format", "utf-8"},
-                        {"buffer_size", 65536}
+                        {"txFormat", "utf-8"},
+                        {"txSuffix", "null"},
+                        {"rxFormat", "utf-8"},
+                        {"bufferSize", 65536}
                     }
                 },
                 {
                     "properties", QJsonObject{
-                        {"port_name", QJsonObject{{"type", "string"}}},
-                        {"remote_host", QJsonObject{{"type", "string"}}},
-                        {"remote_port", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 65535}}},
-                        {"tx_format", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
-                        {"tx_suffix", QJsonObject{{"enum", QJsonArray{"null", "crlf", "modbus crc", "modbus lrc"}}}},
-                        {"rx_format", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
-                        {"buffer_size", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 1048576}}}
+                        {"portName", QJsonObject{{"type", "string"}}},
+                        {"remoteHost", QJsonObject{{"type", "string"}}},
+                        {"remotePort", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 65535}}},
+                        {"txFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
+                        {"txSuffix", QJsonObject{{"enum", QJsonArray{"null", "crlf", "modbus crc", "modbus lrc"}}}},
+                        {"rxFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
+                        {"bufferSize", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 1048576}}}
                     }
                 }
             };
@@ -125,61 +126,46 @@ QJsonObject PortModule::portConfigGet(const int portType) {
     return portConfig;
 }
 
-QString PortModule::portCreate(const int portType, const QJsonObject &config) {
-    QJsonObject portConfig{};
-    switch (portType) {
-        case PortType::SslClient: {
-            portConfig = {
-                {"portType", portType},
-                {"portName", config.value("port_name").toString().trimmed()},
-                {"remoteHost", config.value("remote_host").toString().trimmed()},
-                {"remotePort", config.value("remote_port").toInt()},
-                {"txFormat", config.value("tx_format").toString("utf-8")},
-                {"txSuffix", config.value("tx_suffix").toString("null")},
-                {"rxFormat", config.value("rx_format").toString("utf-8")},
-                {"bufferSize", config.value("buffer_size").toInt(65536)}
-            };
-            break;
-        }
-        default: break;
+QString PortModule::portCheck(const QJsonObject &portConfig) const {
+    const auto portType = portConfig.value("portType").toInt(-1);
+    const auto portName = portConfig.value("portName").toString();
+    if (portType < PortType::SerialPort || portType > PortType::BluetoothLe) return QString("Unsupported port type: %1.").arg(portType);
+    if (portName.trimmed().isEmpty()) return "Port check failed: portName is empty.";
+    if (m_portHash.contains(portName)) return QString("Port check failed: '%1' already exists.").arg(portName);
+
+    if (portType == PortType::TcpClient || portType == PortType::SslClient) {
+        if (portConfig.value("remoteHost").toString().trimmed().isEmpty()) return "Port check failed: remoteHost is empty.";
+
+        const auto remotePort = portConfig.value("remotePort").toInt();
+        if (remotePort < 1 || remotePort > 65535) return "Port check failed: remotePort must be between 1 and 65535.";
+
+        const QJsonArray formats{"raw", "hex", "ascii", "utf-8"};
+        if (!formats.contains(portConfig.value("txFormat"))) return "Port check failed: invalid txFormat.";
+        if (!formats.contains(portConfig.value("rxFormat"))) return "Port check failed: invalid rxFormat.";
+
+        const QJsonArray suffixes{"null", "crlf", "modbus crc", "modbus lrc"};
+        if (!suffixes.contains(portConfig.value("txSuffix"))) return "Port check failed: invalid txSuffix.";
+
+        const auto bufferSize = portConfig.value("bufferSize").toInt();
+        if (bufferSize < 1 || bufferSize > 1048576) return "Port check failed: bufferSize must be between 1 and 1048576.";
     }
-    if (portConfig.isEmpty()) return QString("Unsupported port type: %1.").arg(portType);
-
-    const auto portName = portConfig["portName"].toString();
-    if (portName.isEmpty()) return "Port create failed: port_name is empty.";
-    const auto inserted = portInsert(-1, portConfig);
-    if (!inserted) return QString("Port create failed: '%1' already exists.").arg(portName);
-    return QString("Port '%1' created.").arg(portName);
+    return {};
 }
 
-QString PortModule::portDelete(const QString &portName) {
-    const auto name = portName.trimmed();
-    const auto items = g_portModel->findItems(name);
-    if (items.isEmpty()) return QString("Port delete failed: '%1' does not exist.").arg(name);
-
-    portRemove(items.constFirst()->row());
-    return QString("Port '%1' deleted.").arg(name);
-}
-
-void PortModule::portSetting(const int index) const {
-    if (index == -1) {
-        m_portSetting->portSettingImport();
-    } else {
-        const auto *item = g_portModel->item(index, 0);
-        const QString portName = item->text();
-        const auto &portObject = m_portHash[portName];
-        const auto &portConfig = portObject->config();
-        m_portSetting->portSettingImport(portConfig);
+QString PortModule::portInsert(int index, QJsonObject portConfig) {
+    const auto defaults = portConfigGet(portConfig.value("portType").toInt(-1)).value("defaults").toObject();
+    for (auto iterator = defaults.constBegin(); iterator != defaults.constEnd(); ++iterator) {
+        if (!portConfig.contains(iterator.key())) portConfig.insert(iterator.key(), iterator.value());
     }
-}
 
-bool PortModule::portInsert(int index, const QJsonObject &portConfig) {
+    const auto exception = portCheck(portConfig);
+    const auto portName = portConfig.value("portName").toString();
+    if (!exception.isEmpty()) {
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(portName), exception);
+        return exception;
+    }
+
     if (index == -1) index = g_portModel->rowCount();
-    const QString portName = portConfig["portName"].toString();
-    if (m_portHash.contains(portName)) {
-        emit appendLog(LogLevel::Error, QString("[%1]").arg(portName), "already exists");
-        return false;
-    }
     auto *item = new QStandardItem(portName); // NOLINT
     item->setData(false, Qt::UserRole + 1);
     item->setData(0, Qt::UserRole + 2);
@@ -236,16 +222,25 @@ bool PortModule::portInsert(int index, const QJsonObject &portConfig) {
             port = new BluetoothLe(portConfig);
             break;
         }
-        default: {
-            qDebug() << "unknown port type";
-            break;
-        }
+        default: break;
     }
     connect(port, &BasePort::appendLog, this, &PortModule::appendLog);
     connect(port, &BasePort::refreshPort, this, &PortModule::portRefresh);
     m_portHash.insert(portName, port);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "initialized");
-    return true;
+    return QString("Port '%1' inserted.").arg(portName);
+}
+
+void PortModule::portSetting(const int index) const {
+    if (index == -1) {
+        m_portSetting->portSettingImport();
+    } else {
+        const auto *item = g_portModel->item(index, 0);
+        const QString portName = item->text();
+        const auto &portObject = m_portHash[portName];
+        const auto &portConfig = portObject->config();
+        m_portSetting->portSettingImport(portConfig);
+    }
 }
 
 void PortModule::portRemove(const int index) {
@@ -257,6 +252,15 @@ void PortModule::portRemove(const int index) {
     thread->quit();
     thread->wait();
     emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "removed");
+}
+
+QString PortModule::portRemove(const QString &portName) {
+    const auto name = portName.trimmed();
+    const auto items = g_portModel->findItems(name);
+    if (items.isEmpty()) return QString("Port remove failed: '%1' does not exist.").arg(name);
+
+    portRemove(items.constFirst()->row());
+    return QString("Port '%1' removed.").arg(name);
 }
 
 void PortModule::portSwap(const int src, const int dst) {

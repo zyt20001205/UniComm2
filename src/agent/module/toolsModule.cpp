@@ -13,6 +13,7 @@
 
 namespace {
     int portTypeGet(const QString &portType) {
+        if (portType == "tcp_client") return PortType::TcpClient;
         if (portType == "ssl_client") return PortType::SslClient;
         return -1;
     }
@@ -166,7 +167,7 @@ void ToolsModule::initialize() {
                                     {
                                         "port_type", QJsonObject{
                                             {"type", "string"},
-                                            {"enum", QJsonArray{"ssl_client"}},
+                                            {"enum", QJsonArray{"tcp_client", "ssl_client"}},
                                             {"description", "The type of port to configure."}
                                         }
                                     }
@@ -178,7 +179,7 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // portCreate
+        // portInsert
         QJsonObject{
             {"type", "function"},
             {
@@ -193,7 +194,7 @@ void ToolsModule::initialize() {
                                     {
                                         "port_type", QJsonObject{
                                             {"type", "string"},
-                                            {"enum", QJsonArray{"ssl_client"}},
+                                            {"enum", QJsonArray{"tcp_client", "ssl_client"}},
                                             {"description", "The type of port to create."}
                                         }
                                     },
@@ -211,7 +212,7 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // portDelete
+        // portRemove
         QJsonObject{
             {"type", "function"},
             {
@@ -600,10 +601,12 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
     }
     if (name == "port_create") {
         const auto portType = portTypeGet(object.value("port_type").toString());
-        return g_port->portCreate(portType, object.value("config").toObject());
+        auto config = object.value("config").toObject();
+        config["portType"] = portType;
+        return g_port->portInsert(-1, config);
     }
     if (name == "port_delete") {
-        return g_port->portDelete(object.value("port_name").toString());
+        return g_port->portRemove(object.value("port_name").toString());
     }
     if (name == "diagnostics_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -693,7 +696,7 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         const auto portType = object.value("port_type").toString();
         chatText = QString("Get %1 port configuration").arg(portType);
     } else if (name == "port_create") {
-        const auto portName = object.value("config").toObject().value("port_name").toString();
+        const auto portName = object.value("config").toObject().value("portName").toString();
         chatText = QString("Create port %1").arg(portName);
     } else if (name == "port_delete") {
         const auto portName = object.value("port_name").toString();
