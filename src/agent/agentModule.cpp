@@ -175,9 +175,20 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Abort: {
-            if (m_reply != nullptr) m_reply->abort();
+            if (m_reply != nullptr) {
+                m_reply->abort();
+                break;
+            }
+            if (!m_turn.id.isEmpty()) {
+                const auto finishedAt = QDateTime::currentMSecsSinceEpoch();
+                for (auto &message: m_turn.messages) {
+                    if (message.createdAt == 0) message.createdAt = finishedAt;
+                    if (message.role == "assistant") chatFinish(message.id);
+                }
+                m_sqlModule->conversationAppend(m_conversationId, m_turn.messages);
+                turnFinish(m_turn.id, finishedAt);
+            }
             m_turn = {};
-            conversationGet(m_conversationId);
             stateSet(AgentState::Ready);
         }
         break;
@@ -480,7 +491,7 @@ void AgentModule::conversationSend() {
     connect(reply, &QNetworkReply::finished, this, [this, reply, assistantIndex, assistantId, toolCalls] {
         if (m_reply == reply) m_reply = nullptr;
         if (reply->error() == QNetworkReply::OperationCanceledError) {
-            stateSet(AgentState::Ready);
+            stateSet(AgentState::Abort);
         } else if (reply->error() == QNetworkReply::NoError) {
             m_turn.messages[assistantIndex].createdAt = QDateTime::currentMSecsSinceEpoch();
             chatFinish(assistantId);
