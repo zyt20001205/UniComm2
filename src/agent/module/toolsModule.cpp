@@ -633,6 +633,8 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
     }
     if (name == "text_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
+        if (!documentInfo.isFile()) return "Text get failed: document does not exist.";
         const auto startLine = object.value("start_line").toInt();
         const auto lineCount = object.value("line_count").toInt();
         if (startLine < 0) return {"Text get failed: start_line is out of range."};
@@ -650,6 +652,8 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
     }
     if (name == "text_set") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
+        if (!documentInfo.isFile()) return "Text set failed: document does not exist.";
         const auto text = object.value("text").toString();
         const auto startLine = object.value("start_line").toInt();
         const auto lineCount = object.value("line_count").toInt();
