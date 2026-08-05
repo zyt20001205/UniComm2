@@ -11,18 +11,14 @@
 #include "runtime/threadpoolModule.h"
 #include "service/ripgrep.h"
 
-namespace {
-    int portTypeGet(const QString &portType) {
-        if (portType == "serial_port") return PortType::SerialPort;
-        if (portType == "tcp_client") return PortType::TcpClient;
-        if (portType == "ssl_client") return PortType::SslClient;
-        return -1;
-    }
-}
-
 // public
 ToolsModule::ToolsModule(QObject *parent)
     : QObject(parent),
+      m_portTypes{
+          {"serial_port", PortType::SerialPort},
+          {"tcp_client", PortType::TcpClient},
+          {"ssl_client", PortType::SslClient}
+      },
       m_writeGroup{"text_set", "port_create"},
       m_fullAccessGroup{"port_delete", "thread_start"} {
 }
@@ -595,13 +591,13 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
     if (name == "port_config_get") {
-        const auto portType = portTypeGet(object.value("port_type").toString());
+        const auto portType = m_portTypes.value(object.value("port_type").toString(), -1);
         const auto config = PortModule::portConfigGet(portType);
         if (config.isEmpty()) return "Unsupported port type.";
         return QString::fromUtf8(QJsonDocument(config).toJson(QJsonDocument::Compact));
     }
     if (name == "port_create") {
-        const auto portType = portTypeGet(object.value("port_type").toString());
+        const auto portType = m_portTypes.value(object.value("port_type").toString(), -1);
         auto config = object.value("config").toObject();
         config["portType"] = portType;
         return g_port->portInsert(-1, config);

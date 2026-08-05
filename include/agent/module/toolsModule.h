@@ -1,6 +1,7 @@
 #ifndef UNICOMM_TOOLSMODULE_H
 #define UNICOMM_TOOLSMODULE_H
 
+#include <QHash>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
@@ -29,6 +30,7 @@ signals:
 private:
     [[nodiscard]] bool permissionGet(const QString &mode, const QString &name) const;
 
+    QHash<QString, int> m_portTypes{};
     QSet<QString> m_writeGroup{};
     QSet<QString> m_fullAccessGroup{};
 };
