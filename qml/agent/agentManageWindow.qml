@@ -11,67 +11,56 @@ Item {
         color: global.back
     }
 
-    RowLayout {
+    SplitView {
         anchors.fill: parent
-        spacing: 0
+        orientation: Qt.Horizontal
+        handle: Item {
+            implicitWidth: 5
 
-        Rectangle {
-            color: global.back
-            Layout.preferredWidth: 180
-            Layout.fillHeight: true
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 10
-                spacing: 10
-
-                Label {
-                    text: qsTr("Agent Settings")
-                    font.pixelSize: 18
-                    font.bold: true
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 32
-                }
-
-                ListView {
-                    id: navigationView
-                    clip: true
-                    currentIndex: 0
-                    model: [
-                        qsTr("Models"),
-                        qsTr("MCP"),
-                        qsTr("Skills"),
-                        qsTr("Hooks"),
-                        qsTr("Context")
-                    ]
-                    spacing: 2
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    delegate: ItemDelegate {
-                        required property int index
-                        required property string modelData
-                        width: navigationView.width
-                        height: 36
-                        text: modelData
-                        highlighted: navigationView.currentIndex === index
-
-                        onClicked: navigationView.currentIndex = index
-                    }
-                }
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: 1
+                color: global.stroke
             }
         }
 
         Rectangle {
-            color: global.stroke
-            Layout.preferredWidth: 1
-            Layout.fillHeight: true
+            color: global.back
+            SplitView.preferredWidth: 180; SplitView.fillHeight: true
+
+            ListView {
+                id: navigationView
+                anchors.fill: parent
+                anchors.margins: 10
+                clip: true
+                currentIndex: 0
+                model: [
+                    qsTr("Models"),
+                    qsTr("MCP"),
+                    qsTr("Skills"),
+                    qsTr("Hooks"),
+                    qsTr("Context")
+                ]
+                spacing: 2
+
+                delegate: ItemDelegate {
+                    required property int index
+                    required property string modelData
+                    width: navigationView.width
+                    height: 36
+                    text: modelData
+                    highlighted: navigationView.currentIndex === index
+
+                    onClicked: navigationView.currentIndex = index
+                }
+            }
         }
 
         StackLayout {
             currentIndex: navigationView.currentIndex
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+            SplitView.fillWidth: true; SplitView.fillHeight: true
 
             SettingsPage {
                 title: qsTr("Models")
