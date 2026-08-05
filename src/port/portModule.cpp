@@ -14,6 +14,7 @@
 #include "core/globalManager.h"
 #include "port/basePort.h"
 #include "port/bluetoothLe.h"
+#include "port/module/deviceDiscovery.h"
 #include "port/portSetting.h"
 #include "port/serialPort.h"
 #include "port/tcpClient.h"
@@ -88,6 +89,38 @@ QSet<QString> PortModule::portList() const {
 QJsonObject PortModule::portConfigGet(const int portType) {
     QJsonObject portConfig{};
     switch (portType) {
+        case PortType::SerialPort: {
+            portConfig = {
+                {"type", "object"},
+                {"required", QJsonArray{"portName"}},
+                {
+                    "defaults", QJsonObject{
+                        {"baudRate", 115200},
+                        {"dataBits", 8},
+                        {"parity", 0},
+                        {"stopBits", 1},
+                        {"txFormat", "utf-8"},
+                        {"txSuffix", "null"},
+                        {"rxFormat", "utf-8"},
+                        {"bufferSize", 65536}
+                    }
+                },
+                {
+                    "properties", QJsonObject{
+                        {"portName", QJsonObject{{"type", "string"}, {"enum", QJsonArray::fromStringList(DeviceDiscovery::serialPorts())}}},
+                        {"baudRate", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 5000000}}},
+                        {"dataBits", QJsonObject{{"enum", QJsonArray{5, 6, 7, 8}}}},
+                        {"parity", QJsonObject{{"enum", QJsonArray{0, 2, 3, 4, 5}}, {"description", "0=no, 2=even, 3=odd, 4=space, 5=mark"}}},
+                        {"stopBits", QJsonObject{{"enum", QJsonArray{1, 2, 3}}, {"description", "1=one, 2=two, 3=one and a half"}}},
+                        {"txFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
+                        {"txSuffix", QJsonObject{{"enum", QJsonArray{"null", "crlf", "modbus crc", "modbus lrc"}}}},
+                        {"rxFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
+                        {"bufferSize", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 1048576}}}
+                    }
+                }
+            };
+            break;
+        }
         case PortType::TcpClient:
         case PortType::SslClient: {
             portConfig = {
@@ -133,12 +166,23 @@ QString PortModule::portCheck(const QJsonObject &portConfig) const {
     if (portName.trimmed().isEmpty()) return "Port check failed: portName is empty.";
     if (m_portHash.contains(portName)) return QString("Port check failed: '%1' already exists.").arg(portName);
 
+    if (portType == PortType::SerialPort) {
+        const auto baudRate = portConfig.value("baudRate").toInt();
+        if (baudRate < 1 || baudRate > 5000000) return "Port check failed: baudRate must be between 1 and 5000000.";
+
+        if (!QJsonArray{5, 6, 7, 8}.contains(portConfig.value("dataBits"))) return "Port check failed: invalid dataBits.";
+        if (!QJsonArray{0, 2, 3, 4, 5}.contains(portConfig.value("parity"))) return "Port check failed: invalid parity.";
+        if (!QJsonArray{1, 2, 3}.contains(portConfig.value("stopBits"))) return "Port check failed: invalid stopBits.";
+    }
+
     if (portType == PortType::TcpClient || portType == PortType::SslClient) {
         if (portConfig.value("remoteHost").toString().trimmed().isEmpty()) return "Port check failed: remoteHost is empty.";
 
         const auto remotePort = portConfig.value("remotePort").toInt();
         if (remotePort < 1 || remotePort > 65535) return "Port check failed: remotePort must be between 1 and 65535.";
+    }
 
+    if (portType == PortType::SerialPort || portType == PortType::TcpClient || portType == PortType::SslClient) {
         const QJsonArray formats{"raw", "hex", "ascii", "utf-8"};
         if (!formats.contains(portConfig.value("txFormat"))) return "Port check failed: invalid txFormat.";
         if (!formats.contains(portConfig.value("rxFormat"))) return "Port check failed: invalid rxFormat.";

@@ -13,6 +13,7 @@
 
 namespace {
     int portTypeGet(const QString &portType) {
+        if (portType == "serial_port") return PortType::SerialPort;
         if (portType == "tcp_client") return PortType::TcpClient;
         if (portType == "ssl_client") return PortType::SslClient;
         return -1;
@@ -167,7 +168,7 @@ void ToolsModule::initialize() {
                                     {
                                         "port_type", QJsonObject{
                                             {"type", "string"},
-                                            {"enum", QJsonArray{"tcp_client", "ssl_client"}},
+                                            {"enum", QJsonArray{"serial_port", "tcp_client", "ssl_client"}},
                                             {"description", "The type of port to configure."}
                                         }
                                     }
@@ -194,7 +195,7 @@ void ToolsModule::initialize() {
                                     {
                                         "port_type", QJsonObject{
                                             {"type", "string"},
-                                            {"enum", QJsonArray{"tcp_client", "ssl_client"}},
+                                            {"enum", QJsonArray{"serial_port", "tcp_client", "ssl_client"}},
                                             {"description", "The type of port to create."}
                                         }
                                     },

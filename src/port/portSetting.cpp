@@ -13,7 +13,6 @@
 #include <QQuickView>
 #include <QQuickWidget>
 #include <QScreenCapture>
-#include <QSerialPortInfo>
 #include <QStringList>
 #include <QThread>
 #include <QVBoxLayout>
@@ -23,6 +22,7 @@
 #include "globals.h"
 #include "core/globalManager.h"
 #include "port/module/bluetoothDiscovery.h"
+#include "port/module/deviceDiscovery.h"
 
 // public
 PortSetting::PortSetting(QWidget *parent)
@@ -843,9 +843,8 @@ void PortSetting::pipelineSwap(const int src, const int dst) const {
 // private
 void PortSetting::serialPortRefresh() const {
     m_serialPortStandardItemModel->clear();
-    for (QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts(); const QSerialPortInfo &port: ports) {
-        const QString portName = port.portName();
-        auto *item = new QStandardItem(portName + " " + port.description()); // NOLINT
+    for (const auto &portName: DeviceDiscovery::serialPorts()) {
+        auto *item = new QStandardItem(portName); // NOLINT
         item->setData(portName, Qt::WhatsThisRole);
         m_serialPortStandardItemModel->appendRow(item);
     }
@@ -909,14 +908,12 @@ void PortSetting::localHostRefresh() const {
 
 void PortSetting::videoStreamRefresh() const {
     m_videoStreamStandardItemModel->clear();
-    for (const QScreen *screen: QGuiApplication::screens()) {
-        const QString portName = screen->name();
+    for (const auto &portName: DeviceDiscovery::screens()) {
         auto *item = new QStandardItem(portName); // NOLINT
         item->setData(portName, Qt::WhatsThisRole);
         m_videoStreamStandardItemModel->appendRow(item);
     }
-    for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
-        const QString portName = camera.description();
+    for (const auto &portName: DeviceDiscovery::cameras()) {
         auto *item = new QStandardItem(portName); // NOLINT
         item->setData(portName, Qt::WhatsThisRole);
         m_videoStreamStandardItemModel->appendRow(item);
