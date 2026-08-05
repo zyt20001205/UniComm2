@@ -664,7 +664,7 @@ Item {
             wrapMode: Text.Wrap
             ContextMenu.menu: null
             visible: buffer.length > 0 && (!turn.collapsed || role === "user" || messageId === turn.lastId)
-            Layout.preferredWidth: role === "assistant" ? chatView.availableWidth : Math.min(chatView.availableWidth * 0.8, chatMetrics.width + 32)
+            Layout.preferredWidth: role === "assistant" ? chatView.availableWidth : Math.min(chatView.availableWidth * 0.8, implicitWidth)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property var turn
             property string messageId
@@ -692,12 +692,6 @@ Item {
                 onTriggered: {
                     chatTextArea.text = chatTextArea.buffer
                 }
-            }
-
-            TextMetrics {
-                id: chatMetrics
-                text: chatTextArea.text
-                font: chatTextArea.font
             }
 
             TapHandler {
