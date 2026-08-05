@@ -746,8 +746,11 @@ Item {
         if (!chatView.followTail) return
         const flickable = chatView.contentItem
         if (navigationAnimation.running) navigationAnimation.stop()
-        followAnimation.to = Math.max(flickable.originY, flickable.originY + flickable.contentHeight - flickable.height)
-        if (!followAnimation.running) followAnimation.start()
+        const target = Math.max(flickable.originY, flickable.originY + flickable.contentHeight - flickable.height)
+        followAnimation.stop()
+        followAnimation.from = flickable.contentY
+        followAnimation.to = target
+        followAnimation.start()
     }
 
     function navigateTo(position) {

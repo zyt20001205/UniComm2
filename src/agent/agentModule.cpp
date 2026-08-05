@@ -44,7 +44,6 @@ AgentModule::AgentModule()
     setWidget(m_widget);
 
     conversationsGet();
-
 }
 
 AgentModule::~AgentModule() {
@@ -339,6 +338,7 @@ void AgentModule::conversationGet(const QString &id) {
     if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
     m_modeButton->setProperty("text", conversation.mode);
     m_modelButton->setProperty("text", conversation.model);
+    QMetaObject::invokeMethod(m_root, "followToTail", Qt::QueuedConnection);
 }
 
 void AgentModule::conversationInsert() {
