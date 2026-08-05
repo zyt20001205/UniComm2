@@ -528,7 +528,6 @@ Item {
 
         TextArea {
             id: commitTextArea
-            renderType: TextEdit.NativeRendering
             textFormat: TextEdit.PlainText
             verticalAlignment: TextEdit.AlignTop
             wrapMode: Text.Wrap

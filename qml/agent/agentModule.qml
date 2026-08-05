@@ -31,13 +31,11 @@ Item {
         }
 
         contentItem: ColumnLayout {
-            spacing: 0
-
             Label {
                 text: turnToolTip.prompt
                 elide: Text.ElideRight
                 color: global.fore
-                font: turnToolTip.font
+                font.bold: true
                 Layout.fillWidth: true
             }
 
@@ -45,13 +43,11 @@ Item {
                 visible: text.length > 0
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 readOnly: true
-                renderType: TextEdit.NativeRendering
                 text: turnToolTip.response
                 textFormat: TextEdit.MarkdownText
                 wrapMode: TextEdit.Wrap
                 clip: true
                 color: global.stroke
-                font: turnToolTip.font
                 background: null
                 ContextMenu.menu: null
                 Layout.fillWidth: true
@@ -462,7 +458,6 @@ Item {
 
             TextArea {
                 id: textArea
-                renderType: TextEdit.NativeRendering
                 textFormat: TextEdit.PlainText
                 verticalAlignment: TextEdit.AlignTop
                 wrapMode: TextEdit.Wrap
@@ -665,7 +660,6 @@ Item {
             padding: role === "assistant" ? 0 : 8
             leftPadding: padding; rightPadding: padding; topPadding: padding; bottomPadding: padding
             readOnly: true
-            renderType: TextEdit.NativeRendering
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             ContextMenu.menu: null

@@ -189,7 +189,6 @@ Item {
             TextArea {
                 id: textArea
                 readOnly: true
-                renderType: TextEdit.NativeRendering
                 textFormat: TextEdit.RichText
                 verticalAlignment: TextEdit.AlignTop
                 wrapMode: wrapButton.checked ? TextEdit.Wrap : TextEdit.NoWrap

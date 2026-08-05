@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
     QApplication::setWindowIcon(QIcon(":/icon/icon.ico"));
     QApplication::setStyle(QStyleFactory::create("Fusion"));
     QQuickStyle::setStyle("FluentWinUI3");
+    QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
     // kddw init
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
     auto flags = KDDockWidgets::Config::self().flags();
