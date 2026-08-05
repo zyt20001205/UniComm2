@@ -255,6 +255,7 @@ Item {
                 TextArea {
                     id: mainWindowTextViewTextArea
                     readOnly: true
+                    renderType: TextEdit.NativeRendering
                     text: mainWindowTextView.data
                     textFormat: TextEdit.AutoText
                     verticalAlignment: TextEdit.AlignTop
@@ -1642,6 +1643,7 @@ Item {
                     id: documentModuleDwellDiagnosticTextArea
                     background: null
                     readOnly: true
+                    renderType: TextEdit.NativeRendering
                     textFormat: TextEdit.RichText
                     verticalAlignment: TextEdit.AlignTop
                     wrapMode: Text.Wrap
@@ -1670,6 +1672,7 @@ Item {
                     id: documentModuleDwellHoverTextArea
                     background: null
                     readOnly: true
+                    renderType: TextEdit.NativeRendering
                     textFormat: TextEdit.MarkdownText
                     verticalAlignment: TextEdit.AlignTop
                     wrapMode: Text.Wrap
