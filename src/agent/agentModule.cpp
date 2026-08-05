@@ -7,6 +7,7 @@
 #include <QNetworkRequest>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickView>
 #include <QQuickWidget>
 #include <QUuid>
 
@@ -25,6 +26,7 @@ AgentModule::AgentModule()
     : DockWidget("Agent"),
       m_config(g_workspaceConfig["agentConfig"].toObject()),
       m_widget(new QQuickWidget()),
+      m_manageWindow(new QQuickView()),
       m_system("You are an IDE code assistant. "
           "When in chat mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to agent mode. "
           "When in agent mode (read/write/full-access), you have access to file system, terminal, and advanced tools. "
@@ -46,6 +48,7 @@ AgentModule::AgentModule()
 }
 
 AgentModule::~AgentModule() {
+    delete m_manageWindow;
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
@@ -55,6 +58,13 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_mcpMenu = qvariant_cast<QObject *>(objects["agentModuleMcpMenu"]);
     m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
     m_modelMenu = qvariant_cast<QObject *>(objects["agentModuleModelMenu"]);
+
+    m_manageWindow->setTitle(tr("Agent Settings"));
+    m_manageWindow->setTransientParent(g_mainWindow->windowHandle());
+    m_manageWindow->rootContext()->setContextProperty("agentModule", this);
+    m_manageWindow->rootContext()->setContextProperty("global", g_globalManager);
+    m_manageWindow->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_manageWindow->setSource(QUrl("qrc:/qml/agent/agentManageWindow.qml"));
 
     m_widget->rootContext()->setContextProperty("agentModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
@@ -113,6 +123,11 @@ void AgentModule::propertyGet(const QVariantMap &objects) {
 void AgentModule::agentConfigSave() {
     m_config["id"] = m_conversationId;
     g_workspaceConfig["agentConfig"] = m_config;
+}
+
+void AgentModule::agentManage() const {
+    m_manageWindow->resize(1080, 720);
+    m_manageWindow->show();
 }
 
 void AgentModule::stateSet(const int state, const QVariant &payload) {

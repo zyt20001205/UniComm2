@@ -8,6 +8,7 @@
 
 class QNetworkReply;
 class QNetworkAccessManager;
+class QQuickView;
 class QQuickWidget;
 
 class ConversationModel;
@@ -47,6 +48,8 @@ public:
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
     void agentConfigSave();
+
+    Q_INVOKABLE void agentManage() const;
 
     [[nodiscard]] int stateGet() const {
         return m_state;
@@ -116,6 +119,7 @@ private:
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
+    QQuickView *m_manageWindow{};
     QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_mcpMenu{};
