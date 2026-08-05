@@ -212,12 +212,14 @@ Item {
                         height: 2
                         radius: 1
                         color: turnTumbler.hoveredIndex < 0
-                               ? turnDelegate.turnVisible ? global.fore : global.stroke
-                               : hoverHandler.hovered ? global.fore : global.stroke
+                            ? turnDelegate.turnVisible ? global.fore : global.stroke
+                            : hoverHandler.hovered ? global.fore : global.stroke
                         opacity: turnTumbler.hoveredIndex < 0 ? 1 : 1 - turnDelegate.hoverDistance * 0.15
 
                         Behavior on width {
-                            NumberAnimation { duration: 150 }
+                            NumberAnimation {
+                                duration: 150
+                            }
                         }
                     }
 
@@ -659,13 +661,13 @@ Item {
 
         TextArea {
             id: chatTextArea
-            padding: 6
+            padding: role === "assistant" ? 0 : 8
             readOnly: true
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             ContextMenu.menu: null
             visible: buffer.length > 0 && (!turn.collapsed || role === "user" || messageId === turn.lastId)
-            Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 28)
+            Layout.preferredWidth: role === "assistant" ? chatView.availableWidth : Math.min(chatView.availableWidth * 0.8, chatMetrics.width + 32)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property var turn
             property string messageId
@@ -674,8 +676,8 @@ Item {
             property string contentBuffer
             readonly property string buffer: contentBuffer.length > 0 ? contentBuffer : reasoningBuffer
             background: Rectangle {
-                color: chatTextArea.role === "user" ? global.brandBack :
-                        chatTextArea.role === "assistant" ? global.stroke :
+                color: chatTextArea.role === "user" ? global.backSelected :
+                        chatTextArea.role === "assistant" ? "transparent" :
                             chatTextArea.role === "tool" ? global.backSelected : global.dangerBack2
                 radius: 6
             }
