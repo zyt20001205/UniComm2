@@ -214,11 +214,14 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             if (owner == "UniComm") {
                 const auto &message = m_turn.messages.at(toolCall.messageIndex);
                 const auto [approved, text] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
+                const auto showToolMessage = toolCall.name != "plan_update";
                 toolCall.approved = approved;
-                chatCreate(m_turn.id, message.id, "tool");
-                chatAppend(message.id, text);
+                if (showToolMessage) {
+                    chatCreate(m_turn.id, message.id, "tool");
+                    chatAppend(message.id, text);
+                }
                 if (approved) {
-                    chatAppend(message.id, " ✓");
+                    if (showToolMessage) chatAppend(message.id, " ✓");
                     stateSet(AgentState::ToolExec);
                 } else {
                     stateSet(AgentState::Permission, text);
@@ -416,7 +419,7 @@ void AgentModule::permissionSet(const bool status) {
     auto &toolCall = m_turn.toolCalls[m_turn.currentIndex];
     const auto &message = m_turn.messages.at(toolCall.messageIndex);
     toolCall.approved = status;
-    chatAppend(message.id, status ? " ✓" : " ✗");
+    if (toolCall.name != "plan_update") chatAppend(message.id, status ? " ✓" : " ✗");
     stateSet(AgentState::ToolExec);
 }
 

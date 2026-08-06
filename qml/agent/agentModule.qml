@@ -302,6 +302,120 @@ Item {
         }
 
         Item {
+            id: planCard
+            visible: steps.length > 0
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? planLayout.implicitHeight + 20 : 0
+            property string explanation
+            property var steps: []
+            readonly property int completedCount: {
+                let count = 0
+                for (let i = 0; i < steps.length; ++i) {
+                    if (steps[i].status === "completed") ++count
+                }
+                return count
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.backSelected
+                border.color: global.stroke
+                border.width: 1
+                radius: 6
+            }
+
+            ColumnLayout {
+                id: planLayout
+                anchors.fill: parent
+                anchors.margins: 10
+                spacing: 4
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    IconImage {
+                        color: global.fore
+                        source: "qrc:/icon/taskList.svg"
+                        sourceSize.width: 16; sourceSize.height: 16
+                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    }
+
+                    Label {
+                        text: qsTr("Plan")
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        text: planCard.completedCount + " / " + planCard.steps.length
+                        color: global.fore
+                    }
+                }
+
+                RowLayout {
+                    visible: planCard.explanation.length > 0
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Item {
+                        Layout.preferredWidth: 16
+                    }
+
+                    Label {
+                        text: planCard.explanation
+                        color: global.fore
+                        opacity: 0.72
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    Repeater {
+                        model: planCard.steps
+
+                        delegate: RowLayout {
+                            id: stepDelegate
+                            required property var modelData
+                            readonly property string stepStatus: modelData.status
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Item {
+                                Layout.preferredWidth: 16
+                            }
+
+                            Item {
+                                Layout.preferredWidth: 16; Layout.preferredHeight: 16
+
+                                IconImage {
+                                    anchors.fill: parent
+                                    color: stepDelegate.stepStatus === "in_progress" ? global.fore : global.stroke
+                                    source: stepDelegate.stepStatus === "completed" ? "qrc:/icon/taskCompleted.svg" :
+                                            stepDelegate.stepStatus === "in_progress" ? "qrc:/icon/taskInProgress.svg" :
+                                            "qrc:/icon/taskPending.svg"
+                                    sourceSize.width: 16; sourceSize.height: 16
+                                }
+                            }
+
+                            Label {
+                                text: stepDelegate.modelData.step
+                                color: stepDelegate.stepStatus === "in_progress" ? global.fore : global.stroke
+                                font.bold: stepDelegate.stepStatus === "in_progress"
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Item {
             visible: agentModule.state === 9
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? permissionLayout.implicitHeight + 20 : 0
@@ -745,6 +859,8 @@ Item {
     function chatClear() {
         scrollStop()
         chatView.followTail = true
+        planCard.explanation = ""
+        planCard.steps = []
         for (let i = chatColumn.children.length - 1; i >= 0; --i) {
             chatColumn.children[i].destroy();
         }
@@ -781,7 +897,8 @@ Item {
     }
 
     function planUpdate(plan) {
-        console.log("Plan update:", JSON.stringify(plan))
+        planCard.explanation = plan.explanation ? plan.explanation : ""
+        planCard.steps = plan.plan ? plan.plan : []
     }
 
     Component.onCompleted: {

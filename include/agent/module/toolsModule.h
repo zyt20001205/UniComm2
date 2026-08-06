@@ -1,11 +1,8 @@
 #ifndef UNICOMM_TOOLSMODULE_H
 #define UNICOMM_TOOLSMODULE_H
 
-#include <QHash>
-#include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
-#include <QPair>
 #include <QSet>
 
 class ToolsModule final : public QObject {
