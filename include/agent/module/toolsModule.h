@@ -27,6 +27,8 @@ public:
 signals:
     void registerTools(const QString &name, const QJsonArray &tools);
 
+    void updatePlan(const QJsonObject &plan);
+
 private:
     [[nodiscard]] bool permissionGet(const QString &mode, const QString &name) const;
 

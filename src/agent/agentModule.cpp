@@ -84,6 +84,9 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_mcpModule->initialize();
 
     connect(m_toolsModule, &ToolsModule::registerTools, this, &AgentModule::toolsRegister);
+    connect(m_toolsModule, &ToolsModule::updatePlan, this, [this](const QJsonObject &plan) {
+        QMetaObject::invokeMethod(m_root, "planUpdate", Q_ARG(QVariant, plan.toVariantMap()));
+    });
     m_toolsModule->initialize();
 
     // base model

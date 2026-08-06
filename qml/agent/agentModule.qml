@@ -780,6 +780,10 @@ Item {
         rootItem.chatMap[messageId].reasoningBuffer = ""
     }
 
+    function planUpdate(plan) {
+        console.log("Plan update:", JSON.stringify(plan))
+    }
+
     Component.onCompleted: {
         const objects = {
             "conversationComboBox": conversationComboBox,

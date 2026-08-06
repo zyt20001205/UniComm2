@@ -1,6 +1,7 @@
 #include "agent/module/toolsModule.h"
 
 #include <QDir>
+#include <QJsonDocument>
 #include <limits>
 
 #include "globals.h"
@@ -127,6 +128,62 @@ void ToolsModule::initialize() {
                             {"type", "object"},
                             {"properties", QJsonObject{}},
                             {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // planUpdate
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "plan_update"},
+                    {
+                        "description",
+                        "Create or update the execution plan for a complex task. Submit the complete plan on every update, keep at most one step in progress, and mark steps completed only after the work is finished. Do not use this tool for simple one-step tasks."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "explanation", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "A concise user-facing summary of the current progress or why the plan changed."}
+                                        }
+                                    },
+                                    {
+                                        "plan", QJsonObject{
+                                            {"type", "array"},
+                                            {
+                                                "items", QJsonObject{
+                                                    {"type", "object"},
+                                                    {
+                                                        "properties", QJsonObject{
+                                                            {
+                                                                "step", QJsonObject{
+                                                                    {"type", "string"},
+                                                                    {"description", "A concise actionable step."}
+                                                                }
+                                                            },
+                                                            {
+                                                                "status", QJsonObject{
+                                                                    {"type", "string"},
+                                                                    {"enum", QJsonArray{"pending", "in_progress", "completed"}}
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {"required", QJsonArray{"step", "status"}}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"plan"}}
                         }
                     }
                 }
@@ -549,6 +606,39 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
+    if (name == "plan_update") {
+        if (object.contains("explanation") && !object.value("explanation").isString()) return "Plan update failed: explanation must be a string.";
+        if (!object.value("plan").isArray()) return "Plan update failed: plan must be an array.";
+
+        QJsonArray normalizedSteps{};
+        auto inProgressCount = 0;
+        auto completedCount = 0;
+        for (const auto &value: object.value("plan").toArray()) {
+            if (!value.isObject()) return "Plan update failed: every plan item must be an object.";
+
+            const auto stepObject = value.toObject();
+            const auto description = stepObject.value("step").toString().trimmed();
+            const auto status = stepObject.value("status").toString();
+            if (description.isEmpty()) return "Plan update failed: step must be a non-empty string.";
+            if (status == "in_progress") ++inProgressCount;
+            else if (status == "completed") ++completedCount;
+            else if (status != "pending") return "Plan update failed: status must be pending, in_progress, or completed.";
+
+            normalizedSteps.append(QJsonObject{
+                {"step", description},
+                {"status", status}
+            });
+        }
+        if (normalizedSteps.isEmpty()) return "Plan update failed: plan must contain at least one step.";
+        if (inProgressCount > 1) return "Plan update failed: at most one step can be in progress.";
+
+        const QJsonObject plan{
+            {"explanation", object.value("explanation").toString()},
+            {"plan", normalizedSteps}
+        };
+        emit updatePlan(plan);
+        return QString("Plan updated: %1/%2 steps completed.").arg(completedCount).arg(normalizedSteps.size());
+    }
     if (name == "port_list") {
         const auto keys = g_port->portList();
         QJsonArray array{};
@@ -653,6 +743,8 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         chatText = "List available databases";
     } else if (name == "datatable_list") {
         chatText = "List available datatables";
+    } else if (name == "plan_update") {
+        chatText = "Update plan";
     } else if (name == "port_list") {
         chatText = "List available ports";
     } else if (name == "port_config_get") {
