@@ -12,6 +12,7 @@ class QQuickView;
 class QQuickWidget;
 
 class ConversationModel;
+class ContextModule;
 class McpModule;
 class ToolsModule;
 class BigmodelProvider;
@@ -134,7 +135,6 @@ private:
     QObject *m_modelButton{};
     QObject *m_micButton{};
 
-    QString m_system{};
     QString m_conversationId{};
     ConversationModel *m_conversationModel{};
     TurnContext m_turn{};
@@ -143,6 +143,7 @@ private:
     QNetworkReply *m_reply{};
     QHash<QString, QString> m_owner{};
     QHash<QString, QJsonArray> m_tools{};
+    ContextModule *m_contextModule{};
     McpModule *m_mcpModule{};
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};

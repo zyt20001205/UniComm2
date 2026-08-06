@@ -12,6 +12,7 @@
 #include <QUuid>
 
 #include "globals.h"
+#include "agent/module/contextModule.h"
 #include "agent/module/mcpModule.h"
 #include "agent/module/sqlModule.h"
 #include "agent/module/toolsModule.h"
@@ -27,15 +28,9 @@ AgentModule::AgentModule()
       m_config(g_workspaceConfig["agentConfig"].toObject()),
       m_widget(new QQuickWidget()),
       m_manageWindow(new QQuickView()),
-      m_system("You are an IDE code assistant. "
-          "When in chat mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to agent mode. "
-          "When in agent mode (read/write/full-access), you have access to file system, terminal, and advanced tools. "
-          "For tasks that require multiple implementation or investigation steps, use plan_update before starting substantive work and keep the plan current as work progresses. Do not create a plan for simple tasks. "
-          "Use tools first when possible. If not, consult API annotations and generate a script. "
-          "All code must be written in English (including comments, variable names, identifiers, and strings). "
-          "Use io.log() instead of print() for assistant."),
       m_conversationId(m_config["id"].toString()),
       m_conversationModel(new ConversationModel(this)),
+      m_contextModule(new ContextModule(this)),
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
       m_toolsModule(new ToolsModule(this)),
@@ -313,7 +308,6 @@ void AgentModule::conversationGet(const QString &id) {
     QHash<QString, ToolCall> toolCalls{};
     for (const auto &message: messages) {
         const auto &role = message.role;
-        if (role == "system") continue;
         if (message.turnId != turnId) {
             if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
             turnId = message.turnId;
@@ -360,15 +354,6 @@ void AgentModule::conversationInsert() {
         .createdAt = timestamp,
         .updatedAt = timestamp
     });
-    m_sqlModule->conversationAppend(id, {
-                                        SqlModule::Message{
-                                            .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
-                                            .conversationId = id,
-                                            .role = "system",
-                                            .content = m_system,
-                                            .createdAt = timestamp
-                                        }
-                                    });
     m_conversationId = id;
     conversationsGet();
 }
@@ -408,7 +393,7 @@ qsizetype AgentModule::conversationAppend(const QString &role, const QString &to
 
 void AgentModule::conversationRollback() {
     const auto messages = m_sqlModule->conversationGet(m_conversationId).second;
-    if (messages.size() <= 1) return;
+    if (messages.isEmpty()) return;
     for (auto i = messages.size() - 1; i >= 0; --i) {
         const auto &message = messages.at(i);
         if (message.role == "user") {
@@ -431,23 +416,10 @@ void AgentModule::permissionSet(const bool status) {
 // private
 void AgentModule::conversationSend() {
     auto [conversation, messages] = m_sqlModule->conversationGet(m_conversationId);
-    messages.append(m_turn.messages);
-
-    QJsonArray jsonMessages{};
-    for (const auto &message: messages) {
-        QJsonObject object{
-            {"role", message.role},
-            {"content", message.content}
-        };
-        if (!message.reasoningContent.isEmpty()) object["reasoning_content"] = message.reasoningContent;
-        if (!message.toolCallId.isEmpty()) object["tool_call_id"] = message.toolCallId;
-        if (!message.toolCalls.isEmpty()) object["tool_calls"] = message.toolCalls;
-        jsonMessages.append(object);
-    }
 
     QJsonObject body{};
     body["model"] = conversation.model;
-    body["messages"] = jsonMessages;
+    body["messages"] = m_contextModule->contextBuild(messages, m_turn.messages);
     body["stream"] = true;
     body["tools"] = conversation.mode == "chat" ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
