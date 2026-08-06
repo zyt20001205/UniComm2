@@ -86,6 +86,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
 
     connect(m_toolsModule, &ToolsModule::registerTools, this, &AgentModule::toolsRegister);
     connect(m_toolsModule, &ToolsModule::updatePlan, this, [this](const QJsonObject &plan) {
+        m_turn.planned = true;
         QMetaObject::invokeMethod(m_root, "planUpdate", Q_ARG(QVariant, plan.toVariantMap()));
     });
     m_toolsModule->initialize();
@@ -242,10 +243,13 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             auto &message = m_turn.messages[toolCall.messageIndex];
             if (!toolCall.approved) {
                 message.content = "User denied permission to execute this tool.";
+            } else if (!m_turn.planned && m_turn.toolCount >= 10 && toolCall.name != "plan_update") {
+                message.content = "Plan required before further tool execution. Call plan_update first, then retry this tool.";
             } else {
                 const auto owner = m_owner.value(toolCall.name);
                 if (owner == "UniComm") message.content = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
                 else message.content = m_mcpModule->toolsCall(owner, toolCall.name, toolCall.arguments);
+                if (toolCall.name != "plan_update") ++m_turn.toolCount;
             }
             message.approved = toolCall.approved;
             message.createdAt = QDateTime::currentMSecsSinceEpoch();

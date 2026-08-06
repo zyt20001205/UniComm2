@@ -95,6 +95,8 @@ private:
         QString id{};
         QString mode{};
         QList<SqlModule::Message> messages{};
+        bool planned{false};
+        qsizetype toolCount{};
         QList<ToolCall> toolCalls{};
         qsizetype currentIndex{};
     };
