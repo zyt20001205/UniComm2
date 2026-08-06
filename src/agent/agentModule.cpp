@@ -218,7 +218,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
                     chatAppend(message.id, " ✓");
                     stateSet(AgentState::ToolExec);
                 } else {
-                    stateSet(AgentState::Permission, "Waiting for approval: " + text);
+                    stateSet(AgentState::Permission, text);
                 }
             } else {
                 toolCall.approved = true;

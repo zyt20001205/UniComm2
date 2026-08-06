@@ -302,129 +302,96 @@ Item {
         }
 
         Item {
-            property string text
-            Layout.fillWidth: true; Layout.preferredHeight: 32
+            visible: agentModule.state === 9
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? permissionLayout.implicitHeight + 20 : 0
 
             Rectangle {
-                id: chatStatusRect
                 anchors.fill: parent
-                color: "transparent"
-                border.color: {
-                    switch (agentModule.state) {
-                        case 0: // Ready
-                            return global.successBack3
-                        case 1: // Error
-                            return global.dangerBack3
-                        case 2: // Listen
-                        case 3: // STT
-                        case 4: // Request
-                            return global.brandBack
-                        case 5: // Abort
-                            return global.dangerBack3
-                        case 6: // Think
-                        case 7: // Response
-                        case 8: // ToolCall
-                            return global.stroke
-                        case 9: // Permission
-                            return global.warningBack3
-                        case 10: // ToolExec
-                        case 11: // Speak
-                            return global.stroke
-                        default:
-                            return global.stroke
-                    }
-                }
+                color: global.backSelected
+                border.color: global.stroke
                 border.width: 1
                 radius: 6
-
-                SequentialAnimation on border.color {
-                    running: agentModule.state === 9
-                    loops: Animation.Infinite
-                    ColorAnimation {
-                        to: global.back
-                        duration: 1000
-                    }
-                    ColorAnimation {
-                        to: global.warningBack3
-                        duration: 1000
-                    }
-                }
             }
 
-            RowLayout {
+            ColumnLayout {
+                id: permissionLayout
                 anchors.fill: parent
-                anchors.leftMargin: 6; anchors.rightMargin: 6
+                anchors.margins: 10
+                spacing: 4
 
-                Label {
-                    id: messageLabel
-                    property string message
-                    text: {
-                        switch (agentModule.state) {
-                            case 0: // Ready
-                                return qsTr("Ready")
-                            case 1: // Error
-                                return message
-                            case 2: // Listen
-                                return qsTr("Listening")
-                            case 3: // STT
-                                return qsTr("Processing")
-                            case 4: // Request
-                                return qsTr("Requesting")
-                            case 5: // Abort
-                                return qsTr("Aborting")
-                            case 6: // Think
-                                return qsTr("Thinking")
-                            case 7: // Response
-                                return qsTr("Responding")
-                            case 8: // ToolCall
-                                return qsTr("Calling Tool")
-                            case 9: // Permission
-                                return message
-                            case 10: // ToolExec
-                                return qsTr("Executing Tool")
-                            case 11: // Speak
-                                return qsTr("Speaking")
-                            default:
-                                return ""
-                        }
-                    }
-                    elide: Text.ElideRight
+                RowLayout {
                     Layout.fillWidth: true
+                    spacing: 8
+
+                    IconImage {
+                        color: global.fore
+                        source: "qrc:/icon/shield.svg"
+                        sourceSize.width: 16; sourceSize.height: 16
+                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    }
+
+                    Label {
+                        text: qsTr("Allow this action?")
+                        font.bold: true
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+
+                    Button {
+                        id: denyButton
+                        text: qsTr("Deny")
+                        hoverEnabled: true
+                        leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
+                        Layout.preferredWidth: 64; Layout.preferredHeight: 28
+                        background: Rectangle {
+                            color: denyButton.down ? global.backPressed : denyButton.hovered ? global.backHover : "transparent"
+                            border.color: global.stroke
+                            border.width: 1
+                            radius: 6
+                        }
+
+                        onClicked: agentModule.permissionSet(false)
+                    }
+
+                    Button {
+                        id: allowButton
+                        text: qsTr("Allow")
+                        hoverEnabled: true
+                        leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
+                        Layout.preferredWidth: 64; Layout.preferredHeight: 28
+                        contentItem: Label {
+                            text: allowButton.text
+                            color: global.back
+                            font: allowButton.font
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            color: allowButton.down ? global.forePressed : allowButton.hovered ? global.foreHover : global.fore
+                            radius: 6
+                        }
+
+                        onClicked: agentModule.permissionSet(true)
+                    }
                 }
 
-                Button {
-                    visible: agentModule.state === 9
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    flat: true
-                    icon.source: "qrc:/icon/checkmark.svg"
-                    icon.width: 16; icon.height: 16
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
 
-                    onClicked: agentModule.permissionSet(true)
-                }
+                    Item {
+                        Layout.preferredWidth: 16
+                    }
 
-                Button {
-                    visible: agentModule.state === 9
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    flat: true
-                    icon.source: "qrc:/icon/dismiss.svg"
-                    icon.width: 16; icon.height: 16
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                    onClicked: agentModule.permissionSet(false)
-                }
-
-                BusyIndicator {
-                    visible: [6, 7, 8, 10, 11].includes(agentModule.state)
-                    running: visible
-                    Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                }
-
-                IconImage {
-                    visible: agentModule.state === 0
-                    color: global.successBack3
-                    source: "qrc:/icon/checkmark.svg"
-                    Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    Label {
+                        id: messageLabel
+                        property string message
+                        text: message
+                        color: Qt.alpha(global.fore, 0.72)
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
                 }
             }
         }
