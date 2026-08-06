@@ -31,7 +31,6 @@ AgentModule::AgentModule()
           "When in chat mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to agent mode. "
           "When in agent mode (read/write/full-access), you have access to file system, terminal, and advanced tools. "
           "Use tools first when possible. If not, consult API annotations and generate a script. "
-          "When dealing with files, highly prefer using 'symbol_get' to understand the code structure and locate exactly which lines you need to use with text_get or text_set. "
           "All code must be written in English (including comments, variable names, identifiers, and strings). "
           "Use io.log() instead of print() for assistant."),
       m_conversationId(m_config["id"].toString()),

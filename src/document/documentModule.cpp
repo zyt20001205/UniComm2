@@ -446,10 +446,6 @@ QJsonArray DocumentModule::diagnosticsGet(const QUrl &documentUrl) const {
     return m_diagnosticsHash.value(documentUrl);
 }
 
-QJsonArray DocumentModule::symbolGet(const QUrl &documentUrl) const {
-    return m_symbolHash.value(documentUrl);
-}
-
 // public: lsp
 void DocumentModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
     m_diagnosticsHash.insert(documentUrl, diagnostics);

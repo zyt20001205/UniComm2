@@ -96,8 +96,6 @@ public:
 
     [[nodiscard]] QJsonArray diagnosticsGet(const QUrl &documentUrl) const;
 
-    [[nodiscard]] QJsonArray symbolGet(const QUrl &documentUrl) const;
-
     void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
     void codeActionRequest(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);

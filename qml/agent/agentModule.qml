@@ -657,7 +657,7 @@ Item {
 
         TextArea {
             id: chatTextArea
-            padding: role === "assistant" ? 0 : 8
+            padding: role === "assistant" ? 0 : 6
             leftPadding: padding; rightPadding: padding; topPadding: padding; bottomPadding: padding
             readOnly: true
             textFormat: TextEdit.MarkdownText

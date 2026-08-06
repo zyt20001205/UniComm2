@@ -268,39 +268,6 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // symbolGet
-        QJsonObject{
-            {"type", "function"},
-            {
-                "function", QJsonObject{
-                    {"name", "symbol_get"},
-                    {
-                        "description",
-                        "Get the structural symbols (e.g., classes, functions, variables) of a specified document along with their line numbers."
-                    },
-                    {
-                        "parameters", QJsonObject{
-                            {"type", "object"},
-                            {
-                                "properties", QJsonObject{
-                                    {
-                                        "document_url", QJsonObject{
-                                            {"type", "string"},
-                                            {"description", "The URL / file path of the document."}
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "required", QJsonArray{
-                                    "document_url"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         // grepSearch
         QJsonObject{
             {"type", "function"},
@@ -610,11 +577,6 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         const auto diagnostics = g_document->diagnosticsGet(documentUrl);
         return QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact));
     }
-    if (name == "symbol_get") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto symbol = g_document->symbolGet(documentUrl);
-        return QString::fromUtf8(QJsonDocument(symbol).toJson(QJsonDocument::Compact));
-    }
     if (name == "grep_search") {
         const auto pattern = object.value("pattern").toString();
         const auto result = g_ripgrep->grep(pattern);
@@ -708,9 +670,6 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Check diagnostics for %1").arg(documentName);
-    } else if (name == "symbol_get") {
-        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        chatText = QString("Inspect symbols in %1").arg(documentName);
     } else if (name == "document_list") {
         chatText = "List open documents";
     } else if (name == "document_focused") {
