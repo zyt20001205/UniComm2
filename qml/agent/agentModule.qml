@@ -843,6 +843,8 @@ Item {
     }
 
     function turnCreate(turnId, startedAt) {
+        planCard.explanation = ""
+        planCard.steps = []
         const obj = turnComponent.createObject(chatColumn, {
             turnId: turnId,
             startedAt: startedAt,
