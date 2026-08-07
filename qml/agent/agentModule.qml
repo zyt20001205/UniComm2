@@ -697,6 +697,38 @@ Item {
                     Layout.fillWidth: true
                 }
 
+                Label {
+                    id: usageLabel
+                    property double currentUsage: 0
+                    property double promptTokens: 0
+                    property double completionTokens: 0
+                    property double cacheHitTokens: 0
+                    property double reasoningTokens: 0
+                    visible: currentUsage > 0
+                    text: qsTr("%1 tokens").arg(currentUsage >= 1000000 ?
+                                                     (currentUsage / 1000000).toFixed(1) + "M" :
+                                                     currentUsage >= 1000 ?
+                                                         (currentUsage / 1000).toFixed(1) + "k" : currentUsage)
+                    color: global.stroke
+                    verticalAlignment: Text.AlignVCenter
+                    Layout.leftMargin: 4; Layout.rightMargin: 4
+                    Layout.preferredHeight: 28
+
+                    HoverHandler {
+                        onHoveredChanged: {
+                            if (!hovered) mainToolTip.text = ""
+                        }
+                        onPointChanged: {
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = qsTr("Turn input: %1\nCached: %2\nTurn output: %3\nReasoning: %4")
+                                                   .arg(usageLabel.promptTokens)
+                                                   .arg(usageLabel.cacheHitTokens)
+                                                   .arg(usageLabel.completionTokens)
+                                                   .arg(usageLabel.reasoningTokens)
+                        }
+                    }
+                }
+
                 Button {
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0 && chatColumn.children.length > 0
@@ -947,6 +979,7 @@ Item {
         chatView.followTail = true
         planCard.explanation = ""
         planCard.steps = []
+        usageUpdate({})
         for (let i = chatColumn.children.length - 1; i >= 0; --i) {
             chatColumn.children[i].destroy();
         }
@@ -985,6 +1018,14 @@ Item {
     function planUpdate(plan) {
         planCard.explanation = plan.explanation ? plan.explanation : ""
         planCard.steps = plan.plan ? plan.plan : []
+    }
+
+    function usageUpdate(usage) {
+        usageLabel.currentUsage = usage.currentUsage || 0
+        usageLabel.promptTokens = usage.promptTokens || 0
+        usageLabel.completionTokens = usage.completionTokens || 0
+        usageLabel.cacheHitTokens = usage.cacheHitTokens || 0
+        usageLabel.reasoningTokens = usage.reasoningTokens || 0
     }
 
     Component.onCompleted: {

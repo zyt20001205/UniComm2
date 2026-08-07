@@ -62,6 +62,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
 
     m_widget->rootContext()->setContextProperty("agentModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
+    m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("renameDialog", objects["agentModuleRenameDialog"]);
     m_widget->rootContext()->setContextProperty("conversationModel", m_conversationModel);
     m_widget->rootContext()->setContextProperty("mcpMenu", m_mcpMenu);
@@ -424,6 +425,7 @@ void AgentModule::conversationSend() {
     body["model"] = conversation.model;
     body["messages"] = m_contextModule->contextBuild(conversation.mode, messages, m_turn.messages);
     body["stream"] = true;
+    body["stream_options"] = QJsonObject{{"include_usage", true}};
     body["tools"] = conversation.mode == AgentMode::Chat ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
     // TODO: provider judge
@@ -448,7 +450,31 @@ void AgentModule::conversationSend() {
             const auto doc = QJsonDocument::fromJson(line);
             if (doc.isNull() || !doc.isObject()) continue;
 
-            const auto choices = doc.object().value("choices").toArray();
+            const auto object = doc.object();
+            const auto usage = object.value("usage").toObject();
+            if (!usage.isEmpty()) {
+                const auto promptTokens = usage.value("prompt_tokens").toInt();
+                const auto completionTokens = usage.value("completion_tokens").toInt();
+                const auto cacheHitTokens = usage.value("prompt_cache_hit_tokens").toInt();
+                const auto reasoningTokens = usage.value("completion_tokens_details").toObject().value("reasoning_tokens").toInt();
+
+                m_turn.currentUsage = usage.value("total_tokens").toInt();
+                m_turn.usage.promptTokens += promptTokens;
+                m_turn.usage.completionTokens += completionTokens;
+                m_turn.usage.cacheHitTokens += cacheHitTokens;
+                m_turn.usage.reasoningTokens += reasoningTokens;
+
+                const QVariantMap usageMap{
+                    {"currentUsage", m_turn.currentUsage},
+                    {"promptTokens", m_turn.usage.promptTokens},
+                    {"completionTokens", m_turn.usage.completionTokens},
+                    {"cacheHitTokens", m_turn.usage.cacheHitTokens},
+                    {"reasoningTokens", m_turn.usage.reasoningTokens}
+                };
+                QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, usageMap));
+            }
+
+            const auto choices = object.value("choices").toArray();
             if (choices.isEmpty()) continue;
 
             const auto delta = choices.at(0).toObject().value("delta").toObject();
