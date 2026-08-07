@@ -3,6 +3,8 @@
 
 #include "baseProvider.h"
 
+class ProviderModel;
+
 class DeepseekProvider final : public BaseProvider {
     Q_OBJECT
 
@@ -15,10 +17,12 @@ public:
 
     void apikeyGet() override;
 
-    void modelGet() override;
+    void modelsGet() override;
+
+    [[nodiscard]] Model modelGet(const QString &id) const override;
 
 private:
-    QStandardItemModel *m_deepseekModel{};
+    ProviderModel *m_deepseekModel{};
 };
 
 #endif //UNICOMM_DEEPSEEKPROVIDER_H

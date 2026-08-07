@@ -14,10 +14,10 @@
 #include "globals.h"
 #include "agent/module/contextModule.h"
 #include "agent/module/mcpModule.h"
+#include "agent/module/providerModule.h"
 #include "agent/module/sqlModule.h"
 #include "agent/module/toolsModule.h"
-#include "agent/provider/bigmodelProvider.h"
-#include "agent/provider/deepseekProvider.h"
+#include "agent/provider/baseProvider.h"
 #include "core/globalManager.h"
 #include "document/documentModule.h"
 #include "service/audio.h"
@@ -32,10 +32,9 @@ AgentModule::AgentModule()
       m_conversationModel(new ConversationModel(this)),
       m_contextModule(new ContextModule(this)),
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
+      m_providerModule(new ProviderModule(this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
-      m_toolsModule(new ToolsModule(this)),
-      m_bigmodelProvider(new BigmodelProvider(this)),
-      m_deepseekProvider(new DeepseekProvider(this)) {
+      m_toolsModule(new ToolsModule(this)) {
     setWidget(m_widget);
 
     conversationsGet();
@@ -51,7 +50,6 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_mcpMenu = qvariant_cast<QObject *>(objects["agentModuleMcpMenu"]);
     m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
-    m_modelMenu = qvariant_cast<QObject *>(objects["agentModuleModelMenu"]);
 
     m_manageWindow->setTitle(tr("Agent Settings"));
     m_manageWindow->setTransientParent(g_mainWindow->windowHandle());
@@ -67,7 +65,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("conversationModel", m_conversationModel);
     m_widget->rootContext()->setContextProperty("mcpMenu", m_mcpMenu);
     m_widget->rootContext()->setContextProperty("modeMenu", m_modeMenu);
-    m_widget->rootContext()->setContextProperty("modelMenu", m_modelMenu);
+    m_widget->rootContext()->setContextProperty("modelMenu", objects["agentModuleModelMenu"]);
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/agent/agentModule.qml"));
@@ -87,22 +85,10 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     });
     m_toolsModule->initialize();
 
-    // base model
-    connect(m_bigmodelProvider, &BigmodelProvider::setApikey, this, [this](const QString &apikey) {
-        m_modelMenu->setProperty("bigmodelApikey", apikey);
+    m_providerModule->propertySet(QVariantHash{
+        {"agentModuleModelMenu", objects["agentModuleModelMenu"]}
     });
-    connect(m_bigmodelProvider, &BigmodelProvider::setModel, this, [this](QStandardItemModel *bigmodelModel) {
-        m_modelMenu->setProperty("bigmodelModel", QVariant::fromValue(bigmodelModel));
-    });
-    m_bigmodelProvider->apikeyGet();
-
-    connect(m_deepseekProvider, &DeepseekProvider::setApikey, this, [this](const QString &apikey) {
-        m_modelMenu->setProperty("deepseekApikey", apikey);
-    });
-    connect(m_deepseekProvider, &DeepseekProvider::setModel, this, [this](QStandardItemModel *deepseekModel) {
-        m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(deepseekModel));
-    });
-    m_deepseekProvider->apikeyGet();
+    m_providerModule->initialize();
 
     if (!m_conversationId.isEmpty()) {
         m_conversationComboBox->setProperty("currentValue", m_conversationId);
@@ -263,8 +249,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
 }
 
 void AgentModule::apikeySet(const QString &key, const QString &apikey) const {
-    if (key == "bigmodel-api-key") m_bigmodelProvider->apikeySet(apikey);
-    else if (key == "deepseek-api-key") m_deepseekProvider->apikeySet(apikey);
+    m_providerModule->apikeySet(key, apikey);
 }
 
 void AgentModule::conversationsGet() {
@@ -429,8 +414,7 @@ void AgentModule::conversationSend() {
     body["tools"] = conversation.mode == AgentMode::Chat ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
     // TODO: provider judge
-    // auto *reply = g_networkAccessManager->post(m_bigmodelProvider->requestGet(), QJsonDocument(body).toJson());
-    auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
+    auto *reply = g_networkAccessManager->post(m_providerModule->providerGet("deepseek")->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     const auto assistantIndex = conversationAppend("assistant");
     const auto assistantId = m_turn.messages.at(assistantIndex).id;

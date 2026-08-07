@@ -14,9 +14,8 @@ class QQuickWidget;
 class ConversationModel;
 class ContextModule;
 class McpModule;
+class ProviderModule;
 class ToolsModule;
-class BigmodelProvider;
-class DeepseekProvider;
 
 class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -146,7 +145,6 @@ private:
     QObject *m_messageDialog{};
     QObject *m_mcpMenu{};
     QObject *m_modeMenu{};
-    QObject *m_modelMenu{};
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};
     QObject *m_messageLabel{};
@@ -164,10 +162,9 @@ private:
     QHash<QString, QJsonArray> m_tools{};
     ContextModule *m_contextModule{};
     McpModule *m_mcpModule{};
+    ProviderModule *m_providerModule{};
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};
-    BigmodelProvider *m_bigmodelProvider{};
-    DeepseekProvider *m_deepseekProvider{};
 };
 
 class ConversationModel final : public QStandardItemModel {

@@ -6,10 +6,11 @@
 #include <qt6keychain/keychain.h>
 
 #include "globals.h"
+#include "agent/module/providerModule.h"
 
 BigmodelProvider::BigmodelProvider(QObject *parent)
     : BaseProvider(parent),
-      m_bigmodelModel(new QStandardItemModel(this)) {
+      m_bigmodelModel(new ProviderModel(this)) {
     m_key = "bigmodel-api-key";
     m_request.setUrl(QUrl("https://open.bigmodel.cn/api/paas/v4/chat/completions"));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -23,7 +24,7 @@ void BigmodelProvider::apikeySet(const QString &apikey) {
     connect(job, &QKeychain::Job::finished, [this](const QKeychain::Job *j) {
         if (j->error() == QKeychain::NoError) {
             m_request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
-            modelGet();
+            modelsGet();
         }
         emit setApikey(m_apikey);
     });
@@ -38,14 +39,15 @@ void BigmodelProvider::apikeyGet() {
             const auto *readJob = static_cast<QKeychain::ReadPasswordJob *>(j);
             m_apikey = readJob->textData();
             m_request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
-            modelGet();
+            modelsGet();
         }
         emit setApikey(m_apikey);
     });
     job->start();
 }
 
-void BigmodelProvider::modelGet() {
+void BigmodelProvider::modelsGet() {
+    m_models.clear();
     m_bigmodelModel->clear();
     QNetworkRequest request{};
     request.setUrl(QUrl("https://open.bigmodel.cn/api/paas/v4/models"));
@@ -60,10 +62,24 @@ void BigmodelProvider::modelGet() {
             const auto models = doc.object().value("data").toArray();
             for (const auto &value: models) {
                 const auto id = value.toObject().value("id").toString();
-                m_bigmodelModel->appendRow(new QStandardItem(id));
+                const auto model = Model{.id = id};
+                m_models.append(model);
+
+                auto *item = new QStandardItem(model.id); // NOLINT
+                item->setData(model.id, ProviderModel::IdRole);
+                item->setData(model.contextWindow, ProviderModel::ContextWindowRole);
+                item->setData(model.maxOutputTokens, ProviderModel::MaxOutputTokensRole);
+                m_bigmodelModel->appendRow(item);
             }
         }
         reply->deleteLater();
         emit setModel(m_bigmodelModel);
     });
+}
+
+BaseProvider::Model BigmodelProvider::modelGet(const QString &id) const {
+    for (const auto &model: m_models) {
+        if (model.id == id) return model;
+    }
+    return {};
 }

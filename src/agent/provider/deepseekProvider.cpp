@@ -6,10 +6,11 @@
 #include <qt6keychain/keychain.h>
 
 #include "globals.h"
+#include "agent/module/providerModule.h"
 
 DeepseekProvider::DeepseekProvider(QObject *parent)
     : BaseProvider(parent),
-      m_deepseekModel(new QStandardItemModel(this)) {
+      m_deepseekModel(new ProviderModel(this)) {
     m_key = "deepseek-api-key";
     m_request.setUrl(QUrl("https://api.deepseek.com/v1/chat/completions"));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -23,7 +24,7 @@ void DeepseekProvider::apikeySet(const QString &apikey) {
     connect(job, &QKeychain::Job::finished, [this](const QKeychain::Job *j) {
         if (j->error() == QKeychain::NoError) {
             m_request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
-            modelGet();
+            modelsGet();
         }
         emit setApikey(m_apikey);
     });
@@ -38,14 +39,15 @@ void DeepseekProvider::apikeyGet() {
             const auto *readJob = static_cast<QKeychain::ReadPasswordJob *>(j);
             m_apikey = readJob->textData();
             m_request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
-            modelGet();
+            modelsGet();
         }
         emit setApikey(m_apikey);
     });
     job->start();
 }
 
-void DeepseekProvider::modelGet() {
+void DeepseekProvider::modelsGet() {
+    m_models.clear();
     m_deepseekModel->clear();
     QNetworkRequest request{};
     request.setUrl(QUrl("https://api.deepseek.com/models"));
@@ -60,10 +62,27 @@ void DeepseekProvider::modelGet() {
             const auto models = doc.object().value("data").toArray();
             for (const auto &value: models) {
                 const auto id = value.toObject().value("id").toString();
-                m_deepseekModel->appendRow(new QStandardItem(id));
+                const auto model = modelGet(id);
+                m_models.append(model);
+
+                auto *item = new QStandardItem(model.id); // NOLINT
+                item->setData(model.id, ProviderModel::IdRole);
+                item->setData(model.contextWindow, ProviderModel::ContextWindowRole);
+                item->setData(model.maxOutputTokens, ProviderModel::MaxOutputTokensRole);
+                m_deepseekModel->appendRow(item);
             }
         }
         reply->deleteLater();
         emit setModel(m_deepseekModel);
     });
+}
+
+BaseProvider::Model DeepseekProvider::modelGet(const QString &id) const {
+    const auto object = m_catalog.value(id).toObject();
+    const auto limit = object.value("limit").toObject();
+    return Model{
+        .id = id,
+        .contextWindow = limit.value("context").toInteger(),
+        .maxOutputTokens = limit.value("output").toInteger()
+    };
 }
