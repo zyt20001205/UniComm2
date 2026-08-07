@@ -190,6 +190,35 @@ void ToolsModule::initialize() {
                 }
             }
         },
+        // requestUserInput
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "request_user_input"},
+                    {
+                        "description",
+                        "Ask the user one concise question only when the missing information cannot be discovered with tools and choosing incorrectly would materially affect the result. Investigate first and do not ask for information that tools can provide."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "question", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The concise question to show the user."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"question"}}
+                        }
+                    }
+                }
+            }
+        },
         // portList
         QJsonObject{
             {"type", "function"},
@@ -746,6 +775,8 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         chatText = "List available datatables";
     } else if (name == "plan_update") {
         chatText = "Update plan";
+    } else if (name == "request_user_input") {
+        chatText = object.value("question").toString();
     } else if (name == "port_list") {
         chatText = "List available ports";
     } else if (name == "port_config_get") {

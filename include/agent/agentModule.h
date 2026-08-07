@@ -43,6 +43,7 @@ public:
             Response,
             ToolCall,
             Permission,
+            UserInput,
             ToolExec,
             Speak
         };
@@ -88,6 +89,8 @@ public:
 
     Q_INVOKABLE void permissionSet(bool status);
 
+    Q_INVOKABLE void userInputSet(const QString &answer);
+
 signals:
     void stateChanged();
 
@@ -115,6 +118,7 @@ private:
         qint64 currentUsage{};
         // tool
         bool planned{false};
+        int questionCount{};
         qsizetype toolCount{};
         QList<ToolCall> toolCalls{};
         qsizetype currentTool{};
@@ -136,6 +140,8 @@ private:
 
     void modelUpdate(const QString &id) const;
 
+    void toolResultSet(const QString &result);
+
     void toolsRegister(const QString &name, const QJsonArray &tools);
 
     [[nodiscard]] QJsonArray toolsList(const QStringList &names);
@@ -149,6 +155,7 @@ private:
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};
     QObject *m_messageLabel{};
+    QObject *m_questionLabel{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
     QObject *m_micButton{};

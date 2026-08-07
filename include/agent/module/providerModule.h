@@ -1,7 +1,6 @@
 #ifndef UNICOMM_PROVIDERMODULE_H
 #define UNICOMM_PROVIDERMODULE_H
 
-#include <QHash>
 #include <QJsonObject>
 #include <QObject>
 #include <QStandardItemModel>

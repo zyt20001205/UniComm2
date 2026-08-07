@@ -99,6 +99,7 @@ void AgentModule::propertyGet(const QVariantMap &objects) {
     m_conversationComboBox = qvariant_cast<QObject *>(objects["conversationComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     m_messageLabel = qvariant_cast<QObject *>(objects["messageLabel"]);
+    m_questionLabel = qvariant_cast<QObject *>(objects["questionLabel"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
     m_micButton = qvariant_cast<QObject *>(objects["micButton"]);
@@ -193,49 +194,66 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         break;
         case AgentState::ToolCall: {
             auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
+            const auto &message = m_turn.messages.at(toolCall.messageIndex);
             const auto owner = m_owner.value(toolCall.name);
+            const auto planUpdate = toolCall.name == "plan_update";
+            const auto userInput = toolCall.name == "request_user_input";
+            const auto showToolMessage = owner == "UniComm" && !planUpdate && !userInput;
+            QString text{};
             if (owner == "UniComm") {
-                const auto &message = m_turn.messages.at(toolCall.messageIndex);
-                const auto [approved, text] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
-                const auto showToolMessage = toolCall.name != "plan_update";
+                const auto [approved, toolText] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
                 toolCall.approved = approved;
+                text = toolText;
                 if (showToolMessage) {
                     chatCreate(m_turn.id, message.id, "tool");
                     chatAppend(message.id, text);
                 }
-                if (approved) {
-                    if (showToolMessage) chatAppend(message.id, " ✓");
-                    stateSet(AgentState::ToolExec);
-                } else {
-                    stateSet(AgentState::Permission, text);
-                }
             } else {
                 toolCall.approved = true;
-                stateSet(AgentState::ToolExec);
             }
+
+            if (!toolCall.approved) {
+                stateSet(AgentState::Permission, text);
+                break;
+            }
+            if (!m_turn.planned && m_turn.toolCount >= 10 && !planUpdate) {
+                if (showToolMessage) chatAppend(message.id, " ✗");
+                toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
+                break;
+            }
+            if (userInput && m_turn.questionCount >= 3) {
+                toolResultSet("Question limit reached. Continue using the available context and your best judgment.");
+                break;
+            }
+            if (userInput) {
+                ++m_turn.questionCount;
+                stateSet(AgentState::UserInput, text);
+                break;
+            }
+            if (showToolMessage) chatAppend(message.id, " ✓");
+            stateSet(AgentState::ToolExec);
         }
         break;
         case AgentState::Permission: {
             m_messageLabel->setProperty("message", payload.toString());
         }
         break;
+        case AgentState::UserInput: {
+            m_questionLabel->setProperty("question", payload.toString());
+        }
+        break;
         case AgentState::ToolExec: {
-            auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
-            auto &message = m_turn.messages[toolCall.messageIndex];
+            const auto &toolCall = m_turn.toolCalls.at(m_turn.currentTool);
+            QString result{};
             if (!toolCall.approved) {
-                message.content = "User denied permission to execute this tool.";
-            } else if (!m_turn.planned && m_turn.toolCount >= 10 && toolCall.name != "plan_update") {
-                message.content = "Plan required before further tool execution. Call plan_update first, then retry this tool.";
+                result = "User denied permission to execute this tool.";
             } else {
                 const auto owner = m_owner.value(toolCall.name);
-                if (owner == "UniComm") message.content = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
-                else message.content = m_mcpModule->toolsCall(owner, toolCall.name, toolCall.arguments);
+                if (owner == "UniComm") result = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
+                else result = m_mcpModule->toolsCall(owner, toolCall.name, toolCall.arguments);
                 if (toolCall.name != "plan_update") ++m_turn.toolCount;
             }
-            message.approved = toolCall.approved;
-            message.createdAt = QDateTime::currentMSecsSinceEpoch();
-            ++m_turn.currentTool;
-            stateSet(m_turn.currentTool < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
+            toolResultSet(result);
         }
         break;
         case AgentState::Speak: {
@@ -397,8 +415,14 @@ void AgentModule::permissionSet(const bool status) {
     auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
     const auto &message = m_turn.messages.at(toolCall.messageIndex);
     toolCall.approved = status;
-    if (toolCall.name != "plan_update") chatAppend(message.id, status ? " ✓" : " ✗");
+    if (toolCall.name != "plan_update" && toolCall.name != "request_user_input") chatAppend(message.id, status ? " ✓" : " ✗");
     stateSet(AgentState::ToolExec);
+}
+
+void AgentModule::userInputSet(const QString &answer) {
+    const auto text = answer.trimmed();
+    if (text.isEmpty()) return;
+    toolResultSet(text);
 }
 
 // private
@@ -578,6 +602,16 @@ void AgentModule::modelUpdate(const QString &id) const {
     const auto model = m_providerModule->providerGet("deepseek")->modelGet(id);
     m_modelButton->setProperty("text", model.name);
     QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(QVariant, model.contextWindow));
+}
+
+void AgentModule::toolResultSet(const QString &result) {
+    const auto &toolCall = m_turn.toolCalls.at(m_turn.currentTool);
+    auto &message = m_turn.messages[toolCall.messageIndex];
+    message.content = result;
+    message.approved = toolCall.approved;
+    message.createdAt = QDateTime::currentMSecsSinceEpoch();
+    ++m_turn.currentTool;
+    stateSet(m_turn.currentTool < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
 }
 
 void AgentModule::toolsRegister(const QString &name, const QJsonArray &tools) {

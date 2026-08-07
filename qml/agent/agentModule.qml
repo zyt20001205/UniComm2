@@ -542,6 +542,137 @@ Item {
         }
 
         Item {
+            id: userInputCard
+            visible: agentModule.state === 10
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? userInputLayout.implicitHeight + 20 : 0
+
+            function submit() {
+                const answer = answerTextField.text.trim()
+                if (answer.length === 0) return
+                agentModule.userInputSet(answer)
+                answerTextField.clear()
+            }
+
+            onVisibleChanged: {
+                if (!visible) return
+                answerTextField.clear()
+                answerTextField.forceActiveFocus()
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.backSelected
+                border.color: global.stroke
+                border.width: 1
+                radius: 6
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: global.fore
+                border.width: 1
+                radius: 6
+                opacity: 0.2
+
+                SequentialAnimation on opacity {
+                    running: userInputCard.visible
+                    loops: Animation.Infinite
+
+                    NumberAnimation {
+                        from: 0.2; to: 0.8
+                        duration: 450
+                        easing.type: Easing.InOutSine
+                    }
+
+                    NumberAnimation {
+                        from: 0.8; to: 0.2
+                        duration: 850
+                        easing.type: Easing.InOutSine
+                    }
+
+                    PauseAnimation {
+                        duration: 250
+                    }
+                }
+            }
+
+            ColumnLayout {
+                id: userInputLayout
+                anchors.fill: parent
+                anchors.margins: 10
+                spacing: 8
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    IconImage {
+                        color: global.fore
+                        source: "qrc:/icon/chat.svg"
+                        sourceSize.width: 16; sourceSize.height: 16
+                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    }
+
+                    Label {
+                        text: qsTr("Input required")
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+                }
+
+                Label {
+                    id: questionLabel
+                    property string question
+                    text: question
+                    color: Qt.alpha(global.fore, 0.72)
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 24
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 24
+                    spacing: 8
+
+                    TextField {
+                        id: answerTextField
+                        placeholderText: qsTr("Enter your answer")
+                        selectByMouse: true
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 28
+
+                        onAccepted: userInputCard.submit()
+                    }
+
+                    Button {
+                        id: submitButton
+                        text: qsTr("Submit")
+                        enabled: answerTextField.text.trim().length > 0
+                        hoverEnabled: true
+                        leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
+                        Layout.preferredWidth: 64; Layout.preferredHeight: 28
+                        contentItem: Label {
+                            text: submitButton.text
+                            color: global.back
+                            font: submitButton.font
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            color: submitButton.down ? global.forePressed : submitButton.hovered ? global.foreHover : global.fore
+                            radius: 6
+                        }
+
+                        onClicked: userInputCard.submit()
+                    }
+                }
+            }
+        }
+
+        Item {
             clip: true
             Layout.fillWidth: true; Layout.preferredHeight: 118
 
@@ -1099,6 +1230,7 @@ Item {
             "conversationComboBox": conversationComboBox,
             "textArea": textArea,
             "messageLabel": messageLabel,
+            "questionLabel": questionLabel,
             "modeButton": modeButton,
             "modelButton": modelButton,
             "micButton": micButton
