@@ -13,7 +13,7 @@ class ContextModule final : public QObject {
 public:
     explicit ContextModule(QObject *parent = nullptr);
 
-    [[nodiscard]] QJsonArray contextBuild(const QList<SqlModule::Message> &history,const QList<SqlModule::Message> &turn) const;
+    [[nodiscard]] QJsonArray contextBuild(int mode, const QList<SqlModule::Message> &history,const QList<SqlModule::Message> &turn) const;
 
 private:
     QString m_system{};

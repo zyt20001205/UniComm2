@@ -23,6 +23,15 @@ class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_PROPERTY(int state READ stateGet WRITE stateSet NOTIFY stateChanged)
 
 public:
+    struct AgentMode {
+        enum {
+            Chat,
+            Read,
+            Write,
+            FullAccess
+        };
+    };
+
     struct AgentState {
         enum {
             Ready,
@@ -70,7 +79,7 @@ public:
 
     Q_INVOKABLE void conversationDelete();
 
-    Q_INVOKABLE void conversationModeSet(const QString &mode);
+    Q_INVOKABLE void conversationModeSet(int mode);
 
     Q_INVOKABLE void conversationModelSet(const QString &model);
 
@@ -94,7 +103,7 @@ private:
 
     struct TurnContext {
         QString id{};
-        QString mode{};
+        int mode{AgentMode::Chat};
         QList<SqlModule::Message> messages{};
         bool planned{false};
         qsizetype toolCount{};

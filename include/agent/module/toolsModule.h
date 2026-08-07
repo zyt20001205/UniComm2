@@ -15,7 +15,7 @@ public:
 
     void initialize();
 
-    [[nodiscard]] QPair<bool, QString> toolCall(const QString &mode, const QString &name, const QString &arguments) const;
+    [[nodiscard]] QPair<bool, QString> toolCall(int mode, const QString &name, const QString &arguments) const;
 
     [[nodiscard]] QString toolTextGet(const QString &name, const QString &arguments) const;
 
@@ -27,7 +27,7 @@ signals:
     void updatePlan(const QJsonObject &plan);
 
 private:
-    [[nodiscard]] bool permissionGet(const QString &mode, const QString &name) const;
+    [[nodiscard]] bool permissionGet(int mode, const QString &name) const;
 
     QHash<QString, int> m_portTypes{};
     QSet<QString> m_writeGroup{};

@@ -5,6 +5,7 @@
 #include <limits>
 
 #include "globals.h"
+#include "agent/agentModule.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
@@ -545,7 +546,7 @@ void ToolsModule::initialize() {
     emit registerTools("UniComm", tools);
 }
 
-QPair<bool, QString> ToolsModule::toolCall(const QString &mode, const QString &name, const QString &arguments) const {
+QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, const QString &arguments) const {
     return {permissionGet(mode, name), toolTextGet(name, arguments)};
 }
 
@@ -787,8 +788,12 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
     return chatText.isEmpty() ? name : chatText;
 }
 
-bool ToolsModule::permissionGet(const QString &mode, const QString &name) const {
-    if (mode == "read") return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
-    if (mode == "write") return !m_fullAccessGroup.contains(name);
-    return true;
+bool ToolsModule::permissionGet(const int mode, const QString &name) const {
+    switch (mode) {
+        case AgentModule::AgentMode::Chat: return false;
+        case AgentModule::AgentMode::Read: return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
+        case AgentModule::AgentMode::Write: return !m_fullAccessGroup.contains(name);
+        case AgentModule::AgentMode::FullAccess: return true;
+        default: return false;
+    }
 }

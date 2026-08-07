@@ -50,7 +50,7 @@ QList<SqlModule::Conversation> SqlModule::conversationsGet() const {
         conversations.append(Conversation{
             .id = query.value(0).toString(),
             .title = query.value(1).toString(),
-            .mode = query.value(2).toString(),
+            .mode = query.value(2).toInt(),
             .model = query.value(3).toString(),
             .createdAt = query.value(4).toLongLong(),
             .updatedAt = query.value(5).toLongLong()
@@ -75,7 +75,7 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
     const Conversation conversation{
         .id = query.value(0).toString(),
         .title = query.value(1).toString(),
-        .mode = query.value(2).toString(),
+        .mode = query.value(2).toInt(),
         .model = query.value(3).toString(),
         .createdAt = query.value(4).toLongLong(),
         .updatedAt = query.value(5).toLongLong()
@@ -162,7 +162,7 @@ void SqlModule::conversationDelete(const QString &id) const {
     qDebug() << "agent database conversation delete failed:" << query.lastError().text();
 }
 
-void SqlModule::conversationModeSet(const QString &id, const QString &mode) const {
+void SqlModule::conversationModeSet(const QString &id, const int mode) const {
     auto database = QSqlDatabase::database(m_connectionName, false);
     if (!database.isOpen()) return;
 
@@ -308,7 +308,7 @@ bool SqlModule::initialize() const {
             CREATE TABLE IF NOT EXISTS conversations (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
-                mode TEXT,
+                mode INTEGER,
                 model TEXT,
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL
@@ -361,7 +361,7 @@ bool SqlModule::initialize() const {
         )",
         "CREATE INDEX IF NOT EXISTS conversations_updated_at ON conversations(updated_at DESC)",
         "CREATE INDEX IF NOT EXISTS messages_turn_id ON messages(conversation_id, turn_id, sequence)",
-        "PRAGMA user_version = 3"
+        "PRAGMA user_version = 4"
     };
     for (const auto &statement: schema) {
         QSqlQuery query(database);

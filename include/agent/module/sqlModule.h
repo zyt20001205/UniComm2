@@ -14,7 +14,7 @@ public:
     struct Conversation {
         QString id{};
         QString title{};
-        QString mode{};
+        int mode{};
         QString model{};
         qint64 createdAt{};
         qint64 updatedAt{};
@@ -48,7 +48,7 @@ public:
 
     void conversationDelete(const QString &id) const;
 
-    void conversationModeSet(const QString &id, const QString &mode) const;
+    void conversationModeSet(const QString &id, int mode) const;
 
     void conversationModelSet(const QString &id, const QString &model) const;
 

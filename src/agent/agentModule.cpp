@@ -369,7 +369,7 @@ void AgentModule::conversationDelete() {
     conversationsGet();
 }
 
-void AgentModule::conversationModeSet(const QString &mode) {
+void AgentModule::conversationModeSet(const int mode) {
     m_sqlModule->conversationModeSet(m_conversationId, mode);
     conversationsGet();
 }
@@ -419,9 +419,9 @@ void AgentModule::conversationSend() {
 
     QJsonObject body{};
     body["model"] = conversation.model;
-    body["messages"] = m_contextModule->contextBuild(messages, m_turn.messages);
+    body["messages"] = m_contextModule->contextBuild(conversation.mode, messages, m_turn.messages);
     body["stream"] = true;
-    body["tools"] = conversation.mode == "chat" ? QJsonArray{} : toolsList({"Context7"});
+    body["tools"] = conversation.mode == AgentMode::Chat ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
     // TODO: provider judge
     // auto *reply = g_networkAccessManager->post(m_bigmodelProvider->requestGet(), QJsonDocument(body).toJson());
