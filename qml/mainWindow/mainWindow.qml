@@ -483,7 +483,7 @@ Item {
 
                         Label {
                             text: modeItem.modelData.description
-                            color: global.stroke
+                            color: modeItem.index === 3 ? global.warningFore3 : global.stroke
                             elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
