@@ -454,8 +454,6 @@ Item {
                 id: modeItem
                 required property int index
                 required property var modelData
-                checkable: true
-                checked: agentModuleModeMenu.selectedIndex === index
                 leftPadding: 10
                 topPadding: 0; bottomPadding: 0
                 implicitWidth: agentModuleModeMenu.availableWidth
@@ -491,6 +489,13 @@ Item {
                         }
                     }
 
+                    IconImage {
+                        visible: agentModuleModeMenu.selectedIndex === modeItem.index
+                        color: modeItem.index === 3 ? global.warningFore3 : global.fore
+                        source: "qrc:/icon/checkmark.svg"
+                        sourceSize.width: 16; sourceSize.height: 16
+                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    }
                 }
 
                 onTriggered: agentModule.conversationModeSet(index)
