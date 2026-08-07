@@ -109,7 +109,6 @@ private:
     };
 
     struct TurnContext {
-        // context
         QString id{};
         int mode{AgentMode::Chat};
         QList<SqlModule::Message> messages{};
