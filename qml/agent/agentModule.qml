@@ -596,22 +596,6 @@ Item {
                 spacing: 4
 
                 Button {
-                    id: mcpButton
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    enabled: agentModule.state === 0
-                    flat: true
-                    icon.source: "qrc:/icon/mcp.svg"
-                    icon.width: 16; icon.height: 16
-                    Layout.preferredWidth: 28; Layout.preferredHeight: 28
-
-                    onClicked: {
-                        const globalPos = mcpButton.mapToGlobal(0, mcpButton.height);
-                        const localPos = modeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
-                        mcpMenu.popup(localPos.x, localPos.y)
-                    }
-                }
-
-                Button {
                     id: modeButton
                     property int mode: -1
                     leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0

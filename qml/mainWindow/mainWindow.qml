@@ -380,41 +380,6 @@ Item {
     }
 
     Menu {
-        id: agentModuleMcpMenu
-        property var mcpModel
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        MenuItem {
-            text: qsTr("Add server")
-
-            onTriggered: {
-            }
-        }
-
-        MenuSeparator {
-            visible: agentModuleMcpInstantiator.count > 0
-        }
-
-        Instantiator {
-            id: agentModuleMcpInstantiator
-            model: agentModuleMcpMenu.mcpModel
-            delegate: MenuItem {
-                checkable: true
-                text: model.display
-                // onTriggered: agentModule.conversationModelSet(text)
-            }
-
-            onObjectAdded: (index, object) => agentModuleMcpMenu.addItem(object)
-            onObjectRemoved: (index, object) => agentModuleMcpMenu.removeItem(object)
-        }
-    }
-
-    Menu {
         id: agentModuleModeMenu
         implicitWidth: 400
         property int selectedIndex: -1
@@ -4927,7 +4892,6 @@ Item {
             "mainWindowToolTip": mainWindowToolTip,
 
             "agentModuleRenameDialog": agentModuleRenameDialog,
-            "agentModuleMcpMenu": agentModuleMcpMenu,
             "agentModuleModeMenu": agentModuleModeMenu,
             "agentModuleModelMenu": agentModuleModelMenu,
 

@@ -48,7 +48,6 @@ AgentModule::~AgentModule() {
 
 void AgentModule::propertySet(const QVariantHash &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
-    m_mcpMenu = qvariant_cast<QObject *>(objects["agentModuleMcpMenu"]);
     m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
 
     m_manageWindow->setTitle(tr("Agent Settings"));
@@ -63,7 +62,6 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("renameDialog", objects["agentModuleRenameDialog"]);
     m_widget->rootContext()->setContextProperty("conversationModel", m_conversationModel);
-    m_widget->rootContext()->setContextProperty("mcpMenu", m_mcpMenu);
     m_widget->rootContext()->setContextProperty("modeMenu", m_modeMenu);
     m_widget->rootContext()->setContextProperty("modelMenu", objects["agentModuleModelMenu"]);
 
@@ -72,9 +70,6 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_root = m_widget->rootObject();
 
     // scaffold
-    connect(m_mcpModule, &McpModule::setModel, this, [this](QStandardItemModel *mcpModel) {
-        m_mcpMenu->setProperty("mcpModel", QVariant::fromValue(mcpModel));
-    });
     connect(m_mcpModule, &McpModule::registerTools, this, &AgentModule::toolsRegister);
     m_mcpModule->initialize();
 

@@ -132,7 +132,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"agentModuleRenameDialog", objects["agentModuleRenameDialog"]},
-        {"agentModuleMcpMenu", objects["agentModuleMcpMenu"]},
         {"agentModuleModeMenu", objects["agentModuleModeMenu"]},
         {"agentModuleModelMenu", objects["agentModuleModelMenu"]}
     };

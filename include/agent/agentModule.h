@@ -145,7 +145,6 @@ private:
     QQuickView *m_manageWindow{};
     QObject *m_root{};
     QObject *m_messageDialog{};
-    QObject *m_mcpMenu{};
     QObject *m_modeMenu{};
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};

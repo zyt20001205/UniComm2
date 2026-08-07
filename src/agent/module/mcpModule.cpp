@@ -3,16 +3,12 @@
 #include <QJsonArray>
 #include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QStandardItemModel>
-#include <QUrlQuery>
 
 #include "globals.h"
 
 // public
 McpModule::McpModule(const QJsonObject &mcpConfig, QObject *parent)
-    : QObject(parent),
-      m_mcpConfig(mcpConfig),
-      m_mcpModel(new QStandardItemModel(this)) {
+    : QObject(parent) {
     QNetworkRequest request{};
     for (auto it = mcpConfig.begin(); it != mcpConfig.end(); ++it) {
         const auto name = it.key();
@@ -51,9 +47,6 @@ void McpModule::initialize() {
             if (reply->error() == QNetworkReply::NoError) {
                 const auto sessionId = reply->rawHeader("Mcp-Session-Id");
                 m_requests[name].setRawHeader("Mcp-Session-Id", sessionId);
-                const auto data = reply->readAll();
-                m_mcpModel->appendRow(new QStandardItem(name));
-                emit setModel(m_mcpModel);
                 toolsList(name);
             }
             reply->deleteLater();

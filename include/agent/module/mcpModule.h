@@ -5,8 +5,6 @@
 #include <QObject>
 
 class QNetworkRequest;
-class QStandardItemModel;
-
 class McpModule final : public QObject {
     Q_OBJECT
 
@@ -20,15 +18,11 @@ public:
     [[nodiscard]] QString toolsCall(const QString &owner, const QString &name, const QString &arguments);
 
 signals:
-    void setModel(QStandardItemModel *mcpModel);
-
     void registerTools(const QString &name, const QJsonArray &tools);
 
 private:
     void toolsList(const QString &name);
 
-    QJsonObject m_mcpConfig{};
-    QStandardItemModel *m_mcpModel{};
     QHash<QString, QNetworkRequest> m_requests{};
     int m_id = 0;
 };
