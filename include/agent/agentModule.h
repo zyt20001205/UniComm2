@@ -80,7 +80,7 @@ public:
 
     Q_INVOKABLE void conversationModeSet(int mode);
 
-    Q_INVOKABLE void conversationModelSet(const QString &model);
+    Q_INVOKABLE void conversationModelSet(const QString &id) const;
 
     qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
 
@@ -133,6 +133,8 @@ private:
     void chatReasoningAppend(const QString &messageId, const QString &text) const;
 
     void chatFinish(const QString &messageId) const;
+
+    void modelUpdate(const QString &id) const;
 
     void toolsRegister(const QString &name, const QJsonArray &tools);
 

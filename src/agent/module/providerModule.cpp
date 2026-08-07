@@ -33,6 +33,7 @@ void ProviderModule::propertySet(const QVariantHash &objects) {
     });
     connect(m_deepseekProvider, &DeepseekProvider::setModel, this, [this](QStandardItemModel *model) {
         m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(model));
+        emit modelsChanged();
     });
 }
 

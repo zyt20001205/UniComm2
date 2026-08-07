@@ -26,6 +26,9 @@ public:
 
     [[nodiscard]] BaseProvider *providerGet(const QString &id) const;
 
+signals:
+    void modelsChanged();
+
 private:
     QObject *m_modelMenu{};
     QJsonObject m_catalog{};

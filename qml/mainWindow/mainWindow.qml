@@ -578,7 +578,6 @@ Item {
                 delegate: MenuItem {
                     text: model.display
                     onTriggered: agentModule.conversationModelSet(model.id)
-                    Component.onCompleted: console.log(model.display, model.id, model.contextWindow, model.maxOutputTokens)
                 }
 
                 onObjectAdded: (index, object) => agentModuleDeepseekMenu.addItem(object)
