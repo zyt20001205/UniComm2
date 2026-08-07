@@ -697,22 +697,66 @@ Item {
                     Layout.fillWidth: true
                 }
 
-                Label {
+                Flipable {
                     id: usageLabel
                     property double currentUsage: 0
                     property double promptTokens: 0
                     property double completionTokens: 0
                     property double cacheHitTokens: 0
                     property double reasoningTokens: 0
+                    property string frontText
+                    property string backText
                     visible: currentUsage > 0
-                    text: qsTr("%1 tokens").arg(currentUsage >= 1000000 ?
-                                                     (currentUsage / 1000000).toFixed(1) + "M" :
-                                                     currentUsage >= 1000 ?
-                                                         (currentUsage / 1000).toFixed(1) + "k" : currentUsage)
-                    color: global.stroke
-                    verticalAlignment: Text.AlignVCenter
                     Layout.leftMargin: 4; Layout.rightMargin: 4
+                    Layout.preferredWidth: Math.max(usageFrontLabel.implicitWidth, usageBackLabel.implicitWidth)
                     Layout.preferredHeight: 28
+
+                    front: Label {
+                        id: usageFrontLabel
+                        anchors.fill: parent
+                        text: usageLabel.frontText
+                        color: global.stroke
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    back: Label {
+                        id: usageBackLabel
+                        anchors.fill: parent
+                        text: usageLabel.backText
+                        color: global.stroke
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+
+                        transform: Rotation {
+                            origin.x: usageBackLabel.width / 2
+                            origin.y: usageBackLabel.height / 2
+                            axis.x: 1; axis.y: 0; axis.z: 0
+                            angle: 180
+                        }
+                    }
+
+                    transform: Rotation {
+                        id: usageRotation
+                        origin.x: usageLabel.width / 2
+                        origin.y: usageLabel.height / 2
+                        axis.x: 1; axis.y: 0; axis.z: 0
+                        angle: 0
+                    }
+
+                    NumberAnimation {
+                        id: usageFlipAnimation
+                        target: usageRotation
+                        property: "angle"
+                        from: 0; to: -180
+                        duration: 200
+                        easing.type: Easing.InOutCubic
+
+                        onFinished: {
+                            usageLabel.frontText = usageLabel.backText
+                            usageRotation.angle = 0
+                        }
+                    }
 
                     HoverHandler {
                         onHoveredChanged: {
@@ -1021,7 +1065,28 @@ Item {
     }
 
     function usageUpdate(usage) {
-        usageLabel.currentUsage = usage.currentUsage || 0
+        const currentUsage = usage.currentUsage || 0
+        const value = currentUsage >= 1000000 ?
+                          (currentUsage / 1000000).toFixed(1) + "M" :
+                          currentUsage >= 1000 ?
+                              (currentUsage / 1000).toFixed(1) + "k" : currentUsage
+        const text = qsTr("%1 tokens").arg(value)
+
+        if (currentUsage === 0) {
+            usageFlipAnimation.stop()
+            usageRotation.angle = 0
+            usageLabel.frontText = ""
+            usageLabel.backText = ""
+        } else if (usageLabel.frontText.length === 0) {
+            usageLabel.frontText = text
+            usageLabel.backText = text
+        } else if (usageLabel.frontText !== text) {
+            if (usageFlipAnimation.running) usageFlipAnimation.complete()
+            usageLabel.backText = text
+            usageFlipAnimation.restart()
+        }
+
+        usageLabel.currentUsage = currentUsage
         usageLabel.promptTokens = usage.promptTokens || 0
         usageLabel.completionTokens = usage.completionTokens || 0
         usageLabel.cacheHitTokens = usage.cacheHitTokens || 0
