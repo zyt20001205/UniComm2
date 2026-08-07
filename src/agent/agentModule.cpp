@@ -287,7 +287,8 @@ void AgentModule::conversationsGet() {
 
     if (m_conversationComboBox == nullptr || m_modeButton == nullptr || m_modelButton == nullptr) return;
     m_conversationComboBox->setProperty("currentIndex", currentIndex);
-    m_modeButton->setProperty("text", currentConversation.mode);
+    m_modeButton->setProperty("mode", currentConversation.id.isEmpty() ? -1 : currentConversation.mode);
+    m_modeMenu->setProperty("selectedIndex", currentConversation.id.isEmpty() ? -1 : currentConversation.mode);
     m_modelButton->setProperty("text", currentConversation.model);
 }
 
@@ -297,7 +298,8 @@ void AgentModule::conversationGet(const QString &id) {
     const auto [conversation, messages] = m_sqlModule->conversationGet(id);
     if (conversation.id.isEmpty()) {
         m_conversationId.clear();
-        m_modeButton->setProperty("text", "");
+        m_modeButton->setProperty("mode", -1);
+        m_modeMenu->setProperty("selectedIndex", -1);
         m_modelButton->setProperty("text", "");
         return;
     }
@@ -340,7 +342,8 @@ void AgentModule::conversationGet(const QString &id) {
         }
     }
     if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
-    m_modeButton->setProperty("text", conversation.mode);
+    m_modeButton->setProperty("mode", conversation.mode);
+    m_modeMenu->setProperty("selectedIndex", conversation.mode);
     m_modelButton->setProperty("text", conversation.model);
     QMetaObject::invokeMethod(m_root, "followToTail", Qt::QueuedConnection);
 }

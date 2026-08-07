@@ -416,6 +416,30 @@ Item {
 
     Menu {
         id: agentModuleModeMenu
+        implicitWidth: 400
+        property int selectedIndex: -1
+        readonly property var modes: [
+            {
+                "title": qsTr("Chat"),
+                "description": qsTr("Answer questions without tool access."),
+                "icon": "qrc:/icon/chat.svg"
+            },
+            {
+                "title": qsTr("Read"),
+                "description": qsTr("Inspect the workspace without making changes."),
+                "icon": "qrc:/icon/eye.svg"
+            },
+            {
+                "title": qsTr("Write"),
+                "description": qsTr("Inspect and modify workspace data."),
+                "icon": "qrc:/icon/edit.svg"
+            },
+            {
+                "title": qsTr("Full access"),
+                "description": qsTr("Run programs and use every available tool."),
+                "icon": "qrc:/icon/lockOpen.svg"
+            }
+        ]
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -423,28 +447,57 @@ Item {
         }
         onClosed: widgetCount -= 1
 
-        MenuItem {
-            text: "chat"
+        Instantiator {
+            model: agentModuleModeMenu.modes
 
-            onTriggered: agentModule.conversationModeSet(text)
-        }
+            delegate: MenuItem {
+                id: modeItem
+                required property int index
+                required property var modelData
+                checkable: true
+                checked: agentModuleModeMenu.selectedIndex === index
+                leftPadding: 10
+                topPadding: 0; bottomPadding: 0
+                implicitWidth: agentModuleModeMenu.availableWidth
+                implicitHeight: 58
 
-        MenuSeparator {
-        }
+                contentItem: RowLayout {
+                    spacing: 10
 
-        MenuItem {
-            text: "read"
-            onTriggered: agentModule.conversationModeSet(text)
-        }
+                    IconImage {
+                        color: modeItem.index === 3 ? global.warningFore3 : global.fore
+                        source: modeItem.modelData.icon
+                        sourceSize.width: 18; sourceSize.height: 18
+                        Layout.preferredWidth: 20; Layout.preferredHeight: 20
+                    }
 
-        MenuItem {
-            text: "write"
-            onTriggered: agentModule.conversationModeSet(text)
-        }
+                    ColumnLayout {
+                        spacing: 2
+                        Layout.fillWidth: true
 
-        MenuItem {
-            text: "full-access"
-            onTriggered: agentModule.conversationModeSet(text)
+                        Label {
+                            text: modeItem.modelData.title
+                            color: modeItem.index === 3 ? global.warningFore3 : global.fore
+                            font.bold: true
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: modeItem.modelData.description
+                            color: global.stroke
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                }
+
+                onTriggered: agentModule.conversationModeSet(index)
+            }
+
+            onObjectAdded: (index, object) => agentModuleModeMenu.addItem(object)
+            onObjectRemoved: (index, object) => agentModuleModeMenu.removeItem(object)
         }
     }
 

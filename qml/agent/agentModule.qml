@@ -510,147 +510,199 @@ Item {
             }
         }
 
-        ScrollView {
-            Layout.fillWidth: true; Layout.preferredHeight: 100
+        Item {
+            clip: true
+            Layout.fillWidth: true; Layout.preferredHeight: 118
 
-            ScrollBar.vertical: ScrollBar {
-                x: parent.mirrored ? 0 : parent.width - width
-                y: parent.topPadding
-                height: parent.availableHeight
-                active: parent.ScrollBar.horizontal.active
-                policy: ScrollBar.AsNeeded
-                palette {
-                    mid: global.stroke
-                    dark: global.strokePressed
-                }
+            Rectangle {
+                anchors.fill: parent
+                color: global.backSelected
+                border.color: global.stroke
+                border.width: 1
+                radius: 6
             }
 
-            ScrollBar.horizontal: ScrollBar {
-                x: parent.leftPadding
-                y: parent.height - height
-                width: parent.availableWidth
-                active: parent.ScrollBar.vertical.active
-                policy: ScrollBar.AsNeeded
-                palette {
-                    mid: global.stroke
-                    dark: global.strokePressed
+            ScrollView {
+                anchors.fill: parent
+                bottomPadding: 42
+
+                ScrollBar.vertical: ScrollBar {
+                    x: parent.mirrored ? 0 : parent.width - width
+                    y: parent.topPadding
+                    height: parent.availableHeight
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
                 }
-            }
 
-            TextArea {
-                id: textArea
-                textFormat: TextEdit.PlainText
-                verticalAlignment: TextEdit.AlignTop
-                wrapMode: TextEdit.Wrap
-                ContextMenu.menu: null
+                TextArea {
+                    id: textArea
+                    padding: 10
+                    placeholderText: qsTr("Ask a question or describe a task")
+                    textFormat: TextEdit.PlainText
+                    verticalAlignment: TextEdit.AlignTop
+                    wrapMode: TextEdit.Wrap
+                    background: null
+                    ContextMenu.menu: null
 
-                Keys.onPressed: (event) => {
-                    if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
-                        if (textArea.text.trim().length > 0) {
-                            agentModule.state = 4
+                    Keys.onPressed: (event) => {
+                        if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
+                            if (textArea.text.trim().length > 0) {
+                                agentModule.state = 4
+                            }
+                            event.accepted = true
                         }
-                        event.accepted = true
                     }
                 }
             }
-        }
 
-        RowLayout {
-            Layout.fillWidth: true; Layout.preferredHeight: 24
+            RowLayout {
+                anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+                anchors.leftMargin: 7; anchors.rightMargin: 7; anchors.bottomMargin: 7
+                spacing: 4
 
-            Button {
-                id: mcpButton
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: agentModule.state === 0
-                flat: true
-                icon.source: "qrc:/icon/mcp.svg"
-                icon.width: 16; icon.height: 16
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                Button {
+                    id: mcpButton
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    enabled: agentModule.state === 0
+                    flat: true
+                    icon.source: "qrc:/icon/mcp.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 28; Layout.preferredHeight: 28
 
-                onClicked: {
-                    const globalPos = mcpButton.mapToGlobal(0, mcpButton.height);
-                    const localPos = modeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
-                    mcpMenu.popup(localPos.x, localPos.y)
-                }
-            }
-
-            Button {
-                id: modeButton
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: agentModule.state === 0
-                Layout.preferredWidth: modeButtonTextMetrics.width + 8; Layout.preferredHeight: 20
-
-                onClicked: {
-                    const globalPos = modeButton.mapToGlobal(0, modeButton.height);
-                    const localPos = modeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
-                    modeMenu.popup(localPos.x, localPos.y)
-                }
-
-                TextMetrics {
-                    id: modeButtonTextMetrics
-                    text: modeButton.text
-                    font: modeButton.font
-                }
-            }
-
-            Button {
-                id: modelButton
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: agentModule.state === 0
-                Layout.preferredWidth: modelButtonTextMetrics.width + 8; Layout.preferredHeight: 20
-
-                onClicked: {
-                    const globalPos = modelButton.mapToGlobal(0, modelButton.height);
-                    const localPos = modelMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
-                    modelMenu.popup(localPos.x, localPos.y)
-                }
-
-                TextMetrics {
-                    id: modelButtonTextMetrics
-                    text: modelButton.text
-                    font: modelButton.font
-                }
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            Button {
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: agentModule.state === 0 && chatColumn.children.length > 0
-                flat: true
-                icon.source: "qrc:/icon/undo.svg"
-                icon.width: 16; icon.height: 16
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                onClicked: agentModule.conversationRollback()
-            }
-
-            Button {
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                enabled: agentModule.state !== 0 || textArea.text.trim().length > 0
-                flat: true
-                icon.source: agentModule.state === 0 ? "qrc:/icon/send.svg" : "qrc:/icon/stop.svg"
-                icon.width: 16; icon.height: 16
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                onClicked: agentModule.state === 0 ? agentModule.state = 4 : agentModule.state = 5
-            }
-
-            Button {
-                id: micButton
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                checkable: true
-                flat: true
-                icon.source: "qrc:/icon/mic.svg"
-                icon.width: 16; icon.height: 16
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                onClicked: {
-                    if (checked) {
-                        agentModule.state = 0
+                    onClicked: {
+                        const globalPos = mcpButton.mapToGlobal(0, mcpButton.height);
+                        const localPos = modeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                        mcpMenu.popup(localPos.x, localPos.y)
                     }
+                }
+
+                Button {
+                    id: modeButton
+                    property int mode: -1
+                    leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
+                    enabled: agentModule.state === 0 && mode >= 0
+                    hoverEnabled: true
+                    Layout.preferredWidth: modeButtonContent.implicitWidth + leftPadding + rightPadding
+                    Layout.preferredHeight: 28
+
+                    contentItem: RowLayout {
+                        id: modeButtonContent
+                        spacing: 5
+
+                        IconImage {
+                            color: modeButton.mode === 3 ? global.warningFore3 : global.fore
+                            source: modeButton.mode === 0 ? "qrc:/icon/chat.svg" :
+                                    modeButton.mode === 1 ? "qrc:/icon/eye.svg" :
+                                    modeButton.mode === 2 ? "qrc:/icon/edit.svg" :
+                                    modeButton.mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
+                            sourceSize.width: 16; sourceSize.height: 16
+                            Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                        }
+
+                        Label {
+                            text: modeButton.mode === 0 ? qsTr("Chat") :
+                                  modeButton.mode === 1 ? qsTr("Read") :
+                                  modeButton.mode === 2 ? qsTr("Write") :
+                                  modeButton.mode === 3 ? qsTr("Full access") : ""
+                            color: modeButton.mode === 3 ? global.warningFore3 : global.fore
+                        }
+
+                    }
+
+                    background: Rectangle {
+                        color: modeButton.down ? global.backPressed : modeButton.hovered ? global.backHover : "transparent"
+                        radius: 6
+                    }
+
+                    onClicked: {
+                        const globalPos = modeButton.mapToGlobal(0, -modeMenu.implicitHeight - 4);
+                        const localPos = modeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                        modeMenu.popup(localPos.x, localPos.y)
+                    }
+                }
+
+                Button {
+                    id: modelButton
+                    leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
+                    enabled: agentModule.state === 0
+                    hoverEnabled: true
+                    Layout.preferredWidth: modelButtonContent.implicitWidth + leftPadding + rightPadding
+                    Layout.preferredHeight: 28
+
+                    contentItem: RowLayout {
+                        id: modelButtonContent
+                        spacing: 5
+
+                        Label {
+                            text: modelButton.text
+                            color: global.fore
+                        }
+
+                        IconImage {
+                            color: global.fore
+                            source: "qrc:/icon/arrowDown.svg"
+                            sourceSize.width: 12; sourceSize.height: 12
+                            Layout.preferredWidth: 12; Layout.preferredHeight: 12
+                        }
+                    }
+
+                    background: Rectangle {
+                        color: modelButton.down ? global.backPressed : modelButton.hovered ? global.backHover : "transparent"
+                        radius: 6
+                    }
+
+                    onClicked: {
+                        const globalPos = modelButton.mapToGlobal(0, modelButton.height);
+                        const localPos = modelMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                        modelMenu.popup(localPos.x, localPos.y)
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    enabled: agentModule.state === 0 && chatColumn.children.length > 0
+                    flat: true
+                    icon.source: "qrc:/icon/undo.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 28; Layout.preferredHeight: 28
+
+                    onClicked: agentModule.conversationRollback()
+                }
+
+                Button {
+                    id: micButton
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    checkable: true
+                    flat: true
+                    icon.source: "qrc:/icon/mic.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 28; Layout.preferredHeight: 28
+
+                    onClicked: {
+                        if (checked) {
+                            agentModule.state = 0
+                        }
+                    }
+                }
+
+                Button {
+                    id: sendButton
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    enabled: agentModule.state !== 0 || textArea.text.trim().length > 0
+                    hoverEnabled: true
+                    icon.source: agentModule.state === 0 ? "qrc:/icon/send.svg" : "qrc:/icon/stop.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 28; Layout.preferredHeight: 28
+
+
+                    onClicked: agentModule.state === 0 ? agentModule.state = 4 : agentModule.state = 5
                 }
             }
         }
