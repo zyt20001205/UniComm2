@@ -101,14 +101,25 @@ private:
         bool approved{false};
     };
 
+    struct TokenUsage {
+        qint64 promptTokens{};
+        qint64 completionTokens{};
+        qint64 cacheHitTokens{};
+        qint64 reasoningTokens{};
+    };
+
     struct TurnContext {
+        // context
         QString id{};
         int mode{AgentMode::Chat};
         QList<SqlModule::Message> messages{};
+        TokenUsage usage{};
+        qint64 currentUsage{};
+        // tool
         bool planned{false};
         qsizetype toolCount{};
         QList<ToolCall> toolCalls{};
-        qsizetype currentIndex{};
+        qsizetype currentTool{};
     };
 
     void conversationSend();

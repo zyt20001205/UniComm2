@@ -206,7 +206,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::ToolCall: {
-            auto &toolCall = m_turn.toolCalls[m_turn.currentIndex];
+            auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
             const auto owner = m_owner.value(toolCall.name);
             if (owner == "UniComm") {
                 const auto &message = m_turn.messages.at(toolCall.messageIndex);
@@ -234,7 +234,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::ToolExec: {
-            auto &toolCall = m_turn.toolCalls[m_turn.currentIndex];
+            auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
             auto &message = m_turn.messages[toolCall.messageIndex];
             if (!toolCall.approved) {
                 message.content = "User denied permission to execute this tool.";
@@ -248,8 +248,8 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             }
             message.approved = toolCall.approved;
             message.createdAt = QDateTime::currentMSecsSinceEpoch();
-            ++m_turn.currentIndex;
-            stateSet(m_turn.currentIndex < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
+            ++m_turn.currentTool;
+            stateSet(m_turn.currentTool < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
         }
         break;
         case AgentState::Speak: {
@@ -409,7 +409,7 @@ void AgentModule::conversationRollback() {
 }
 
 void AgentModule::permissionSet(const bool status) {
-    auto &toolCall = m_turn.toolCalls[m_turn.currentIndex];
+    auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
     const auto &message = m_turn.messages.at(toolCall.messageIndex);
     toolCall.approved = status;
     if (toolCall.name != "plan_update") chatAppend(message.id, status ? " ✓" : " ✗");
