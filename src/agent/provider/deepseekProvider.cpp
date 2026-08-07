@@ -65,7 +65,7 @@ void DeepseekProvider::modelsGet() {
                 const auto model = modelGet(id);
                 m_models.append(model);
 
-                auto *item = new QStandardItem(model.id); // NOLINT
+                auto *item = new QStandardItem(model.name); // NOLINT
                 item->setData(model.id, ProviderModel::IdRole);
                 item->setData(model.contextWindow, ProviderModel::ContextWindowRole);
                 item->setData(model.maxOutputTokens, ProviderModel::MaxOutputTokensRole);
@@ -82,6 +82,7 @@ BaseProvider::Model DeepseekProvider::modelGet(const QString &id) const {
     const auto limit = object.value("limit").toObject();
     return Model{
         .id = id,
+        .name = object.value("name").toString(id),
         .contextWindow = limit.value("context").toInteger(),
         .maxOutputTokens = limit.value("output").toInteger()
     };

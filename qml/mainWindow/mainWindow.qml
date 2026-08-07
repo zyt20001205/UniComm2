@@ -544,7 +544,7 @@ Item {
                 model: agentModuleModelMenu.bigmodelModel
                 delegate: MenuItem {
                     text: model.display
-                    onTriggered: agentModule.conversationModelSet(text)
+                    onTriggered: agentModule.conversationModelSet(model.id)
                 }
 
                 onObjectAdded: (index, object) => agentModuleBigmodelMenu.addItem(object)
@@ -577,8 +577,8 @@ Item {
                 model: agentModuleModelMenu.deepseekModel
                 delegate: MenuItem {
                     text: model.display
-                    onTriggered: agentModule.conversationModelSet(text)
-                    Component.onCompleted: console.log(model.id, model.contextWindow, model.maxOutputTokens)
+                    onTriggered: agentModule.conversationModelSet(model.id)
+                    Component.onCompleted: console.log(model.display, model.id, model.contextWindow, model.maxOutputTokens)
                 }
 
                 onObjectAdded: (index, object) => agentModuleDeepseekMenu.addItem(object)

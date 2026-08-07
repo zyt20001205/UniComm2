@@ -62,10 +62,13 @@ void BigmodelProvider::modelsGet() {
             const auto models = doc.object().value("data").toArray();
             for (const auto &value: models) {
                 const auto id = value.toObject().value("id").toString();
-                const auto model = Model{.id = id};
+                const auto model = Model{
+                    .id = id,
+                    .name = id
+                };
                 m_models.append(model);
 
-                auto *item = new QStandardItem(model.id); // NOLINT
+                auto *item = new QStandardItem(model.name); // NOLINT
                 item->setData(model.id, ProviderModel::IdRole);
                 item->setData(model.contextWindow, ProviderModel::ContextWindowRole);
                 item->setData(model.maxOutputTokens, ProviderModel::MaxOutputTokensRole);

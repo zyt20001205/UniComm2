@@ -15,6 +15,7 @@ class BaseProvider : public QObject {
 public:
     struct Model {
         QString id{};
+        QString name{};
         qint64 contextWindow{};
         qint64 maxOutputTokens{};
     };

@@ -275,7 +275,8 @@ void AgentModule::conversationsGet() {
     m_conversationComboBox->setProperty("currentIndex", currentIndex);
     m_modeButton->setProperty("mode", currentConversation.id.isEmpty() ? -1 : currentConversation.mode);
     m_modeMenu->setProperty("selectedIndex", currentConversation.id.isEmpty() ? -1 : currentConversation.mode);
-    m_modelButton->setProperty("text", currentConversation.model);
+    const auto model = m_providerModule->providerGet("deepseek")->modelGet(currentConversation.model);
+    m_modelButton->setProperty("text", model.name);
 }
 
 void AgentModule::conversationGet(const QString &id) {
@@ -330,7 +331,8 @@ void AgentModule::conversationGet(const QString &id) {
     if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
     m_modeButton->setProperty("mode", conversation.mode);
     m_modeMenu->setProperty("selectedIndex", conversation.mode);
-    m_modelButton->setProperty("text", conversation.model);
+    const auto model = m_providerModule->providerGet("deepseek")->modelGet(conversation.model);
+    m_modelButton->setProperty("text", model.name);
     QMetaObject::invokeMethod(m_root, "followToTail", Qt::QueuedConnection);
 }
 
