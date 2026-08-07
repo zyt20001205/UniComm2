@@ -780,80 +780,10 @@ Item {
                     }
 
                     Label {
-                        text: " / " + usageLayout.formatTokens(usageLayout.contextWindow) + " · "
+                        text: " / " + usageLayout.formatTokens(usageLayout.contextWindow)
                         color: global.stroke
                         verticalAlignment: Text.AlignVCenter
                         Layout.preferredHeight: 28
-                    }
-
-                    Flipable {
-                        id: hitRateLabel
-                        property string frontText
-                        property string backText
-                        Layout.preferredWidth: Math.max(hitRateFrontLabel.implicitWidth, hitRateBackLabel.implicitWidth)
-                        Layout.preferredHeight: 28
-
-                        function updateText(text) {
-                            if (hitRateFlipAnimation.running) hitRateFlipAnimation.complete()
-                            if (text.length === 0) {
-                                hitRateRotation.angle = 0
-                                frontText = ""
-                                backText = ""
-                            } else if (frontText.length === 0) {
-                                frontText = text
-                                backText = text
-                            } else if (frontText !== text) {
-                                backText = text
-                                hitRateFlipAnimation.restart()
-                            }
-                        }
-
-                        front: Label {
-                            id: hitRateFrontLabel
-                            anchors.fill: parent
-                            text: hitRateLabel.frontText
-                            color: global.stroke
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        back: Label {
-                            id: hitRateBackLabel
-                            anchors.fill: parent
-                            text: hitRateLabel.backText
-                            color: global.stroke
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-
-                            transform: Rotation {
-                                origin.x: hitRateBackLabel.width / 2
-                                origin.y: hitRateBackLabel.height / 2
-                                axis.x: 1; axis.y: 0; axis.z: 0
-                                angle: 180
-                            }
-                        }
-
-                        transform: Rotation {
-                            id: hitRateRotation
-                            origin.x: hitRateLabel.width / 2
-                            origin.y: hitRateLabel.height / 2
-                            axis.x: 1; axis.y: 0; axis.z: 0
-                            angle: 0
-                        }
-
-                        NumberAnimation {
-                            id: hitRateFlipAnimation
-                            target: hitRateRotation
-                            property: "angle"
-                            from: 0; to: -180
-                            duration: 200
-                            easing.type: Easing.InOutCubic
-
-                            onFinished: {
-                                hitRateLabel.frontText = hitRateLabel.backText
-                                hitRateRotation.angle = 0
-                            }
-                        }
                     }
 
                     HoverHandler {
@@ -1169,7 +1099,6 @@ Item {
         const promptTokens = usage.promptTokens || 0
         const cacheHitTokens = usage.cacheHitTokens || 0
         contextLabel.updateText(currentUsage > 0 ? usageLayout.formatTokens(currentUsage) : "")
-        hitRateLabel.updateText(currentUsage > 0 ? (promptTokens > 0 ? cacheHitTokens / promptTokens * 100 : 0).toFixed(1) + "%" : "")
         usageLayout.currentUsage = currentUsage
         usageLayout.promptTokens = promptTokens
         usageLayout.completionTokens = usage.completionTokens || 0
