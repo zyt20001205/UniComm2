@@ -416,6 +416,7 @@ Item {
         }
 
         Item {
+            id: permissionCard
             visible: agentModule.state === 9
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? permissionLayout.implicitHeight + 20 : 0
@@ -426,6 +427,36 @@ Item {
                 border.color: global.stroke
                 border.width: 1
                 radius: 6
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: global.fore
+                border.width: 1
+                radius: 6
+                opacity: 0.2
+
+                SequentialAnimation on opacity {
+                    running: permissionCard.visible
+                    loops: Animation.Infinite
+
+                    NumberAnimation {
+                        from: 0.2; to: 0.8
+                        duration: 450
+                        easing.type: Easing.InOutSine
+                    }
+
+                    NumberAnimation {
+                        from: 0.8; to: 0.2
+                        duration: 850
+                        easing.type: Easing.InOutSine
+                    }
+
+                    PauseAnimation {
+                        duration: 250
+                    }
+                }
             }
 
             ColumnLayout {
@@ -540,6 +571,7 @@ Item {
                 TextArea {
                     id: textArea
                     padding: 10
+                    topPadding: 12
                     placeholderText: qsTr("Ask a question or describe a task")
                     textFormat: TextEdit.PlainText
                     verticalAlignment: TextEdit.AlignTop
