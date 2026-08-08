@@ -198,7 +198,7 @@ void ToolsModule::initialize() {
                     {"name", "request_user_input"},
                     {
                         "description",
-                        "Ask the user one concise question only when the missing information cannot be discovered with tools and choosing incorrectly would materially affect the result. Investigate first and do not ask for information that tools can provide."
+                        "Ask the user one concise question only when the missing information cannot be discovered with tools and choosing incorrectly would materially affect the result. Investigate first and do not ask for information that tools can provide. Offer up to three mutually exclusive suggested answers when useful."
                     },
                     {
                         "parameters", QJsonObject{
@@ -210,10 +210,38 @@ void ToolsModule::initialize() {
                                             {"type", "string"},
                                             {"description", "The concise question to show the user."}
                                         }
+                                    },
+                                    {
+                                        "options", QJsonObject{
+                                            {"type", "array"},
+                                            {"description", "Zero to three mutually exclusive suggested answers, with the recommended option first. Use an empty array when the user should provide free-form input."},
+                                            {
+                                                "items", QJsonObject{
+                                                    {"type", "object"},
+                                                    {
+                                                        "properties", QJsonObject{
+                                                            {
+                                                                "label", QJsonObject{
+                                                                    {"type", "string"},
+                                                                    {"description", "The concise answer returned when this option is selected."}
+                                                                }
+                                                            },
+                                                            {
+                                                                "description", QJsonObject{
+                                                                    {"type", "string"},
+                                                                    {"description", "A short explanation of the option's impact or meaning."}
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {"required", QJsonArray{"label", "description"}}
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             },
-                            {"required", QJsonArray{"question"}}
+                            {"required", QJsonArray{"question", "options"}}
                         }
                     }
                 }

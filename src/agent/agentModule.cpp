@@ -99,7 +99,7 @@ void AgentModule::propertyGet(const QVariantMap &objects) {
     m_conversationComboBox = qvariant_cast<QObject *>(objects["conversationComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     m_messageLabel = qvariant_cast<QObject *>(objects["messageLabel"]);
-    m_questionLabel = qvariant_cast<QObject *>(objects["questionLabel"]);
+    m_userInputCard = qvariant_cast<QObject *>(objects["userInputCard"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
     m_micButton = qvariant_cast<QObject *>(objects["micButton"]);
@@ -226,7 +226,11 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
                 break;
             }
             if (userInput) {
-                stateSet(AgentState::UserInput, text);
+                auto input = QJsonDocument::fromJson(toolCall.arguments.toUtf8()).object();
+                auto options = input.value("options").toArray();
+                while (options.size() > 3) options.removeLast();
+                input["options"] = options;
+                stateSet(AgentState::UserInput, input.toVariantMap());
                 break;
             }
             if (showToolMessage) chatAppend(message.id, " ✓");
@@ -238,7 +242,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::UserInput: {
-            m_questionLabel->setProperty("question", payload.toString());
+            m_userInputCard->setProperty("request", payload);
         }
         break;
         case AgentState::ToolExec: {

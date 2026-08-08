@@ -157,7 +157,7 @@ private:
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};
     QObject *m_messageLabel{};
-    QObject *m_questionLabel{};
+    QObject *m_userInputCard{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
     QObject *m_micButton{};

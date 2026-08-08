@@ -515,7 +515,7 @@ Item {
                         id: messageLabel
                         property string message
                         text: message
-                        color: Qt.alpha(global.fore, 0.72)
+                        color: global.fore
                         wrapMode: Text.Wrap
                         Layout.fillWidth: true
                     }
@@ -525,6 +525,7 @@ Item {
 
         Item {
             id: userInputCard
+            property var request: ({"question": "", "options": []})
             visible: agentModule.state === 10
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? userInputLayout.implicitHeight + 20 : 0
@@ -605,13 +606,36 @@ Item {
                 }
 
                 Label {
-                    id: questionLabel
-                    property string question
-                    text: question
-                    color: Qt.alpha(global.fore, 0.72)
+                    text: userInputCard.request.question || ""
+                    color: global.fore
                     wrapMode: Text.Wrap
                     Layout.fillWidth: true
                     Layout.leftMargin: 24
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 24
+                    spacing: 8
+
+                    Repeater {
+                        model: userInputCard.request.options || []
+
+                        delegate: Button {
+                            required property var modelData
+                            text: modelData.description
+                                  ? modelData.label + " — " + modelData.description
+                                  : modelData.label
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 28
+
+                            onClicked: {
+                                answerTextField.text = modelData.label
+                                answerTextField.forceActiveFocus()
+                                answerTextField.selectAll()
+                            }
+                        }
+                    }
                 }
 
                 RowLayout {
@@ -1205,7 +1229,7 @@ Item {
             "conversationComboBox": conversationComboBox,
             "textArea": textArea,
             "messageLabel": messageLabel,
-            "questionLabel": questionLabel,
+            "userInputCard": userInputCard,
             "modeButton": modeButton,
             "modelButton": modelButton,
             "micButton": micButton
