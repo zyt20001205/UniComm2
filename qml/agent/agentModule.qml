@@ -486,15 +486,8 @@ Item {
                     Button {
                         id: denyButton
                         text: qsTr("Deny")
-                        hoverEnabled: true
                         leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
-                        Layout.preferredWidth: 64; Layout.preferredHeight: 28
-                        background: Rectangle {
-                            color: denyButton.down ? global.backPressed : denyButton.hovered ? global.backHover : "transparent"
-                            border.color: global.stroke
-                            border.width: 1
-                            radius: 6
-                        }
+                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
                         onClicked: agentModule.permissionSet(false)
                     }
@@ -502,20 +495,9 @@ Item {
                     Button {
                         id: allowButton
                         text: qsTr("Allow")
-                        hoverEnabled: true
+                        highlighted: true
                         leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
-                        Layout.preferredWidth: 64; Layout.preferredHeight: 28
-                        contentItem: Label {
-                            text: allowButton.text
-                            color: global.back
-                            font: allowButton.font
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            color: allowButton.down ? global.forePressed : allowButton.hovered ? global.foreHover : global.fore
-                            radius: 6
-                        }
+                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
                         onClicked: agentModule.permissionSet(true)
                     }
@@ -650,21 +632,10 @@ Item {
                     Button {
                         id: submitButton
                         text: qsTr("Submit")
+                        highlighted: true
                         enabled: answerTextField.text.trim().length > 0
-                        hoverEnabled: true
                         leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
-                        Layout.preferredWidth: 64; Layout.preferredHeight: 28
-                        contentItem: Label {
-                            text: submitButton.text
-                            color: global.back
-                            font: submitButton.font
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            color: submitButton.down ? global.forePressed : submitButton.hovered ? global.foreHover : global.fore
-                            radius: 6
-                        }
+                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
                         onClicked: userInputCard.submit()
                     }
@@ -731,7 +702,6 @@ Item {
                     property int mode: -1
                     leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0 && mode >= 0
-                    hoverEnabled: true
                     Layout.preferredWidth: modeButtonContent.implicitWidth + leftPadding + rightPadding
                     Layout.preferredHeight: 28
 
@@ -775,7 +745,6 @@ Item {
                     id: modelButton
                     leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0
-                    hoverEnabled: true
                     Layout.preferredWidth: modelButtonContent.implicitWidth + leftPadding + rightPadding
                     Layout.preferredHeight: 28
 
@@ -949,7 +918,6 @@ Item {
                     id: sendButton
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state !== 0 || textArea.text.trim().length > 0
-                    hoverEnabled: true
                     icon.source: agentModule.state === 0 ? "qrc:/icon/send.svg" : "qrc:/icon/stop.svg"
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 28; Layout.preferredHeight: 28
