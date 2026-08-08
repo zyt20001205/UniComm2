@@ -91,6 +91,8 @@ public:
 
     Q_INVOKABLE void userInputSet(const QString &answer);
 
+    Q_INVOKABLE void userInputDisable();
+
 signals:
     void stateChanged();
 
@@ -118,7 +120,7 @@ private:
         qint64 currentUsage{};
         // tool
         bool planned{false};
-        int questionCount{};
+        bool questionsAllowed{true};
         qsizetype toolCount{};
         QList<ToolCall> toolCalls{};
         qsizetype currentTool{};

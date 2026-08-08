@@ -221,12 +221,11 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
                 toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
                 break;
             }
-            if (userInput && m_turn.questionCount >= 3) {
-                toolResultSet("Question limit reached. Continue using the available context and your best judgment.");
+            if (userInput && !m_turn.questionsAllowed) {
+                toolResultSet("Further questions are disabled for this turn. Continue using the available context and your best judgment.");
                 break;
             }
             if (userInput) {
-                ++m_turn.questionCount;
                 stateSet(AgentState::UserInput, text);
                 break;
             }
@@ -423,6 +422,11 @@ void AgentModule::userInputSet(const QString &answer) {
     const auto text = answer.trimmed();
     if (text.isEmpty()) return;
     toolResultSet(text);
+}
+
+void AgentModule::userInputDisable() {
+    m_turn.questionsAllowed = false;
+    toolResultSet("The user chose not to answer and disabled further questions for this turn. Continue using your best judgment.");
 }
 
 // private

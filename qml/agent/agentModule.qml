@@ -486,7 +486,7 @@ Item {
                     Button {
                         id: denyButton
                         text: qsTr("Deny")
-                        leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
                         onClicked: agentModule.permissionSet(false)
@@ -496,7 +496,7 @@ Item {
                         id: allowButton
                         text: qsTr("Allow")
                         highlighted: true
-                        leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
                         onClicked: agentModule.permissionSet(true)
@@ -630,11 +630,18 @@ Item {
                     }
 
                     Button {
-                        id: submitButton
+                        text: qsTr("Don't ask")
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
+
+                        onClicked: agentModule.userInputDisable()
+                    }
+
+                    Button {
                         text: qsTr("Submit")
                         highlighted: true
                         enabled: answerTextField.text.trim().length > 0
-                        leftPadding: 10; rightPadding: 10; topPadding: 0; bottomPadding: 0
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
                         onClicked: userInputCard.submit()
