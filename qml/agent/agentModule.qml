@@ -784,7 +784,7 @@ Item {
                         spacing: 5
 
                         Label {
-                            text: modelButton.text
+                            text: modelButton.text.length > 0 ? modelButton.text : qsTr("Select model")
                             color: global.fore
                         }
                     }

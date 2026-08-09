@@ -81,6 +81,10 @@ public:
 
     [[nodiscard]] int lineGet(Scintilla::Position position) const;
 
+    [[nodiscard]] QString linesGet(int startLine, int lineCount) const;
+
+    void linesSet(const QString &text, int startLine, int lineCount) const;
+
     void marginDefine(int type, const QVariantHash &session) const;
 
     void marginTextSet(int line, const QString &text) const;

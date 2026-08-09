@@ -526,12 +526,6 @@ void ToolsModule::initialize() {
                                         }
                                     },
                                     {
-                                        "text", QJsonObject{
-                                            {"type", "string"},
-                                            {"description", "The replacement text without line-number prefixes. Pass an empty string to clear the target lines."}
-                                        }
-                                    },
-                                    {
                                         "start_line", QJsonObject{
                                             {"type", "integer"},
                                             {
@@ -548,15 +542,31 @@ void ToolsModule::initialize() {
                                                 "The number of existing lines to replace. Pass -1 to replace from start_line to the end of the document."
                                             }
                                         }
+                                    },
+                                    {
+                                        "expected", QJsonObject{
+                                            {"type", "string"},
+                                            {
+                                                "description",
+                                                "The current content of start_line without the line number and | prefix."
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "text", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The replacement text without line-number prefixes. Pass an empty string to clear the target lines."}
+                                        }
                                     }
                                 }
                             },
                             {
                                 "required", QJsonArray{
                                     "document_url",
-                                    "text",
                                     "start_line",
-                                    "line_count"
+                                    "line_count",
+                                    "expected",
+                                    "text"
                                 }
                             }
                         }
@@ -758,11 +768,13 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
         if (!documentInfo.isFile()) return "Line set failed: document does not exist.";
-        const auto text = object.value("text").toString();
         const auto startLine = object.value("start_line").toInt();
         const auto lineCount = object.value("line_count").toInt();
+        const auto expected = object.value("expected").toString();
+        const auto text = object.value("text").toString();
         if (startLine < 0) return {"Line set failed: start_line is out of range."};
         if (lineCount == 0 || lineCount < -1) return {"Line set failed: line_count is out of range."};
+        if (g_document->linesGet(documentUrl, startLine, 1).trimmed() != expected.trimmed()) return {"Line set failed: document changed. Call line_get and retry."};
 
         g_document->linesSet(documentUrl, text, startLine, lineCount);
         return {"Line set finished."};

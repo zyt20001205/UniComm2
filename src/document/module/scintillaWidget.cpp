@@ -208,6 +208,28 @@ int ScintillaWidget::lineGet(const Position position) const {
     return static_cast<int>(send(SCI_LINEFROMPOSITION, position));
 }
 
+QString ScintillaWidget::linesGet(const int startLine, const int lineCount) const {
+    const auto endLine = lineCount == -1 ? lineCountGet() - 1 : startLine + lineCount - 1;
+    auto text = textGet(startLine, 0, endLine, -1);
+    text.replace("\r\n", "\n");
+    text.replace('\r', '\n');
+    return text;
+}
+
+void ScintillaWidget::linesSet(const QString &text, const int startLine, const int lineCount) const {
+    const auto editorLineCount = lineCountGet();
+    if (startLine >= editorLineCount) return;
+
+    const auto endLine = lineCount == -1 ? editorLineCount : qMin(startLine + lineCount, editorLineCount);
+    auto replacement = text;
+    if (!replacement.isEmpty() && endLine < editorLineCount && !replacement.endsWith('\n') && !replacement.endsWith('\r')) replacement.append('\n');
+
+    const auto eolMode = eolModeGet();
+    if (endLine < editorLineCount) textSet(replacement, startLine, 0, endLine, 0);
+    else textSet(replacement, startLine, 0, editorLineCount - 1, -1);
+    eolModeSet(eolMode);
+}
+
 // public: margin
 void ScintillaWidget::marginDefine(const int type, const QVariantHash &session) const {
     if (session.contains("type")) send(SCI_SETMARGINTYPEN, type, session["type"].toInt()); // NOLINT
