@@ -417,7 +417,7 @@ Item {
 
         Item {
             id: permissionCard
-            visible: agentModule.state === 9
+            visible: agentModule.state === 11
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? permissionLayout.implicitHeight + 20 : 0
 
@@ -526,7 +526,7 @@ Item {
         Item {
             id: userInputCard
             property var request: ({"question": "", "options": []})
-            visible: agentModule.state === 10
+            visible: agentModule.state === 12
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? userInputLayout.implicitHeight + 20 : 0
 
@@ -964,7 +964,7 @@ Item {
                     Layout.preferredWidth: 28; Layout.preferredHeight: 28
 
 
-                    onClicked: agentModule.state === 0 ? agentModule.state = 4 : agentModule.state = 5
+                    onClicked: agentModule.state === 0 ? agentModule.state = 4 : agentModule.state = 7
                 }
             }
         }

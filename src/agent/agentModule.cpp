@@ -140,37 +140,42 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
                 stateSet(AgentState::Ready);
             } else {
                 m_textArea->setProperty("text", text);
-                stateSet(AgentState::Request);
+                stateSet(AgentState::Pre);
             }
         }
         break;
-        case AgentState::Request: {
-            if (m_turn.id.isEmpty()) {
-                // get conversation
-                if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
-                // check model
-                const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
-                if (conversation.model.isEmpty()) {
-                    m_messageDialog->setProperty("title", tr("Error"));
-                    m_messageDialog->setProperty("text", tr("Please select a model first."));
-                    QMetaObject::invokeMethod(m_messageDialog, "open");
-                    stateSet(AgentState::Error);
-                    break;
-                }
-                // append user message
-                const auto text = m_textArea->property("text").toString();
-                m_turn = {
-                    .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
-                    .mode = conversation.mode
-                };
-                const auto messageIndex = conversationAppend("user");
-                auto &message = m_turn.messages[messageIndex];
-                message.content = text;
-                message.createdAt = QDateTime::currentMSecsSinceEpoch();
-                turnCreate(m_turn.id, message.createdAt);
-                chatCreate(m_turn.id, message.id, message.role);
-                chatAppend(message.id, message.content);
+        case AgentState::Pre: {
+            if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
+            const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
+            if (conversation.model.isEmpty()) {
+                m_messageDialog->setProperty("title", tr("Error"));
+                m_messageDialog->setProperty("text", tr("Please select a model first."));
+                QMetaObject::invokeMethod(m_messageDialog, "open");
+                stateSet(AgentState::Error);
+                break;
             }
+
+            m_turn = {
+                .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
+                .mode = conversation.mode
+            };
+            const auto messageIndex = conversationAppend("user");
+            auto &message = m_turn.messages[messageIndex];
+            message.content = m_textArea->property("text").toString();
+            message.createdAt = QDateTime::currentMSecsSinceEpoch();
+            turnCreate(m_turn.id, message.createdAt);
+            chatCreate(m_turn.id, message.id, message.role);
+            chatAppend(message.id, message.content);
+
+            const auto model = m_providerModule->providerGet("deepseek")->modelGet(conversation.model);
+            stateSet(model.contextWindow > 0 && conversation.contextTokens >= model.contextWindow * 3 / 4 ? AgentState::Compact : AgentState::Request);
+        }
+        break;
+        case AgentState::Compact: {
+            stateSet(AgentState::Request);
+        }
+        break;
+        case AgentState::Request: {
             conversationSend();
         }
         break;

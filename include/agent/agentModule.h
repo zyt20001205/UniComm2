@@ -22,21 +22,14 @@ class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_PROPERTY(int state READ stateGet WRITE stateSet NOTIFY stateChanged)
 
 public:
-    struct AgentMode {
-        enum {
-            Chat,
-            Read,
-            Write,
-            FullAccess
-        };
-    };
-
     struct AgentState {
         enum {
             Ready,
             Error,
             Listen,
             STT,
+            Pre,
+            Compact,
             Request,
             Abort,
             Think,
@@ -46,6 +39,15 @@ public:
             UserInput,
             ToolExec,
             Speak
+        };
+    };
+
+    struct AgentMode {
+        enum {
+            Chat,
+            Read,
+            Write,
+            FullAccess
         };
     };
 
