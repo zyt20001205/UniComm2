@@ -809,7 +809,7 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         if (!documentInfo.isFile()) return "Line set failed: document does not exist.";
         const auto startLine = object.value("start_line").toInt();
         const auto lineCount = object.value("line_count").toInt();
-        const auto expected = object.value("expected").toString();
+        const auto expected = object.value("expected").toString().section('\n', 0, 0);
         const auto text = object.value("text").toString();
         if (startLine < 0) return {"Line set failed: start_line is out of range."};
         if (lineCount == 0 || lineCount < -1) return {"Line set failed: line_count is out of range."};
