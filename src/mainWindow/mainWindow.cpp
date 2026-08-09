@@ -129,8 +129,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_quitDialog = qvariant_cast<QObject *>(objects["mainWindowQuitDialog"]);
 
     const QVariantHash agentObjects = {
-        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
+        {"mainWindowToast", objects["mainWindowToast"]},
         {"documentModule", QVariant::fromValue(m_documentModule)},
         {"agentModuleRenameDialog", objects["agentModuleRenameDialog"]},
         {"agentModuleModeMenu", objects["agentModuleModeMenu"]},

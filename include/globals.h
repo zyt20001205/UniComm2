@@ -75,6 +75,15 @@ namespace LogLevel {
     };
 }
 
+namespace ToastLevel {
+    enum {
+        Error,
+        Warning,
+        Info,
+        Success
+    };
+}
+
 namespace PortType {
     enum {
         SerialPort,

@@ -310,6 +310,12 @@ Item {
         }
     }
 
+    Toast {
+        id: mainWindowToast
+        x: mainGeometry.x + mainGeometry.width - width - 20
+        y: mainGeometry.y + mainGeometry.height - height - 20
+    }
+
     // agent module
     Dialog {
         id: agentModuleApikeyDialog
@@ -4890,6 +4896,7 @@ Item {
             "mainWindowQuitDialog": mainWindowQuitDialog,
             "mainWindowTextView": mainWindowTextView,
             "mainWindowToolTip": mainWindowToolTip,
+            "mainWindowToast": mainWindowToast,
 
             "agentModuleRenameDialog": agentModuleRenameDialog,
             "agentModuleModeMenu": agentModuleModeMenu,

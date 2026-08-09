@@ -155,11 +155,11 @@ private:
     QQuickWidget *m_widget{};
     QQuickView *m_manageWindow{};
     QObject *m_root{};
-    QObject *m_messageDialog{};
+    QObject *m_toast{};
     QObject *m_modeMenu{};
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};
-    QObject *m_messageLabel{};
+    QObject *m_permissionLabel{};
     QObject *m_userInputCard{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};

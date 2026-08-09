@@ -47,7 +47,7 @@ AgentModule::~AgentModule() {
 }
 
 void AgentModule::propertySet(const QVariantHash &objects) {
-    m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
+    m_toast = qvariant_cast<QObject *>(objects["mainWindowToast"]);
     m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
 
     m_manageWindow->setTitle(tr("Agent Settings"));
@@ -99,7 +99,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
 void AgentModule::propertyGet(const QVariantMap &objects) {
     m_conversationComboBox = qvariant_cast<QObject *>(objects["conversationComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
-    m_messageLabel = qvariant_cast<QObject *>(objects["messageLabel"]);
+    m_permissionLabel = qvariant_cast<QObject *>(objects["permissionLabel"]);
     m_userInputCard = qvariant_cast<QObject *>(objects["userInputCard"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
@@ -125,7 +125,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Error: {
-            m_messageLabel->setProperty("message", payload.toString());
+            QMetaObject::invokeMethod(m_toast, "show", Q_ARG(int, 0), Q_ARG(QString, tr("Agent")), Q_ARG(QString, payload.toString()), Q_ARG(int, 5000));
             stateSet(AgentState::Abort);
         }
         break;
@@ -149,10 +149,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
             const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
             if (conversation.model.isEmpty()) {
-                m_messageDialog->setProperty("title", tr("Error"));
-                m_messageDialog->setProperty("text", tr("Please select a model first."));
-                QMetaObject::invokeMethod(m_messageDialog, "open");
-                stateSet(AgentState::Error);
+                stateSet(AgentState::Error, tr("Please select a model first."));
                 break;
             }
 
@@ -253,7 +250,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Permission: {
-            m_messageLabel->setProperty("message", payload.toString());
+            m_permissionLabel->setProperty("message", payload.toString());
         }
         break;
         case AgentState::UserInput: {

@@ -624,7 +624,7 @@ Item {
                     }
 
                     Label {
-                        id: messageLabel
+                        id: permissionLabel
                         property string message
                         text: message
                         color: global.fore
@@ -1436,7 +1436,7 @@ Item {
         const objects = {
             "conversationComboBox": conversationComboBox,
             "textArea": textArea,
-            "messageLabel": messageLabel,
+            "permissionLabel": permissionLabel,
             "userInputCard": userInputCard,
             "modeButton": modeButton,
             "modelButton": modelButton,
