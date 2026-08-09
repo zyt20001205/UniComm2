@@ -116,6 +116,7 @@ private:
 
     struct TurnContext {
         QString id{};
+        QString compactedTurnId{};
         int mode{AgentMode::Chat};
         QList<SqlModule::Message> messages{};
         TokenUsage usage{};
@@ -128,7 +129,7 @@ private:
         qsizetype currentTool{};
     };
 
-    void conversationSend();
+    void conversationSend(const QJsonObject &body);
 
     void turnCreate(const QString &turnId, qint64 startedAt) const;
 

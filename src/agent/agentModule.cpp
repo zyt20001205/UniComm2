@@ -166,17 +166,26 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             turnCreate(m_turn.id, message.createdAt);
             chatCreate(m_turn.id, message.id, message.role);
             chatAppend(message.id, message.content);
+            QMetaObject::invokeMethod(m_textArea, "clear");
 
             const auto model = m_providerModule->providerGet("deepseek")->modelGet(conversation.model);
             stateSet(model.contextWindow > 0 && conversation.contextTokens >= model.contextWindow * 3 / 4 ? AgentState::Compact : AgentState::Request);
         }
         break;
         case AgentState::Compact: {
-            stateSet(AgentState::Request);
+            const auto [conversation, history] = m_sqlModule->conversationGet(m_conversationId);
+            const auto [turnId, messages] = m_contextModule->compactBuild(conversation, history);
+            m_turn.compactedTurnId = turnId;
+            const auto body = m_providerModule->providerGet("deepseek")->requestBuild(conversation.model, messages, {}, false);
+            conversationSend(body);
         }
         break;
         case AgentState::Request: {
-            conversationSend();
+            const auto [conversation, messages] = m_sqlModule->conversationGet(m_conversationId);
+            const auto context = m_contextModule->contextBuild(conversation, messages, m_turn.messages);
+            const auto tools = conversation.mode == AgentMode::Chat ? QJsonArray{} : toolsList({"Context7"});
+            const auto body = m_providerModule->providerGet("deepseek")->requestBuild(conversation.model, context, tools, true);
+            conversationSend(body);
         }
         break;
         case AgentState::Abort: {
@@ -443,19 +452,42 @@ void AgentModule::userInputDisable() {
 }
 
 // private
-void AgentModule::conversationSend() {
-    auto [conversation, messages] = m_sqlModule->conversationGet(m_conversationId);
-
-    QJsonObject body{};
-    body["model"] = conversation.model;
-    body["messages"] = m_contextModule->contextBuild(conversation.mode, messages, m_turn.messages);
-    body["stream"] = true;
-    body["stream_options"] = QJsonObject{{"include_usage", true}};
-    body["tools"] = conversation.mode == AgentMode::Chat ? QJsonArray{} : toolsList({"Context7"});
-    QMetaObject::invokeMethod(m_textArea, "clear");
+void AgentModule::conversationSend(const QJsonObject &body) {
     // TODO: provider judge
     auto *reply = g_networkAccessManager->post(m_providerModule->providerGet("deepseek")->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
+    if (!body.value("stream").toBool()) {
+        connect(reply, &QNetworkReply::finished, this, [this, reply] {
+            if (m_reply == reply) m_reply = nullptr;
+            if (reply->error() == QNetworkReply::OperationCanceledError) {
+                stateSet(AgentState::Abort);
+            } else if (reply->error() == QNetworkReply::NoError) {
+                const auto object = QJsonDocument::fromJson(reply->readAll()).object();
+                const auto summary = object.value("choices").toArray().at(0).toObject().value("message").toObject().value("content").toString();
+                if (summary.isEmpty()) {
+                    m_turn = {};
+                    conversationGet(m_conversationId);
+                    stateSet(AgentState::Error, "Context compact failed.");
+                } else {
+                    m_sqlModule->conversationCompact(m_conversationId, summary, m_turn.compactedTurnId);
+                    m_turn.compactedTurnId.clear();
+                    if (m_turn.id.isEmpty()) {
+                        QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, QVariantMap{}));
+                        stateSet(AgentState::Ready);
+                    } else {
+                        stateSet(AgentState::Request);
+                    }
+                }
+            } else {
+                m_turn = {};
+                conversationGet(m_conversationId);
+                stateSet(AgentState::Error, reply->errorString());
+            }
+            reply->deleteLater();
+        });
+        return;
+    }
+
     const auto assistantIndex = conversationAppend("assistant");
     const auto assistantId = m_turn.messages.at(assistantIndex).id;
     chatCreate(m_turn.id, assistantId, "assistant");

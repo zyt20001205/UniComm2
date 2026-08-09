@@ -198,6 +198,24 @@ void SqlModule::conversationModelSet(const QString &id, const QString &model) co
     qDebug() << "agent database conversation model set failed:" << query.lastError().text();
 }
 
+void SqlModule::conversationCompact(const QString &id, const QString &summary, const QString &compactedTurnId) const {
+    const auto database = QSqlDatabase::database(m_connectionName, false);
+    if (!database.isOpen()) return;
+
+    QSqlQuery query(database);
+    query.prepare(R"(
+        UPDATE conversations
+        SET summary = :summary, compacted_turn_id = :compactedTurnId, context_tokens = 0, updated_at = :updatedAt
+        WHERE id = :id
+    )");
+    query.bindValue(":id", id);
+    query.bindValue(":summary", summary);
+    query.bindValue(":compactedTurnId", compactedTurnId);
+    query.bindValue(":updatedAt", QDateTime::currentMSecsSinceEpoch());
+    if (query.exec()) return;
+    qDebug() << "agent database conversation compact failed:" << query.lastError().text();
+}
+
 void SqlModule::conversationAppend(const QString &conversationId, const QList<Message> &messages, const qint64 contextTokens) const {
     if (messages.isEmpty()) return;
 

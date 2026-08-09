@@ -1,8 +1,9 @@
 #ifndef UNICOMM_BASEPROVIDER_H
 #define UNICOMM_BASEPROVIDER_H
 
-#include <QList>
+#include <QJsonArray>
 #include <QJsonObject>
+#include <QList>
 #include <QNetworkRequest>
 #include <QObject>
 #include <QString>
@@ -29,6 +30,8 @@ public:
     void catalogSet(const QJsonObject &catalog) {
         m_catalog = catalog;
     }
+
+    [[nodiscard]] virtual QJsonObject requestBuild(const QString &model, const QJsonArray &messages, const QJsonArray &tools, bool stream) const;
 
     virtual void apikeyGet() = 0;
 

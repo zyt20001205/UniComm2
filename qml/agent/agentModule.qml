@@ -815,7 +815,7 @@ Item {
                     Layout.fillWidth: true
                 }
 
-                RowLayout {
+                Flipable {
                     id: usageLayout
                     property double currentUsage: 0
                     property double contextWindow: 0
@@ -823,9 +823,10 @@ Item {
                     property double completionTokens: 0
                     property double cacheHitTokens: 0
                     property double reasoningTokens: 0
+                    property bool compactPending: false
                     visible: contextWindow > 0
-                    spacing: 0
                     Layout.leftMargin: 4; Layout.rightMargin: 4
+                    Layout.preferredWidth: Math.max(usageContent.implicitWidth, compactLabel.implicitWidth)
                     Layout.preferredHeight: 28
 
                     function formatTokens(tokens) {
@@ -834,81 +835,132 @@ Item {
                         return tokens.toString()
                     }
 
-                    Flipable {
-                        id: contextLabel
-                        property string frontText
-                        property string backText
-                        Layout.preferredWidth: Math.max(contextFrontLabel.implicitWidth, contextBackLabel.implicitWidth)
-                        Layout.preferredHeight: 28
+                    front: RowLayout {
+                        id: usageContent
+                        anchors.fill: parent
+                        spacing: 0
 
-                        function updateText(text) {
-                            if (contextFlipAnimation.running) contextFlipAnimation.complete()
-                            if (text.length === 0) {
-                                contextRotation.angle = 0
-                                frontText = ""
-                                backText = ""
-                            } else if (frontText.length === 0) {
-                                frontText = text
-                                backText = text
-                            } else if (frontText !== text) {
-                                backText = text
-                                contextFlipAnimation.restart()
+                        Flipable {
+                            id: contextLabel
+                            property string frontText
+                            property string backText
+                            Layout.preferredWidth: Math.max(contextFrontLabel.implicitWidth, contextBackLabel.implicitWidth)
+                            Layout.preferredHeight: 28
+
+                            function updateText(text) {
+                                if (contextFlipAnimation.running) contextFlipAnimation.complete()
+                                if (text.length === 0) {
+                                    contextRotation.angle = 0
+                                    frontText = ""
+                                    backText = ""
+                                } else if (frontText.length === 0) {
+                                    frontText = text
+                                    backText = text
+                                } else if (frontText !== text) {
+                                    backText = text
+                                    contextFlipAnimation.restart()
+                                }
                             }
-                        }
 
-                        front: Label {
-                            id: contextFrontLabel
-                            anchors.fill: parent
-                            text: contextLabel.frontText
-                            color: global.stroke
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
+                            front: Label {
+                                id: contextFrontLabel
+                                anchors.fill: parent
+                                text: contextLabel.frontText
+                                color: global.stroke
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
 
-                        back: Label {
-                            id: contextBackLabel
-                            anchors.fill: parent
-                            text: contextLabel.backText
-                            color: global.stroke
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
+                            back: Label {
+                                id: contextBackLabel
+                                anchors.fill: parent
+                                text: contextLabel.backText
+                                color: global.stroke
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+
+                                transform: Rotation {
+                                    origin.x: contextBackLabel.width / 2
+                                    origin.y: contextBackLabel.height / 2
+                                    axis.x: 1; axis.y: 0; axis.z: 0
+                                    angle: 180
+                                }
+                            }
 
                             transform: Rotation {
-                                origin.x: contextBackLabel.width / 2
-                                origin.y: contextBackLabel.height / 2
+                                id: contextRotation
+                                origin.x: contextLabel.width / 2
+                                origin.y: contextLabel.height / 2
                                 axis.x: 1; axis.y: 0; axis.z: 0
-                                angle: 180
+                                angle: 0
+                            }
+
+                            NumberAnimation {
+                                id: contextFlipAnimation
+                                target: contextRotation
+                                property: "angle"
+                                from: 0; to: -180
+                                duration: 200
+                                easing.type: Easing.InOutCubic
+
+                                onFinished: {
+                                    contextLabel.frontText = contextLabel.backText
+                                    contextRotation.angle = 0
+                                }
                             }
                         }
 
-                        transform: Rotation {
-                            id: contextRotation
-                            origin.x: contextLabel.width / 2
-                            origin.y: contextLabel.height / 2
-                            axis.x: 1; axis.y: 0; axis.z: 0
-                            angle: 0
+                        Label {
+                            text: " / " + usageLayout.formatTokens(usageLayout.contextWindow)
+                            color: global.stroke
+                            verticalAlignment: Text.AlignVCenter
+                            Layout.preferredHeight: 28
                         }
+                    }
 
-                        NumberAnimation {
-                            id: contextFlipAnimation
-                            target: contextRotation
-                            property: "angle"
-                            from: 0; to: -180
-                            duration: 200
-                            easing.type: Easing.InOutCubic
+                    back: Label {
+                        id: compactLabel
+                        anchors.fill: parent
+                        text: qsTr("Compact")
+                        color: global.fore
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
 
-                            onFinished: {
-                                contextLabel.frontText = contextLabel.backText
-                                contextRotation.angle = 0
+                    transform: Rotation {
+                        origin.x: usageLayout.width / 2
+                        origin.y: usageLayout.height / 2
+                        axis.x: 0; axis.y: 1; axis.z: 0
+                        angle: usageLayout.compactPending ? -180 : 0
+
+                        Behavior on angle {
+                            NumberAnimation {
+                                duration: 200
+                                easing.type: Easing.InOutCubic
                             }
                         }
                     }
 
-                    Label {
-                        text: " / " + usageLayout.formatTokens(usageLayout.contextWindow)
-                        color: global.stroke
-                        verticalAlignment: Text.AlignVCenter
-                        Layout.preferredHeight: 28
+                    TapHandler {
+                        enabled: agentModule.state === 0 && usageLayout.currentUsage > 0
+
+                        onTapped: {
+                            if (!usageLayout.compactPending) {
+                                usageLayout.compactPending = true
+                                compactTimer.restart()
+                            } else {
+                                compactTimer.stop()
+                                usageLayout.compactPending = false
+                                agentModule.state = 5
+                            }
+                        }
+                    }
+
+                    Timer {
+                        id: compactTimer
+                        interval: 1500
+
+                        onTriggered: usageLayout.compactPending = false
                     }
 
                     HoverHandler {
