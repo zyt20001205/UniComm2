@@ -622,12 +622,22 @@ Item {
                         model: userInputCard.request.options || []
 
                         delegate: Button {
+                            id: optionButton
                             required property var modelData
                             text: modelData.description
                                   ? modelData.label + " — " + modelData.description
                                   : modelData.label
                             Layout.fillWidth: true
                             Layout.preferredHeight: 28
+
+                            contentItem: Label {
+                                text: optionButton.text
+                                color: optionButton.palette.buttonText
+                                font: optionButton.font
+                                elide: Text.ElideRight
+                                horizontalAlignment: Text.AlignLeft
+                                verticalAlignment: Text.AlignVCenter
+                            }
 
                             onClicked: {
                                 answerTextField.text = modelData.label
