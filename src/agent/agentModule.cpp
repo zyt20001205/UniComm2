@@ -126,7 +126,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         break;
         case AgentState::Error: {
             m_messageLabel->setProperty("message", payload.toString());
-            stateSet(AgentState::Ready);
+            stateSet(AgentState::Abort);
         }
         break;
         case AgentState::Listen: {
@@ -465,8 +465,6 @@ void AgentModule::conversationSend(const QJsonObject &body) {
                 const auto object = QJsonDocument::fromJson(reply->readAll()).object();
                 const auto summary = object.value("choices").toArray().at(0).toObject().value("message").toObject().value("content").toString();
                 if (summary.isEmpty()) {
-                    m_turn = {};
-                    conversationGet(m_conversationId);
                     stateSet(AgentState::Error, "Context compact failed.");
                 } else {
                     m_sqlModule->conversationCompact(m_conversationId, summary, m_turn.compactedTurnId);
@@ -480,8 +478,6 @@ void AgentModule::conversationSend(const QJsonObject &body) {
                     }
                 }
             } else {
-                m_turn = {};
-                conversationGet(m_conversationId);
                 stateSet(AgentState::Error, reply->errorString());
             }
             reply->deleteLater();
@@ -609,9 +605,7 @@ void AgentModule::conversationSend(const QJsonObject &body) {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
-            m_turn = {};
-            conversationGet(m_conversationId);
-            stateSet(AgentState::Error, reply->errorString());
+            stateSet(AgentState::Error, message.isEmpty() ? reply->errorString() : message);
         }
         reply->deleteLater();
     });
