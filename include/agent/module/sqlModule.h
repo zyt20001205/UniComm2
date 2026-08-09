@@ -37,6 +37,15 @@ public:
         qint64 createdAt{};
     };
 
+    struct SearchResult {
+        QString conversationId{};
+        QString conversationTitle{};
+        QString turnId{};
+        qint64 createdAt{};
+        double rank{};
+        QList<Message> messages{};
+    };
+
     explicit SqlModule(const QJsonObject &sqlConfig, QObject *parent = nullptr);
 
     ~SqlModule() override;
@@ -44,6 +53,8 @@ public:
     [[nodiscard]] QList<Conversation> conversationsGet() const;
 
     [[nodiscard]] QPair<Conversation, QList<Message>> conversationGet(const QString &id) const;
+
+    [[nodiscard]] QList<SearchResult> conversationsSearch(const QString &text, int limit) const;
 
     void conversationInsert(const Conversation &conversation) const;
 

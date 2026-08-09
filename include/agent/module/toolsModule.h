@@ -5,11 +5,13 @@
 #include <QObject>
 #include <QSet>
 
+class SqlModule;
+
 class ToolsModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit ToolsModule(QObject *parent = nullptr);
+    explicit ToolsModule(SqlModule *sqlModule, QObject *parent = nullptr);
 
     ~ToolsModule() override = default;
 
@@ -30,6 +32,7 @@ private:
     [[nodiscard]] bool permissionGet(int mode, const QString &name) const;
 
     QHash<QString, int> m_portTypes{};
+    SqlModule *m_sqlModule{};
     QSet<QString> m_writeGroup{};
     QSet<QString> m_fullAccessGroup{};
 };

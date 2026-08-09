@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QJsonDocument>
+#include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QUuid>
@@ -115,6 +116,81 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
         });
     }
     return {conversation, messages};
+}
+
+QList<SqlModule::SearchResult> SqlModule::conversationsSearch(const QString &text, const int limit) const {
+    const auto database = QSqlDatabase::database(m_connectionName, false);
+    if (!database.isOpen()) return {};
+
+    QSqlQuery query(database);
+    query.prepare(R"(
+        SELECT messages.conversation_id, conversations.title, messages.turn_id, messages.created_at, bm25(messages_fts)
+        FROM messages_fts
+        JOIN messages ON messages.rowid = messages_fts.rowid
+        JOIN conversations ON conversations.id = messages.conversation_id
+        WHERE messages_fts MATCH :text
+          AND messages.turn_id IS NOT NULL
+        ORDER BY bm25(messages_fts)
+        LIMIT :limit
+    )");
+    query.bindValue(":text", text);
+    query.bindValue(":limit", limit * 8);
+    if (!query.exec()) {
+        qDebug() << "agent database conversations search failed:" << query.lastError().text();
+        return {};
+    }
+
+    QSqlQuery messageQuery(database);
+    messageQuery.prepare(R"(
+        SELECT id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved, created_at
+        FROM messages
+        WHERE conversation_id = :conversationId AND turn_id = :turnId
+        ORDER BY sequence
+    )");
+
+    QSet<QString> turns{};
+    QList<SearchResult> results{};
+    while (query.next() && results.size() < limit) {
+        const auto conversationId = query.value(0).toString();
+        const auto turnId = query.value(2).toString();
+        const auto key = conversationId + '\n' + turnId;
+        if (turns.contains(key)) continue;
+        turns.insert(key);
+
+        messageQuery.bindValue(":conversationId", conversationId);
+        messageQuery.bindValue(":turnId", turnId);
+        if (!messageQuery.exec()) {
+            qDebug() << "agent database search result get failed:" << messageQuery.lastError().text();
+            return {};
+        }
+
+        QList<Message> messages{};
+        while (messageQuery.next()) {
+            const auto toolCallsDocument = QJsonDocument::fromJson(messageQuery.value(8).toString().toUtf8());
+            messages.append(Message{
+                .id = messageQuery.value(0).toString(),
+                .conversationId = messageQuery.value(1).toString(),
+                .turnId = messageQuery.value(2).toString(),
+                .sequence = messageQuery.value(3).toLongLong(),
+                .role = messageQuery.value(4).toString(),
+                .content = messageQuery.value(5).toString(),
+                .reasoningContent = messageQuery.value(6).toString(),
+                .toolCallId = messageQuery.value(7).toString(),
+                .toolCalls = toolCallsDocument.isArray() ? toolCallsDocument.array() : QJsonArray{},
+                .approved = messageQuery.value(9).toBool(),
+                .createdAt = messageQuery.value(10).toLongLong()
+            });
+        }
+        results.append(SearchResult{
+            .conversationId = conversationId,
+            .conversationTitle = query.value(1).toString(),
+            .turnId = turnId,
+            .createdAt = messages.first().createdAt,
+            .rank = query.value(4).toDouble(),
+            .messages = messages
+        });
+    }
+    return results;
 }
 
 void SqlModule::conversationInsert(const Conversation &conversation) const {

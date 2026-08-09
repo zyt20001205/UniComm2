@@ -5,6 +5,7 @@
 
 #include "globals.h"
 #include "agent/agentModule.h"
+#include "agent/module/sqlModule.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
@@ -13,13 +14,14 @@
 #include "service/ripgrep.h"
 
 // public
-ToolsModule::ToolsModule(QObject *parent)
+ToolsModule::ToolsModule(SqlModule *sqlModule, QObject *parent)
     : QObject(parent),
       m_portTypes{
           {"serial_port", PortType::SerialPort},
           {"tcp_client", PortType::TcpClient},
           {"ssl_client", PortType::SslClient}
       },
+      m_sqlModule(sqlModule),
       m_writeGroup{"line_set", "port_create"},
       m_fullAccessGroup{"port_delete", "thread_start"} {
 }
@@ -574,6 +576,43 @@ void ToolsModule::initialize() {
                 }
             }
         },
+        // memorySearch
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "memory_search"},
+                    {
+                        "description",
+                        "Search prior conversations in the current workspace when historical decisions, requirements, errors, or implementation details may help with the current task. Returns complete conversation turns around the best keyword matches."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "query", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The FTS5 keyword query used to search conversation memory."}
+                                        }
+                                    },
+                                    {
+                                        "limit", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The maximum number of matching turns to return."},
+                                            {"minimum", 1},
+                                            {"maximum", 5}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"query"}}
+                        }
+                    }
+                }
+            }
+        },
         // threadStart
         QJsonObject{
             {"type", "function"},
@@ -779,6 +818,31 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         g_document->linesSet(documentUrl, text, startLine, lineCount);
         return {"Line set finished."};
     }
+    if (name == "memory_search") {
+        const auto limit = qBound(1, object.value("limit").toInt(3), 5);
+        const auto results = m_sqlModule->conversationsSearch(object.value("query").toString(), limit);
+        QJsonArray array{};
+        for (const auto &result: results) {
+            QJsonArray messages{};
+            for (const auto &message: result.messages) {
+                if (message.content.isEmpty()) continue;
+                messages.append(QJsonObject{
+                    {"role", message.role},
+                    {"content", message.content}
+                });
+            }
+            array.append(QJsonObject{
+                {"conversation_id", result.conversationId},
+                {"conversation_title", result.conversationTitle},
+                {"turn_id", result.turnId},
+                {"created_at", result.createdAt},
+                {"rank", result.rank},
+                {"messages", messages}
+            });
+        }
+        const auto json = QJsonDocument(array);
+        return QString::fromUtf8(json.toJson(QJsonDocument::Compact));
+    }
     if (name == "thread_start") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         QString threadId{};
@@ -845,6 +909,8 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         chatText = lineCount == -1
                        ? QString("Write %1 from line %2 to the end").arg(documentName, QString::number(startLine))
                        : QString("Write %1 from line %2 (%3 lines)").arg(documentName, QString::number(startLine), QString::number(lineCount));
+    } else if (name == "memory_search") {
+        chatText = QString("Search memory for \"%1\"").arg(object.value("query").toString());
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Run %1").arg(documentName);

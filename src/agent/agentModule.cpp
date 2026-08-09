@@ -34,7 +34,7 @@ AgentModule::AgentModule()
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_providerModule(new ProviderModule(this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
-      m_toolsModule(new ToolsModule(this)) {
+      m_toolsModule(new ToolsModule(m_sqlModule, this)) {
     setWidget(m_widget);
 
     conversationsGet();
