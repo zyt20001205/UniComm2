@@ -1141,6 +1141,20 @@ Item {
                 }
             }
 
+            HoverHandler {
+                cursorShape: chatTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+
+                onTapped: {
+                    if (chatTextArea.hoveredLink) {
+                        documentModule.documentOpen(chatTextArea.hoveredLink)
+                    }
+                }
+            }
+
             TapHandler {
                 acceptedButtons: Qt.RightButton
                 onTapped: console.log(chatTextArea.messageId)
