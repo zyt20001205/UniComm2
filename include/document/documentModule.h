@@ -82,6 +82,10 @@ public:
 
     void indexGet() const;
 
+    [[nodiscard]] QString linesGet(const QUrl &documentUrl, int startLine, int lineCount) const;
+
+    void linesSet(const QUrl &documentUrl, const QString &text, int startLine, int lineCount);
+
     [[nodiscard]] QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
     void textSet(const QUrl &documentUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);

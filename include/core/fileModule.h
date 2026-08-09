@@ -29,6 +29,8 @@ public:
 
     Q_INVOKABLE static void copyToClipboard(const QUrl &fileUrl);
 
+    static QString linesGet(const QUrl &documentUrl, int startLine, int lineCount);
+
     static QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
     // void textSet();

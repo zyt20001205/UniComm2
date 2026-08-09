@@ -184,6 +184,21 @@ void FileModule::copyToClipboard(const QUrl &fileUrl) {
     clipboard->setText(fileUrl.toString());
 }
 
+QString FileModule::linesGet(const QUrl &documentUrl, const int startLine, const int lineCount) {
+    QFile file(documentUrl.toLocalFile());
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {};
+
+    QTextStream in(&file);
+    QStringList lines{};
+    for (int line = 0; !in.atEnd(); ++line) {
+        const auto text = in.readLine();
+        if (line < startLine) continue;
+        lines.append(text);
+        if (lines.size() == lineCount) break;
+    }
+    return lines.join('\n');
+}
+
 QString FileModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     // TODO: character not implemented
     QFile file(documentUrl.toLocalFile());

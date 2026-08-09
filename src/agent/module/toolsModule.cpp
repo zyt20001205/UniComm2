@@ -2,7 +2,6 @@
 
 #include <QDir>
 #include <QJsonDocument>
-#include <limits>
 
 #include "globals.h"
 #include "agent/agentModule.h"
@@ -21,7 +20,7 @@ ToolsModule::ToolsModule(QObject *parent)
           {"tcp_client", PortType::TcpClient},
           {"ssl_client", PortType::SslClient}
       },
-      m_writeGroup{"text_set", "port_create"},
+      m_writeGroup{"line_set", "port_create"},
       m_fullAccessGroup{"port_delete", "thread_start"} {
 }
 
@@ -447,18 +446,17 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // textGet
+        // linesGet
         QJsonObject{
             {"type", "function"},
             {
                 "function", QJsonObject{
-                    {"name", "text_get"},
+                    {"name", "line_get"},
                     {
                         "description",
-                        "Read lines from a document. For text files, each returned line is prefixed with its 0-based line number in the form line|content. "
+                        "Read lines from a text document. Each returned line is prefixed with its 0-based line number in the form line|content. "
                         "Use start_line = 0 and line_count = -1 to read the whole document. A line_count of -1 reads from start_line to the end of the document. "
-                        "If the requested range extends past the end of the document, all remaining lines are returned. "
-                        "For PDF files, start_line is the page index (0-based) and line_count is ignored."
+                        "If the requested range extends past the end of the document, all remaining lines are returned."
                     },
                     {
                         "parameters", QJsonObject{
@@ -505,12 +503,12 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // textSet
+        // linesSet
         QJsonObject{
             {"type", "function"},
             {
                 "function", QJsonObject{
-                    {"name", "text_set"},
+                    {"name", "line_set"},
                     {
                         "description",
                         "Replace the content of whole lines in a text document. "
@@ -741,38 +739,33 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
     if (name == "document_focused") {
         return g_document->documentFocused();
     }
-    if (name == "text_get") {
+    if (name == "line_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
-        if (!documentInfo.isFile()) return "Text get failed: document does not exist.";
+        if (!documentInfo.isFile()) return "Line get failed: document does not exist.";
         const auto startLine = object.value("start_line").toInt();
         const auto lineCount = object.value("line_count").toInt();
-        if (startLine < 0) return {"Text get failed: start_line is out of range."};
-        if (lineCount == 0 || lineCount < -1) return {"Text get failed: line_count is out of range."};
+        if (startLine < 0) return {"Line get failed: start_line is out of range."};
+        if (lineCount == 0 || lineCount < -1) return {"Line get failed: line_count is out of range."};
 
-        const auto endLine = lineCount == -1 ? std::numeric_limits<int>::max() : startLine + lineCount - 1;
-        auto text = g_document->textGet(documentUrl, startLine, 0, endLine, -1);
-        if (text.isEmpty()) return {};
-        auto lines = text.split('\n');
-        for (qsizetype i = 0; i < lines.size(); ++i) {
-            if (lines[i].endsWith('\r')) lines[i].chop(1);
-            lines[i].prepend(QString::number(startLine + i) + "|");
-        }
+        const auto text = g_document->linesGet(documentUrl, startLine, lineCount);
+        if (text.isNull()) return {"Line get failed: start_line is out of range."};
+        auto lines = text.split('\n', Qt::KeepEmptyParts);
+        for (qsizetype i = 0; i < lines.size(); ++i) lines[i].prepend(QString::number(startLine + i) + "|");
         return lines.join('\n');
     }
-    if (name == "text_set") {
+    if (name == "line_set") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
-        if (!documentInfo.isFile()) return "Text set failed: document does not exist.";
+        if (!documentInfo.isFile()) return "Line set failed: document does not exist.";
         const auto text = object.value("text").toString();
         const auto startLine = object.value("start_line").toInt();
         const auto lineCount = object.value("line_count").toInt();
-        if (startLine < 0) return {"Text set failed: start_line is out of range."};
-        if (lineCount == 0 || lineCount < -1) return {"Text set failed: line_count is out of range."};
+        if (startLine < 0) return {"Line set failed: start_line is out of range."};
+        if (lineCount == 0 || lineCount < -1) return {"Line set failed: line_count is out of range."};
 
-        const auto endLine = lineCount == -1 ? std::numeric_limits<int>::max() : startLine + lineCount - 1;
-        g_document->textSet(documentUrl, text, startLine, 0, endLine, -1);
-        return {"Text set finished."};
+        g_document->linesSet(documentUrl, text, startLine, lineCount);
+        return {"Line set finished."};
     }
     if (name == "thread_start") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -826,14 +819,14 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         chatText = "List open documents";
     } else if (name == "document_focused") {
         chatText = "Get focused document";
-    } else if (name == "text_get") {
+    } else if (name == "line_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
         const auto lineCount = object.value("line_count").toInt(-1);
         chatText = lineCount == -1
                        ? QString("Read %1 from line %2 to the end").arg(documentName, QString::number(startLine))
                        : QString("Read %1 from line %2 (%3 lines)").arg(documentName, QString::number(startLine), QString::number(lineCount));
-    } else if (name == "text_set") {
+    } else if (name == "line_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
         const auto lineCount = object.value("line_count").toInt(-1);
