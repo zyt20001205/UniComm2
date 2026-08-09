@@ -81,7 +81,7 @@ public:
 
     Q_INVOKABLE void conversationModeSet(int mode);
 
-    Q_INVOKABLE void conversationModelSet(const QString &id) const;
+    Q_INVOKABLE void conversationModelSet(const QString &id);
 
     qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
 

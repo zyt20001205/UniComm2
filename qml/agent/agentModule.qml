@@ -740,7 +740,7 @@ Item {
 
                 Button {
                     id: modeButton
-                    property int mode: -1
+                    property int mode: 0
                     leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0 && mode >= 0
                     Layout.preferredWidth: modeButtonContent.implicitWidth + leftPadding + rightPadding
@@ -823,7 +823,7 @@ Item {
                     property double completionTokens: 0
                     property double cacheHitTokens: 0
                     property double reasoningTokens: 0
-                    visible: currentUsage > 0
+                    visible: contextWindow > 0
                     spacing: 0
                     Layout.leftMargin: 4; Layout.rightMargin: 4
                     Layout.preferredHeight: 28
@@ -831,7 +831,7 @@ Item {
                     function formatTokens(tokens) {
                         if (tokens >= 1000000) return (tokens / 1000000).toFixed(tokens % 1000000 === 0 ? 0 : 1) + "M"
                         if (tokens >= 1000) return (tokens / 1000).toFixed(tokens % 1000 === 0 ? 0 : 1) + "k"
-                        return tokens > 0 ? tokens.toString() : "—"
+                        return tokens.toString()
                     }
 
                     Flipable {
@@ -1222,7 +1222,7 @@ Item {
         const currentUsage = usage.currentUsage || 0
         const promptTokens = usage.promptTokens || 0
         const cacheHitTokens = usage.cacheHitTokens || 0
-        contextLabel.updateText(currentUsage > 0 ? usageLayout.formatTokens(currentUsage) : "")
+        contextLabel.updateText(usageLayout.formatTokens(currentUsage))
         usageLayout.currentUsage = currentUsage
         usageLayout.promptTokens = promptTokens
         usageLayout.completionTokens = usage.completionTokens || 0

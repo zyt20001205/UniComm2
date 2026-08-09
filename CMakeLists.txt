@@ -78,6 +78,7 @@ qt_add_resources(UniComm "config_resources"
         BASE "resources/config"
         FILES
         "resources/config/config.json"
+        "resources/config/api.json"
 )
 
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")

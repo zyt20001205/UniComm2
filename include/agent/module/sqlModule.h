@@ -55,7 +55,7 @@ public:
 
     void conversationModelSet(const QString &id, const QString &model) const;
 
-    void conversationAppend(const QString &conversationId, const QList<Message> &messages) const;
+    void conversationAppend(const QString &conversationId, const QList<Message> &messages, qint64 contextTokens) const;
 
     void conversationRollback(const QString &conversationId, const QString &turnId) const;
 

@@ -1,9 +1,7 @@
 #include "agent/module/providerModule.h"
 
-#include <QJsonDocument>
-#include <QNetworkReply>
+#include <QFile>
 
-#include "globals.h"
 #include "agent/provider/baseProvider.h"
 #include "agent/provider/bigmodelProvider.h"
 #include "agent/provider/deepseekProvider.h"
@@ -37,21 +35,15 @@ void ProviderModule::propertySet(const QVariantHash &objects) {
     });
 }
 
-void ProviderModule::initialize() {
+void ProviderModule::initialize() const {
     // m_bigmodelProvider->apikeyGet();
 
-    QNetworkRequest request{QUrl("https://models.dev/api.json")};
-    auto *reply = g_networkAccessManager->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply] {
-        const auto document = QJsonDocument::fromJson(reply->readAll());
-        if (document.isObject()) {
-            m_catalog = document.object();
-            const auto provider = m_catalog.value("deepseek").toObject();
-            m_deepseekProvider->catalogSet(provider.value("models").toObject());
-        }
-        reply->deleteLater();
-        m_deepseekProvider->apikeyGet();
-    });
+    QFile file(":/config/api.json");
+    if (!file.open(QIODevice::ReadOnly)) return;
+    const auto catalog = QJsonDocument::fromJson(file.readAll()).object();
+    const auto provider = catalog.value("deepseek").toObject();
+    m_deepseekProvider->catalogSet(provider.value("models").toObject());
+    m_deepseekProvider->apikeyGet();
 }
 
 void ProviderModule::apikeySet(const QString &key, const QString &apikey) const {

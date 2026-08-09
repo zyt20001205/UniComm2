@@ -185,7 +185,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
                     if (message.createdAt == 0) message.createdAt = finishedAt;
                     if (message.role == "assistant") chatFinish(message.id);
                 }
-                m_sqlModule->conversationAppend(m_conversationId, m_turn.messages);
+                m_sqlModule->conversationAppend(m_conversationId, m_turn.messages, m_turn.currentUsage);
                 turnFinish(m_turn.id, finishedAt);
             }
             m_turn = {};
@@ -293,8 +293,8 @@ void AgentModule::conversationsGet() {
 
     if (m_conversationComboBox == nullptr || m_modeButton == nullptr || m_modelButton == nullptr) return;
     m_conversationComboBox->setProperty("currentIndex", currentIndex);
-    m_modeButton->setProperty("mode", currentConversation.id.isEmpty() ? -1 : currentConversation.mode);
-    m_modeMenu->setProperty("selectedIndex", currentConversation.id.isEmpty() ? -1 : currentConversation.mode);
+    m_modeButton->setProperty("mode", currentConversation.id.isEmpty() ? AgentMode::Chat : currentConversation.mode);
+    m_modeMenu->setProperty("selectedIndex", currentConversation.id.isEmpty() ? AgentMode::Chat : currentConversation.mode);
     modelUpdate(currentConversation.model);
 }
 
@@ -304,8 +304,8 @@ void AgentModule::conversationGet(const QString &id) {
     const auto [conversation, messages] = m_sqlModule->conversationGet(id);
     if (conversation.id.isEmpty()) {
         m_conversationId.clear();
-        m_modeButton->setProperty("mode", -1);
-        m_modeMenu->setProperty("selectedIndex", -1);
+        m_modeButton->setProperty("mode", AgentMode::Chat);
+        m_modeMenu->setProperty("selectedIndex", AgentMode::Chat);
         modelUpdate({});
         return;
     }
@@ -351,6 +351,8 @@ void AgentModule::conversationGet(const QString &id) {
     m_modeButton->setProperty("mode", conversation.mode);
     m_modeMenu->setProperty("selectedIndex", conversation.mode);
     modelUpdate(conversation.model);
+    const QVariantMap usage{{"currentUsage", conversation.contextTokens}};
+    QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, usage));
     QMetaObject::invokeMethod(m_root, "followToTail", Qt::QueuedConnection);
 }
 
@@ -379,11 +381,13 @@ void AgentModule::conversationDelete() {
 }
 
 void AgentModule::conversationModeSet(const int mode) {
+    if (m_conversationId.isEmpty()) conversationInsert();
     m_sqlModule->conversationModeSet(m_conversationId, mode);
     conversationsGet();
 }
 
-void AgentModule::conversationModelSet(const QString &id) const {
+void AgentModule::conversationModelSet(const QString &id) {
+    if (m_conversationId.isEmpty()) conversationInsert();
     m_sqlModule->conversationModelSet(m_conversationId, id);
     modelUpdate(id);
 }
@@ -561,7 +565,7 @@ void AgentModule::conversationSend() {
                 const auto &assistant = m_turn.messages.at(assistantIndex);
                 const auto content = assistant.content;
                 const auto finishedAt = assistant.createdAt;
-                m_sqlModule->conversationAppend(m_conversationId, m_turn.messages);
+                m_sqlModule->conversationAppend(m_conversationId, m_turn.messages, m_turn.currentUsage);
                 turnFinish(m_turn.id, finishedAt);
                 m_turn = {};
                 if (m_micButton->property("checked").toBool()) {

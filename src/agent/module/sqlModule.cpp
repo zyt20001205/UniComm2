@@ -123,20 +123,13 @@ void SqlModule::conversationInsert(const Conversation &conversation) const {
 
     QSqlQuery query(database);
     query.prepare(R"(
-        INSERT INTO conversations (
-            id, title, mode, model, summary, compacted_turn_id, context_tokens, created_at, updated_at
-        )
-        VALUES (
-            :id, :title, :mode, :model, :summary, :compactedTurnId, :contextTokens, :createdAt, :updatedAt
-        )
+        INSERT INTO conversations (id, title, mode, model, created_at, updated_at)
+        VALUES (:id, :title, :mode, :model, :createdAt, :updatedAt)
     )");
     query.bindValue(":id", conversation.id);
     query.bindValue(":title", conversation.title);
     query.bindValue(":mode", conversation.mode);
     query.bindValue(":model", conversation.model);
-    query.bindValue(":summary", conversation.summary);
-    query.bindValue(":compactedTurnId", conversation.compactedTurnId);
-    query.bindValue(":contextTokens", conversation.contextTokens);
     query.bindValue(":createdAt", conversation.createdAt);
     query.bindValue(":updatedAt", conversation.updatedAt);
     if (query.exec()) return;
@@ -205,7 +198,7 @@ void SqlModule::conversationModelSet(const QString &id, const QString &model) co
     qDebug() << "agent database conversation model set failed:" << query.lastError().text();
 }
 
-void SqlModule::conversationAppend(const QString &conversationId, const QList<Message> &messages) const {
+void SqlModule::conversationAppend(const QString &conversationId, const QList<Message> &messages, const qint64 contextTokens) const {
     if (messages.isEmpty()) return;
 
     auto database = QSqlDatabase::database(m_connectionName, false);
@@ -256,10 +249,11 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
 
     query.prepare(R"(
         UPDATE conversations
-        SET updated_at = :updatedAt
+        SET context_tokens = :contextTokens, updated_at = :updatedAt
         WHERE id = :conversationId
     )");
     query.bindValue(":conversationId", conversationId);
+    query.bindValue(":contextTokens", contextTokens);
     query.bindValue(":updatedAt", messages.constLast().createdAt);
     if (!query.exec()) {
         qDebug() << "agent database conversation update failed:" << query.lastError().text();

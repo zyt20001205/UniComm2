@@ -1,7 +1,6 @@
 #ifndef UNICOMM_PROVIDERMODULE_H
 #define UNICOMM_PROVIDERMODULE_H
 
-#include <QJsonObject>
 #include <QObject>
 #include <QStandardItemModel>
 
@@ -19,7 +18,7 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    void initialize();
+    void initialize() const;
 
     void apikeySet(const QString &key, const QString &apikey) const;
 
@@ -30,7 +29,6 @@ signals:
 
 private:
     QObject *m_modelMenu{};
-    QJsonObject m_catalog{};
     QHash<QString, BaseProvider *> m_providers{};
     BigmodelProvider *m_bigmodelProvider{};
     DeepseekProvider *m_deepseekProvider{};
