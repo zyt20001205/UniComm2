@@ -65,7 +65,7 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
 
     QSqlQuery query(database);
     query.prepare(R"(
-        SELECT id, title, mode, model, created_at, updated_at
+        SELECT id, title, mode, model, summary, compacted_turn_id, context_tokens, created_at, updated_at
         FROM conversations
         WHERE id = :id
     )");
@@ -77,14 +77,16 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
         .title = query.value(1).toString(),
         .mode = query.value(2).toInt(),
         .model = query.value(3).toString(),
-        .createdAt = query.value(4).toLongLong(),
-        .updatedAt = query.value(5).toLongLong()
+        .summary = query.value(4).toString(),
+        .compactedTurnId = query.value(5).toString(),
+        .contextTokens = query.value(6).toLongLong(),
+        .createdAt = query.value(7).toLongLong(),
+        .updatedAt = query.value(8).toLongLong()
     };
 
     QSqlQuery messageQuery(database);
     messageQuery.prepare(R"(
-        SELECT id, conversation_id, turn_id, sequence, role, content,
-               reasoning_content, tool_call_id, tool_calls, approved, created_at
+        SELECT id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved, created_at
         FROM messages
         WHERE conversation_id = :conversationId
         ORDER BY sequence
@@ -121,13 +123,20 @@ void SqlModule::conversationInsert(const Conversation &conversation) const {
 
     QSqlQuery query(database);
     query.prepare(R"(
-        INSERT INTO conversations (id, title, mode, model, created_at, updated_at)
-        VALUES (:id, :title, :mode, :model, :createdAt, :updatedAt)
+        INSERT INTO conversations (
+            id, title, mode, model, summary, compacted_turn_id, context_tokens, created_at, updated_at
+        )
+        VALUES (
+            :id, :title, :mode, :model, :summary, :compactedTurnId, :contextTokens, :createdAt, :updatedAt
+        )
     )");
     query.bindValue(":id", conversation.id);
     query.bindValue(":title", conversation.title);
     query.bindValue(":mode", conversation.mode);
     query.bindValue(":model", conversation.model);
+    query.bindValue(":summary", conversation.summary);
+    query.bindValue(":compactedTurnId", conversation.compactedTurnId);
+    query.bindValue(":contextTokens", conversation.contextTokens);
     query.bindValue(":createdAt", conversation.createdAt);
     query.bindValue(":updatedAt", conversation.updatedAt);
     if (query.exec()) return;
@@ -220,12 +229,10 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
     QSqlQuery query(database);
     query.prepare(R"(
         INSERT INTO messages (
-            id, conversation_id, turn_id, sequence, role, content,
-            reasoning_content, tool_call_id, tool_calls, approved, created_at
+            id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved, created_at
         )
         VALUES (
-            :id, :conversationId, :turnId, :sequence, :role, :content,
-            :reasoningContent, :toolCallId, :toolCalls, :approved, :createdAt
+            :id, :conversationId, :turnId, :sequence, :role, :content, :reasoningContent, :toolCallId, :toolCalls, :approved, :createdAt
         )
     )");
     for (const auto &message: messages) {
@@ -310,6 +317,9 @@ bool SqlModule::initialize() const {
                 title TEXT NOT NULL,
                 mode INTEGER,
                 model TEXT,
+                summary TEXT NOT NULL DEFAULT '',
+                compacted_turn_id TEXT NOT NULL DEFAULT '',
+                context_tokens INTEGER NOT NULL DEFAULT 0,
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL
             )
@@ -361,7 +371,7 @@ bool SqlModule::initialize() const {
         )",
         "CREATE INDEX IF NOT EXISTS conversations_updated_at ON conversations(updated_at DESC)",
         "CREATE INDEX IF NOT EXISTS messages_turn_id ON messages(conversation_id, turn_id, sequence)",
-        "PRAGMA user_version = 4"
+        "PRAGMA user_version = 5"
     };
     for (const auto &statement: schema) {
         QSqlQuery query(database);

@@ -16,6 +16,9 @@ public:
         QString title{};
         int mode{};
         QString model{};
+        QString summary{};
+        QString compactedTurnId{};
+        qint64 contextTokens{};
         qint64 createdAt{};
         qint64 updatedAt{};
     };
