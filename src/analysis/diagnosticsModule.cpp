@@ -86,7 +86,8 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const Q
             break;
             default: break;
         }
-        severityItem->setData(position, Qt::UserRole + 1);
+        severityItem->setData(severity, DiagnosticsModel::SeverityRole);
+        severityItem->setData(position, DiagnosticsModel::PositionRole);
         auto *sourceItem = new QStandardItem(source); // NOLINT
         auto *codeItem = new QStandardItem(code); // NOLINT
         auto *dataItem = new QStandardItem(data); // NOLINT
@@ -119,12 +120,13 @@ void DiagnosticsModule::indicatorFill(const QVariantHash &position) {
 // public
 QHash<int, QByteArray> DiagnosticsModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "position";
+    roles[SeverityRole] = "severity";
+    roles[PositionRole] = "position";
     return roles;
 }
 
 QVariant DiagnosticsModel::data(const QModelIndex &index, const int role) const {
-    if (role == Qt::UserRole + 1) {
+    if (role == PositionRole || role == SeverityRole) {
         return QStandardItemModel::data(this->index(index.row(), 0), role);
     }
     return QStandardItemModel::data(index, role);

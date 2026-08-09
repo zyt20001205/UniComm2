@@ -84,26 +84,13 @@ Item {
                             Layout.topMargin: 10
                             Layout.bottomMargin: 8
 
-                            Item {
-                                Layout.preferredWidth: 16
-                                Layout.preferredHeight: 16
+                            IconImage {
+                                source: toastDelegate.iconSource
+                                color: toastDelegate.levelColor
+                                fillMode: Image.PreserveAspectFit
+                                sourceSize.width: 20; sourceSize.height: 20
+                                Layout.preferredWidth: 20; Layout.preferredHeight: 20
                                 Layout.alignment: Qt.AlignTop
-
-                                IconImage {
-                                    anchors.fill: parent
-                                    source: toastDelegate.iconSource
-                                    color: global.successBack3
-                                    visible: toastDelegate.toastLevel === root.successLevel
-                                }
-
-                                Image {
-                                    anchors.fill: parent
-                                    source: toastDelegate.iconSource
-                                    sourceSize.width: 16
-                                    sourceSize.height: 16
-                                    fillMode: Image.PreserveAspectFit
-                                    visible: toastDelegate.toastLevel !== root.successLevel
-                                }
                             }
 
                             ColumnLayout {
@@ -112,7 +99,7 @@ Item {
 
                                 Label {
                                     text: toastDelegate.toastTitle
-                                    color: toastPopup.palette.toolTipText
+                                    color: global.fore
                                     font.bold: true
                                     textFormat: Text.PlainText
                                     wrapMode: Text.Wrap
@@ -122,7 +109,7 @@ Item {
 
                                 Label {
                                     text: toastDelegate.toastText
-                                    color: toastPopup.palette.toolTipText
+                                    color: global.fore
                                     textFormat: Text.PlainText
                                     wrapMode: Text.Wrap
                                     visible: toastDelegate.toastText.length > 0
@@ -132,26 +119,12 @@ Item {
                         }
 
                         ProgressBar {
-                            id: lifetimeProgress
                             from: 0
                             to: 1
                             value: toastDelegate.remaining
-                            padding: 0
+                            palette.accent: toastDelegate.levelColor
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 2
-
-                            background: null
-                            contentItem: Item {
-                                implicitHeight: 2
-
-                                Rectangle {
-                                    anchors.left: parent.left
-                                    width: parent.width * lifetimeProgress.visualPosition
-                                    height: parent.height
-                                    radius: 1
-                                    color: toastDelegate.levelColor
-                                }
-                            }
+                            Layout.leftMargin: 2; Layout.rightMargin: 2
                         }
                     }
                 }

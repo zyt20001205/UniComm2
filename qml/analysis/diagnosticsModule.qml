@@ -164,10 +164,14 @@ Item {
                             color: global.back
                         }
 
-                        Image {
+                        IconImage {
                             anchors.centerIn: parent
                             width: 16; height: 16
                             source: model.decoration
+                            color: model.severity === 1 ? global.dangerBack3
+                                   : model.severity === 2 ? global.warningBack3
+                                   : model.severity === 3 ? global.brandBack
+                                   : global.fore
                         }
                     }
                 }

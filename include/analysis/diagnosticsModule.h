@@ -48,7 +48,8 @@ class DiagnosticsModel final : public QStandardItemModel {
 
 public:
     enum Role {
-        PositionRole = Qt::UserRole + 1
+        SeverityRole = Qt::UserRole + 1,
+        PositionRole
     };
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
