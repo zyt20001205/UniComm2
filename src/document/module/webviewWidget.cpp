@@ -96,7 +96,7 @@ namespace {
 WebviewWidget::WebviewWidget(QWidget *parent)
     : QWidget(parent) {
     setAttribute(Qt::WA_NativeWindow);
-    setAttribute(Qt::WA_DontCreateNativeAncestors, false);
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
     setFocusPolicy(Qt::StrongFocus);
 
     const auto hr = OleInitialize(nullptr);
