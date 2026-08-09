@@ -366,8 +366,7 @@ void AgentModule::conversationGet(const QString &id) {
     m_modeButton->setProperty("mode", conversation.mode);
     m_modeMenu->setProperty("selectedIndex", conversation.mode);
     modelUpdate(conversation.model);
-    const QVariantMap usage{{"currentUsage", conversation.contextTokens}};
-    QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, usage));
+    QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, QVariant::fromValue(conversation.contextTokens)));
     QMetaObject::invokeMethod(m_root, "followToTail", Qt::QueuedConnection);
 }
 
@@ -472,8 +471,9 @@ void AgentModule::conversationSend(const QJsonObject &body) {
                 } else {
                     m_sqlModule->conversationCompact(m_conversationId, summary, m_turn.compactedTurnId);
                     m_turn.compactedTurnId.clear();
+                    QMetaObject::invokeMethod(m_root, "compactFinish");
+                    QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, QVariant::fromValue<qint64>(0)));
                     if (m_turn.id.isEmpty()) {
-                        QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, QVariantMap{}));
                         stateSet(AgentState::Ready);
                     } else {
                         stateSet(AgentState::Request);
@@ -521,14 +521,7 @@ void AgentModule::conversationSend(const QJsonObject &body) {
                 m_turn.usage.cacheHitTokens += cacheHitTokens;
                 m_turn.usage.reasoningTokens += reasoningTokens;
 
-                const QVariantMap usageMap{
-                    {"currentUsage", m_turn.currentUsage},
-                    {"promptTokens", m_turn.usage.promptTokens},
-                    {"completionTokens", m_turn.usage.completionTokens},
-                    {"cacheHitTokens", m_turn.usage.cacheHitTokens},
-                    {"reasoningTokens", m_turn.usage.reasoningTokens}
-                };
-                QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, usageMap));
+                QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, QVariant::fromValue(m_turn.currentUsage)));
             }
 
             const auto choices = object.value("choices").toArray();

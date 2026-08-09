@@ -416,6 +416,118 @@ Item {
         }
 
         Item {
+            id: compactCard
+            property bool completed: false
+            visible: agentModule.state === 5 || completed
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? compactLayout.implicitHeight + 20 : 0
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.backSelected
+                border.color: global.stroke
+                border.width: 1
+                radius: 6
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: global.fore
+                border.width: 1
+                radius: 6
+                visible: !compactCard.completed
+                opacity: 0.2
+
+                SequentialAnimation on opacity {
+                    running: compactCard.visible && !compactCard.completed
+                    loops: Animation.Infinite
+
+                    NumberAnimation {
+                        from: 0.2; to: 0.8
+                        duration: 450
+                        easing.type: Easing.InOutSine
+                    }
+
+                    NumberAnimation {
+                        from: 0.8; to: 0.2
+                        duration: 450
+                        easing.type: Easing.InOutSine
+                    }
+
+                    PauseAnimation {
+                        duration: 250
+                    }
+                }
+            }
+
+            ColumnLayout {
+                id: compactLayout
+                anchors.fill: parent
+                anchors.margins: 10
+                spacing: 4
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    IconImage {
+                        color: compactCard.completed ? global.stroke : global.fore
+                        source: compactCard.completed ? "qrc:/icon/taskCompleted.svg" : "qrc:/icon/arrowMinimize.svg"
+                        sourceSize.width: 16; sourceSize.height: 16
+                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    }
+
+                    Label {
+                        text: compactCard.completed ? qsTr("Context compacted") : qsTr("Compacting context")
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        text: compactCard.completed ? qsTr("Done") :
+                                usageLayout.currentUsage > 0 ? usageLayout.formatTokens(usageLayout.currentUsage) + " " + qsTr("tokens") : ""
+                        color: global.stroke
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Item {
+                        Layout.preferredWidth: 16
+                    }
+
+                    Label {
+                        text: compactCard.completed ? qsTr("Earlier turns were summarized into a compact context.") :
+                                qsTr("Summarizing earlier turns to free context space.")
+                        color: global.stroke
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+                }
+            }
+
+            Connections {
+                target: agentModule
+
+                function onStateChanged() {
+                    if (agentModule.state !== 5) return
+                    compactStatusTimer.stop()
+                    compactCard.completed = false
+                }
+            }
+
+            Timer {
+                id: compactStatusTimer
+                interval: 5000
+
+                onTriggered: compactCard.completed = false
+            }
+        }
+
+        Item {
             id: permissionCard
             visible: agentModule.state === 11
             Layout.fillWidth: true
@@ -819,14 +931,10 @@ Item {
                     id: usageLayout
                     property double currentUsage: 0
                     property double contextWindow: 0
-                    property double promptTokens: 0
-                    property double completionTokens: 0
-                    property double cacheHitTokens: 0
-                    property double reasoningTokens: 0
                     property bool compactPending: false
                     visible: contextWindow > 0
                     Layout.leftMargin: 4; Layout.rightMargin: 4
-                    Layout.preferredWidth: Math.max(usageContent.implicitWidth, compactLabel.implicitWidth)
+                    Layout.preferredWidth: Math.max(usageContent.implicitWidth, compactButton.implicitWidth)
                     Layout.preferredHeight: 28
 
                     function formatTokens(tokens) {
@@ -835,96 +943,121 @@ Item {
                         return tokens.toString()
                     }
 
-                    front: RowLayout {
-                        id: usageContent
+                    function exactTokens(tokens) {
+                        return tokens > 0 ? Number(tokens).toLocaleString(Qt.locale(), "f", 0) : "-"
+                    }
+
+                    front: Item {
                         anchors.fill: parent
-                        spacing: 0
 
-                        Flipable {
-                            id: contextLabel
-                            property string frontText
-                            property string backText
-                            Layout.preferredWidth: Math.max(contextFrontLabel.implicitWidth, contextBackLabel.implicitWidth)
-                            Layout.preferredHeight: 28
+                        RowLayout {
+                            id: usageContent
+                            anchors.centerIn: parent
+                            spacing: 4
 
-                            function updateText(text) {
-                                if (contextFlipAnimation.running) contextFlipAnimation.complete()
-                                if (text.length === 0) {
-                                    contextRotation.angle = 0
-                                    frontText = ""
-                                    backText = ""
-                                } else if (frontText.length === 0) {
-                                    frontText = text
-                                    backText = text
-                                } else if (frontText !== text) {
-                                    backText = text
-                                    contextFlipAnimation.restart()
+                            Flipable {
+                                id: contextLabel
+                                property string frontText
+                                property string backText
+                                Layout.preferredWidth: Math.max(contextFrontLabel.implicitWidth, contextBackLabel.implicitWidth)
+                                Layout.preferredHeight: 28
+
+                                function updateText(text) {
+                                    if (contextFlipAnimation.running) contextFlipAnimation.complete()
+                                    if (text.length === 0) {
+                                        contextRotation.angle = 0
+                                        frontText = ""
+                                        backText = ""
+                                    } else if (frontText.length === 0) {
+                                        frontText = text
+                                        backText = text
+                                    } else if (frontText !== text) {
+                                        backText = text
+                                        contextFlipAnimation.restart()
+                                    }
                                 }
-                            }
 
-                            front: Label {
-                                id: contextFrontLabel
-                                anchors.fill: parent
-                                text: contextLabel.frontText
-                                color: global.stroke
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
+                                front: Label {
+                                    id: contextFrontLabel
+                                    anchors.fill: parent
+                                    text: contextLabel.frontText
+                                    color: global.stroke
+                                    horizontalAlignment: Text.AlignRight
+                                    verticalAlignment: Text.AlignVCenter
+                                }
 
-                            back: Label {
-                                id: contextBackLabel
-                                anchors.fill: parent
-                                text: contextLabel.backText
-                                color: global.stroke
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                                back: Label {
+                                    id: contextBackLabel
+                                    anchors.fill: parent
+                                    text: contextLabel.backText
+                                    color: global.stroke
+                                    horizontalAlignment: Text.AlignRight
+                                    verticalAlignment: Text.AlignVCenter
+
+                                    transform: Rotation {
+                                        origin.x: contextBackLabel.width / 2
+                                        origin.y: contextBackLabel.height / 2
+                                        axis.x: 1; axis.y: 0; axis.z: 0
+                                        angle: 180
+                                    }
+                                }
 
                                 transform: Rotation {
-                                    origin.x: contextBackLabel.width / 2
-                                    origin.y: contextBackLabel.height / 2
+                                    id: contextRotation
+                                    origin.x: contextLabel.width / 2
+                                    origin.y: contextLabel.height / 2
                                     axis.x: 1; axis.y: 0; axis.z: 0
-                                    angle: 180
+                                    angle: 0
+                                }
+
+                                NumberAnimation {
+                                    id: contextFlipAnimation
+                                    target: contextRotation
+                                    property: "angle"
+                                    from: 0; to: -180
+                                    duration: 200
+                                    easing.type: Easing.InOutCubic
+
+                                    onFinished: {
+                                        contextLabel.frontText = contextLabel.backText
+                                        contextRotation.angle = 0
+                                    }
                                 }
                             }
 
-                            transform: Rotation {
-                                id: contextRotation
-                                origin.x: contextLabel.width / 2
-                                origin.y: contextLabel.height / 2
-                                axis.x: 1; axis.y: 0; axis.z: 0
-                                angle: 0
+                            Label {
+                                text: "/"
+                                color: global.stroke
+                                verticalAlignment: Text.AlignVCenter
+                                Layout.preferredHeight: 28
                             }
 
-                            NumberAnimation {
-                                id: contextFlipAnimation
-                                target: contextRotation
-                                property: "angle"
-                                from: 0; to: -180
-                                duration: 200
-                                easing.type: Easing.InOutCubic
-
-                                onFinished: {
-                                    contextLabel.frontText = contextLabel.backText
-                                    contextRotation.angle = 0
-                                }
+                            Label {
+                                text: usageLayout.formatTokens(usageLayout.contextWindow)
+                                color: global.stroke
+                                verticalAlignment: Text.AlignVCenter
+                                Layout.preferredHeight: 28
                             }
-                        }
-
-                        Label {
-                            text: " / " + usageLayout.formatTokens(usageLayout.contextWindow)
-                            color: global.stroke
-                            verticalAlignment: Text.AlignVCenter
-                            Layout.preferredHeight: 28
                         }
                     }
 
-                    back: Label {
-                        id: compactLabel
-                        anchors.fill: parent
-                        text: qsTr("Compact")
-                        color: global.fore
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    back: RowLayout {
+                        id: compactButton
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        IconImage {
+                            color: global.warningFore3
+                            source: "qrc:/icon/arrowMinimize.svg"
+                            sourceSize.width: 16; sourceSize.height: 16
+                            Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                        }
+
+                        Label {
+                            id: compactLabel
+                            text: qsTr("Compact")
+                            color: global.warningFore3
+                        }
                     }
 
                     transform: Rotation {
@@ -969,13 +1102,11 @@ Item {
                         }
                         onPointChanged: {
                             mainToolTip.position = parent.mapToGlobal(point.position)
-                            mainToolTip.text = qsTr("Context: %1 / %2\nTurn input: %3\nCached: %4\nTurn output: %5\nReasoning: %6")
-                                                   .arg(usageLayout.formatTokens(usageLayout.currentUsage))
-                                                   .arg(usageLayout.formatTokens(usageLayout.contextWindow))
-                                                   .arg(usageLayout.promptTokens)
-                                                   .arg(usageLayout.cacheHitTokens)
-                                                   .arg(usageLayout.completionTokens)
-                                                   .arg(usageLayout.reasoningTokens)
+                            const action = usageLayout.currentUsage > 0 ? qsTr("Click to compact context") : qsTr("Context will update after the next response")
+                            mainToolTip.text = qsTr("Context: %1 / %2\n%3")
+                                                   .arg(usageLayout.exactTokens(usageLayout.currentUsage))
+                                                   .arg(usageLayout.exactTokens(usageLayout.contextWindow))
+                                                   .arg(action)
                         }
                     }
                 }
@@ -1243,7 +1374,9 @@ Item {
         chatView.followTail = true
         planCard.explanation = ""
         planCard.steps = []
-        usageUpdate({})
+        compactStatusTimer.stop()
+        compactCard.completed = false
+        usageUpdate(0)
         for (let i = chatColumn.children.length - 1; i >= 0; --i) {
             chatColumn.children[i].destroy();
         }
@@ -1284,16 +1417,15 @@ Item {
         planCard.steps = plan.plan ? plan.plan : []
     }
 
-    function usageUpdate(usage) {
-        const currentUsage = usage.currentUsage || 0
-        const promptTokens = usage.promptTokens || 0
-        const cacheHitTokens = usage.cacheHitTokens || 0
-        contextLabel.updateText(usageLayout.formatTokens(currentUsage))
-        usageLayout.currentUsage = currentUsage
-        usageLayout.promptTokens = promptTokens
-        usageLayout.completionTokens = usage.completionTokens || 0
-        usageLayout.cacheHitTokens = cacheHitTokens
-        usageLayout.reasoningTokens = usage.reasoningTokens || 0
+    function compactFinish() {
+        compactCard.completed = true
+        compactStatusTimer.restart()
+    }
+
+    function usageUpdate(totalTokens) {
+        const usage = totalTokens || 0
+        contextLabel.updateText(usage > 0 ? usageLayout.formatTokens(usage) : "-")
+        usageLayout.currentUsage = usage
     }
 
     function modelUpdate(contextWindow) {
