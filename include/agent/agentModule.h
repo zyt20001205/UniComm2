@@ -66,12 +66,12 @@ public:
 
     Q_INVOKABLE void userInputDisable() const;
 
+    [[nodiscard]] QString agentExecute(const QString &role, const QString &task);
+
 signals:
     void changeState();
 
 private:
-    void executeTool(RuntimeModule *runtime, const QString &name, const QString &arguments);
-
     void turnCreate(const QString &turnId, qint64 startedAt) const;
 
     void turnFinish(const QString &turnId, qint64 finishedAt) const;

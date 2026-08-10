@@ -82,11 +82,6 @@ void RuntimeModule::userInputDisable() {
     toolResultSet("The user chose not to answer and disabled further questions for this turn. Continue using your best judgment.");
 }
 
-void RuntimeModule::finishTool(const QString &result) {
-    if (m_turn.toolCalls.at(m_turn.currentTool).name != "plan_update") ++m_turn.toolCount;
-    toolResultSet(result);
-}
-
 // private
 void RuntimeModule::stateSet(const int state, const QVariant &payload) {
     m_state = state;
@@ -224,11 +219,14 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         break;
         case AgentState::ToolExec: {
             const auto &toolCall = m_turn.toolCalls.at(m_turn.currentTool);
-            if (!toolCall.approved) {
-                toolResultSet("User denied permission to execute this tool.");
-                break;
+            QString result{};
+            if (!toolCall.approved) result = "User denied permission to execute this tool.";
+            else {
+                result = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
+                if (m_state != AgentState::ToolExec) break;
+                if (toolCall.name != "plan_update") ++m_turn.toolCount;
             }
-            emit executeTool(toolCall.name, toolCall.arguments);
+            toolResultSet(result);
         }
         break;
         case AgentState::Speak: stateSet(AgentState::Ready);

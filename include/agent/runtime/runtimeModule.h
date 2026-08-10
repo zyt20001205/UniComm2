@@ -71,8 +71,6 @@ public:
 
     void userInputDisable();
 
-    void finishTool(const QString &result);
-
 signals:
     void changeState();
 
@@ -99,8 +97,6 @@ signals:
     void updateUsage(qint64 totalTokens);
 
     void finishCompact();
-
-    void executeTool(const QString &name, const QString &arguments);
 
     void finishRun(const QString &result);
 

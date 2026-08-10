@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 
 #include "globals.h"
+#include "agent/agentModule.h"
 #include "agent/module/sqlModule.h"
 #include "agent/runtime/runtimeModule.h"
 #include "data/databaseModule.h"
@@ -14,14 +15,15 @@
 #include "service/ripgrep.h"
 
 // public
-ToolsModule::ToolsModule(SqlModule *sqlModule, QObject *parent)
-    : QObject(parent),
+ToolsModule::ToolsModule(SqlModule *sqlModule, AgentModule *agentModule)
+    : QObject(agentModule),
       m_portTypes{
           {"serial_port", PortType::SerialPort},
           {"tcp_client", PortType::TcpClient},
           {"ssl_client", PortType::SslClient}
       },
       m_sqlModule(sqlModule),
+      m_agentModule(agentModule),
       m_writeGroup{"line_set", "port_create"},
       m_fullAccessGroup{"port_delete", "thread_start"} {
 }
@@ -750,6 +752,9 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
             array.append(key);
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "dispatch_agent") {
+        return m_agentModule->agentExecute(object.value("role").toString(), object.value("task").toString());
     }
     if (name == "plan_update") {
         if (object.contains("explanation") && !object.value("explanation").isString()) return "Plan update failed: explanation must be a string.";

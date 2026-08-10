@@ -7,13 +7,14 @@
 #include <QObject>
 #include <QSet>
 
+class AgentModule;
 class SqlModule;
 
 class ToolsModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit ToolsModule(SqlModule *sqlModule, QObject *parent = nullptr);
+    explicit ToolsModule(SqlModule *sqlModule, AgentModule *agentModule);
 
     ~ToolsModule() override = default;
 
@@ -36,6 +37,7 @@ private:
     QHash<QString, int> m_portTypes{};
     QJsonArray m_tools{};
     SqlModule *m_sqlModule{};
+    AgentModule *m_agentModule{};
     QSet<QString> m_writeGroup{};
     QSet<QString> m_fullAccessGroup{};
 };

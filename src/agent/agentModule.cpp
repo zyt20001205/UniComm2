@@ -1,7 +1,7 @@
 #include "agent/agentModule.h"
 
 #include <QDateTime>
-#include <QJsonDocument>
+#include <QEventLoop>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
@@ -99,9 +99,6 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     connect(m_supervisorRuntime, &RuntimeModule::finishCompact, this, [this] {
         QMetaObject::invokeMethod(m_root, "compactFinish");
     });
-    connect(m_supervisorRuntime, &RuntimeModule::executeTool, this, [this](const QString &name, const QString &arguments) {
-        executeTool(m_supervisorRuntime, name, arguments);
-    });
     m_toolsModule->initialize();
 
     m_providerModule->propertySet(QVariantHash{
@@ -149,13 +146,13 @@ void AgentModule::stateSet(const int state) {
         case AgentState::Compact: m_supervisorRuntime->compact(m_conversationId);
         break;
         case AgentState::Abort: {
+            m_supervisorRuntime->abort();
             if (m_activeRuntime != nullptr) {
                 auto *runtime = m_activeRuntime;
                 m_activeRuntime = nullptr;
                 m_permissionRuntime = nullptr;
                 runtime->abort();
             }
-            m_supervisorRuntime->abort();
         }
         break;
         default: break;
@@ -311,43 +308,36 @@ void AgentModule::userInputDisable() const {
     m_supervisorRuntime->userInputDisable();
 }
 
-// private
-void AgentModule::executeTool(RuntimeModule *runtime, const QString &name, const QString &arguments) {
-    if (name != "dispatch_agent") {
-        runtime->finishTool(m_toolsModule->toolExecute(name, arguments));
-        return;
-    }
-
-    const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
-    const auto role = object.value("role").toString();
+QString AgentModule::agentExecute(const QString &role, const QString &task) {
     BaseAgent *agent{};
     if (role == "hardware") agent = new HardwareAgent();
-    if (agent == nullptr) {
-        runtime->finishTool(QString("Unknown agent role: %1").arg(role));
-        return;
-    }
+    if (agent == nullptr) return QString("Unknown agent role: %1").arg(role);
 
     const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
+    QEventLoop eventLoop{};
+    QString result{};
     auto *worker = new RuntimeModule(agent, m_contextModule, m_providerModule, m_sqlModule, m_toolsModule, this); // NOLINT
     m_activeRuntime = worker;
-    connect(worker, &RuntimeModule::executeTool, this, [this, worker](const QString &toolName, const QString &toolArguments) {
-        executeTool(worker, toolName, toolArguments);
-    });
     connect(worker, &RuntimeModule::requestPermission, this, [this, worker](const QString &message) {
         m_permissionRuntime = worker;
         m_permissionLabel->setProperty("message", message);
         emit changeState();
     });
-    connect(worker, &RuntimeModule::finishRun, this, [this, runtime, worker](const QString &result) {
+    connect(worker, &RuntimeModule::finishRun, &eventLoop, [this, worker, &eventLoop, &result](const QString &value) {
         if (m_activeRuntime == worker) {
             m_activeRuntime = nullptr;
-            m_permissionRuntime = nullptr;
-            runtime->finishTool(result);
+            result = value;
         }
-        worker->deleteLater();
+        if (m_permissionRuntime == worker) m_permissionRuntime = nullptr;
+        eventLoop.quit();
     });
-    worker->startTask(conversation.provider, conversation.model, conversation.mode, object.value("task").toString());
+    worker->startTask(conversation.provider, conversation.model, conversation.mode, task);
+    eventLoop.exec();
+    worker->deleteLater();
+    return result;
 }
+
+// private
 
 void AgentModule::turnCreate(const QString &turnId, const qint64 startedAt) const {
     QMetaObject::invokeMethod(m_root, "turnCreate", Q_ARG(QString, turnId), Q_ARG(double, startedAt));
