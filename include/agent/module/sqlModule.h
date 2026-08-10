@@ -65,7 +65,7 @@ public:
 
     void conversationModeSet(const QString &id, int mode) const;
 
-    void conversationModelSet(const QString &id, const QString &model) const;
+    void conversationModelSet(const QString &id, const QString &provider, const QString &model) const;
 
     void conversationCompact(const QString &id, const QString &summary, const QString &compactedTurnId) const;
 

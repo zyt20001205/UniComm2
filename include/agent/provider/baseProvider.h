@@ -1,14 +1,10 @@
 #ifndef UNICOMM_BASEPROVIDER_H
 #define UNICOMM_BASEPROVIDER_H
 
-#include <QJsonArray>
 #include <QJsonObject>
-#include <QList>
 #include <QNetworkRequest>
 #include <QObject>
 #include <QString>
-
-class QStandardItemModel;
 
 class BaseProvider : public QObject {
     Q_OBJECT
@@ -25,13 +21,9 @@ public:
 
     ~BaseProvider() override = default;
 
-    QNetworkRequest requestGet() { return m_request; }
+    [[nodiscard]] virtual QNetworkRequest requestGet() const = 0;
 
-    void catalogSet(const QJsonObject &catalog) {
-        m_catalog = catalog;
-    }
-
-    [[nodiscard]] virtual QJsonObject requestBuild(const QString &model, const QJsonArray &messages, const QJsonArray &tools, bool stream) const;
+    [[nodiscard]] virtual QJsonObject requestBuild(const QString &model, const QJsonArray &messages, const QJsonArray &tools, bool stream) const = 0;
 
     virtual void apikeyGet() = 0;
 
@@ -42,17 +34,9 @@ public:
     [[nodiscard]] virtual Model modelGet(const QString &id) const = 0;
 
 signals:
-    void setApikey(const QString &apikey);
+    void apikeyChanged(const QString &apikey);
 
-    void setModel(QStandardItemModel *providerModel);
-
-protected:
-    QNetworkRequest m_request{};
-    QString m_service{};
-    QString m_key{};
-    QString m_apikey{};
-    QJsonObject m_catalog{};
-    QList<Model> m_models{};
+    void modelsChanged();
 };
 
 #endif //UNICOMM_BASEPROVIDER_H

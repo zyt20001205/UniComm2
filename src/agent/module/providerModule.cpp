@@ -1,54 +1,48 @@
 #include "agent/module/providerModule.h"
 
 #include <QFile>
+#include <QJsonDocument>
+#include <QStandardItem>
 
 #include "agent/provider/baseProvider.h"
-#include "agent/provider/bigmodelProvider.h"
-#include "agent/provider/deepseekProvider.h"
+#include "agent/provider/openAIProvider.h"
 
-ProviderModule::ProviderModule(QObject *parent)
+ProviderModule::ProviderModule(const QJsonArray &providers, QObject *parent)
     : QObject(parent),
-      m_bigmodelProvider(new BigmodelProvider(this)),
-      m_deepseekProvider(new DeepseekProvider(this)) {
-    m_providers = {
-        {"bigmodel", m_bigmodelProvider},
-        {"deepseek", m_deepseekProvider}
-    };
+      m_providerIds(providers),
+      m_providerModel(new ProviderModel(this)) {
 }
 
 void ProviderModule::propertySet(const QVariantHash &objects) {
     m_modelMenu = qvariant_cast<QObject *>(objects["agentModuleModelMenu"]);
-
-    connect(m_bigmodelProvider, &BigmodelProvider::setApikey, this, [this](const QString &apikey) {
-        m_modelMenu->setProperty("bigmodelApikey", apikey);
-    });
-    connect(m_bigmodelProvider, &BigmodelProvider::setModel, this, [this](QStandardItemModel *model) {
-        m_modelMenu->setProperty("bigmodelModel", QVariant::fromValue(model));
-    });
-
-    connect(m_deepseekProvider, &DeepseekProvider::setApikey, this, [this](const QString &apikey) {
-        m_modelMenu->setProperty("deepseekApikey", apikey);
-    });
-    connect(m_deepseekProvider, &DeepseekProvider::setModel, this, [this](QStandardItemModel *model) {
-        m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(model));
-        emit modelsChanged();
-    });
+    m_modelMenu->setProperty("providerModel", QVariant::fromValue(m_providerModel));
 }
 
-void ProviderModule::initialize() const {
-    // m_bigmodelProvider->apikeyGet();
-
+void ProviderModule::initialize() {
     QFile file(":/config/api.json");
     if (!file.open(QIODevice::ReadOnly)) return;
     const auto catalog = QJsonDocument::fromJson(file.readAll()).object();
-    const auto provider = catalog.value("deepseek").toObject();
-    m_deepseekProvider->catalogSet(provider.value("models").toObject());
-    m_deepseekProvider->apikeyGet();
+    for (const auto &value: m_providerIds) {
+        const auto id = value.toString();
+        auto *provider = new OpenAIProvider(id, catalog.value(id).toObject(), this); // NOLINT
+        m_providers[id] = provider;
+
+        auto *item = new QStandardItem(provider->nameGet()); // NOLINT
+        item->setData(id, ProviderModel::IdRole);
+        item->setData("", ProviderModel::ApikeyRole);
+        item->setData(QVariant::fromValue(provider->modelListGet()), ProviderModel::ModelsRole);
+        m_providerModel->appendRow(item);
+
+        connect(provider, &BaseProvider::apikeyChanged, this, [item](const QString &apikey) {
+            item->setData(apikey, ProviderModel::ApikeyRole);
+        });
+        connect(provider, &BaseProvider::modelsChanged, this, &ProviderModule::modelsChanged);
+        provider->apikeyGet();
+    }
 }
 
-void ProviderModule::apikeySet(const QString &key, const QString &apikey) const {
-    if (key == "bigmodel-api-key") m_bigmodelProvider->apikeySet(apikey);
-    else if (key == "deepseek-api-key") m_deepseekProvider->apikeySet(apikey);
+void ProviderModule::apikeySet(const QString &provider, const QString &apikey) const {
+    m_providers.value(provider)->apikeySet(apikey);
 }
 
 BaseProvider *ProviderModule::providerGet(const QString &id) const {
@@ -56,6 +50,14 @@ BaseProvider *ProviderModule::providerGet(const QString &id) const {
 }
 
 QHash<int, QByteArray> ProviderModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[IdRole] = "id";
+    roles[ApikeyRole] = "apikey";
+    roles[ModelsRole] = "models";
+    return roles;
+}
+
+QHash<int, QByteArray> ProviderModelModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[IdRole] = "id";
     roles[ContextWindowRole] = "contextWindow";

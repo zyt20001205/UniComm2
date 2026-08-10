@@ -11,6 +11,7 @@ class QNetworkAccessManager;
 class QQuickView;
 class QQuickWidget;
 
+class BaseProvider;
 class ConversationModel;
 class ContextModule;
 class McpModule;
@@ -69,7 +70,7 @@ public:
 
     void stateSet(int state, const QVariant &payload = QVariant());
 
-    Q_INVOKABLE void apikeySet(const QString &key, const QString &apikey) const;
+    Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
 
     Q_INVOKABLE void conversationsGet();
 
@@ -83,7 +84,7 @@ public:
 
     Q_INVOKABLE void conversationModeSet(int mode);
 
-    Q_INVOKABLE void conversationModelSet(const QString &id);
+    Q_INVOKABLE void conversationModelSet(const QString &provider, const QString &model);
 
     qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
 
@@ -129,7 +130,7 @@ private:
         qsizetype currentTool{};
     };
 
-    void conversationSend(const QJsonObject &body);
+    void conversationSend(BaseProvider *provider, const QJsonObject &body);
 
     void turnCreate(const QString &turnId, qint64 startedAt) const;
 
@@ -143,7 +144,7 @@ private:
 
     void chatFinish(const QString &messageId) const;
 
-    void modelUpdate(const QString &id) const;
+    void modelUpdate(const QString &provider, const QString &model) const;
 
     void toolResultSet(const QString &result);
 

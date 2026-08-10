@@ -260,17 +260,18 @@ void SqlModule::conversationModeSet(const QString &id, const int mode) const {
     qDebug() << "agent database conversation mode set failed:" << query.lastError().text();
 }
 
-void SqlModule::conversationModelSet(const QString &id, const QString &model) const {
+void SqlModule::conversationModelSet(const QString &id, const QString &provider, const QString &model) const {
     const auto database = QSqlDatabase::database(m_connectionName, false);
     if (!database.isOpen()) return;
 
     QSqlQuery query(database);
     query.prepare(R"(
         UPDATE conversations
-        SET model = :model, updated_at = :updatedAt
+        SET provider = :provider, model = :model, updated_at = :updatedAt
         WHERE id = :id
     )");
     query.bindValue(":id", id);
+    query.bindValue(":provider", provider);
     query.bindValue(":model", model);
     query.bindValue(":updatedAt", QDateTime::currentMSecsSinceEpoch());
     if (query.exec()) return;

@@ -32,7 +32,7 @@ AgentModule::AgentModule()
       m_conversationModel(new ConversationModel(this)),
       m_contextModule(new ContextModule(this)),
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
-      m_providerModule(new ProviderModule(this)),
+      m_providerModule(new ProviderModule(m_config["providers"].toArray(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
       m_toolsModule(new ToolsModule(m_sqlModule, this)) {
     setWidget(m_widget);
@@ -87,7 +87,8 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     });
     connect(m_providerModule, &ProviderModule::modelsChanged, this, [this] {
         if (m_conversationId.isEmpty()) return;
-        modelUpdate(m_sqlModule->conversationGet(m_conversationId).first.model);
+        const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
+        modelUpdate(conversation.provider, conversation.model);
     });
     m_providerModule->initialize();
 
@@ -149,7 +150,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
         case AgentState::Pre: {
             if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
             const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
-            if (conversation.model.isEmpty()) {
+            if (conversation.provider.isEmpty() || conversation.model.isEmpty()) {
                 stateSet(AgentState::Error, tr("Please select a model first."));
                 break;
             }
@@ -167,7 +168,7 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             chatAppend(message.id, message.content);
             QMetaObject::invokeMethod(m_textArea, "clear");
 
-            const auto model = m_providerModule->providerGet("deepseek")->modelGet(conversation.model);
+            const auto model = m_providerModule->providerGet(conversation.provider)->modelGet(conversation.model);
             stateSet(model.contextWindow > 0 && conversation.contextTokens >= model.contextWindow * 3 / 4 ? AgentState::Compact : AgentState::Request);
         }
         break;
@@ -175,16 +176,18 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
             const auto [conversation, history] = m_sqlModule->conversationGet(m_conversationId);
             const auto [turnId, messages] = m_contextModule->compactBuild(conversation, history);
             m_turn.compactedTurnId = turnId;
-            const auto body = m_providerModule->providerGet("deepseek")->requestBuild(conversation.model, messages, {}, false);
-            conversationSend(body);
+            auto *provider = m_providerModule->providerGet(conversation.provider);
+            const auto body = provider->requestBuild(conversation.model, messages, {}, false);
+            conversationSend(provider, body);
         }
         break;
         case AgentState::Request: {
             const auto [conversation, messages] = m_sqlModule->conversationGet(m_conversationId);
             const auto context = m_contextModule->contextBuild(conversation, messages, m_turn.messages);
             const auto tools = conversation.mode == AgentMode::Chat ? QJsonArray{} : toolsList({"Context7"});
-            const auto body = m_providerModule->providerGet("deepseek")->requestBuild(conversation.model, context, tools, true);
-            conversationSend(body);
+            auto *provider = m_providerModule->providerGet(conversation.provider);
+            const auto body = provider->requestBuild(conversation.model, context, tools, true);
+            conversationSend(provider, body);
         }
         break;
         case AgentState::Abort: {
@@ -281,8 +284,8 @@ void AgentModule::stateSet(const int state, const QVariant &payload) {
     }
 }
 
-void AgentModule::apikeySet(const QString &key, const QString &apikey) const {
-    m_providerModule->apikeySet(key, apikey);
+void AgentModule::apikeySet(const QString &provider, const QString &apikey) const {
+    m_providerModule->apikeySet(provider, apikey);
 }
 
 void AgentModule::conversationsGet() {
@@ -308,7 +311,7 @@ void AgentModule::conversationsGet() {
     m_conversationComboBox->setProperty("currentIndex", currentIndex);
     m_modeButton->setProperty("mode", currentConversation.id.isEmpty() ? AgentMode::Chat : currentConversation.mode);
     m_modeMenu->setProperty("selectedIndex", currentConversation.id.isEmpty() ? AgentMode::Chat : currentConversation.mode);
-    modelUpdate(currentConversation.model);
+    modelUpdate(currentConversation.provider, currentConversation.model);
 }
 
 void AgentModule::conversationGet(const QString &id) {
@@ -319,7 +322,7 @@ void AgentModule::conversationGet(const QString &id) {
         m_conversationId.clear();
         m_modeButton->setProperty("mode", AgentMode::Chat);
         m_modeMenu->setProperty("selectedIndex", AgentMode::Chat);
-        modelUpdate({});
+        modelUpdate({}, {});
         return;
     }
 
@@ -363,7 +366,7 @@ void AgentModule::conversationGet(const QString &id) {
     if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
     m_modeButton->setProperty("mode", conversation.mode);
     m_modeMenu->setProperty("selectedIndex", conversation.mode);
-    modelUpdate(conversation.model);
+    modelUpdate(conversation.provider, conversation.model);
     QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(QVariant, QVariant::fromValue(conversation.contextTokens)));
     QMetaObject::invokeMethod(m_root, "followToTail", Qt::QueuedConnection);
 }
@@ -398,10 +401,10 @@ void AgentModule::conversationModeSet(const int mode) {
     conversationsGet();
 }
 
-void AgentModule::conversationModelSet(const QString &id) {
+void AgentModule::conversationModelSet(const QString &provider, const QString &model) {
     if (m_conversationId.isEmpty()) conversationInsert();
-    m_sqlModule->conversationModelSet(m_conversationId, id);
-    modelUpdate(id);
+    m_sqlModule->conversationModelSet(m_conversationId, provider, model);
+    modelUpdate(provider, model);
 }
 
 qsizetype AgentModule::conversationAppend(const QString &role, const QString &toolCallId) {
@@ -450,9 +453,8 @@ void AgentModule::userInputDisable() {
 }
 
 // private
-void AgentModule::conversationSend(const QJsonObject &body) {
-    // TODO: provider judge
-    auto *reply = g_networkAccessManager->post(m_providerModule->providerGet("deepseek")->requestGet(), QJsonDocument(body).toJson());
+void AgentModule::conversationSend(BaseProvider *provider, const QJsonObject &body) {
+    auto *reply = g_networkAccessManager->post(provider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     if (!body.value("stream").toBool()) {
         connect(reply, &QNetworkReply::finished, this, [this, reply] {
@@ -633,10 +635,15 @@ void AgentModule::chatFinish(const QString &messageId) const {
     QMetaObject::invokeMethod(m_root, "chatFinish", Q_ARG(QVariant, messageId));
 }
 
-void AgentModule::modelUpdate(const QString &id) const {
-    const auto model = m_providerModule->providerGet("deepseek")->modelGet(id);
-    m_modelButton->setProperty("text", model.name);
-    QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(QVariant, model.contextWindow));
+void AgentModule::modelUpdate(const QString &provider, const QString &model) const {
+    if (provider.isEmpty() || model.isEmpty()) {
+        m_modelButton->setProperty("text", "");
+        QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(QVariant, 0));
+        return;
+    }
+    const auto modelInfo = m_providerModule->providerGet(provider)->modelGet(model);
+    m_modelButton->setProperty("text", modelInfo.name);
+    QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(QVariant, modelInfo.contextWindow));
 }
 
 void AgentModule::toolResultSet(const QString &result) {

@@ -17,7 +17,8 @@
   },
   "agentConfig": {
     "id": "",
-    "mcp": {}
+    "mcp": {},
+    "providers": []
   },
   "logConfig": {
     "fontFamily": "Segoe UI",

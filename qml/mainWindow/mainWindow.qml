@@ -360,7 +360,7 @@ Item {
         width: 600
         modal: true
         standardButtons: Dialog.Ok
-        property string key
+        property string provider
         property string apikey
 
         onOpened: {
@@ -374,7 +374,7 @@ Item {
             agentModuleApikeyTextField.selectAll()
         }
         onAccepted: {
-            agentModule.apikeySet(agentModuleApikeyDialog.key, agentModuleApikeyTextField.text)
+            agentModule.apikeySet(agentModuleApikeyDialog.provider, agentModuleApikeyTextField.text)
         }
 
         TextField {
@@ -514,10 +514,7 @@ Item {
 
     Menu {
         id: agentModuleModelMenu
-        property string bigmodelApikey
-        property var bigmodelModel
-        property string deepseekApikey
-        property var deepseekModel
+        property var providerModel
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -525,70 +522,44 @@ Item {
         }
         onClosed: widgetCount -= 1
 
-        Menu {
-            id: agentModuleBigmodelMenu
-            title: qsTr("bigmodel")
-            // icon.source: "qrc:/icon/bigmodel.svg"
-            // icon.width: 16; icon.height: 16
+        Instantiator {
+            model: agentModuleModelMenu.providerModel
+            delegate: Menu {
+                id: providerMenu
+                property string providerId: model.id
+                property string providerName: model.display
+                property string apikey: model.apikey
+                property var providerModels: model.models
+                title: providerName
 
-            MenuItem {
-                text: qsTr("API Key")
+                MenuItem {
+                    text: qsTr("API Key")
 
-                onTriggered: {
-                    agentModuleApikeyDialog.title = qsTr("Enter Bigmodel API Key")
-                    agentModuleApikeyDialog.key = "bigmodel-api-key"
-                    agentModuleApikeyDialog.apikey = agentModuleModelMenu.bigmodelApikey
-                    agentModuleApikeyDialog.open()
+                    onTriggered: {
+                        agentModuleApikeyDialog.title = qsTr("Enter %1 API Key").arg(providerMenu.providerName)
+                        agentModuleApikeyDialog.provider = providerMenu.providerId
+                        agentModuleApikeyDialog.apikey = providerMenu.apikey
+                        agentModuleApikeyDialog.open()
+                    }
+                }
+
+                MenuSeparator {
+                }
+
+                Instantiator {
+                    model: providerMenu.providerModels
+                    delegate: MenuItem {
+                        text: model.display
+                        onTriggered: agentModule.conversationModelSet(providerMenu.providerId, model.id)
+                    }
+
+                    onObjectAdded: (index, object) => providerMenu.addItem(object)
+                    onObjectRemoved: (index, object) => providerMenu.removeItem(object)
                 }
             }
 
-            MenuSeparator {
-            }
-
-            Instantiator {
-                id: agentModuleBigmodelInstantiator
-                model: agentModuleModelMenu.bigmodelModel
-                delegate: MenuItem {
-                    text: model.display
-                    onTriggered: agentModule.conversationModelSet(model.id)
-                }
-
-                onObjectAdded: (index, object) => agentModuleBigmodelMenu.addItem(object)
-                onObjectRemoved: (index, object) => agentModuleBigmodelMenu.removeItem(object)
-            }
-        }
-
-        Menu {
-            id: agentModuleDeepseekMenu
-            title: qsTr("deepseek")
-            icon.source: "qrc:/icon/deepseek.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("API Key")
-
-                onTriggered: {
-                    agentModuleApikeyDialog.title = qsTr("Enter Deepseek API Key")
-                    agentModuleApikeyDialog.key = "deepseek-api-key"
-                    agentModuleApikeyDialog.apikey = agentModuleModelMenu.deepseekApikey
-                    agentModuleApikeyDialog.open()
-                }
-            }
-
-            MenuSeparator {
-            }
-
-            Instantiator {
-                id: agentModuleDeepseekInstantiator
-                model: agentModuleModelMenu.deepseekModel
-                delegate: MenuItem {
-                    text: model.display
-                    onTriggered: agentModule.conversationModelSet(model.id)
-                }
-
-                onObjectAdded: (index, object) => agentModuleDeepseekMenu.addItem(object)
-                onObjectRemoved: (index, object) => agentModuleDeepseekMenu.removeItem(object)
-            }
+            onObjectAdded: (index, object) => agentModuleModelMenu.insertMenu(index, object)
+            onObjectRemoved: (index, object) => agentModuleModelMenu.removeMenu(object)
         }
     }
 
