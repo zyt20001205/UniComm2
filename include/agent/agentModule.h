@@ -2,9 +2,10 @@
 #define UNICOMM_AGENTMODULE_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QHash>
 #include <QStandardItemModel>
 
-#include "agent/runtime/agentRuntime.h"
+#include "agent/runtime/runtimeModule.h"
 
 class QQuickView;
 class QQuickWidget;
@@ -20,8 +21,8 @@ class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_PROPERTY(int state READ stateGet WRITE stateSet NOTIFY changeState)
 
 public:
-    using AgentState = AgentRuntime::AgentState;
-    using AgentMode = AgentRuntime::AgentMode;
+    using AgentState = RuntimeModule::AgentState;
+    using AgentMode = RuntimeModule::AgentMode;
 
     explicit AgentModule();
 
@@ -36,7 +37,7 @@ public:
     Q_INVOKABLE void agentManage() const;
 
     [[nodiscard]] int stateGet() const {
-        return m_runtime->stateGet();
+        return m_permissionRuntime == nullptr ? m_supervisorRuntime->stateGet() : m_permissionRuntime->stateGet();
     }
 
     void stateSet(int state);
@@ -59,7 +60,7 @@ public:
 
     Q_INVOKABLE void conversationRollback();
 
-    Q_INVOKABLE void permissionSet(bool status) const;
+    Q_INVOKABLE void permissionSet(bool status);
 
     Q_INVOKABLE void userInputSet(const QString &answer) const;
 
@@ -69,6 +70,8 @@ signals:
     void changeState();
 
 private:
+    void executeTool(RuntimeModule *runtime, const QString &name, const QString &arguments);
+
     void turnCreate(const QString &turnId, qint64 startedAt) const;
 
     void turnFinish(const QString &turnId, qint64 finishedAt) const;
@@ -100,7 +103,9 @@ private:
     ProviderModule *m_providerModule{};
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};
-    AgentRuntime *m_runtime{};
+    RuntimeModule *m_supervisorRuntime{};
+    RuntimeModule *m_activeRuntime{};
+    RuntimeModule *m_permissionRuntime{};
 };
 
 class ConversationModel final : public QStandardItemModel {

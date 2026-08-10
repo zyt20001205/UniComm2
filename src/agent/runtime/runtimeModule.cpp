@@ -1,4 +1,4 @@
-#include "agent/runtime/agentRuntime.h"
+#include "agent/runtime/runtimeModule.h"
 
 #include <QDateTime>
 #include <QJsonArray>
@@ -8,43 +8,62 @@
 #include <QUuid>
 
 #include <memory>
-#include <utility>
-
 #include "globals.h"
 #include "agent/module/contextModule.h"
 #include "agent/module/toolsModule.h"
 #include "agent/provider/baseProvider.h"
 #include "agent/provider/providerModule.h"
+#include "agent/role/baseAgent.h"
 
 // public
-AgentRuntime::AgentRuntime(QString role, ContextModule *contextModule, ProviderModule *providerModule, SqlModule *sqlModule, ToolsModule *toolsModule, QObject *parent)
+RuntimeModule::RuntimeModule(BaseAgent *agent, ContextModule *contextModule, ProviderModule *providerModule, SqlModule *sqlModule, ToolsModule *toolsModule, QObject *parent)
     : QObject(parent),
-      m_role(std::move(role)),
+      m_agent(agent),
       m_contextModule(contextModule),
       m_providerModule(providerModule),
       m_sqlModule(sqlModule),
       m_toolsModule(toolsModule) {
+    m_agent->setParent(this);
     connect(m_toolsModule, &ToolsModule::updatePlan, this, [this](const QJsonObject &plan) {
+        if (m_state != AgentState::ToolExec || m_turn.toolCalls.at(m_turn.currentTool).name != "plan_update") return;
         m_turn.planned = true;
         emit updatePlan(plan);
     });
 }
 
-void AgentRuntime::start(const QString &conversationId, const QString &text) {
+QString RuntimeModule::agentIdGet() const {
+    return m_agent->idGet();
+}
+
+void RuntimeModule::start(const QString &conversationId, const QString &text) {
     m_turn.conversationId = conversationId;
     stateSet(AgentState::Pre, text);
 }
 
-void AgentRuntime::compact(const QString &conversationId) {
+void RuntimeModule::startTask(const QString &provider, const QString &model, const int mode, const QString &task) {
+    m_turn = {
+        .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
+        .provider = provider,
+        .model = model,
+        .mode = mode
+    };
+    const auto messageIndex = conversationAppend("user");
+    auto &message = m_turn.messages[messageIndex];
+    message.content = task;
+    message.createdAt = QDateTime::currentMSecsSinceEpoch();
+    stateSet(AgentState::Request);
+}
+
+void RuntimeModule::compact(const QString &conversationId) {
     m_turn.conversationId = conversationId;
     stateSet(AgentState::Compact);
 }
 
-void AgentRuntime::abort() {
+void RuntimeModule::abort() {
     stateSet(AgentState::Abort);
 }
 
-void AgentRuntime::permissionSet(const bool status) {
+void RuntimeModule::permissionSet(const bool status) {
     auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
     const auto &message = m_turn.messages.at(toolCall.messageIndex);
     toolCall.approved = status;
@@ -52,24 +71,30 @@ void AgentRuntime::permissionSet(const bool status) {
     stateSet(AgentState::ToolExec);
 }
 
-void AgentRuntime::userInputSet(const QString &answer) {
+void RuntimeModule::userInputSet(const QString &answer) {
     const auto text = answer.trimmed();
     if (text.isEmpty()) return;
     toolResultSet(text);
 }
 
-void AgentRuntime::userInputDisable() {
+void RuntimeModule::userInputDisable() {
     m_turn.questionsAllowed = false;
     toolResultSet("The user chose not to answer and disabled further questions for this turn. Continue using your best judgment.");
 }
 
+void RuntimeModule::finishTool(const QString &result) {
+    if (m_turn.toolCalls.at(m_turn.currentTool).name != "plan_update") ++m_turn.toolCount;
+    toolResultSet(result);
+}
+
 // private
-void AgentRuntime::stateSet(const int state, const QVariant &payload) {
+void RuntimeModule::stateSet(const int state, const QVariant &payload) {
     m_state = state;
     emit changeState();
     switch (state) {
         case AgentState::Ready: break;
         case AgentState::Error: {
+            m_error = payload.toString();
             emit showError(payload.toString());
             stateSet(AgentState::Abort);
         }
@@ -109,17 +134,36 @@ void AgentRuntime::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Request: {
-            const auto [conversation, messages] = m_sqlModule->conversationGet(m_turn.conversationId);
-            const auto context = m_contextModule->contextBuild(conversation, messages, m_turn.messages);
-            const auto tools = conversation.mode == AgentMode::Chat ? QJsonArray{} : m_toolsModule->toolsGet(m_role);
-            auto *provider = m_providerModule->providerGet(conversation.provider);
-            const auto body = provider->requestBuild(conversation.model, context, tools, true);
+            QJsonArray context{};
+            QString providerId{};
+            QString modelId{};
+            if (m_turn.conversationId.isEmpty()) {
+                providerId = m_turn.provider;
+                modelId = m_turn.model;
+                context = m_contextModule->contextBuild(m_agent->systemGet(), m_turn.mode, m_turn.messages);
+            } else {
+                const auto [conversation, messages] = m_sqlModule->conversationGet(m_turn.conversationId);
+                providerId = conversation.provider;
+                modelId = conversation.model;
+                context = m_contextModule->contextBuild(m_agent->systemGet(), conversation, messages, m_turn.messages);
+            }
+            const auto tools = m_turn.mode == AgentMode::Chat ? QJsonArray{} : m_agent->toolsGet(*m_toolsModule);
+            auto *provider = m_providerModule->providerGet(providerId);
+            const auto body = provider->requestBuild(modelId, context, tools, true);
             conversationSend(provider, body);
         }
         break;
         case AgentState::Abort: {
             if (m_reply != nullptr) {
                 m_reply->abort();
+                break;
+            }
+            if (!m_turn.id.isEmpty() && m_turn.conversationId.isEmpty()) {
+                const auto result = m_error.isEmpty() ? QString("Agent task aborted.") : m_error;
+                m_error.clear();
+                m_turn = {};
+                stateSet(AgentState::Ready);
+                emit finishRun(result);
                 break;
             }
             if (!m_turn.id.isEmpty()) {
@@ -131,6 +175,7 @@ void AgentRuntime::stateSet(const int state, const QVariant &payload) {
                 m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
                 emit finishTurn(m_turn.id, finishedAt);
             }
+            m_error.clear();
             m_turn = {};
             stateSet(AgentState::Ready);
         }
@@ -152,7 +197,7 @@ void AgentRuntime::stateSet(const int state, const QVariant &payload) {
                 stateSet(AgentState::Permission, text);
                 break;
             }
-            if (!m_turn.planned && m_turn.toolCount >= 10 && !planUpdate) {
+            if (!m_turn.planned && m_agent->planRequired(m_turn.toolCount) && !planUpdate) {
                 if (showToolMessage) emit appendChat(message.id, " ✗");
                 toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
                 break;
@@ -179,13 +224,11 @@ void AgentRuntime::stateSet(const int state, const QVariant &payload) {
         break;
         case AgentState::ToolExec: {
             const auto &toolCall = m_turn.toolCalls.at(m_turn.currentTool);
-            QString result{};
-            if (!toolCall.approved) result = "User denied permission to execute this tool.";
-            else {
-                result = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
-                if (toolCall.name != "plan_update") ++m_turn.toolCount;
+            if (!toolCall.approved) {
+                toolResultSet("User denied permission to execute this tool.");
+                break;
             }
-            toolResultSet(result);
+            emit executeTool(toolCall.name, toolCall.arguments);
         }
         break;
         case AgentState::Speak: stateSet(AgentState::Ready);
@@ -194,7 +237,7 @@ void AgentRuntime::stateSet(const int state, const QVariant &payload) {
     }
 }
 
-void AgentRuntime::conversationSend(BaseProvider *provider, const QJsonObject &body) {
+void RuntimeModule::conversationSend(BaseProvider *provider, const QJsonObject &body) {
     auto *reply = g_networkAccessManager->post(provider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     if (!body.value("stream").toBool()) {
@@ -316,6 +359,11 @@ void AgentRuntime::conversationSend(BaseProvider *provider, const QJsonObject &b
                 }
                 m_turn.messages[assistantIndex].toolCalls = assistantToolCalls;
                 stateSet(AgentState::ToolCall);
+            } else if (m_turn.conversationId.isEmpty()) {
+                const auto result = m_turn.messages.at(assistantIndex).content;
+                m_turn = {};
+                stateSet(AgentState::Ready);
+                emit finishRun(result);
             } else {
                 const auto finishedAt = m_turn.messages.at(assistantIndex).createdAt;
                 m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
@@ -333,7 +381,7 @@ void AgentRuntime::conversationSend(BaseProvider *provider, const QJsonObject &b
     });
 }
 
-qsizetype AgentRuntime::conversationAppend(const QString &role, const QString &toolCallId) {
+qsizetype RuntimeModule::conversationAppend(const QString &role, const QString &toolCallId) {
     const auto index = m_turn.messages.size();
     m_turn.messages.append(SqlModule::Message{
         .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
@@ -345,7 +393,7 @@ qsizetype AgentRuntime::conversationAppend(const QString &role, const QString &t
     return index;
 }
 
-void AgentRuntime::toolResultSet(const QString &result) {
+void RuntimeModule::toolResultSet(const QString &result) {
     const auto &toolCall = m_turn.toolCalls.at(m_turn.currentTool);
     auto &message = m_turn.messages[toolCall.messageIndex];
     message.content = result;

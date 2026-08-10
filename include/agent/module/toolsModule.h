@@ -1,6 +1,7 @@
 #ifndef UNICOMM_TOOLSMODULE_H
 #define UNICOMM_TOOLSMODULE_H
 
+#include <QHash>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
@@ -18,7 +19,7 @@ public:
 
     void initialize();
 
-    [[nodiscard]] QJsonArray toolsGet(const QString &role) const;
+    [[nodiscard]] QJsonArray toolsGet(const QSet<QString> &names) const;
 
     [[nodiscard]] QPair<bool, QString> toolCall(int mode, const QString &name, const QString &arguments) const;
 

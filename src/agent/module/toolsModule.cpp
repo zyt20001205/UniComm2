@@ -5,7 +5,7 @@
 
 #include "globals.h"
 #include "agent/module/sqlModule.h"
-#include "agent/runtime/agentRuntime.h"
+#include "agent/runtime/runtimeModule.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
@@ -130,6 +130,38 @@ void ToolsModule::initialize() {
                             {"type", "object"},
                             {"properties", QJsonObject{}},
                             {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // dispatchAgent
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "dispatch_agent"},
+                    {"description", "Delegate a focused task to a specialized agent and wait for its final result. Use the hardware agent for port discovery, configuration, creation, and deletion."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "role", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The registered specialized agent id."}
+                                        }
+                                    },
+                                    {
+                                        "task", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "A complete, self-contained task for the specialized agent."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"role", "task"}}
                         }
                     }
                 }
@@ -649,8 +681,13 @@ void ToolsModule::initialize() {
     };
 }
 
-QJsonArray ToolsModule::toolsGet(const QString &role) const {
-    return role == "supervisor" ? m_tools : QJsonArray{};
+QJsonArray ToolsModule::toolsGet(const QSet<QString> &names) const {
+    QJsonArray tools{};
+    for (const auto &value: m_tools) {
+        const auto name = value.toObject().value("function").toObject().value("name").toString();
+        if (names.contains(name)) tools.append(value);
+    }
+    return tools;
 }
 
 QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, const QString &arguments) const {
@@ -873,6 +910,8 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         chatText = "List available databases";
     } else if (name == "datatable_list") {
         chatText = "List available datatables";
+    } else if (name == "dispatch_agent") {
+        chatText = QString("Delegate task to %1 agent").arg(object.value("role").toString());
     } else if (name == "plan_update") {
         chatText = "Update plan";
     } else if (name == "request_user_input") {
@@ -923,10 +962,10 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
 
 bool ToolsModule::permissionGet(const int mode, const QString &name) const {
     switch (mode) {
-        case AgentRuntime::AgentMode::Chat: return false;
-        case AgentRuntime::AgentMode::Read: return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
-        case AgentRuntime::AgentMode::Write: return !m_fullAccessGroup.contains(name);
-        case AgentRuntime::AgentMode::FullAccess: return true;
+        case RuntimeModule::AgentMode::Chat: return false;
+        case RuntimeModule::AgentMode::Read: return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
+        case RuntimeModule::AgentMode::Write: return !m_fullAccessGroup.contains(name);
+        case RuntimeModule::AgentMode::FullAccess: return true;
         default: return false;
     }
 }

@@ -1,5 +1,5 @@
-#ifndef UNICOMM_AGENTRUNTIME_H
-#define UNICOMM_AGENTRUNTIME_H
+#ifndef UNICOMM_RUNTIMEMODULE_H
+#define UNICOMM_RUNTIMEMODULE_H
 
 #include <QJsonObject>
 #include <QList>
@@ -9,13 +9,14 @@
 
 #include "agent/module/sqlModule.h"
 
+class BaseAgent;
 class BaseProvider;
 class ContextModule;
 class ProviderModule;
 class QNetworkReply;
 class ToolsModule;
 
-class AgentRuntime final : public QObject {
+class RuntimeModule final : public QObject {
     Q_OBJECT
 
 public:
@@ -48,13 +49,17 @@ public:
         };
     };
 
-    explicit AgentRuntime(QString role, ContextModule *contextModule, ProviderModule *providerModule, SqlModule *sqlModule, ToolsModule *toolsModule, QObject *parent = nullptr);
+    explicit RuntimeModule(BaseAgent *agent, ContextModule *contextModule, ProviderModule *providerModule, SqlModule *sqlModule, ToolsModule *toolsModule, QObject *parent = nullptr);
+
+    [[nodiscard]] QString agentIdGet() const;
 
     [[nodiscard]] int stateGet() const {
         return m_state;
     }
 
     void start(const QString &conversationId, const QString &text);
+
+    void startTask(const QString &provider, const QString &model, int mode, const QString &task);
 
     void compact(const QString &conversationId);
 
@@ -65,6 +70,8 @@ public:
     void userInputSet(const QString &answer);
 
     void userInputDisable();
+
+    void finishTool(const QString &result);
 
 signals:
     void changeState();
@@ -93,6 +100,10 @@ signals:
 
     void finishCompact();
 
+    void executeTool(const QString &name, const QString &arguments);
+
+    void finishRun(const QString &result);
+
 private:
     struct ToolCall {
         QString id{};
@@ -112,6 +123,8 @@ private:
     struct TurnContext {
         QString id{};
         QString conversationId{};
+        QString provider{};
+        QString model{};
         QString compactedTurnId{};
         int mode{AgentMode::Chat};
         QList<SqlModule::Message> messages{};
@@ -132,7 +145,8 @@ private:
 
     void toolResultSet(const QString &result);
 
-    QString m_role{};
+    BaseAgent *m_agent{};
+    QString m_error{};
     TurnContext m_turn{};
     int m_state{AgentState::Ready};
     QNetworkReply *m_reply{};
@@ -142,4 +156,4 @@ private:
     ToolsModule *m_toolsModule{};
 };
 
-#endif //UNICOMM_AGENTRUNTIME_H
+#endif //UNICOMM_RUNTIMEMODULE_H
