@@ -47,7 +47,7 @@ Item {
         HorizontalHeaderView {
             id: horizontalHeaderView
             anchors.left: verticalHeaderView.right; anchors.top: parent.top
-            width: parent.width; height: 24
+            width: parent.width; height: 32
             model: headerItemModel
             syncView: tableView
             clip: true
@@ -56,11 +56,11 @@ Item {
             editTriggers: TableView.NoEditTriggers
             delegate: HorizontalHeaderViewDelegate {
                 id: horizontalHeaderViewDelegate
-                implicitWidth: 80; implicitHeight: 24
+                implicitWidth: 80; implicitHeight: 32
                 padding: 0
 
                 contentItem: Rectangle {
-                    width: 80; height: 24
+                    width: 80; height: 32
                     color: global.back
 
                     Label {
@@ -161,10 +161,10 @@ Item {
             clip: true
             interactive: false
             delegate: VerticalHeaderViewDelegate {
-                implicitWidth: 40; implicitHeight: 24
+                implicitWidth: 40; implicitHeight: 32
                 padding: 0
                 contentItem: Rectangle {
-                    width: 40; height: 24
+                    width: 40; height: 32
                     color: global.back
 
                     Label {
@@ -215,7 +215,7 @@ Item {
             }
 
             delegate: Item {
-                implicitWidth: 80; implicitHeight: 24
+                implicitWidth: 80; implicitHeight: 32
 
                 Rectangle {
                     anchors.fill: parent

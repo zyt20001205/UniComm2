@@ -47,18 +47,18 @@ Item {
         VerticalHeaderView {
             id: verticalHeaderView
             anchors.left: parent.left
-            width: 24; height: parent.height
+            width: 32; height: parent.height
             syncView: tableView
             clip: true
             interactive: false
             movableRows: true
             delegate: VerticalHeaderViewDelegate {
                 id: verticalHeaderViewDelegate
-                implicitWidth: verticalHeaderView.width; implicitHeight: 24
+                implicitWidth: verticalHeaderView.width; implicitHeight: 32
                 padding: 0
 
                 contentItem: Rectangle {
-                    width: 24; height: 24
+                    width: 32; height: 32
                     color: global.back
 
                     IconImage {
@@ -145,7 +145,7 @@ Item {
                     }
                     return Math.max(textMetrics.width + 12, 60)
                 }
-                implicitHeight: 24
+                implicitHeight: 32
                 required property int column
                 required property int row
                 property bool valueChanged: false
