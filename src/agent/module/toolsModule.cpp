@@ -4,8 +4,8 @@
 #include <QJsonDocument>
 
 #include "globals.h"
-#include "agent/agentModule.h"
 #include "agent/module/sqlModule.h"
+#include "agent/runtime/agentRuntime.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
@@ -27,7 +27,7 @@ ToolsModule::ToolsModule(SqlModule *sqlModule, QObject *parent)
 }
 
 void ToolsModule::initialize() {
-    const auto tools = QJsonArray{
+    m_tools = QJsonArray{
         // apiList
         QJsonObject{
             {"type", "function"},
@@ -647,7 +647,10 @@ void ToolsModule::initialize() {
             }
         },
     };
-    emit registerTools("UniComm", tools);
+}
+
+QJsonArray ToolsModule::toolsGet(const QString &role) const {
+    return role == "supervisor" ? m_tools : QJsonArray{};
 }
 
 QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, const QString &arguments) const {
@@ -920,10 +923,10 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
 
 bool ToolsModule::permissionGet(const int mode, const QString &name) const {
     switch (mode) {
-        case AgentModule::AgentMode::Chat: return false;
-        case AgentModule::AgentMode::Read: return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
-        case AgentModule::AgentMode::Write: return !m_fullAccessGroup.contains(name);
-        case AgentModule::AgentMode::FullAccess: return true;
+        case AgentRuntime::AgentMode::Chat: return false;
+        case AgentRuntime::AgentMode::Read: return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
+        case AgentRuntime::AgentMode::Write: return !m_fullAccessGroup.contains(name);
+        case AgentRuntime::AgentMode::FullAccess: return true;
         default: return false;
     }
 }

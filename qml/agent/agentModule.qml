@@ -512,7 +512,7 @@ Item {
             Connections {
                 target: agentModule
 
-                function onStateChanged() {
+                function onChangeState(): void {
                     if (agentModule.state !== 5) return
                     compactStatusTimer.stop()
                     compactCard.completed = false
@@ -642,7 +642,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? userInputLayout.implicitHeight + 20 : 0
 
-            function submit() {
+            function submit(): void {
                 const answer = answerTextField.text.trim()
                 if (answer.length === 0) return
                 agentModule.userInputSet(answer)
@@ -937,13 +937,13 @@ Item {
                     Layout.preferredWidth: Math.max(usageContent.implicitWidth, compactButton.implicitWidth)
                     Layout.preferredHeight: 28
 
-                    function formatTokens(tokens) {
+                    function formatTokens(tokens: double): string {
                         if (tokens >= 1000000) return (tokens / 1000000).toFixed(tokens % 1000000 === 0 ? 0 : 1) + "M"
                         if (tokens >= 1000) return (tokens / 1000).toFixed(tokens % 1000 === 0 ? 0 : 1) + "k"
                         return tokens.toString()
                     }
 
-                    function exactTokens(tokens) {
+                    function exactTokens(tokens: double): string {
                         return tokens > 0 ? Number(tokens).toLocaleString(Qt.locale(), "f", 0) : "-"
                     }
 
@@ -962,7 +962,7 @@ Item {
                                 Layout.preferredWidth: Math.max(contextFrontLabel.implicitWidth, contextBackLabel.implicitWidth)
                                 Layout.preferredHeight: 28
 
-                                function updateText(text) {
+                                function updateText(text: string): void {
                                     if (contextFlipAnimation.running) contextFlipAnimation.complete()
                                     if (text.length === 0) {
                                         contextRotation.angle = 0
@@ -1124,18 +1124,13 @@ Item {
 
                 Button {
                     id: micButton
+                    visible: false
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     checkable: true
                     flat: true
                     icon.source: "qrc:/icon/mic.svg"
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 28; Layout.preferredHeight: 28
-
-                    onClicked: {
-                        if (checked) {
-                            agentModule.state = 0
-                        }
-                    }
                 }
 
                 Button {
@@ -1172,12 +1167,12 @@ Item {
             property alias messages: messageColumn
             readonly property bool running: finishedAt === 0
 
-            function elapsedUpdate() {
+            function elapsedUpdate(): void {
                 const end = finishedAt === 0 ? Date.now() : finishedAt
                 elapsedSeconds = Math.max(0, Math.floor((end - startedAt) / 1000))
             }
 
-            function durationText() {
+            function durationText(): string {
                 if (elapsedSeconds < 60) return elapsedSeconds + "s"
                 return Math.floor(elapsedSeconds / 60) + "m " + elapsedSeconds % 60 + "s"
             }
@@ -1319,21 +1314,21 @@ Item {
     Connections {
         target: chatView.contentItem
 
-        function onMovementStarted() {
+        function onMovementStarted(): void {
             chatView.followTail = false
             rootItem.scrollStop()
         }
 
-        function onMovementEnded() {
+        function onMovementEnded(): void {
             chatView.followTail = chatView.contentItem.atYEnd
         }
 
-        function onContentHeightChanged() {
+        function onContentHeightChanged(): void {
             rootItem.followToTail()
         }
     }
 
-    function followToTail() {
+    function followToTail(): void {
         if (!chatView.followTail) return
         const flickable = chatView.contentItem
         if (navigationAnimation.running) navigationAnimation.stop()
@@ -1344,7 +1339,7 @@ Item {
         followAnimation.start()
     }
 
-    function navigateTo(position) {
+    function navigateTo(position: double): void {
         scrollStop()
         const flickable = chatView.contentItem
         const bottom = Math.max(flickable.originY, flickable.originY + flickable.contentHeight - flickable.height)
@@ -1354,12 +1349,12 @@ Item {
         navigationAnimation.restart()
     }
 
-    function scrollStop() {
+    function scrollStop(): void {
         followAnimation.stop()
         navigationAnimation.stop()
     }
 
-    function turnCreate(turnId, startedAt) {
+    function turnCreate(turnId: string, startedAt: double): void {
         planCard.explanation = ""
         planCard.steps = []
         const obj = turnComponent.createObject(chatColumn, {
@@ -1369,13 +1364,13 @@ Item {
         rootItem.turnMap[turnId] = obj
     }
 
-    function turnFinish(turnId, finishedAt) {
+    function turnFinish(turnId: string, finishedAt: double): void {
         const turn = rootItem.turnMap[turnId]
         turn.finishedAt = finishedAt
         turn.collapsed = true
     }
 
-    function chatClear() {
+    function chatClear(): void {
         scrollStop()
         chatView.followTail = true
         planCard.explanation = ""
@@ -1390,7 +1385,7 @@ Item {
         rootItem.chatMap = ({})
     }
 
-    function chatCreate(turnId, messageId, role) {
+    function chatCreate(turnId: string, messageId: string, role: string): void {
         const turn = rootItem.turnMap[turnId]
         const obj = chatComponent.createObject(turn.messages, {
             turn: turn,
@@ -1400,7 +1395,7 @@ Item {
         rootItem.chatMap[messageId] = obj
     }
 
-    function chatAppend(messageId, text) {
+    function chatAppend(messageId: string, text: string): void {
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer += text
         if (chat.role === "user") chat.turn.prompt += text
@@ -1410,31 +1405,31 @@ Item {
         }
     }
 
-    function chatReasoningAppend(messageId, text) {
+    function chatReasoningAppend(messageId: string, text: string): void {
         rootItem.chatMap[messageId].reasoningBuffer += text
     }
 
-    function chatFinish(messageId) {
+    function chatFinish(messageId: string): void {
         rootItem.chatMap[messageId].reasoningBuffer = ""
     }
 
-    function planUpdate(plan) {
+    function planUpdate(plan): void {
         planCard.explanation = plan.explanation ? plan.explanation : ""
         planCard.steps = plan.plan ? plan.plan : []
     }
 
-    function compactFinish() {
+    function compactFinish(): void {
         compactCard.completed = true
         compactStatusTimer.restart()
     }
 
-    function usageUpdate(totalTokens) {
+    function usageUpdate(totalTokens: double): void {
         const usage = totalTokens || 0
         contextLabel.updateText(usage > 0 ? usageLayout.formatTokens(usage) : "-")
         usageLayout.currentUsage = usage
     }
 
-    function modelUpdate(contextWindow) {
+    function modelUpdate(contextWindow: double): void {
         usageLayout.contextWindow = contextWindow || 0
     }
 
@@ -1445,8 +1440,7 @@ Item {
             "permissionLabel": permissionLabel,
             "userInputCard": userInputCard,
             "modeButton": modeButton,
-            "modelButton": modelButton,
-            "micButton": micButton
+            "modelButton": modelButton
         };
         agentModule.propertyGet(objects)
     }

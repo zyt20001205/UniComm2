@@ -4,53 +4,24 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QStandardItemModel>
 
-#include "agent/module/sqlModule.h"
+#include "agent/runtime/agentRuntime.h"
 
-class QNetworkReply;
-class QNetworkAccessManager;
 class QQuickView;
 class QQuickWidget;
 
-class BaseProvider;
 class ConversationModel;
 class ContextModule;
-class McpModule;
 class ProviderModule;
+class SqlModule;
 class ToolsModule;
 
 class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
-    Q_PROPERTY(int state READ stateGet WRITE stateSet NOTIFY stateChanged)
+    Q_PROPERTY(int state READ stateGet WRITE stateSet NOTIFY changeState)
 
 public:
-    struct AgentState {
-        enum {
-            Ready,
-            Error,
-            Listen,
-            STT,
-            Pre,
-            Compact,
-            Request,
-            Abort,
-            Think,
-            Response,
-            ToolCall,
-            Permission,
-            UserInput,
-            ToolExec,
-            Speak
-        };
-    };
-
-    struct AgentMode {
-        enum {
-            Chat,
-            Read,
-            Write,
-            FullAccess
-        };
-    };
+    using AgentState = AgentRuntime::AgentState;
+    using AgentMode = AgentRuntime::AgentMode;
 
     explicit AgentModule();
 
@@ -65,10 +36,10 @@ public:
     Q_INVOKABLE void agentManage() const;
 
     [[nodiscard]] int stateGet() const {
-        return m_state;
+        return m_runtime->stateGet();
     }
 
-    void stateSet(int state, const QVariant &payload = QVariant());
+    void stateSet(int state);
 
     Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
 
@@ -86,52 +57,18 @@ public:
 
     Q_INVOKABLE void conversationModelSet(const QString &provider, const QString &model);
 
-    qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
-
     Q_INVOKABLE void conversationRollback();
 
-    Q_INVOKABLE void permissionSet(bool status);
+    Q_INVOKABLE void permissionSet(bool status) const;
 
-    Q_INVOKABLE void userInputSet(const QString &answer);
+    Q_INVOKABLE void userInputSet(const QString &answer) const;
 
-    Q_INVOKABLE void userInputDisable();
+    Q_INVOKABLE void userInputDisable() const;
 
 signals:
-    void stateChanged();
+    void changeState();
 
 private:
-    struct ToolCall {
-        QString id{};
-        QString name{};
-        QString arguments{};
-        qsizetype messageIndex{-1};
-        bool approved{false};
-    };
-
-    struct TokenUsage {
-        qint64 promptTokens{};
-        qint64 completionTokens{};
-        qint64 cacheHitTokens{};
-        qint64 reasoningTokens{};
-    };
-
-    struct TurnContext {
-        QString id{};
-        QString compactedTurnId{};
-        int mode{AgentMode::Chat};
-        QList<SqlModule::Message> messages{};
-        TokenUsage usage{};
-        qint64 currentUsage{};
-        // tool
-        bool planned{false};
-        bool questionsAllowed{true};
-        qsizetype toolCount{};
-        QList<ToolCall> toolCalls{};
-        qsizetype currentTool{};
-    };
-
-    void conversationSend(BaseProvider *provider, const QJsonObject &body);
-
     void turnCreate(const QString &turnId, qint64 startedAt) const;
 
     void turnFinish(const QString &turnId, qint64 finishedAt) const;
@@ -140,17 +77,9 @@ private:
 
     void chatAppend(const QString &messageId, const QString &text) const;
 
-    void chatReasoningAppend(const QString &messageId, const QString &text) const;
-
     void chatFinish(const QString &messageId) const;
 
     void modelUpdate(const QString &provider, const QString &model) const;
-
-    void toolResultSet(const QString &result);
-
-    void toolsRegister(const QString &name, const QJsonArray &tools);
-
-    [[nodiscard]] QJsonArray toolsList(const QStringList &names);
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
@@ -164,21 +93,14 @@ private:
     QObject *m_userInputCard{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
-    QObject *m_micButton{};
 
     QString m_conversationId{};
     ConversationModel *m_conversationModel{};
-    TurnContext m_turn{};
-
-    int m_state{AgentState::Ready};
-    QNetworkReply *m_reply{};
-    QHash<QString, QString> m_owner{};
-    QHash<QString, QJsonArray> m_tools{};
     ContextModule *m_contextModule{};
-    McpModule *m_mcpModule{};
     ProviderModule *m_providerModule{};
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};
+    AgentRuntime *m_runtime{};
 };
 
 class ConversationModel final : public QStandardItemModel {
@@ -194,4 +116,4 @@ public:
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
-#endif //UNICOMM_AGE
+#endif //UNICOMM_AGENTMODULE_H
