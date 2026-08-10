@@ -70,6 +70,7 @@ Item {
         model: standardItemModel
         visible: !standardItemModel.empty
         contentWidth: width
+        property int hoveredRow: -1
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
@@ -98,18 +99,45 @@ Item {
             id: iconCellDelegate
 
             Item {
-                implicitWidth: 24; implicitHeight: 24
+                implicitWidth: 12; implicitHeight: 24
+                required property int row
 
                 Rectangle {
                     anchors.fill: parent
-                    color: model.status === 0 ? global.successBack2 :
-                            model.status === 1 ? global.warningBack2 : global.dangerBack2
+                    color: global.back
                 }
 
-                BusyIndicator {
-                    anchors.centerIn: parent
-                    running: true
-                    width: 20; height: 20
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    topRightRadius: 0; bottomRightRadius: 0
+                    color: global.backHover
+                    opacity: tableView.hoveredRow === row ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 3; height: 14
+                    radius: 1.5
+                    color: model.status === 0 ? global.successBack3 :
+                           model.status === 1 ? global.warningBack3 :
+                           model.status === 2 ? global.brandBack : global.dangerBack3
+                }
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (hovered) {
+                            tableView.hoveredRow = row
+                        } else if (tableView.hoveredRow === row) {
+                            tableView.hoveredRow = -1
+                        }
+                    }
                 }
             }
         }
@@ -130,18 +158,25 @@ Item {
                 }
                 implicitHeight: 24
                 required property int column
+                required property int row
 
                 Rectangle {
                     anchors.fill: parent
-                    color: model.status === 0 ? global.successBack2 :
-                            model.status === 1 ? global.warningBack2 : global.dangerBack2
+                    radius: 6
+                    topLeftRadius: 0; bottomLeftRadius: 0
+                    topRightRadius: column === tableView.columns - 1 ? radius : 0
+                    bottomRightRadius: column === tableView.columns - 1 ? radius : 0
+                    color: global.back
                 }
 
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
+                    topLeftRadius: 0; bottomLeftRadius: 0
+                    topRightRadius: column === tableView.columns - 1 ? radius : 0
+                    bottomRightRadius: column === tableView.columns - 1 ? radius : 0
                     color: global.backHover
-                    opacity: hoverHandler.hovered ? 1 : 0
+                    opacity: tableView.hoveredRow === row ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation {
                             duration: 150
@@ -165,7 +200,13 @@ Item {
                 }
 
                 HoverHandler {
-                    id: hoverHandler
+                    onHoveredChanged: {
+                        if (hovered) {
+                            tableView.hoveredRow = row
+                        } else if (tableView.hoveredRow === row) {
+                            tableView.hoveredRow = -1
+                        }
+                    }
                 }
 
                 TapHandler {
