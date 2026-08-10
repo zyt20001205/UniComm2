@@ -152,6 +152,7 @@ void ToolsModule::initialize() {
                                     {
                                         "role", QJsonObject{
                                             {"type", "string"},
+                                            {"enum", QJsonArray{"hardware"}},
                                             {"description", "The registered specialized agent id."}
                                         }
                                     },

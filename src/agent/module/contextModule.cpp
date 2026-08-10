@@ -93,15 +93,9 @@ QString ContextModule::systemBuild(const QString &system, const int mode, const 
                     "No tools are available in this mode. Answer using only the conversation and information provided by the user. If the task requires inspecting, modifying, or executing anything in the workspace, ask the user to switch to an appropriate agent mode.";
             break;
         case RuntimeModule::AgentMode::Read:
-            modePrompt = "Current operating mode: read.\n\n"
-                    "You may inspect the workspace and use read-only tools. Do not modify workspace data, execute programs, or perform operations that change external state.";
-            break;
         case RuntimeModule::AgentMode::Write:
-            modePrompt = "Current operating mode: write.\n\n"
-                    "You may inspect and modify workspace data using read and write tools. Do not execute programs or use operations reserved for full-access mode.";
-            break;
         case RuntimeModule::AgentMode::FullAccess:
-            modePrompt = "Current operating mode: full-access.\n\n"
+            modePrompt = "Current operating mode: agent.\n\n"
                     "You may use all available tools, including program execution and operations that modify or delete data. Use these capabilities only when necessary for the user's request, and keep all actions narrowly scoped.";
             break;
         default: break;
