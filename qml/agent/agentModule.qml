@@ -1288,7 +1288,13 @@ Item {
 
             TapHandler {
                 acceptedButtons: Qt.RightButton
-                onTapped: console.log(chatTextArea.messageId)
+
+                onTapped: {
+                    if (chatTextArea.hoveredLink) {
+                        mainLinkMenu.url = chatTextArea.hoveredLink
+                        mainLinkMenu.popup()
+                    }
+                }
             }
         }
     }

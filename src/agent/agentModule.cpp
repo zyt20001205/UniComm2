@@ -59,6 +59,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
 
     m_widget->rootContext()->setContextProperty("agentModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
+    m_widget->rootContext()->setContextProperty("mainLinkMenu", objects["mainWindowLinkMenu"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("documentModule", objects["documentModule"]);
     m_widget->rootContext()->setContextProperty("renameDialog", objects["agentModuleRenameDialog"]);

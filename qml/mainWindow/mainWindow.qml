@@ -201,6 +201,47 @@ Item {
         });
     }
 
+    Menu {
+        id: mainWindowLinkMenu
+        property url url
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Copy")
+            icon.source: "qrc:/icon/copy.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: fileModule.copyToClipboard(String(mainWindowLinkMenu.url))
+        }
+
+        MenuItem {
+            text: qsTr("Open")
+            icon.source: "qrc:/icon/link.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: documentModule.documentOpen(mainWindowLinkMenu.url)
+        }
+
+        MenuItem {
+            text: qsTr("Open Externally")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: Qt.openUrlExternally(mainWindowLinkMenu.url)
+        }
+    }
+
+    Toast {
+        id: mainWindowToast
+        x: mainGeometry.x + mainGeometry.width - width - 20
+        y: mainGeometry.y + mainGeometry.height - height - 20
+    }
+
     ToolTip {
         id: mainWindowTextView
         parent: Overlay.overlay
@@ -262,12 +303,6 @@ Item {
                 }
             }
         }
-    }
-
-    Toast {
-        id: mainWindowToast
-        x: mainGeometry.x + mainGeometry.width - width - 20
-        y: mainGeometry.y + mainGeometry.height - height - 20
     }
 
     ToolTip {
@@ -3232,47 +3267,6 @@ Item {
         }
     }
 
-    Menu {
-        id: logModuleLinkMenu
-        property url url
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        MenuItem {
-            text: qsTr("Copy URL")
-            icon.source: "qrc:/icon/copy.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: fileModule.copyToClipboard(logModuleLinkMenu.url)
-        }
-
-        Menu {
-            title: qsTr("Open In")
-            icon.source: "qrc:/icon/open.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Explorer")
-                icon.source: "qrc:/icon/folder.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: fileModule.fileOpenInExplorer(logModuleLinkMenu.url)
-            }
-
-            MenuItem {
-                text: qsTr("Application")
-                icon.source: "qrc:/icon/apps.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: fileModule.fileOpenInApplication(logModuleLinkMenu.url)
-            }
-        }
-    }
-
     // menu module
     Menu {
         id: menuModuleFileMenu
@@ -4894,8 +4888,9 @@ Item {
             "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainWindowMessageDialog": mainWindowMessageDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,
-            "mainWindowTextView": mainWindowTextView,
+            "mainWindowLinkMenu": mainWindowLinkMenu,
             "mainWindowToast": mainWindowToast,
+            "mainWindowTextView": mainWindowTextView,
             "mainWindowToolTip": mainWindowToolTip,
 
             "agentModuleRenameDialog": agentModuleRenameDialog,
@@ -4953,7 +4948,6 @@ Item {
             "gitModuleLogMenu": gitModuleLogMenu,
 
             "logModuleHeightDialog": logModuleHeightDialog,
-            "logModuleLinkMenu": logModuleLinkMenu,
 
             "menuModuleFileMenu": menuModuleFileMenu,
             "menuModuleEditMenu": menuModuleEditMenu,

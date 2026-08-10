@@ -17,6 +17,7 @@ FileModule::FileModule(QObject *parent)
 
 void FileModule::propertySet(const QVariantHash &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
+    m_toast = qvariant_cast<QObject *>(objects["mainWindowToast"]);
 }
 
 void FileModule::fileOpenInExplorer(const QUrl &fileUrl) {
@@ -179,9 +180,10 @@ void FileModule::fileDelete(const QUrl &fileUrl) {
     }
 }
 
-void FileModule::copyToClipboard(const QUrl &fileUrl) {
+void FileModule::copyToClipboard(const QString &text) const {
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(fileUrl.toString());
+    clipboard->setText(text);
+    QMetaObject::invokeMethod(m_toast, "show", Q_ARG(int, ToastLevel::Success), Q_ARG(QString, tr("Copied to clipboard")), Q_ARG(QString, QString()), Q_ARG(int, 3000));
 }
 
 QString FileModule::linesGet(const QUrl &documentUrl, const int startLine, const int lineCount) {

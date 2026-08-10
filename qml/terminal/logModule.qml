@@ -225,9 +225,9 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.RightButton
                     onTapped: {
-                        if (textArea.hoveredLink) {
-                            linkMenu.url = textArea.hoveredLink
-                            linkMenu.popup()
+                        if (textArea.hoveredLink && !textArea.hoveredLink.startsWith("request.expand://")) {
+                            mainLinkMenu.url = textArea.hoveredLink
+                            mainLinkMenu.popup()
                         }
                     }
                 }

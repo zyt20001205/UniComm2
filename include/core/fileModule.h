@@ -27,7 +27,7 @@ public:
 
     Q_INVOKABLE void fileDelete(const QUrl &fileUrl);
 
-    Q_INVOKABLE static void copyToClipboard(const QUrl &fileUrl);
+    Q_INVOKABLE void copyToClipboard(const QString &text) const;
 
     static QString linesGet(const QUrl &documentUrl, int startLine, int lineCount);
 
@@ -56,6 +56,7 @@ private:
     void didDeleteFilesNotification(const QUrl &fileUrl);
 
     QObject *m_messageDialog{};
+    QObject *m_toast{};
 };
 
 #endif //UNICOMM_FILEMODULE_H
