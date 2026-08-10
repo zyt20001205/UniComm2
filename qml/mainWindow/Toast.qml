@@ -16,7 +16,6 @@ Item {
     readonly property int successLevel: 3
     readonly property int maximumVisible: 5
     property int nextId
-    property var pendingToasts: []
 
     ListModel {
         id: activeToasts
@@ -209,11 +208,8 @@ Item {
             "toastText": text === undefined || text === null ? "" : String(text),
             "toastDuration": duration
         }
-        if (activeToasts.count < maximumVisible) {
-            activeToasts.append(toast)
-        } else {
-            pendingToasts = pendingToasts.concat([toast])
-        }
+        if (activeToasts.count >= maximumVisible) activeToasts.remove(0)
+        activeToasts.append(toast)
     }
 
     function dismiss(toastId) {
@@ -222,11 +218,6 @@ Item {
                 activeToasts.remove(index)
                 break
             }
-        }
-        while (activeToasts.count < maximumVisible && pendingToasts.length > 0) {
-            const toast = pendingToasts[0]
-            pendingToasts = pendingToasts.slice(1)
-            activeToasts.append(toast)
         }
     }
 }
