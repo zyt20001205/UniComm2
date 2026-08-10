@@ -15,6 +15,7 @@ public:
         QString id{};
         QString title{};
         int mode{};
+        QString provider{};
         QString model{};
         QString summary{};
         QString compactedTurnId{};

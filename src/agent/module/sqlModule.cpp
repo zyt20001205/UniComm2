@@ -38,7 +38,7 @@ QList<SqlModule::Conversation> SqlModule::conversationsGet() const {
 
     QSqlQuery query(database);
     if (!query.exec(R"(
-        SELECT id, title, mode, model, created_at, updated_at
+        SELECT id, title, mode, provider, model, created_at, updated_at
         FROM conversations
         ORDER BY updated_at DESC
     )")) {
@@ -52,9 +52,10 @@ QList<SqlModule::Conversation> SqlModule::conversationsGet() const {
             .id = query.value(0).toString(),
             .title = query.value(1).toString(),
             .mode = query.value(2).toInt(),
-            .model = query.value(3).toString(),
-            .createdAt = query.value(4).toLongLong(),
-            .updatedAt = query.value(5).toLongLong()
+            .provider = query.value(3).toString(),
+            .model = query.value(4).toString(),
+            .createdAt = query.value(5).toLongLong(),
+            .updatedAt = query.value(6).toLongLong()
         });
     }
     return conversations;
@@ -66,7 +67,7 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
 
     QSqlQuery query(database);
     query.prepare(R"(
-        SELECT id, title, mode, model, summary, compacted_turn_id, context_tokens, created_at, updated_at
+        SELECT id, title, mode, provider, model, summary, compacted_turn_id, context_tokens, created_at, updated_at
         FROM conversations
         WHERE id = :id
     )");
@@ -77,12 +78,13 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
         .id = query.value(0).toString(),
         .title = query.value(1).toString(),
         .mode = query.value(2).toInt(),
-        .model = query.value(3).toString(),
-        .summary = query.value(4).toString(),
-        .compactedTurnId = query.value(5).toString(),
-        .contextTokens = query.value(6).toLongLong(),
-        .createdAt = query.value(7).toLongLong(),
-        .updatedAt = query.value(8).toLongLong()
+        .provider = query.value(3).toString(),
+        .model = query.value(4).toString(),
+        .summary = query.value(5).toString(),
+        .compactedTurnId = query.value(6).toString(),
+        .contextTokens = query.value(7).toLongLong(),
+        .createdAt = query.value(8).toLongLong(),
+        .updatedAt = query.value(9).toLongLong()
     };
 
     QSqlQuery messageQuery(database);
@@ -199,12 +201,13 @@ void SqlModule::conversationInsert(const Conversation &conversation) const {
 
     QSqlQuery query(database);
     query.prepare(R"(
-        INSERT INTO conversations (id, title, mode, model, created_at, updated_at)
-        VALUES (:id, :title, :mode, :model, :createdAt, :updatedAt)
+        INSERT INTO conversations (id, title, mode, provider, model, created_at, updated_at)
+        VALUES (:id, :title, :mode, :provider, :model, :createdAt, :updatedAt)
     )");
     query.bindValue(":id", conversation.id);
     query.bindValue(":title", conversation.title);
     query.bindValue(":mode", conversation.mode);
+    query.bindValue(":provider", conversation.provider);
     query.bindValue(":model", conversation.model);
     query.bindValue(":createdAt", conversation.createdAt);
     query.bindValue(":updatedAt", conversation.updatedAt);
@@ -404,6 +407,7 @@ bool SqlModule::initialize() const {
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 mode INTEGER,
+                provider TEXT,
                 model TEXT,
                 summary TEXT NOT NULL DEFAULT '',
                 compacted_turn_id TEXT NOT NULL DEFAULT '',
