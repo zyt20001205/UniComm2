@@ -200,7 +200,7 @@ private:
 
     QJsonObject m_config{};
     QJsonObject m_theme{};
-    QObject *m_messageDialog{};
+    QObject *m_toast{};
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};

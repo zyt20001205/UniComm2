@@ -264,6 +264,12 @@ Item {
         }
     }
 
+    Toast {
+        id: mainWindowToast
+        x: mainGeometry.x + mainGeometry.width - width - 20
+        y: mainGeometry.y + mainGeometry.height - height - 20
+    }
+
     ToolTip {
         id: mainWindowToolTip
         parent: Overlay.overlay
@@ -308,12 +314,6 @@ Item {
                 velocity: -1
             }
         }
-    }
-
-    Toast {
-        id: mainWindowToast
-        x: mainGeometry.x + mainGeometry.width - width - 20
-        y: mainGeometry.y + mainGeometry.height - height - 20
     }
 
     // agent module
@@ -4895,8 +4895,8 @@ Item {
             "mainWindowMessageDialog": mainWindowMessageDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,
             "mainWindowTextView": mainWindowTextView,
-            "mainWindowToolTip": mainWindowToolTip,
             "mainWindowToast": mainWindowToast,
+            "mainWindowToolTip": mainWindowToolTip,
 
             "agentModuleRenameDialog": agentModuleRenameDialog,
             "agentModuleModeMenu": agentModuleModeMenu,

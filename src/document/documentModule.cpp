@@ -67,7 +67,7 @@ DocumentModule::~DocumentModule() {
 }
 
 void DocumentModule::propertySet(const QVariantHash &objects) {
-    m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
+    m_toast = qvariant_cast<QObject *>(objects["mainWindowToast"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
@@ -681,9 +681,7 @@ void DocumentModule::formattingRequest(const QUrl &documentUrl) {
 
 void DocumentModule::formattingResponse(const QUrl &documentUrl, const QString &newText) const {
     if (newText.isEmpty()) {
-        m_messageDialog->setProperty("title", tr("Information"));
-        m_messageDialog->setProperty("text", tr("File already reformatted."));
-        QMetaObject::invokeMethod(m_messageDialog, "open");
+        QMetaObject::invokeMethod(m_toast, "show", Q_ARG(int, 2), Q_ARG(QString, tr("Format")), Q_ARG(QString, tr("File is already formatted.")), Q_ARG(int, 3000));
     } else if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         codePage->formattingResponse(newText);
     }
