@@ -5,7 +5,7 @@
 #include <qt6keychain/keychain.h>
 
 #include "globals.h"
-#include "agent/module/providerModule.h"
+#include "agent/provider/providerModule.h"
 
 OpenAIProvider::OpenAIProvider(const QString &id, const QJsonObject &provider, QObject *parent)
     : BaseProvider(parent),

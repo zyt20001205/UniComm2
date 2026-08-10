@@ -1,4 +1,4 @@
-#include "agent/module/providerModule.h"
+#include "agent/provider/providerModule.h"
 
 #include <QFile>
 #include <QJsonDocument>
