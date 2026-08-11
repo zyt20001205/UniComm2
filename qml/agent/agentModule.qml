@@ -1165,7 +1165,6 @@ Item {
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 28; Layout.preferredHeight: 28
 
-
                     onClicked: agentModule.state === 0 ? agentModule.state = 4 : agentModule.state = 7
                 }
             }
@@ -1277,8 +1276,9 @@ Item {
                 text: message
                 color: global.fore
                 elide: Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
                 wrapMode: Text.NoWrap
-                Layout.fillWidth: true
+                Layout.fillWidth: true; Layout.preferredHeight: 24
             }
         }
     }
