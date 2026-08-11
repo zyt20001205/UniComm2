@@ -114,7 +114,6 @@ private:
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};
     QString m_supervisor{};
-    QString m_active{};
     QHash<QString, RuntimeModule *> m_runtimes{};
 };
 

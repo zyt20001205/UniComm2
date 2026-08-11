@@ -146,14 +146,12 @@ void AgentModule::stateSet(const int state) {
         case AgentState::Compact: m_runtimes.value(m_supervisor)->compact(m_conversationId);
         break;
         case AgentState::Abort: {
-            m_runtimes.value(m_supervisor)->abort();
+            auto *supervisor = m_runtimes.value(m_supervisor);
+            supervisor->abort();
             m_permissionCard->setProperty("runtimeId", "");
             m_userInputCard->setProperty("runtimeId", "");
-            if (!m_active.isEmpty()) {
-                auto *runtime = m_runtimes.value(m_active);
-                m_active.clear();
-                runtime->abort();
-            }
+            const auto runtimes = m_runtimes.values();
+            for (auto *runtime: runtimes) if (runtime != supervisor) runtime->abort();
         }
         break;
         default: break;
@@ -328,12 +326,10 @@ RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString 
 
     const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
     auto *worker = new RuntimeModule(agent, runtimeServicesGet(), this); // NOLINT
-    m_active = worker->idGet();
-    m_runtimes.insert(m_active, worker);
+    m_runtimes.insert(worker->idGet(), worker);
     subagentCreate(m_runtimes.value(m_supervisor)->turnIdGet(), worker->idGet(), role, task);
     connect(worker, &RuntimeModule::finishRun, worker, [this, worker](const QString &result) {
         subagentUpdate(worker->idGet(), result);
-        if (m_active == worker->idGet()) m_active.clear();
         m_runtimes.remove(worker->idGet());
         worker->deleteLater();
     });

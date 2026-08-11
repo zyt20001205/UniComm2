@@ -49,11 +49,11 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
           {
               "hardware",
               {
+                  "request_user_input",
                   "port_list",
                   "port_config_get",
                   "port_create",
                   "port_delete",
-                  "request_user_input"
               }
           }
       } {
