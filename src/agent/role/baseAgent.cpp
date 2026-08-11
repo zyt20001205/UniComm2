@@ -7,7 +7,7 @@
 // public
 BaseAgent::BaseAgent(QString id, QObject *parent)
     : QObject(parent),
-      m_id(std::move(id)),
+      m_role(std::move(id)),
       m_systems{
           {
               "supervisor",
@@ -59,16 +59,16 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
       } {
 }
 
-QString BaseAgent::idGet() const {
-    return m_id;
+QString BaseAgent::roleGet() const {
+    return m_role;
 }
 
 QString BaseAgent::systemGet() const {
-    return m_systems.value(m_id);
+    return m_systems.value(m_role);
 }
 
 QJsonArray BaseAgent::toolsGet(const ToolsModule &toolsModule) const {
-    return toolsModule.toolsGet(m_tools.value(m_id));
+    return toolsModule.toolsGet(m_tools.value(m_role));
 }
 
 bool BaseAgent::planRequired(const qsizetype) const {

@@ -36,9 +36,9 @@ public:
 
     Q_INVOKABLE void agentManage() const;
 
-    [[nodiscard]] int stateGet() const {
-        return m_activeRuntime == nullptr ? m_supervisorRuntime->stateGet() : m_activeRuntime->stateGet();
-    }
+    [[nodiscard]] RuntimeServices runtimeServicesGet() const;
+
+    [[nodiscard]] int stateGet() const;
 
     void stateSet(int state);
 
@@ -60,7 +60,7 @@ public:
 
     Q_INVOKABLE void conversationRollback();
 
-    Q_INVOKABLE void permissionSet(bool status);
+    Q_INVOKABLE void permissionSet(bool status) const;
 
     Q_INVOKABLE void userInputSet(const QString &answer) const;
 
@@ -103,8 +103,9 @@ private:
     ProviderModule *m_providerModule{};
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};
-    RuntimeModule *m_supervisorRuntime{};
-    RuntimeModule *m_activeRuntime{};
+    QString m_supervisor{};
+    QString m_active{};
+    QHash<QString, RuntimeModule *> m_runtimes{};
 };
 
 class ConversationModel final : public QStandardItemModel {

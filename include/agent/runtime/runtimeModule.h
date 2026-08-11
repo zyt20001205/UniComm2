@@ -1,12 +1,6 @@
 #ifndef UNICOMM_RUNTIMEMODULE_H
 #define UNICOMM_RUNTIMEMODULE_H
 
-#include <QJsonObject>
-#include <QList>
-#include <QObject>
-#include <QString>
-#include <QVariant>
-
 #include "agent/module/sqlModule.h"
 
 class BaseAgent;
@@ -15,6 +9,13 @@ class ContextModule;
 class ProviderModule;
 class QNetworkReply;
 class ToolsModule;
+
+struct RuntimeServices {
+    ContextModule *contextModule{};
+    ProviderModule *providerModule{};
+    SqlModule *sqlModule{};
+    ToolsModule *toolsModule{};
+};
 
 class RuntimeModule final : public QObject {
     Q_OBJECT
@@ -49,13 +50,13 @@ public:
         };
     };
 
-    explicit RuntimeModule(BaseAgent *agent, ContextModule *contextModule, ProviderModule *providerModule, SqlModule *sqlModule, ToolsModule *toolsModule, QObject *parent = nullptr);
+    explicit RuntimeModule(BaseAgent *agent, const RuntimeServices &services, QObject *parent = nullptr);
 
-    [[nodiscard]] QString agentIdGet() const;
+    [[nodiscard]] QString idGet() const;
 
-    [[nodiscard]] int stateGet() const {
-        return m_state;
-    }
+    [[nodiscard]] QString roleGet() const;
+
+    [[nodiscard]] int stateGet() const;
 
     void start(const QString &conversationId, const QString &text);
 
@@ -141,6 +142,7 @@ private:
 
     void toolResultSet(const QString &result);
 
+    QString m_id{};
     BaseAgent *m_agent{};
     QString m_error{};
     TurnContext m_turn{};

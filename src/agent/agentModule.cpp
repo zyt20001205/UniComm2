@@ -29,8 +29,10 @@ AgentModule::AgentModule()
       m_contextModule(new ContextModule(this)),
       m_providerModule(new ProviderModule(m_config["providers"].toArray(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
-      m_toolsModule(new ToolsModule(m_sqlModule, this)),
-      m_supervisorRuntime(new RuntimeModule(new SupervisorAgent(), m_contextModule, m_providerModule, m_sqlModule, m_toolsModule, this)) {
+      m_toolsModule(new ToolsModule(m_sqlModule, this)) {
+    auto *runtime = new RuntimeModule(new SupervisorAgent(), runtimeServicesGet(), this); // NOLINT
+    m_supervisor = runtime->idGet();
+    m_runtimes.insert(m_supervisor, runtime);
     setWidget(m_widget);
 
     conversationsGet();
@@ -67,34 +69,35 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_widget->setSource(QUrl("qrc:/qml/agent/agentModule.qml"));
     m_root = m_widget->rootObject();
 
-    connect(m_supervisorRuntime, &RuntimeModule::changeState, this, &AgentModule::changeState);
-    connect(m_supervisorRuntime, &RuntimeModule::showError, this, [this](const QString &message) {
+    auto *supervisor = m_runtimes.value(m_supervisor);
+    connect(supervisor, &RuntimeModule::changeState, this, &AgentModule::changeState);
+    connect(supervisor, &RuntimeModule::showError, this, [this](const QString &message) {
         QMetaObject::invokeMethod(m_toast, "show", Q_ARG(int, 0), Q_ARG(QString, tr("Agent")), Q_ARG(QString, message), Q_ARG(int, 5000));
     });
-    connect(m_supervisorRuntime, &RuntimeModule::createTurn, this, [this](const QString &turnId, const qint64 startedAt) {
+    connect(supervisor, &RuntimeModule::createTurn, this, [this](const QString &turnId, const qint64 startedAt) {
         turnCreate(turnId, startedAt);
         QMetaObject::invokeMethod(m_textArea, "clear");
     });
-    connect(m_supervisorRuntime, &RuntimeModule::finishTurn, this, &AgentModule::turnFinish);
-    connect(m_supervisorRuntime, &RuntimeModule::createChat, this, &AgentModule::chatCreate);
-    connect(m_supervisorRuntime, &RuntimeModule::appendChat, this, &AgentModule::chatAppend);
-    connect(m_supervisorRuntime, &RuntimeModule::appendChatReasoning, this, [this](const QString &messageId, const QString &text) {
+    connect(supervisor, &RuntimeModule::finishTurn, this, &AgentModule::turnFinish);
+    connect(supervisor, &RuntimeModule::createChat, this, &AgentModule::chatCreate);
+    connect(supervisor, &RuntimeModule::appendChat, this, &AgentModule::chatAppend);
+    connect(supervisor, &RuntimeModule::appendChatReasoning, this, [this](const QString &messageId, const QString &text) {
         QMetaObject::invokeMethod(m_root, "chatReasoningAppend", Q_ARG(QString, messageId), Q_ARG(QString, text));
     });
-    connect(m_supervisorRuntime, &RuntimeModule::finishChat, this, &AgentModule::chatFinish);
-    connect(m_supervisorRuntime, &RuntimeModule::requestPermission, this, [this](const QString &message) {
+    connect(supervisor, &RuntimeModule::finishChat, this, &AgentModule::chatFinish);
+    connect(supervisor, &RuntimeModule::requestPermission, this, [this](const QString &message) {
         m_permissionLabel->setProperty("message", message);
     });
-    connect(m_supervisorRuntime, &RuntimeModule::requestUserInput, this, [this](const QVariantMap &request) {
+    connect(supervisor, &RuntimeModule::requestUserInput, this, [this](const QVariantMap &request) {
         m_userInputCard->setProperty("request", request);
     });
-    connect(m_supervisorRuntime, &RuntimeModule::updatePlan, this, [this](const QJsonObject &plan) {
+    connect(supervisor, &RuntimeModule::updatePlan, this, [this](const QJsonObject &plan) {
         QMetaObject::invokeMethod(m_root, "planUpdate", Q_ARG(QVariant, plan.toVariantMap()));
     });
-    connect(m_supervisorRuntime, &RuntimeModule::updateUsage, this, [this](const qint64 totalTokens) {
+    connect(supervisor, &RuntimeModule::updateUsage, this, [this](const qint64 totalTokens) {
         QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(double, totalTokens));
     });
-    connect(m_supervisorRuntime, &RuntimeModule::finishCompact, this, [this] {
+    connect(supervisor, &RuntimeModule::finishCompact, this, [this] {
         QMetaObject::invokeMethod(m_root, "compactFinish");
     });
     m_toolsModule->initialize();
@@ -134,20 +137,28 @@ void AgentModule::agentManage() const {
     m_manageWindow->show();
 }
 
+RuntimeServices AgentModule::runtimeServicesGet() const {
+    return {m_contextModule, m_providerModule, m_sqlModule, m_toolsModule};
+}
+
+int AgentModule::stateGet() const {
+    return m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->stateGet();
+}
+
 void AgentModule::stateSet(const int state) {
     switch (state) {
         case AgentState::Pre: {
             if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
-            m_supervisorRuntime->start(m_conversationId, m_textArea->property("text").toString());
+            m_runtimes.value(m_supervisor)->start(m_conversationId, m_textArea->property("text").toString());
         }
         break;
-        case AgentState::Compact: m_supervisorRuntime->compact(m_conversationId);
+        case AgentState::Compact: m_runtimes.value(m_supervisor)->compact(m_conversationId);
         break;
         case AgentState::Abort: {
-            m_supervisorRuntime->abort();
-            if (m_activeRuntime != nullptr) {
-                auto *runtime = m_activeRuntime;
-                m_activeRuntime = nullptr;
+            m_runtimes.value(m_supervisor)->abort();
+            if (!m_active.isEmpty()) {
+                auto *runtime = m_runtimes.value(m_active);
+                m_active.clear();
                 runtime->abort();
             }
         }
@@ -289,16 +300,16 @@ void AgentModule::conversationRollback() {
     conversationGet(m_conversationId);
 }
 
-void AgentModule::permissionSet(const bool status) {
-    (m_activeRuntime == nullptr ? m_supervisorRuntime : m_activeRuntime)->permissionSet(status);
+void AgentModule::permissionSet(const bool status) const {
+    m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->permissionSet(status);
 }
 
 void AgentModule::userInputSet(const QString &answer) const {
-    (m_activeRuntime == nullptr ? m_supervisorRuntime : m_activeRuntime)->userInputSet(answer);
+    m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->userInputSet(answer);
 }
 
 void AgentModule::userInputDisable() const {
-    (m_activeRuntime == nullptr ? m_supervisorRuntime : m_activeRuntime)->userInputDisable();
+    m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->userInputDisable();
 }
 
 RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &task) {
@@ -307,8 +318,9 @@ RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &tas
     if (agent == nullptr) return nullptr;
 
     const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
-    auto *worker = new RuntimeModule(agent, m_contextModule, m_providerModule, m_sqlModule, m_toolsModule, this); // NOLINT
-    m_activeRuntime = worker;
+    auto *worker = new RuntimeModule(agent, runtimeServicesGet(), this); // NOLINT
+    m_active = worker->idGet();
+    m_runtimes.insert(m_active, worker);
     connect(worker, &RuntimeModule::changeState, this, &AgentModule::changeState);
     connect(worker, &RuntimeModule::requestPermission, this, [this](const QString &message) {
         m_permissionLabel->setProperty("message", message);
@@ -317,7 +329,8 @@ RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &tas
         m_userInputCard->setProperty("request", request);
     });
     connect(worker, &RuntimeModule::finishRun, worker, [this, worker] {
-        if (m_activeRuntime == worker) m_activeRuntime = nullptr;
+        if (m_active == worker->idGet()) m_active.clear();
+        m_runtimes.remove(worker->idGet());
         emit changeState();
         worker->deleteLater();
     });

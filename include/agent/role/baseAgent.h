@@ -1,7 +1,6 @@
 #ifndef UNICOMM_BASEAGENT_H
 #define UNICOMM_BASEAGENT_H
 
-#include <QHash>
 #include <QJsonArray>
 #include <QObject>
 #include <QSet>
@@ -15,7 +14,7 @@ class BaseAgent : public QObject {
 public:
     ~BaseAgent() override = default;
 
-    [[nodiscard]] virtual QString idGet() const;
+    [[nodiscard]] virtual QString roleGet() const;
 
     [[nodiscard]] virtual QString systemGet() const;
 
@@ -27,7 +26,7 @@ protected:
     explicit BaseAgent(QString id, QObject *parent = nullptr);
 
 private:
-    QString m_id{};
+    QString m_role{};
     QHash<QString, QString> m_systems{};
     QHash<QString, QSet<QString>> m_tools{};
 };

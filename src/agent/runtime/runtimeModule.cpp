@@ -7,7 +7,6 @@
 #include <QNetworkReply>
 #include <QUuid>
 
-#include <memory>
 #include "globals.h"
 #include "agent/module/contextModule.h"
 #include "agent/module/toolsModule.h"
@@ -16,13 +15,14 @@
 #include "agent/role/baseAgent.h"
 
 // public
-RuntimeModule::RuntimeModule(BaseAgent *agent, ContextModule *contextModule, ProviderModule *providerModule, SqlModule *sqlModule, ToolsModule *toolsModule, QObject *parent)
+RuntimeModule::RuntimeModule(BaseAgent *agent, const RuntimeServices &services, QObject *parent)
     : QObject(parent),
+      m_id(QUuid::createUuid().toString(QUuid::WithoutBraces)),
       m_agent(agent),
-      m_contextModule(contextModule),
-      m_providerModule(providerModule),
-      m_sqlModule(sqlModule),
-      m_toolsModule(toolsModule) {
+      m_contextModule(services.contextModule),
+      m_providerModule(services.providerModule),
+      m_sqlModule(services.sqlModule),
+      m_toolsModule(services.toolsModule) {
     m_agent->setParent(this);
     connect(m_toolsModule, &ToolsModule::updatePlan, this, [this](const QJsonObject &plan) {
         if (m_state != AgentState::ToolExec || m_turn.toolCalls.at(m_turn.currentTool).name != "plan_update") return;
@@ -31,8 +31,16 @@ RuntimeModule::RuntimeModule(BaseAgent *agent, ContextModule *contextModule, Pro
     });
 }
 
-QString RuntimeModule::agentIdGet() const {
-    return m_agent->idGet();
+QString RuntimeModule::idGet() const {
+    return m_id;
+}
+
+QString RuntimeModule::roleGet() const {
+    return m_agent->roleGet();
+}
+
+int RuntimeModule::stateGet() const {
+    return m_state;
 }
 
 void RuntimeModule::start(const QString &conversationId, const QString &text) {
