@@ -9,6 +9,7 @@ Item {
     anchors.fill: parent
     property var turnMap: ({})
     property var chatMap: ({})
+    property var subagentMap: ({})
 
     Rectangle {
         anchors.fill: parent
@@ -1187,6 +1188,7 @@ Item {
             property string prompt
             property string response
             property string lastId
+            property alias subagents: subagentColumn
             property alias messages: messageColumn
             readonly property bool running: finishedAt === 0
 
@@ -1230,6 +1232,12 @@ Item {
             }
 
             ColumnLayout {
+                id: subagentColumn
+                Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
+                spacing: 6
+            }
+
+            ColumnLayout {
                 id: messageColumn
                 Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
             }
@@ -1244,6 +1252,34 @@ Item {
 
             onFinishedAtChanged: elapsedUpdate()
             Component.onCompleted: elapsedUpdate()
+        }
+    }
+
+    Component {
+        id: subagentComponent
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            property string runtimeId
+            property string role
+            property string message
+
+            IconImage {
+                color: global.fore
+                source: role === "hardware" ? "qrc:/icon/hardware.svg" : "qrc:/icon/software.svg"
+                sourceSize.width: 24; sourceSize.height: 24
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                Layout.alignment: Qt.AlignTop
+            }
+
+            Label {
+                text: message
+                color: global.fore
+                elide: Text.ElideRight
+                wrapMode: Text.NoWrap
+                Layout.fillWidth: true
+            }
         }
     }
 
@@ -1404,6 +1440,7 @@ Item {
         }
         rootItem.turnMap = ({})
         rootItem.chatMap = ({})
+        rootItem.subagentMap = ({})
     }
 
     function chatCreate(turnId: string, messageId: string, role: string): void {
@@ -1437,11 +1474,17 @@ Item {
     }
 
     function subagentCreate(turnId: string, runtimeId: string, role: string, message: string): void {
-        console.log("subagentCreate:", turnId, runtimeId, role, message)
+        const turn = rootItem.turnMap[turnId]
+        const obj = subagentComponent.createObject(turn.subagents, {
+            runtimeId: runtimeId,
+            role: role,
+            message: message,
+        })
+        rootItem.subagentMap[runtimeId] = obj
     }
 
     function subagentUpdate(runtimeId: string, message: string): void {
-        console.log("subagentUpdate:", runtimeId, message)
+        rootItem.subagentMap[runtimeId].message = message
     }
 
     function planUpdate(plan): void {

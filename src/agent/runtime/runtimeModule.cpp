@@ -226,13 +226,13 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Permission: {
-            if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for approval: " + payload.toString());
+            if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for approval...");
             g_agent->permissionGet(m_id, payload.toString());
         }
         break;
         case AgentState::UserInput: {
             const auto request = payload.toMap();
-            if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for input: " + request.value("question").toString());
+            if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for input...");
             g_agent->userInputGet(m_id, request);
         }
         break;
