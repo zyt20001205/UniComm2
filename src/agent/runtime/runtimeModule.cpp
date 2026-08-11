@@ -8,6 +8,7 @@
 #include <QUuid>
 
 #include "globals.h"
+#include "agent/agentModule.h"
 #include "agent/module/contextModule.h"
 #include "agent/module/toolsModule.h"
 #include "agent/provider/baseProvider.h"
@@ -24,11 +25,6 @@ RuntimeModule::RuntimeModule(BaseAgent *agent, const RuntimeServices &services, 
       m_sqlModule(services.sqlModule),
       m_toolsModule(services.toolsModule) {
     m_agent->setParent(this);
-    connect(m_toolsModule, &ToolsModule::updatePlan, this, [this](const QJsonObject &plan) {
-        if (m_state != AgentState::ToolExec || m_turn.toolCalls.at(m_turn.currentTool).name != "plan_update") return;
-        m_turn.planned = true;
-        emit updatePlan(plan);
-    });
 }
 
 QString RuntimeModule::idGet() const {
@@ -69,6 +65,10 @@ void RuntimeModule::compact(const QString &conversationId) {
 
 void RuntimeModule::abort() {
     stateSet(AgentState::Abort);
+}
+
+void RuntimeModule::planUpdate() {
+    m_turn.planned = true;
 }
 
 void RuntimeModule::permissionSet(const bool status) {
@@ -200,7 +200,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                 stateSet(AgentState::Permission, text);
                 break;
             }
-            if (!m_turn.planned && m_agent->planRequired(m_turn.toolCount) && !planUpdate) {
+            if (m_agent->roleGet() == "supervisor" && !m_turn.planned && m_agent->planRequired(m_turn.toolCount) && !planUpdate) {
                 if (showToolMessage) emit appendChat(message.id, " ✗");
                 toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
                 break;
@@ -221,9 +221,9 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             stateSet(AgentState::ToolExec);
         }
         break;
-        case AgentState::Permission: emit requestPermission(payload.toString());
+        case AgentState::Permission: g_agent->permissionGet(m_id, payload.toString());
         break;
-        case AgentState::UserInput: emit requestUserInput(payload.toMap());
+        case AgentState::UserInput: g_agent->userInputGet(m_id, payload.toMap());
         break;
         case AgentState::ToolExec: {
             const auto toolCall = m_turn.toolCalls.at(m_turn.currentTool);
@@ -233,7 +233,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             }
 
             const auto turnId = m_turn.id;
-            auto future = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
+            auto future = m_toolsModule->toolExecute(m_id, toolCall.name, toolCall.arguments);
             future.then(this, [this, turnId, toolCall](const QString &result) {
                 if (m_state != AgentState::ToolExec || m_turn.id != turnId) return;
                 if (m_turn.toolCalls.at(m_turn.currentTool).id != toolCall.id) return;

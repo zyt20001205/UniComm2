@@ -66,6 +66,8 @@ public:
 
     void abort();
 
+    void planUpdate();
+
     void permissionSet(bool status);
 
     void userInputSet(const QString &answer);
@@ -88,12 +90,6 @@ signals:
     void appendChatReasoning(const QString &messageId, const QString &text);
 
     void finishChat(const QString &messageId);
-
-    void requestPermission(const QString &message);
-
-    void requestUserInput(const QVariantMap &request);
-
-    void updatePlan(const QJsonObject &plan);
 
     void updateUsage(qint64 totalTokens);
 

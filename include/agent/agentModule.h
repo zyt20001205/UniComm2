@@ -60,11 +60,17 @@ public:
 
     Q_INVOKABLE void conversationRollback();
 
-    Q_INVOKABLE void permissionSet(bool status) const;
+    void planUpdate(const QString &runtimeId, const QJsonObject &plan) const;
 
-    Q_INVOKABLE void userInputSet(const QString &answer) const;
+    void permissionGet(const QString &runtimeId, const QString &message) const;
 
-    Q_INVOKABLE void userInputDisable() const;
+    Q_INVOKABLE void permissionSet(const QString &runtimeId, bool status) const;
+
+    void userInputGet(const QString &runtimeId, const QVariantMap &request) const;
+
+    Q_INVOKABLE void userInputSet(const QString &runtimeId, const QString &answer) const;
+
+    Q_INVOKABLE void userInputDisable(const QString &runtimeId) const;
 
     [[nodiscard]] RuntimeModule *agentExecute(const QString &role, const QString &task);
 
@@ -92,7 +98,7 @@ private:
     QObject *m_modeMenu{};
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};
-    QObject *m_permissionLabel{};
+    QObject *m_permissionCard{};
     QObject *m_userInputCard{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};

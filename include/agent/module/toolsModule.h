@@ -26,15 +26,12 @@ public:
 
     [[nodiscard]] QString toolTextGet(const QString &name, const QString &arguments) const;
 
-    [[nodiscard]] QFuture<QString> toolExecute(const QString &name, const QString &arguments);
-
-signals:
-    void updatePlan(const QJsonObject &plan);
+    [[nodiscard]] QFuture<QString> toolExecute(const QString &runtimeId, const QString &name, const QString &arguments);
 
 private:
     [[nodiscard]] bool permissionGet(int mode, const QString &name) const;
 
-    [[nodiscard]] QString toolExecuteSync(const QString &name, const QJsonObject &object);
+    [[nodiscard]] QString toolExecuteSync(const QString &runtimeId, const QString &name, const QJsonObject &object);
 
     QHash<QString, int> m_portTypes{};
     QJsonArray m_tools{};

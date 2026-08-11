@@ -531,7 +531,9 @@ Item {
 
         Item {
             id: permissionCard
-            visible: agentModule.state === 11
+            property string runtimeId
+            property string message
+            visible: runtimeId.length > 0
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? permissionLayout.implicitHeight + 20 : 0
 
@@ -605,7 +607,11 @@ Item {
                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
-                        onClicked: agentModule.permissionSet(false)
+                        onClicked: {
+                            const runtimeId = permissionCard.runtimeId
+                            permissionCard.runtimeId = ""
+                            agentModule.permissionSet(runtimeId, false)
+                        }
                     }
 
                     Button {
@@ -615,7 +621,11 @@ Item {
                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
-                        onClicked: agentModule.permissionSet(true)
+                        onClicked: {
+                            const runtimeId = permissionCard.runtimeId
+                            permissionCard.runtimeId = ""
+                            agentModule.permissionSet(runtimeId, true)
+                        }
                     }
                 }
 
@@ -629,8 +639,7 @@ Item {
 
                     Label {
                         id: permissionLabel
-                        property string message
-                        text: message
+                        text: permissionCard.message
                         color: global.fore
                         wrapMode: Text.Wrap
                         Layout.fillWidth: true
@@ -641,15 +650,18 @@ Item {
 
         Item {
             id: userInputCard
+            property string runtimeId
             property var request: ({"question": "", "options": []})
-            visible: agentModule.state === 12
+            visible: runtimeId.length > 0
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? userInputLayout.implicitHeight + 20 : 0
 
             function submit(): void {
                 const answer = answerTextField.text.trim()
                 if (answer.length === 0) return
-                agentModule.userInputSet(answer)
+                const runtimeId = userInputCard.runtimeId
+                userInputCard.runtimeId = ""
+                agentModule.userInputSet(runtimeId, answer)
                 answerTextField.clear()
             }
 
@@ -786,7 +798,11 @@ Item {
                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         Layout.preferredWidth: 80; Layout.preferredHeight: 28
 
-                        onClicked: agentModule.userInputDisable()
+                        onClicked: {
+                            const runtimeId = userInputCard.runtimeId
+                            userInputCard.runtimeId = ""
+                            agentModule.userInputDisable(runtimeId)
+                        }
                     }
 
                     Button {
@@ -1444,7 +1460,7 @@ Item {
         const objects = {
             "conversationComboBox": conversationComboBox,
             "textArea": textArea,
-            "permissionLabel": permissionLabel,
+            "permissionCard": permissionCard,
             "userInputCard": userInputCard,
             "modeButton": modeButton,
             "modelButton": modelButton

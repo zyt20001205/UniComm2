@@ -85,15 +85,6 @@ void AgentModule::propertySet(const QVariantHash &objects) {
         QMetaObject::invokeMethod(m_root, "chatReasoningAppend", Q_ARG(QString, messageId), Q_ARG(QString, text));
     });
     connect(supervisor, &RuntimeModule::finishChat, this, &AgentModule::chatFinish);
-    connect(supervisor, &RuntimeModule::requestPermission, this, [this](const QString &message) {
-        m_permissionLabel->setProperty("message", message);
-    });
-    connect(supervisor, &RuntimeModule::requestUserInput, this, [this](const QVariantMap &request) {
-        m_userInputCard->setProperty("request", request);
-    });
-    connect(supervisor, &RuntimeModule::updatePlan, this, [this](const QJsonObject &plan) {
-        QMetaObject::invokeMethod(m_root, "planUpdate", Q_ARG(QVariant, plan.toVariantMap()));
-    });
     connect(supervisor, &RuntimeModule::updateUsage, this, [this](const qint64 totalTokens) {
         QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(double, totalTokens));
     });
@@ -121,7 +112,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
 void AgentModule::propertyGet(const QVariantMap &objects) {
     m_conversationComboBox = qvariant_cast<QObject *>(objects["conversationComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
-    m_permissionLabel = qvariant_cast<QObject *>(objects["permissionLabel"]);
+    m_permissionCard = qvariant_cast<QObject *>(objects["permissionCard"]);
     m_userInputCard = qvariant_cast<QObject *>(objects["userInputCard"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
@@ -142,7 +133,7 @@ RuntimeServices AgentModule::runtimeServicesGet() const {
 }
 
 int AgentModule::stateGet() const {
-    return m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->stateGet();
+    return m_runtimes.value(m_supervisor)->stateGet();
 }
 
 void AgentModule::stateSet(const int state) {
@@ -156,6 +147,8 @@ void AgentModule::stateSet(const int state) {
         break;
         case AgentState::Abort: {
             m_runtimes.value(m_supervisor)->abort();
+            m_permissionCard->setProperty("runtimeId", "");
+            m_userInputCard->setProperty("runtimeId", "");
             if (!m_active.isEmpty()) {
                 auto *runtime = m_runtimes.value(m_active);
                 m_active.clear();
@@ -300,16 +293,32 @@ void AgentModule::conversationRollback() {
     conversationGet(m_conversationId);
 }
 
-void AgentModule::permissionSet(const bool status) const {
-    m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->permissionSet(status);
+void AgentModule::planUpdate(const QString &runtimeId, const QJsonObject &plan) const {
+    auto *runtime = m_runtimes.value(runtimeId);
+    runtime->planUpdate();
+    QMetaObject::invokeMethod(m_root, "planUpdate", Q_ARG(QVariant, plan.toVariantMap()));
 }
 
-void AgentModule::userInputSet(const QString &answer) const {
-    m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->userInputSet(answer);
+void AgentModule::permissionGet(const QString &runtimeId, const QString &message) const {
+    m_permissionCard->setProperty("runtimeId", runtimeId);
+    m_permissionCard->setProperty("message", message);
 }
 
-void AgentModule::userInputDisable() const {
-    m_runtimes.value(m_active.isEmpty() ? m_supervisor : m_active)->userInputDisable();
+void AgentModule::permissionSet(const QString &runtimeId, const bool status) const {
+    m_runtimes.value(runtimeId)->permissionSet(status);
+}
+
+void AgentModule::userInputGet(const QString &runtimeId, const QVariantMap &request) const {
+    m_userInputCard->setProperty("runtimeId", runtimeId);
+    m_userInputCard->setProperty("request", request);
+}
+
+void AgentModule::userInputSet(const QString &runtimeId, const QString &answer) const {
+    m_runtimes.value(runtimeId)->userInputSet(answer);
+}
+
+void AgentModule::userInputDisable(const QString &runtimeId) const {
+    m_runtimes.value(runtimeId)->userInputDisable();
 }
 
 RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &task) {
@@ -321,17 +330,9 @@ RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &tas
     auto *worker = new RuntimeModule(agent, runtimeServicesGet(), this); // NOLINT
     m_active = worker->idGet();
     m_runtimes.insert(m_active, worker);
-    connect(worker, &RuntimeModule::changeState, this, &AgentModule::changeState);
-    connect(worker, &RuntimeModule::requestPermission, this, [this](const QString &message) {
-        m_permissionLabel->setProperty("message", message);
-    });
-    connect(worker, &RuntimeModule::requestUserInput, this, [this](const QVariantMap &request) {
-        m_userInputCard->setProperty("request", request);
-    });
     connect(worker, &RuntimeModule::finishRun, worker, [this, worker] {
         if (m_active == worker->idGet()) m_active.clear();
         m_runtimes.remove(worker->idGet());
-        emit changeState();
         worker->deleteLater();
     });
     worker->startTask(conversation.provider, conversation.model, conversation.mode, task);

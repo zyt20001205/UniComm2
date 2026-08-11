@@ -698,7 +698,7 @@ QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, 
     return {permissionGet(mode, name), toolTextGet(name, arguments)};
 }
 
-QFuture<QString> ToolsModule::toolExecute(const QString &name, const QString &arguments) {
+QFuture<QString> ToolsModule::toolExecute(const QString &runtimeId, const QString &name, const QString &arguments) {
     const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
     if (name == "dispatch_agent") {
         const auto role = object.value("role").toString();
@@ -730,10 +730,10 @@ QFuture<QString> ToolsModule::toolExecute(const QString &name, const QString &ar
         g_threadpool->threadStart(documentUrl, InterpreterMode::Agent, *threadId);
         return future;
     }
-    return QtFuture::makeReadyValueFuture(toolExecuteSync(name, object));
+    return QtFuture::makeReadyValueFuture(toolExecuteSync(runtimeId, name, object));
 }
 
-QString ToolsModule::toolExecuteSync(const QString &name, const QJsonObject &object) {
+QString ToolsModule::toolExecuteSync(const QString &runtimeId, const QString &name, const QJsonObject &object) {
     const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath()).filePath("lua-language-server/meta/3rd/UniComm"));
     const QDir apiDir(uniCommDir.filePath("library"));
     const QDir demoDir(uniCommDir.filePath("demo"));
@@ -819,7 +819,7 @@ QString ToolsModule::toolExecuteSync(const QString &name, const QJsonObject &obj
             {"explanation", object.value("explanation").toString()},
             {"plan", normalizedSteps}
         };
-        emit updatePlan(plan);
+        g_agent->planUpdate(runtimeId, plan);
         return QString("Plan updated: %1/%2 steps completed.").arg(completedCount).arg(normalizedSteps.size());
     }
     if (name == "port_list") {
