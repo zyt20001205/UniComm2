@@ -340,6 +340,17 @@ RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &tas
 }
 
 // private
+void AgentModule::modelUpdate(const QString &provider, const QString &model) const {
+    if (provider.isEmpty() || model.isEmpty()) {
+        m_modelButton->setProperty("text", "");
+        QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(double, 0));
+        return;
+    }
+    const auto modelInfo = m_providerModule->providerGet(provider)->modelGet(model);
+    m_modelButton->setProperty("text", modelInfo.name);
+    QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(double, modelInfo.contextWindow));
+}
+
 void AgentModule::turnCreate(const QString &turnId, const qint64 startedAt) const {
     QMetaObject::invokeMethod(m_root, "turnCreate", Q_ARG(QString, turnId), Q_ARG(double, startedAt));
 }
@@ -358,17 +369,6 @@ void AgentModule::chatAppend(const QString &messageId, const QString &text) cons
 
 void AgentModule::chatFinish(const QString &messageId) const {
     QMetaObject::invokeMethod(m_root, "chatFinish", Q_ARG(QString, messageId));
-}
-
-void AgentModule::modelUpdate(const QString &provider, const QString &model) const {
-    if (provider.isEmpty() || model.isEmpty()) {
-        m_modelButton->setProperty("text", "");
-        QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(double, 0));
-        return;
-    }
-    const auto modelInfo = m_providerModule->providerGet(provider)->modelGet(model);
-    m_modelButton->setProperty("text", modelInfo.name);
-    QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(double, modelInfo.contextWindow));
 }
 
 // public

@@ -78,6 +78,8 @@ signals:
     void changeState();
 
 private:
+    void modelUpdate(const QString &provider, const QString &model) const;
+
     void turnCreate(const QString &turnId, qint64 startedAt) const;
 
     void turnFinish(const QString &turnId, qint64 finishedAt) const;
@@ -87,8 +89,6 @@ private:
     void chatAppend(const QString &messageId, const QString &text) const;
 
     void chatFinish(const QString &messageId) const;
-
-    void modelUpdate(const QString &provider, const QString &model) const;
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};

@@ -1436,6 +1436,14 @@ Item {
         rootItem.chatMap[messageId].reasoningBuffer = ""
     }
 
+    function subagentCreate(turnId: string, runtimeId: string, role: string, message: string): void {
+        console.log("subagentCreate:", turnId, runtimeId, role, message)
+    }
+
+    function subagentUpdate(runtimeId: string, message: string): void {
+        console.log("subagentUpdate:", runtimeId, message)
+    }
+
     function planUpdate(plan): void {
         planCard.explanation = plan.explanation ? plan.explanation : ""
         planCard.steps = plan.plan ? plan.plan : []
