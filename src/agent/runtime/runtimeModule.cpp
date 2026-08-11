@@ -218,15 +218,20 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         case AgentState::UserInput: emit requestUserInput(payload.toMap());
         break;
         case AgentState::ToolExec: {
-            const auto &toolCall = m_turn.toolCalls.at(m_turn.currentTool);
-            QString result{};
-            if (!toolCall.approved) result = "User denied permission to execute this tool.";
-            else {
-                result = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
-                if (m_state != AgentState::ToolExec) break;
-                if (toolCall.name != "plan_update") ++m_turn.toolCount;
+            const auto toolCall = m_turn.toolCalls.at(m_turn.currentTool);
+            if (!toolCall.approved) {
+                toolResultSet("User denied permission to execute this tool.");
+                break;
             }
-            toolResultSet(result);
+
+            const auto turnId = m_turn.id;
+            auto future = m_toolsModule->toolExecute(toolCall.name, toolCall.arguments);
+            future.then(this, [this, turnId, toolCall](const QString &result) {
+                if (m_state != AgentState::ToolExec || m_turn.id != turnId) return;
+                if (m_turn.toolCalls.at(m_turn.currentTool).id != toolCall.id) return;
+                if (toolCall.name != "plan_update") ++m_turn.toolCount;
+                toolResultSet(result);
+            });
         }
         break;
         case AgentState::Speak: stateSet(AgentState::Ready);
@@ -235,7 +240,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
     }
 }
 
-void RuntimeModule::conversationSend(BaseProvider *provider, const QJsonObject &body) {
+void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonObject &body) {
     auto *reply = g_networkAccessManager->post(provider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     if (!body.value("stream").toBool()) {

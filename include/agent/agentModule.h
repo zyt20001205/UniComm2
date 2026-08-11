@@ -66,7 +66,7 @@ public:
 
     Q_INVOKABLE void userInputDisable() const;
 
-    [[nodiscard]] QString agentExecute(const QString &role, const QString &task);
+    [[nodiscard]] RuntimeModule *agentExecute(const QString &role, const QString &task);
 
 signals:
     void changeState();

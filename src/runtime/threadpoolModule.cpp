@@ -5,6 +5,7 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
+#include <QSharedPointer>
 #include <QThread>
 #include <QTimer>
 
@@ -65,12 +66,11 @@ void ThreadpoolModule::quit() {
     }
 }
 
-QJsonArray ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine,
-                                         const int endCharacter) {
+void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine,
+                                   const int endCharacter) {
     auto *worker = new QThread(); // NOLINT
     threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
-    QJsonArray buffer{};
-    QEventLoop eventloop{};
+    auto buffer = QSharedPointer<QJsonArray>::create();
     // preload thread with lua session
     QVariantMap luaSession{};
     luaSession.insert("mode", mode);
@@ -112,7 +112,7 @@ QJsonArray ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode
         emit startDebug(threadId);
         connect(worker, &QThread::finished, this, [this, threadId] { emit stopDebug(threadId); });
     } else if (mode == InterpreterMode::Agent) {
-        connect(interpreter, &LuaInterpreter::appendLog, this, [&buffer](const int type, const QString &prefix, const QString &message) {
+        connect(interpreter, &LuaInterpreter::appendLog, this, [buffer](const int type, const QString &prefix, const QString &message) {
             QString _type{};
             switch (type) {
                 case LogLevel::Error: _type = "Error";
@@ -131,15 +131,11 @@ QJsonArray ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode
                 {"prefix", prefix},
                 {"message", message}
             };
-            buffer.append(session);
+            buffer->append(session);
         });
-        connect(worker, &QThread::finished, &eventloop, &QEventLoop::quit);
+        connect(worker, &QThread::finished, this, [this, threadId, buffer] { emit finishThread(threadId, *buffer); });
     }
     worker->start();
-    if (mode == InterpreterMode::Agent) {
-        eventloop.exec();
-    }
-    return buffer;
 }
 
 void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {

@@ -2,6 +2,8 @@
 
 #include <QDir>
 #include <QJsonDocument>
+#include <QPromise>
+#include <QSharedPointer>
 
 #include "globals.h"
 #include "agent/agentModule.h"
@@ -15,15 +17,14 @@
 #include "service/ripgrep.h"
 
 // public
-ToolsModule::ToolsModule(SqlModule *sqlModule, AgentModule *agentModule)
-    : QObject(agentModule),
+ToolsModule::ToolsModule(SqlModule *sqlModule, QObject *parent)
+    : QObject(parent),
       m_portTypes{
           {"serial_port", PortType::SerialPort},
           {"tcp_client", PortType::TcpClient},
           {"ssl_client", PortType::SslClient}
       },
       m_sqlModule(sqlModule),
-      m_agentModule(agentModule),
       m_writeGroup{"line_set", "port_create"},
       m_fullAccessGroup{"port_delete", "thread_start"} {
 }
@@ -697,8 +698,42 @@ QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, 
     return {permissionGet(mode, name), toolTextGet(name, arguments)};
 }
 
-QString ToolsModule::toolExecute(const QString &name, const QString &arguments) {
+QFuture<QString> ToolsModule::toolExecute(const QString &name, const QString &arguments) {
     const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
+    if (name == "dispatch_agent") {
+        const auto role = object.value("role").toString();
+        auto *worker = g_agent->agentExecute(role, object.value("task").toString());
+        if (worker == nullptr) return QtFuture::makeReadyValueFuture(QString("Unknown agent role: %1").arg(role));
+
+        auto promise = QSharedPointer<QPromise<QString>>::create();
+        promise->start();
+        const auto future = promise->future();
+        connect(worker, &RuntimeModule::finishRun, this, [promise](const QString &result) {
+            promise->addResult(result);
+            promise->finish();
+        });
+        return future;
+    }
+    if (name == "thread_start") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        auto threadId = QSharedPointer<QString>::create();
+        auto promise = QSharedPointer<QPromise<QString>>::create();
+        auto connection = QSharedPointer<QMetaObject::Connection>::create();
+        promise->start();
+        const auto future = promise->future();
+        *connection = connect(g_threadpool, &ThreadpoolModule::finishThread, this, [threadId, promise, connection](const QString &id, const QJsonArray &result) {
+            if (id != *threadId) return;
+            disconnect(*connection);
+            promise->addResult(QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact)));
+            promise->finish();
+        });
+        g_threadpool->threadStart(documentUrl, InterpreterMode::Agent, *threadId);
+        return future;
+    }
+    return QtFuture::makeReadyValueFuture(toolExecuteSync(name, object));
+}
+
+QString ToolsModule::toolExecuteSync(const QString &name, const QJsonObject &object) {
     const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath()).filePath("lua-language-server/meta/3rd/UniComm"));
     const QDir apiDir(uniCommDir.filePath("library"));
     const QDir demoDir(uniCommDir.filePath("demo"));
@@ -753,9 +788,6 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
             array.append(key);
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "dispatch_agent") {
-        return m_agentModule->agentExecute(object.value("role").toString(), object.value("task").toString());
     }
     if (name == "plan_update") {
         if (object.contains("explanation") && !object.value("explanation").isString()) return "Plan update failed: explanation must be a string.";
@@ -888,12 +920,6 @@ QString ToolsModule::toolExecute(const QString &name, const QString &arguments) 
         }
         const auto json = QJsonDocument(array);
         return QString::fromUtf8(json.toJson(QJsonDocument::Compact));
-    }
-    if (name == "thread_start") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        QString threadId{};
-        const auto result = g_thread->threadStart(documentUrl, InterpreterMode::Agent, threadId);
-        return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
     }
     return {"Unknown tool."};
 }

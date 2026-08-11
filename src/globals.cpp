@@ -3,6 +3,7 @@
 MainWindow *g_mainWindow = nullptr;
 QNetworkAccessManager *g_networkAccessManager = nullptr;
 GlobalManager *g_globalManager = nullptr;
+AgentModule *g_agent = nullptr;
 AudioService *g_audioService = nullptr;
 Ripgrep *g_ripgrep = nullptr;
 DatabaseModule *g_database = nullptr;
@@ -14,7 +15,7 @@ LogModule *g_log = nullptr;
 NuspellModule *g_nuspell = nullptr;
 PortModule *g_port = nullptr;
 TerminalModule *g_terminal = nullptr;
-ThreadpoolModule *g_thread = nullptr;
+ThreadpoolModule *g_threadpool = nullptr;
 UndoModule *g_undo = nullptr;
 
 bool g_terminating = false;

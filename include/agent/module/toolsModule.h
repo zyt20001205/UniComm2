@@ -1,20 +1,20 @@
 #ifndef UNICOMM_TOOLSMODULE_H
 #define UNICOMM_TOOLSMODULE_H
 
+#include <QFuture>
 #include <QHash>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
 #include <QSet>
 
-class AgentModule;
 class SqlModule;
 
 class ToolsModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit ToolsModule(SqlModule *sqlModule, AgentModule *agentModule);
+    explicit ToolsModule(SqlModule *sqlModule, QObject *parent = nullptr);
 
     ~ToolsModule() override = default;
 
@@ -26,7 +26,7 @@ public:
 
     [[nodiscard]] QString toolTextGet(const QString &name, const QString &arguments) const;
 
-    [[nodiscard]] QString toolExecute(const QString &name, const QString &arguments);
+    [[nodiscard]] QFuture<QString> toolExecute(const QString &name, const QString &arguments);
 
 signals:
     void updatePlan(const QJsonObject &plan);
@@ -34,10 +34,11 @@ signals:
 private:
     [[nodiscard]] bool permissionGet(int mode, const QString &name) const;
 
+    [[nodiscard]] QString toolExecuteSync(const QString &name, const QJsonObject &object);
+
     QHash<QString, int> m_portTypes{};
     QJsonArray m_tools{};
     SqlModule *m_sqlModule{};
-    AgentModule *m_agentModule{};
     QSet<QString> m_writeGroup{};
     QSet<QString> m_fullAccessGroup{};
 };

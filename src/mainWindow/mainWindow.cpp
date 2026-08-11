@@ -442,6 +442,7 @@ void MainWindow::moduleInit() {
     m_watchModule = new WatchModule();
 
     m_mainConfig = g_workspaceConfig["mainConfig"].toObject();
+    g_agent = m_agentModule;
     g_database = m_databaseModule;
     g_dataplot = m_dataplotModule;
     g_datatable = m_datatableModule;
@@ -451,7 +452,7 @@ void MainWindow::moduleInit() {
     g_nuspell = m_nuspellModule;
     g_port = m_portModule;
     g_terminal = m_terminalModule;
-    g_thread = m_threadpoolModule;
+    g_threadpool = m_threadpoolModule;
     g_undo = m_undoModule;
 
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);

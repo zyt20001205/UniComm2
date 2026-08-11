@@ -135,7 +135,7 @@ private:
 
     void stateSet(int state, const QVariant &payload = QVariant());
 
-    void conversationSend(BaseProvider *provider, const QJsonObject &body);
+    void conversationSend(const BaseProvider *provider, const QJsonObject &body);
 
     qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
 

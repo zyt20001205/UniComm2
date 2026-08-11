@@ -1,7 +1,6 @@
 #include "agent/agentModule.h"
 
 #include <QDateTime>
-#include <QEventLoop>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
@@ -308,14 +307,12 @@ void AgentModule::userInputDisable() const {
     m_supervisorRuntime->userInputDisable();
 }
 
-QString AgentModule::agentExecute(const QString &role, const QString &task) {
+RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &task) {
     BaseAgent *agent{};
     if (role == "hardware") agent = new HardwareAgent();
-    if (agent == nullptr) return QString("Unknown agent role: %1").arg(role);
+    if (agent == nullptr) return nullptr;
 
     const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
-    QEventLoop eventLoop{};
-    QString result{};
     auto *worker = new RuntimeModule(agent, m_contextModule, m_providerModule, m_sqlModule, m_toolsModule, this); // NOLINT
     m_activeRuntime = worker;
     connect(worker, &RuntimeModule::requestPermission, this, [this, worker](const QString &message) {
@@ -323,22 +320,16 @@ QString AgentModule::agentExecute(const QString &role, const QString &task) {
         m_permissionLabel->setProperty("message", message);
         emit changeState();
     });
-    connect(worker, &RuntimeModule::finishRun, &eventLoop, [this, worker, &eventLoop, &result](const QString &value) {
-        if (m_activeRuntime == worker) {
-            m_activeRuntime = nullptr;
-            result = value;
-        }
+    connect(worker, &RuntimeModule::finishRun, worker, [this, worker] {
+        if (m_activeRuntime == worker) m_activeRuntime = nullptr;
         if (m_permissionRuntime == worker) m_permissionRuntime = nullptr;
-        eventLoop.quit();
+        worker->deleteLater();
     });
     worker->startTask(conversation.provider, conversation.model, conversation.mode, task);
-    eventLoop.exec();
-    worker->deleteLater();
-    return result;
+    return worker;
 }
 
 // private
-
 void AgentModule::turnCreate(const QString &turnId, const qint64 startedAt) const {
     QMetaObject::invokeMethod(m_root, "turnCreate", Q_ARG(QString, turnId), Q_ARG(double, startedAt));
 }

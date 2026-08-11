@@ -23,7 +23,7 @@ public:
 
     void quit();
 
-    QJsonArray threadStart(const QUrl &documentUrl, int mode, QString &threadId, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    void threadStart(const QUrl &documentUrl, int mode, QString &threadId, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
     Q_INVOKABLE void threadStart(const QUrl &documentUrl, int mode, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
@@ -36,6 +36,8 @@ public:
     Q_INVOKABLE void valueSet(const QString &threadId, const QString &documentUrl, const QString &expression, const QString &value, const QString &type);
 
 signals:
+    void finishThread(const QString &threadId, const QJsonArray &result);
+
     void trackQuit(float secondaryProgress, const QString &secondaryLog) const;
 
     void refreshThread(int run, int debug);
