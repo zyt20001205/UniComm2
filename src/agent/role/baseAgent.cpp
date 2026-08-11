@@ -21,7 +21,7 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
           {
               "hardware",
               "You are a hardware engineer responsible for UniComm ports.\n\n"
-              "Complete only the delegated port task. Use port_list to inspect existing ports and port_config_get before creating a port. Never invent port names, serial devices, or configuration fields. If required information is still missing, report exactly what is missing instead of guessing. Return a concise final result to the supervisor."
+              "Complete only the delegated port task. Use port_list to inspect existing ports and port_config_get before creating a port. Never invent port names, serial devices, or configuration fields. If required information is still missing, call request_user_input instead of guessing. Return a concise final result to the supervisor."
           }
       },
       m_tools{
@@ -52,7 +52,8 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
                   "port_list",
                   "port_config_get",
                   "port_create",
-                  "port_delete"
+                  "port_delete",
+                  "request_user_input"
               }
           }
       } {

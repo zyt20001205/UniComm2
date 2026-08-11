@@ -37,7 +37,7 @@ public:
     Q_INVOKABLE void agentManage() const;
 
     [[nodiscard]] int stateGet() const {
-        return m_permissionRuntime == nullptr ? m_supervisorRuntime->stateGet() : m_permissionRuntime->stateGet();
+        return m_activeRuntime == nullptr ? m_supervisorRuntime->stateGet() : m_activeRuntime->stateGet();
     }
 
     void stateSet(int state);
@@ -105,7 +105,6 @@ private:
     ToolsModule *m_toolsModule{};
     RuntimeModule *m_supervisorRuntime{};
     RuntimeModule *m_activeRuntime{};
-    RuntimeModule *m_permissionRuntime{};
 };
 
 class ConversationModel final : public QStandardItemModel {

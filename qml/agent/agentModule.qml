@@ -444,13 +444,15 @@ Item {
                     loops: Animation.Infinite
 
                     NumberAnimation {
-                        from: 0.2; to: 0.8
+                        from: 0.2
+                        to: 0.8
                         duration: 450
                         easing.type: Easing.InOutSine
                     }
 
                     NumberAnimation {
-                        from: 0.8; to: 0.2
+                        from: 0.8
+                        to: 0.2
                         duration: 450
                         easing.type: Easing.InOutSine
                     }
@@ -501,7 +503,7 @@ Item {
 
                     Label {
                         text: compactCard.completed ? qsTr("Earlier turns were summarized into a compact context.") :
-                                qsTr("Summarizing earlier turns to free context space.")
+                            qsTr("Summarizing earlier turns to free context space.")
                         color: global.stroke
                         wrapMode: Text.Wrap
                         Layout.fillWidth: true
@@ -554,13 +556,15 @@ Item {
                     loops: Animation.Infinite
 
                     NumberAnimation {
-                        from: 0.2; to: 0.8
+                        from: 0.2
+                        to: 0.8
                         duration: 450
                         easing.type: Easing.InOutSine
                     }
 
                     NumberAnimation {
-                        from: 0.8; to: 0.2
+                        from: 0.8
+                        to: 0.2
                         duration: 850
                         easing.type: Easing.InOutSine
                     }
@@ -676,13 +680,15 @@ Item {
                     loops: Animation.Infinite
 
                     NumberAnimation {
-                        from: 0.2; to: 0.8
+                        from: 0.2
+                        to: 0.8
                         duration: 450
                         easing.type: Easing.InOutSine
                     }
 
                     NumberAnimation {
-                        from: 0.8; to: 0.2
+                        from: 0.8
+                        to: 0.2
                         duration: 850
                         easing.type: Easing.InOutSine
                     }
@@ -737,8 +743,8 @@ Item {
                             id: optionButton
                             required property var modelData
                             text: modelData.description
-                                  ? modelData.label + " — " + modelData.description
-                                  : modelData.label
+                                ? modelData.label + " — " + modelData.description
+                                : modelData.label
                             Layout.fillWidth: true
                             Layout.preferredHeight: 28
 
@@ -866,17 +872,17 @@ Item {
                             color: modeButton.mode === 3 ? global.warningFore3 : global.fore
                             source: modeButton.mode === 0 ? "qrc:/icon/chat.svg" :
                                     modeButton.mode === 1 ? "qrc:/icon/eye.svg" :
-                                    modeButton.mode === 2 ? "qrc:/icon/edit.svg" :
-                                    modeButton.mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
+                                        modeButton.mode === 2 ? "qrc:/icon/edit.svg" :
+                                            modeButton.mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
                             sourceSize.width: 16; sourceSize.height: 16
                             Layout.preferredWidth: 16; Layout.preferredHeight: 16
                         }
 
                         Label {
                             text: modeButton.mode === 0 ? qsTr("Chat") :
-                                  modeButton.mode === 1 ? qsTr("Read") :
-                                  modeButton.mode === 2 ? qsTr("Write") :
-                                  modeButton.mode === 3 ? qsTr("Full access") : ""
+                                    modeButton.mode === 1 ? qsTr("Read") :
+                                        modeButton.mode === 2 ? qsTr("Write") :
+                                            modeButton.mode === 3 ? qsTr("Full access") : ""
                             color: modeButton.mode === 3 ? global.warningFore3 : global.fore
                         }
 
@@ -1014,7 +1020,8 @@ Item {
                                     id: contextFlipAnimation
                                     target: contextRotation
                                     property: "angle"
-                                    from: 0; to: -180
+                                    from: 0
+                                    to: -180
                                     duration: 200
                                     easing.type: Easing.InOutCubic
 
@@ -1104,9 +1111,9 @@ Item {
                             mainToolTip.position = parent.mapToGlobal(point.position)
                             const action = usageLayout.currentUsage > 0 ? qsTr("Click to compact context") : qsTr("Context will update after the next response")
                             mainToolTip.text = qsTr("Context: %1 / %2\n%3")
-                                                   .arg(usageLayout.exactTokens(usageLayout.currentUsage))
-                                                   .arg(usageLayout.exactTokens(usageLayout.contextWindow))
-                                                   .arg(action)
+                                .arg(usageLayout.exactTokens(usageLayout.currentUsage))
+                                .arg(usageLayout.exactTokens(usageLayout.contextWindow))
+                                .arg(action)
                         }
                     }
                 }
@@ -1160,7 +1167,7 @@ Item {
             property double startedAt
             property double finishedAt: 0
             property int elapsedSeconds: 0
-            property bool collapsed: false
+            property bool collapsed: true
             property string prompt
             property string response
             property string lastId
@@ -1187,7 +1194,6 @@ Item {
                 }
 
                 Button {
-                    visible: !turnItem.running
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     flat: true
                     icon.source: turnItem.collapsed ? "qrc:/icon/arrowCollapse.svg" : "qrc:/icon/arrowExpand.svg"
@@ -1367,7 +1373,6 @@ Item {
     function turnFinish(turnId: string, finishedAt: double): void {
         const turn = rootItem.turnMap[turnId]
         turn.finishedAt = finishedAt
-        turn.collapsed = true
     }
 
     function chatClear(): void {
@@ -1399,14 +1404,16 @@ Item {
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer += text
         if (chat.role === "user") chat.turn.prompt += text
-        else if (chat.role === "assistant" && chat.contentBuffer.length > 0) {
-            chat.turn.response = chat.contentBuffer
+        else {
             chat.turn.lastId = messageId
+            if (chat.role === "assistant") chat.turn.response = chat.contentBuffer
         }
     }
 
     function chatReasoningAppend(messageId: string, text: string): void {
-        rootItem.chatMap[messageId].reasoningBuffer += text
+        const chat = rootItem.chatMap[messageId]
+        chat.reasoningBuffer += text
+        chat.turn.lastId = messageId
     }
 
     function chatFinish(messageId: string): void {

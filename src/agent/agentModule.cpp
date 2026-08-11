@@ -83,7 +83,6 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     });
     connect(m_supervisorRuntime, &RuntimeModule::finishChat, this, &AgentModule::chatFinish);
     connect(m_supervisorRuntime, &RuntimeModule::requestPermission, this, [this](const QString &message) {
-        m_permissionRuntime = m_supervisorRuntime;
         m_permissionLabel->setProperty("message", message);
     });
     connect(m_supervisorRuntime, &RuntimeModule::requestUserInput, this, [this](const QVariantMap &request) {
@@ -149,7 +148,6 @@ void AgentModule::stateSet(const int state) {
             if (m_activeRuntime != nullptr) {
                 auto *runtime = m_activeRuntime;
                 m_activeRuntime = nullptr;
-                m_permissionRuntime = nullptr;
                 runtime->abort();
             }
         }
@@ -292,19 +290,15 @@ void AgentModule::conversationRollback() {
 }
 
 void AgentModule::permissionSet(const bool status) {
-    auto *runtime = m_permissionRuntime;
-    const auto worker = runtime != m_supervisorRuntime;
-    runtime->permissionSet(status);
-    m_permissionRuntime = nullptr;
-    if (worker) emit changeState();
+    (m_activeRuntime == nullptr ? m_supervisorRuntime : m_activeRuntime)->permissionSet(status);
 }
 
 void AgentModule::userInputSet(const QString &answer) const {
-    m_supervisorRuntime->userInputSet(answer);
+    (m_activeRuntime == nullptr ? m_supervisorRuntime : m_activeRuntime)->userInputSet(answer);
 }
 
 void AgentModule::userInputDisable() const {
-    m_supervisorRuntime->userInputDisable();
+    (m_activeRuntime == nullptr ? m_supervisorRuntime : m_activeRuntime)->userInputDisable();
 }
 
 RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &task) {
@@ -315,14 +309,16 @@ RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &tas
     const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;
     auto *worker = new RuntimeModule(agent, m_contextModule, m_providerModule, m_sqlModule, m_toolsModule, this); // NOLINT
     m_activeRuntime = worker;
-    connect(worker, &RuntimeModule::requestPermission, this, [this, worker](const QString &message) {
-        m_permissionRuntime = worker;
+    connect(worker, &RuntimeModule::changeState, this, &AgentModule::changeState);
+    connect(worker, &RuntimeModule::requestPermission, this, [this](const QString &message) {
         m_permissionLabel->setProperty("message", message);
-        emit changeState();
+    });
+    connect(worker, &RuntimeModule::requestUserInput, this, [this](const QVariantMap &request) {
+        m_userInputCard->setProperty("request", request);
     });
     connect(worker, &RuntimeModule::finishRun, worker, [this, worker] {
         if (m_activeRuntime == worker) m_activeRuntime = nullptr;
-        if (m_permissionRuntime == worker) m_permissionRuntime = nullptr;
+        emit changeState();
         worker->deleteLater();
     });
     worker->startTask(conversation.provider, conversation.model, conversation.mode, task);
