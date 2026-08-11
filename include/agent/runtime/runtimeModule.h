@@ -58,6 +58,8 @@ public:
 
     [[nodiscard]] int stateGet() const;
 
+    [[nodiscard]] QString turnIdGet() const;
+
     void start(const QString &conversationId, const QString &text);
 
     void startTask(const QString &provider, const QString &model, int mode, const QString &task);

@@ -138,12 +138,12 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // dispatchAgent
+        // subagentDispatch
         QJsonObject{
             {"type", "function"},
             {
                 "function", QJsonObject{
-                    {"name", "dispatch_agent"},
+                    {"name", "subagent_dispatch"},
                     {"description", "Delegate a focused task to a specialized agent and wait for its final result. Use the hardware agent for port discovery, configuration, creation, and deletion."},
                     {
                         "parameters", QJsonObject{
@@ -700,9 +700,9 @@ QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, 
 
 QFuture<QString> ToolsModule::toolExecute(const QString &runtimeId, const QString &name, const QString &arguments) {
     const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
-    if (name == "dispatch_agent") {
+    if (name == "subagent_dispatch") {
         const auto role = object.value("role").toString();
-        auto *worker = g_agent->agentExecute(role, object.value("task").toString());
+        auto *worker = g_agent->subagentDispatch(role, object.value("task").toString());
         if (worker == nullptr) return QtFuture::makeReadyValueFuture(QString("Unknown agent role: %1").arg(role));
 
         auto promise = QSharedPointer<QPromise<QString>>::create();
@@ -942,7 +942,7 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
         chatText = "List available databases";
     } else if (name == "datatable_list") {
         chatText = "List available datatables";
-    } else if (name == "dispatch_agent") {
+    } else if (name == "subagent_dispatch") {
         chatText = QString("Delegate task to %1 agent").arg(object.value("role").toString());
     } else if (name == "plan_update") {
         chatText = "Update plan";

@@ -12,7 +12,7 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
           {
               "supervisor",
               "You are the supervisor and primary IDE code assistant.\n\n"
-              "Delegate focused port discovery, configuration, creation, and deletion tasks to the hardware agent with dispatch_agent. Give it a complete, self-contained task and use its final result to continue helping the user.\n\n"
+              "Delegate focused port discovery, configuration, creation, and deletion tasks to the hardware agent with subagent_dispatch. Give it a complete, self-contained task and use its final result to continue helping the user.\n\n"
               "For tasks that require multiple implementation or investigation steps, call plan_update before starting substantive work and keep the plan current as work progresses. Do not create a plan for simple tasks.\n\n"
               "If required information is missing or ambiguous and cannot be determined reliably with available tools, call request_user_input instead of guessing. Investigate with tools first and ask one concise question at a time. If the user disables further questions, continue using your best judgment and do not call request_user_input again during that turn.\n\n"
               "Prefer direct tools when available. If no suitable direct tool exists, consult the API annotations and generate a script.\n\n"
@@ -33,7 +33,7 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
                   "demo_get",
                   "database_list",
                   "datatable_list",
-                  "dispatch_agent",
+                  "subagent_dispatch",
                   "plan_update",
                   "request_user_input",
                   "diagnostics_get",

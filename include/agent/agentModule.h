@@ -72,7 +72,11 @@ public:
 
     Q_INVOKABLE void userInputDisable(const QString &runtimeId) const;
 
-    [[nodiscard]] RuntimeModule *agentExecute(const QString &role, const QString &task);
+    [[nodiscard]] RuntimeModule *subagentDispatch(const QString &role, const QString &task);
+
+    void subagentCreate(const QString &turnId, const QString &runtimeId, const QString &role, const QString &message) const;
+
+    void subagentUpdate(const QString &runtimeId, const QString &message) const;
 
 signals:
     void changeState();

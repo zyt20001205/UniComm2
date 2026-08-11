@@ -321,7 +321,7 @@ void AgentModule::userInputDisable(const QString &runtimeId) const {
     m_runtimes.value(runtimeId)->userInputDisable();
 }
 
-RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &task) {
+RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString &task) {
     BaseAgent *agent{};
     if (role == "hardware") agent = new HardwareAgent();
     if (agent == nullptr) return nullptr;
@@ -330,13 +330,23 @@ RuntimeModule *AgentModule::agentExecute(const QString &role, const QString &tas
     auto *worker = new RuntimeModule(agent, runtimeServicesGet(), this); // NOLINT
     m_active = worker->idGet();
     m_runtimes.insert(m_active, worker);
-    connect(worker, &RuntimeModule::finishRun, worker, [this, worker] {
+    subagentCreate(m_runtimes.value(m_supervisor)->turnIdGet(), worker->idGet(), role, task);
+    connect(worker, &RuntimeModule::finishRun, worker, [this, worker](const QString &result) {
+        subagentUpdate(worker->idGet(), result);
         if (m_active == worker->idGet()) m_active.clear();
         m_runtimes.remove(worker->idGet());
         worker->deleteLater();
     });
     worker->startTask(conversation.provider, conversation.model, conversation.mode, task);
     return worker;
+}
+
+void AgentModule::subagentCreate(const QString &turnId, const QString &runtimeId, const QString &role, const QString &message) const {
+    QMetaObject::invokeMethod(m_root, "subagentCreate", Q_ARG(QString, turnId), Q_ARG(QString, runtimeId), Q_ARG(QString, role), Q_ARG(QString, message));
+}
+
+void AgentModule::subagentUpdate(const QString &runtimeId, const QString &message) const {
+    QMetaObject::invokeMethod(m_root, "subagentUpdate", Q_ARG(QString, runtimeId), Q_ARG(QString, message));
 }
 
 // private
