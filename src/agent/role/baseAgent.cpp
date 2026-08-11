@@ -46,7 +46,16 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
                   "thread_start"
               }
           },
-          {"hardware", {"port_list", "port_config_get", "port_create", "port_delete"}}
+          {
+              "hardware",
+              {
+                  "request_user_input",
+                  "port_list",
+                  "port_config_get",
+                  "port_create",
+                  "port_delete"
+              }
+          }
       } {
 }
 
