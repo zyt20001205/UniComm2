@@ -2,6 +2,7 @@
 #define UNICOMM_DOCUMENTMODULE_H
 
 #include <QJsonObject>
+#include <QStringList>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 #include "document/page/welcomePage.h"
@@ -84,7 +85,7 @@ public:
 
     [[nodiscard]] QString linesGet(const QUrl &documentUrl, int startLine, int lineCount) const;
 
-    void linesSet(const QUrl &documentUrl, const QString &text, int startLine, int lineCount);
+    void linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts);
 
     [[nodiscard]] QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 

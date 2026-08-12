@@ -414,12 +414,12 @@ QString DocumentModule::linesGet(const QUrl &documentUrl, const int startLine, c
     return FileModule::linesGet(documentUrl, startLine, lineCount);
 }
 
-void DocumentModule::linesSet(const QUrl &documentUrl, const QString &text, const int startLine, const int lineCount) {
+void DocumentModule::linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->linesSet(text, startLine, lineCount);
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->linesSet(text, startLine, lineCount);
-    else if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) markdownPage->handler()->linesSet(text, startLine, lineCount);
-    else if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) conflictPage->handler()->linesSet(text, startLine, lineCount);
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->linesSet(texts, startLines, lineCounts);
+    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->linesSet(texts, startLines, lineCounts);
+    else if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) markdownPage->handler()->linesSet(texts, startLines, lineCounts);
+    else if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) conflictPage->handler()->linesSet(texts, startLines, lineCounts);
 }
 
 QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {

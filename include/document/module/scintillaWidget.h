@@ -2,6 +2,7 @@
 #define UNICOMM_SCINTILLAWIDGET_H
 
 #include "ScintillaEdit.h"
+#include <QStringList>
 
 class QQuickWidget;
 
@@ -83,7 +84,7 @@ public:
 
     [[nodiscard]] QString linesGet(int startLine, int lineCount) const;
 
-    void linesSet(const QString &text, int startLine, int lineCount) const;
+    void linesSet(const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) const;
 
     void marginDefine(int type, const QVariantHash &session) const;
 

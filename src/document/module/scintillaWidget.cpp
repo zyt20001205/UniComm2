@@ -216,18 +216,24 @@ QString ScintillaWidget::linesGet(const int startLine, const int lineCount) cons
     return text;
 }
 
-void ScintillaWidget::linesSet(const QString &text, const int startLine, const int lineCount) const {
-    const auto editorLineCount = lineCountGet();
-    if (startLine >= editorLineCount) return;
-
-    const auto endLine = lineCount == -1 ? editorLineCount : qMin(startLine + lineCount, editorLineCount);
-    auto replacement = text;
-    if (!replacement.isEmpty() && endLine < editorLineCount && !replacement.endsWith('\n') && !replacement.endsWith('\r')) replacement.append('\n');
-
+void ScintillaWidget::linesSet(const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) const {
     const auto eolMode = eolModeGet();
-    if (endLine < editorLineCount) textSet(replacement, startLine, 0, endLine, 0);
-    else textSet(replacement, startLine, 0, editorLineCount - 1, -1);
+    undoBegin();
+    for (qsizetype index = 0; index < texts.size(); ++index) {
+        const auto startLine = startLines.at(index);
+        const auto lineCount = lineCounts.at(index);
+        const auto editorLineCount = lineCountGet();
+        if (startLine >= editorLineCount) continue;
+
+        const auto endLine = lineCount == -1 ? editorLineCount : qMin(startLine + lineCount, editorLineCount);
+        auto replacement = texts.at(index);
+        if (!replacement.isEmpty() && endLine < editorLineCount && !replacement.endsWith('\n') && !replacement.endsWith('\r')) replacement.append('\n');
+
+        if (endLine < editorLineCount) textSet(replacement, startLine, 0, endLine, 0);
+        else textSet(replacement, startLine, 0, editorLineCount - 1, -1);
+    }
     eolModeSet(eolMode);
+    undoEnd();
 }
 
 // public: margin
