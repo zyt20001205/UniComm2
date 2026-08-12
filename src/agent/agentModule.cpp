@@ -137,32 +137,11 @@ int AgentModule::stateGet() const {
     return m_runtimes.value(m_supervisor)->stateGet();
 }
 
-void AgentModule::stateSet(const int state) {
-    switch (state) {
-        case AgentState::Pre: {
-            if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
-            m_runtimes.value(m_supervisor)->start(m_conversationId, m_textArea->property("text").toString());
-        }
-        break;
-        case AgentState::Compact: m_runtimes.value(m_supervisor)->compact(m_conversationId);
-        break;
-        case AgentState::Abort: {
-            auto *supervisor = m_runtimes.value(m_supervisor);
-            supervisor->abort();
-            m_permissionCard->setProperty("runtimeId", "");
-            m_userInputCard->setProperty("runtimeId", "");
-            const auto runtimes = m_runtimes.values();
-            for (auto *runtime: runtimes) if (runtime != supervisor) runtime->abort();
-        }
-        break;
-        default: break;
-    }
-}
-
 void AgentModule::apikeySet(const QString &provider, const QString &apikey) const {
     m_providerModule->apikeySet(provider, apikey);
 }
 
+// public: conversation management
 void AgentModule::conversationsGet() {
     const auto conversationId = m_conversationId;
     const auto conversations = m_sqlModule->conversationsGet();
@@ -292,32 +271,46 @@ void AgentModule::conversationRollback() {
     conversationGet(m_conversationId);
 }
 
-void AgentModule::planUpdate(const QString &runtimeId, const QJsonObject &plan) const {
-    auto *runtime = m_runtimes.value(runtimeId);
-    runtime->planUpdate();
-    QMetaObject::invokeMethod(m_root, "planUpdate", Q_ARG(QVariant, plan.toVariantMap()));
+// public: state transition
+void AgentModule::abort() const {
+    auto *supervisor = m_runtimes.value(m_supervisor);
+    supervisor->abort();
+    m_permissionCard->setProperty("runtimeId", "");
+    m_userInputCard->setProperty("runtimeId", "");
+    const auto runtimes = m_runtimes.values();
+    for (auto *runtime: runtimes) if (runtime != supervisor) runtime->abort();
 }
 
-void AgentModule::permissionGet(const QString &runtimeId, const QString &message) const {
+void AgentModule::pre() {
+    if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
+    m_runtimes.value(m_supervisor)->pre(m_conversationId, m_textArea->property("text").toString());
+}
+
+void AgentModule::compact() const {
+    m_runtimes.value(m_supervisor)->compact(m_conversationId);
+}
+
+void AgentModule::permission(const QString &runtimeId, const bool status) const {
+    m_runtimes.value(runtimeId)->permission(status);
+}
+
+void AgentModule::userInput(const QString &runtimeId, const QString &answer) const {
+    m_runtimes.value(runtimeId)->userInput(answer);
+}
+
+// public: frontend
+void AgentModule::permissionRequest(const QString &runtimeId, const QString &message) const {
     m_permissionCard->setProperty("runtimeId", runtimeId);
     m_permissionCard->setProperty("message", message);
 }
 
-void AgentModule::permissionSet(const QString &runtimeId, const bool status) const {
-    m_runtimes.value(runtimeId)->permissionSet(status);
-}
-
-void AgentModule::userInputGet(const QString &runtimeId, const QVariantMap &request) const {
+void AgentModule::userInputRequest(const QString &runtimeId, const QVariantMap &request) const {
     m_userInputCard->setProperty("runtimeId", runtimeId);
     m_userInputCard->setProperty("request", request);
 }
 
-void AgentModule::userInputSet(const QString &runtimeId, const QString &answer) const {
-    m_runtimes.value(runtimeId)->userInputSet(answer);
-}
-
-void AgentModule::userInputDisable(const QString &runtimeId) const {
-    m_runtimes.value(runtimeId)->userInputDisable();
+void AgentModule::planUpdate(const QString &runtimeId, const QJsonObject &plan) const {
+    QMetaObject::invokeMethod(m_root, "planUpdate", Q_ARG(QVariant, plan.toVariantMap()));
 }
 
 RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString &task) {
@@ -335,7 +328,7 @@ RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString 
         m_runtimes.remove(worker->idGet());
         worker->deleteLater();
     });
-    worker->startTask(conversation.provider, conversation.model, conversation.mode, task);
+    worker->request(conversation.provider, conversation.model, conversation.mode, task);
     return worker;
 }
 

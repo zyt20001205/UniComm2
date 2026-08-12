@@ -18,7 +18,7 @@ class ToolsModule;
 
 class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
-    Q_PROPERTY(int state READ stateGet WRITE stateSet NOTIFY changeState)
+    Q_PROPERTY(int state READ stateGet NOTIFY changeState)
 
 public:
     using AgentState = RuntimeModule::AgentState;
@@ -40,8 +40,6 @@ public:
 
     [[nodiscard]] int stateGet() const;
 
-    void stateSet(int state);
-
     Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
 
     Q_INVOKABLE void conversationsGet();
@@ -60,17 +58,21 @@ public:
 
     Q_INVOKABLE void conversationRollback();
 
+    Q_INVOKABLE void abort() const;
+
+    Q_INVOKABLE void pre();
+
+    Q_INVOKABLE void compact() const;
+
+    Q_INVOKABLE void permission(const QString &runtimeId, bool status) const;
+
+    Q_INVOKABLE void userInput(const QString &runtimeId, const QString &answer) const;
+
+    void permissionRequest(const QString &runtimeId, const QString &message) const;
+
+    void userInputRequest(const QString &runtimeId, const QVariantMap &request) const;
+
     void planUpdate(const QString &runtimeId, const QJsonObject &plan) const;
-
-    void permissionGet(const QString &runtimeId, const QString &message) const;
-
-    Q_INVOKABLE void permissionSet(const QString &runtimeId, bool status) const;
-
-    void userInputGet(const QString &runtimeId, const QVariantMap &request) const;
-
-    Q_INVOKABLE void userInputSet(const QString &runtimeId, const QString &answer) const;
-
-    Q_INVOKABLE void userInputDisable(const QString &runtimeId) const;
 
     [[nodiscard]] RuntimeModule *subagentDispatch(const QString &role, const QString &task);
 

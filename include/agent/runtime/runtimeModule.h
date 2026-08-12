@@ -24,13 +24,14 @@ public:
     struct AgentState {
         enum {
             Ready,
+            Abort,
             Error,
+
             Listen,
             STT,
             Pre,
             Compact,
             Request,
-            Abort,
             Think,
             Response,
             ToolCall,
@@ -60,21 +61,17 @@ public:
 
     [[nodiscard]] QString turnIdGet() const;
 
-    void start(const QString &conversationId, const QString &text);
+    void abort();
 
-    void startTask(const QString &provider, const QString &model, int mode, const QString &task);
+    void pre(const QString &conversationId, const QString &text);
 
     void compact(const QString &conversationId);
 
-    void abort();
+    void request(const QString &provider, const QString &model, int mode, const QString &task);
 
-    void planUpdate();
+    void permission(bool status);
 
-    void permissionSet(bool status);
-
-    void userInputSet(const QString &answer);
-
-    void userInputDisable();
+    void userInput(const QString &answer);
 
 signals:
     void changeState();

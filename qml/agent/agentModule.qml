@@ -419,7 +419,7 @@ Item {
         Item {
             id: compactCard
             property bool completed: false
-            visible: agentModule.state === 5 || completed
+            visible: agentModule.state === 6 || completed
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? compactLayout.implicitHeight + 20 : 0
 
@@ -516,7 +516,7 @@ Item {
                 target: agentModule
 
                 function onChangeState(): void {
-                    if (agentModule.state !== 5) return
+                    if (agentModule.state !== 6) return
                     compactStatusTimer.stop()
                     compactCard.completed = false
                 }
@@ -611,7 +611,7 @@ Item {
                         onClicked: {
                             const runtimeId = permissionCard.runtimeId
                             permissionCard.runtimeId = ""
-                            agentModule.permissionSet(runtimeId, false)
+                            agentModule.permission(runtimeId, false)
                         }
                     }
 
@@ -625,7 +625,7 @@ Item {
                         onClicked: {
                             const runtimeId = permissionCard.runtimeId
                             permissionCard.runtimeId = ""
-                            agentModule.permissionSet(runtimeId, true)
+                            agentModule.permission(runtimeId, true)
                         }
                     }
                 }
@@ -662,7 +662,7 @@ Item {
                 if (answer.length === 0) return
                 const runtimeId = userInputCard.runtimeId
                 userInputCard.runtimeId = ""
-                agentModule.userInputSet(runtimeId, answer)
+                agentModule.userInput(runtimeId, answer)
                 answerTextField.clear()
             }
 
@@ -802,7 +802,7 @@ Item {
                         onClicked: {
                             const runtimeId = userInputCard.runtimeId
                             userInputCard.runtimeId = ""
-                            agentModule.userInputDisable(runtimeId)
+                            agentModule.userInput(runtimeId, "")
                         }
                     }
 
@@ -860,7 +860,7 @@ Item {
                     Keys.onPressed: (event) => {
                         if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
                             if (textArea.text.trim().length > 0) {
-                                agentModule.state = 4
+                                agentModule.pre()
                             }
                             event.accepted = true
                         }
@@ -1108,7 +1108,7 @@ Item {
                             } else {
                                 compactTimer.stop()
                                 usageLayout.compactPending = false
-                                agentModule.state = 5
+                                agentModule.compact()
                             }
                         }
                     }
@@ -1165,7 +1165,7 @@ Item {
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 28; Layout.preferredHeight: 28
 
-                    onClicked: agentModule.state === 0 ? agentModule.state = 4 : agentModule.state = 7
+                    onClicked: agentModule.state === 0 ? agentModule.pre() : agentModule.abort()
                 }
             }
         }

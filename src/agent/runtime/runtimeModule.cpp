@@ -43,12 +43,21 @@ QString RuntimeModule::turnIdGet() const {
     return m_turn.id;
 }
 
-void RuntimeModule::start(const QString &conversationId, const QString &text) {
+void RuntimeModule::abort() {
+    stateSet(AgentState::Abort);
+}
+
+void RuntimeModule::pre(const QString &conversationId, const QString &text) {
     m_turn.conversationId = conversationId;
     stateSet(AgentState::Pre, text);
 }
 
-void RuntimeModule::startTask(const QString &provider, const QString &model, const int mode, const QString &task) {
+void RuntimeModule::compact(const QString &conversationId) {
+    m_turn.conversationId = conversationId;
+    stateSet(AgentState::Compact);
+}
+
+void RuntimeModule::request(const QString &provider, const QString &model, const int mode, const QString &task) {
     m_turn = {
         .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
         .provider = provider,
@@ -62,20 +71,7 @@ void RuntimeModule::startTask(const QString &provider, const QString &model, con
     stateSet(AgentState::Request);
 }
 
-void RuntimeModule::compact(const QString &conversationId) {
-    m_turn.conversationId = conversationId;
-    stateSet(AgentState::Compact);
-}
-
-void RuntimeModule::abort() {
-    stateSet(AgentState::Abort);
-}
-
-void RuntimeModule::planUpdate() {
-    m_turn.planned = true;
-}
-
-void RuntimeModule::permissionSet(const bool status) {
+void RuntimeModule::permission(const bool status) {
     auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
     const auto &message = m_turn.messages.at(toolCall.messageIndex);
     toolCall.approved = status;
@@ -83,15 +79,14 @@ void RuntimeModule::permissionSet(const bool status) {
     stateSet(AgentState::ToolExec);
 }
 
-void RuntimeModule::userInputSet(const QString &answer) {
+void RuntimeModule::userInput(const QString &answer) {
     const auto text = answer.trimmed();
-    if (text.isEmpty()) return;
-    toolResultSet(text);
-}
-
-void RuntimeModule::userInputDisable() {
-    m_turn.questionsAllowed = false;
-    toolResultSet("The user chose not to answer and disabled further questions for this turn. Continue using your best judgment.");
+    if (text.isEmpty()) {
+        m_turn.questionsAllowed = false;
+        toolResultSet("The user chose not to answer and disabled further questions for this turn. Continue using your best judgment.");
+    } else {
+        toolResultSet(text);
+    }
 }
 
 // private
@@ -190,50 +185,49 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         case AgentState::ToolCall: {
             auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
             const auto &message = m_turn.messages.at(toolCall.messageIndex);
-            const auto planUpdate = toolCall.name == "plan_update";
-            const auto userInput = toolCall.name == "request_user_input";
-            const auto showToolMessage = !planUpdate && !userInput;
             const auto [approved, text] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
             toolCall.approved = approved;
-            if (showToolMessage) {
+            if (toolCall.name == "plan_update") {
+                m_turn.planned = true;
+                stateSet(AgentState::ToolExec);
+            } else if (toolCall.name == "request_user_input") {
+                if (m_turn.questionsAllowed) {
+                    auto input = QJsonDocument::fromJson(toolCall.arguments.toUtf8()).object();
+                    auto options = input.value("options").toArray();
+                    while (options.size() > 3) options.removeLast();
+                    input["options"] = options;
+                    stateSet(AgentState::UserInput, input.toVariantMap());
+                } else {
+                    toolResultSet("Further questions are disabled for this turn. Continue using the available context and your best judgment.");
+                }
+            } else {
                 emit createChat(m_turn.id, message.id, "tool");
                 emit appendChat(message.id, text);
+                // permission check
+                if (!toolCall.approved) {
+                    stateSet(AgentState::Permission, text);
+                    break;
+                }
+                // plan required check
+                if (!m_turn.planned && m_agent->planRequired(m_turn.toolCount)) {
+                    emit appendChat(message.id, " ✗");
+                    toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
+                } else {
+                    emit appendChat(message.id, " ✓");
+                    stateSet(AgentState::ToolExec);
+                }
             }
-
-            if (!toolCall.approved) {
-                stateSet(AgentState::Permission, text);
-                break;
-            }
-            if (!m_turn.planned && m_agent->planRequired(m_turn.toolCount) && !planUpdate) {
-                if (showToolMessage) emit appendChat(message.id, " ✗");
-                toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
-                break;
-            }
-            if (userInput && !m_turn.questionsAllowed) {
-                toolResultSet("Further questions are disabled for this turn. Continue using the available context and your best judgment.");
-                break;
-            }
-            if (userInput) {
-                auto input = QJsonDocument::fromJson(toolCall.arguments.toUtf8()).object();
-                auto options = input.value("options").toArray();
-                while (options.size() > 3) options.removeLast();
-                input["options"] = options;
-                stateSet(AgentState::UserInput, input.toVariantMap());
-                break;
-            }
-            if (showToolMessage) emit appendChat(message.id, " ✓");
-            stateSet(AgentState::ToolExec);
         }
         break;
         case AgentState::Permission: {
             if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for approval...");
-            g_agent->permissionGet(m_id, payload.toString());
+            g_agent->permissionRequest(m_id, payload.toString());
         }
         break;
         case AgentState::UserInput: {
             const auto request = payload.toMap();
             if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for input...");
-            g_agent->userInputGet(m_id, request);
+            g_agent->userInputRequest(m_id, request);
         }
         break;
         case AgentState::ToolExec: {
@@ -255,7 +249,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Speak: stateSet(AgentState::Ready);
-        break;
+            break;
         default: break;
     }
 }
@@ -291,7 +285,7 @@ void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonOb
     const auto messageIndex = conversationAppend("assistant");
     const auto messageId = m_turn.messages.at(messageIndex).id;
     emit createChat(m_turn.id, messageId, "assistant");
-    auto toolCalls = QSharedPointer<QMap<int, ToolCall>>::create();
+    auto toolCalls = QSharedPointer<QMap<int, ToolCall> >::create();
 
     connect(reply, &QNetworkReply::readyRead, this, [this, reply, messageIndex, messageId, toolCalls] {
         if (reply->error() != QNetworkReply::NoError) return;
