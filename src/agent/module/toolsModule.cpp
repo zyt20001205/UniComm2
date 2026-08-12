@@ -26,7 +26,7 @@ ToolsModule::ToolsModule(SqlModule *sqlModule, QObject *parent)
       },
       m_sqlModule(sqlModule),
       m_writeGroup{"line_set", "port_create"},
-      m_fullAccessGroup{"port_delete", "thread_start"} {
+      m_fullAccessGroup{"port_delete", "script_exec"} {
 }
 
 void ToolsModule::initialize() {
@@ -243,12 +243,12 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // requestUserInput
+        // userInputRequest
         QJsonObject{
             {"type", "function"},
             {
                 "function", QJsonObject{
-                    {"name", "request_user_input"},
+                    {"name", "user_input_request"},
                     {
                         "description",
                         "Ask the user one concise question only when the missing information cannot be discovered with tools and choosing incorrectly would materially affect the result. Investigate first and do not ask for information that tools can provide. Offer up to three mutually exclusive suggested answers when useful."
@@ -665,15 +665,15 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // threadStart
+        // scriptExec
         QJsonObject{
             {"type", "function"},
             {
                 "function", QJsonObject{
-                    {"name", "thread_start"},
+                    {"name", "script_exec"},
                     {
                         "description",
-                        "Start a new thread to execute a script. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings."
+                        "Execute the specified script. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings."
                     },
                     {
                         "parameters", QJsonObject{
@@ -745,7 +745,7 @@ QFuture<QString> ToolsModule::toolExecute(const QString &runtimeId, const QStrin
         }
         return future;
     }
-    if (name == "thread_start") {
+    if (name == "script_exec") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         auto threadId = QSharedPointer<QString>::create();
         auto promise = QSharedPointer<QPromise<QString>>::create();
@@ -980,7 +980,7 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
                        : QString("Delegate %1 tasks to subagents").arg(tasks.size());
     } else if (name == "plan_update") {
         chatText = "Update plan";
-    } else if (name == "request_user_input") {
+    } else if (name == "user_input_request") {
         chatText = object.value("question").toString();
     } else if (name == "port_list") {
         chatText = "List available ports";
@@ -1019,7 +1019,7 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
                        : QString("Write %1 from line %2 (%3 lines)").arg(documentName, QString::number(startLine), QString::number(lineCount));
     } else if (name == "memory_search") {
         chatText = QString("Search memory for \"%1\"").arg(object.value("query").toString());
-    } else if (name == "thread_start") {
+    } else if (name == "script_exec") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Run %1").arg(documentName);
     }

@@ -75,7 +75,7 @@ void RuntimeModule::permission(const bool status) {
     auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
     const auto &message = m_turn.messages.at(toolCall.messageIndex);
     toolCall.approved = status;
-    if (toolCall.name != "plan_update" && toolCall.name != "request_user_input") emit appendChat(message.id, status ? " ✓" : " ✗");
+    if (toolCall.name != "plan_update" && toolCall.name != "user_input_request") emit appendChat(message.id, status ? " ✓" : " ✗");
     stateSet(AgentState::ToolExec);
 }
 
@@ -190,7 +190,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             if (toolCall.name == "plan_update") {
                 m_turn.planned = true;
                 stateSet(AgentState::ToolExec);
-            } else if (toolCall.name == "request_user_input") {
+            } else if (toolCall.name == "user_input_request") {
                 if (m_turn.questionsAllowed) {
                     auto input = QJsonDocument::fromJson(toolCall.arguments.toUtf8()).object();
                     auto options = input.value("options").toArray();

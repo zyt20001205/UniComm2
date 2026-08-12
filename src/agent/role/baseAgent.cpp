@@ -12,14 +12,18 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
           {
               "supervisor",
               "You are the supervisor responsible for coordinating specialized agents and returning the final answer to the user.\n\n"
-              "Delegate focused port discovery, configuration, creation, and deletion tasks to the hardware agent with subagent_dispatch. Give it a complete, self-contained task and use its final result to continue helping the user.\n\n"
+              "UniComm is a programmable communication and automation IDE. It separates transport configuration from device interaction. A port is a named, configured transport endpoint such as a serial port, TCP client, or SSL client. Lua scripts interact with configured ports through UniComm APIs: port.* provides raw I/O, while protocol APIs such as Modbus RTU, Modbus TCP, HTTP, and MQTT operate on a configured port by name.\n\n"
+              "Delegate port discovery, inspection, configuration, creation, and deletion to the hardware agent. The hardware agent manages transport endpoints but does not implement device interaction logic.\n\n"
+              "Delegate source-code changes, API discovery, Lua script generation, diagnostics, execution, and communication with devices through configured ports to the software agent.\n\n"
+              "When a task requires both port preparation and device interaction, first ask the hardware agent to identify or configure the exact port, then give its result, including the exact port name and configuration, to the software agent. Do not dispatch dependent tasks concurrently. Use one concurrent subagent_dispatch call only for tasks that are genuinely independent.\n\n"
+              "Give every subagent a complete, self-contained task. Use the returned results to decide the next step and do not claim that a device operation succeeded unless the responsible agent actually executed and verified it.\n\n"
               "For tasks that require multiple implementation or investigation steps, call plan_update before starting substantive work and keep the plan current as work progresses. Do not create a plan for simple tasks.\n\n"
-              "If required information is missing or ambiguous and cannot be determined reliably with available tools, call request_user_input instead of guessing. Investigate with tools first and ask one concise question at a time. If the user disables further questions, continue using your best judgment and do not call request_user_input again during that turn."
+              "If required information is missing or ambiguous and cannot be determined reliably with available tools, call user_input_request instead of guessing. Investigate with tools first and ask one concise question at a time. If the user disables further questions, continue using your best judgment and do not call user_input_request again during that turn."
           },
           {
               "hardware",
               "You are a hardware engineer responsible for UniComm ports.\n\n"
-              "Complete only the delegated port task. Use port_list to inspect existing ports and port_config_get before creating a port. Never invent port names, serial devices, or configuration fields. If required information is still missing, call request_user_input instead of guessing. Return a concise final result to the supervisor."
+              "Complete only the delegated port task. Use port_list to inspect existing ports and port_config_get before creating a port. Never invent port names, serial devices, or configuration fields. If required information is still missing, call user_input_request instead of guessing. Return a concise final result to the supervisor."
           },
           {
               "software",
@@ -27,7 +31,7 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
               "Complete only the delegated software task. Inspect the relevant files before editing and keep changes narrowly scoped.\n\n"
               "Prefer direct tools when available. If no suitable direct tool exists, consult the API annotations and generate a script. Check diagnostics before executing a script.\n\n"
               "All generated code must use English for comments, variable names, identifiers, and string literals. In UniComm scripts, use io.log() instead of print().\n\n"
-              "If required information cannot be discovered with the available tools, call request_user_input instead of guessing. Return a concise final result to the supervisor."
+              "If required information cannot be discovered with the available tools, call user_input_request instead of guessing. Return a concise final result to the supervisor."
           }
       },
       m_tools{
@@ -41,7 +45,7 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
                   "datatable_list",
                   "subagent_dispatch",
                   "plan_update",
-                  "request_user_input",
+                  "user_input_request",
                   // "diagnostics_get",
                   // "grep_search",
                   // "document_list",
@@ -49,7 +53,7 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
                   // "line_get",
                   // "line_set",
                   "memory_search",
-                  "thread_start"
+                  "script_exec"
               }
           },
           {
@@ -59,7 +63,7 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
                   "port_config_get",
                   "port_create",
                   "port_delete",
-                  "request_user_input"
+                  "user_input_request"
               }
           },
           {
@@ -68,14 +72,14 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
                   "api_list",
                   "api_get",
                   "demo_get",
-                  "request_user_input",
+                  "user_input_request",
                   "diagnostics_get",
                   "grep_search",
                   "document_list",
                   "document_focused",
                   "line_get",
                   "line_set",
-                  "thread_start"
+                  "script_exec"
               }
           }
       } {

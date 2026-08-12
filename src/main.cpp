@@ -2,6 +2,7 @@
 
 #include <core/crashHandler.h>
 #include <kddockwidgets/Config.h>
+#include <QLoggingCategory>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QStyleFactory>
@@ -12,6 +13,7 @@
 int main(int argc, char *argv[]) {
     // crash handler init
     CrashHandler::init();
+    QLoggingCategory::setFilterRules("qt.qpa.mime.warning=false");
     // application style init
     QApplication app(argc, argv);
     QApplication::setWindowIcon(QIcon(":/icon/icon.ico"));
