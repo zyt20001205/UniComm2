@@ -288,12 +288,12 @@ void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonOb
         return;
     }
 
-    const auto assistantIndex = conversationAppend("assistant");
-    const auto assistantId = m_turn.messages.at(assistantIndex).id;
-    emit createChat(m_turn.id, assistantId, "assistant");
-    auto toolCalls = std::make_shared<QMap<int, ToolCall>>();
+    const auto messageIndex = conversationAppend("assistant");
+    const auto messageId = m_turn.messages.at(messageIndex).id;
+    emit createChat(m_turn.id, messageId, "assistant");
+    auto toolCalls = QSharedPointer<QMap<int, ToolCall>>::create();
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply, assistantIndex, assistantId, toolCalls] {
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, messageIndex, messageId, toolCalls] {
         if (reply->error() != QNetworkReply::NoError) return;
         while (reply->canReadLine()) {
             auto line = reply->readLine().trimmed();
@@ -328,18 +328,18 @@ void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonOb
             const auto delta = choices.at(0).toObject().value("delta").toObject();
             const auto reasoning = delta.value("reasoning_content").toString();
             if (!reasoning.isEmpty()) {
-                auto &assistant = m_turn.messages[assistantIndex];
-                if (assistant.reasoningContent.isEmpty()) stateSet(AgentState::Think);
-                assistant.reasoningContent.append(reasoning);
-                emit appendChatReasoning(assistantId, reasoning);
+                auto &message = m_turn.messages[messageIndex];
+                if (message.reasoningContent.isEmpty()) stateSet(AgentState::Think);
+                message.reasoningContent.append(reasoning);
+                emit appendChatReasoning(messageId, reasoning);
             }
 
             const auto content = delta.value("content").toString();
             if (!content.isEmpty()) {
-                auto &assistant = m_turn.messages[assistantIndex];
-                if (assistant.content.isEmpty()) stateSet(AgentState::Response);
-                assistant.content.append(content);
-                emit appendChat(assistantId, content);
+                auto &message = m_turn.messages[messageIndex];
+                if (message.content.isEmpty()) stateSet(AgentState::Response);
+                message.content.append(content);
+                emit appendChat(messageId, content);
             }
 
             const auto deltaToolCalls = delta.value("tool_calls").toArray();
@@ -356,18 +356,18 @@ void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonOb
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, assistantIndex, assistantId, toolCalls] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, messageIndex, messageId, toolCalls] {
         if (m_reply == reply) m_reply = nullptr;
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             stateSet(AgentState::Abort);
         } else if (reply->error() == QNetworkReply::NoError) {
-            m_turn.messages[assistantIndex].createdAt = QDateTime::currentMSecsSinceEpoch();
-            emit finishChat(assistantId);
+            m_turn.messages[messageIndex].createdAt = QDateTime::currentMSecsSinceEpoch();
+            emit finishChat(messageId);
             if (!toolCalls->isEmpty()) {
-                QJsonArray assistantToolCalls{};
+                QJsonArray _toolCalls{};
                 for (auto toolCall: toolCalls->values()) {
                     if (toolCall.id.isEmpty() || toolCall.name.isEmpty()) continue;
-                    assistantToolCalls.append(QJsonObject{
+                    _toolCalls.append(QJsonObject{
                         {"id", toolCall.id},
                         {"type", "function"},
                         {
@@ -380,15 +380,15 @@ void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonOb
                     toolCall.messageIndex = conversationAppend("tool", toolCall.id);
                     m_turn.toolCalls.append(toolCall);
                 }
-                m_turn.messages[assistantIndex].toolCalls = assistantToolCalls;
+                m_turn.messages[messageIndex].toolCalls = _toolCalls;
                 stateSet(AgentState::ToolCall);
             } else if (m_turn.conversationId.isEmpty()) {
-                const auto result = m_turn.messages.at(assistantIndex).content;
+                const auto result = m_turn.messages.at(messageIndex).content;
                 m_turn = {};
                 stateSet(AgentState::Ready);
                 emit finishRun(result);
             } else {
-                const auto finishedAt = m_turn.messages.at(assistantIndex).createdAt;
+                const auto finishedAt = m_turn.messages.at(messageIndex).createdAt;
                 m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
                 emit finishTurn(m_turn.id, finishedAt);
                 m_turn = {};
