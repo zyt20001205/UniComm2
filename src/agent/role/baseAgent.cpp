@@ -11,37 +11,43 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
       m_systems{
           {
               "supervisor",
-              "You are the supervisor and primary IDE code assistant.\n\n"
+              "You are the supervisor responsible for coordinating specialized agents and returning the final answer to the user.\n\n"
               "Delegate focused port discovery, configuration, creation, and deletion tasks to the hardware agent with subagent_dispatch. Give it a complete, self-contained task and use its final result to continue helping the user.\n\n"
               "For tasks that require multiple implementation or investigation steps, call plan_update before starting substantive work and keep the plan current as work progresses. Do not create a plan for simple tasks.\n\n"
-              "If required information is missing or ambiguous and cannot be determined reliably with available tools, call request_user_input instead of guessing. Investigate with tools first and ask one concise question at a time. If the user disables further questions, continue using your best judgment and do not call request_user_input again during that turn.\n\n"
-              "Prefer direct tools when available. If no suitable direct tool exists, consult the API annotations and generate a script.\n\n"
-              "All generated code must use English for comments, variable names, identifiers, and string literals. In UniComm scripts, use io.log() instead of print()."
+              "If required information is missing or ambiguous and cannot be determined reliably with available tools, call request_user_input instead of guessing. Investigate with tools first and ask one concise question at a time. If the user disables further questions, continue using your best judgment and do not call request_user_input again during that turn."
           },
           {
               "hardware",
               "You are a hardware engineer responsible for UniComm ports.\n\n"
               "Complete only the delegated port task. Use port_list to inspect existing ports and port_config_get before creating a port. Never invent port names, serial devices, or configuration fields. If required information is still missing, call request_user_input instead of guessing. Return a concise final result to the supervisor."
+          },
+          {
+              "software",
+              "You are a software engineer responsible for UniComm source code and scripts.\n\n"
+              "Complete only the delegated software task. Inspect the relevant files before editing and keep changes narrowly scoped.\n\n"
+              "Prefer direct tools when available. If no suitable direct tool exists, consult the API annotations and generate a script. Check diagnostics before executing a script.\n\n"
+              "All generated code must use English for comments, variable names, identifiers, and string literals. In UniComm scripts, use io.log() instead of print().\n\n"
+              "If required information cannot be discovered with the available tools, call request_user_input instead of guessing. Return a concise final result to the supervisor."
           }
       },
       m_tools{
           {
               "supervisor",
               {
-                  "api_list",
-                  "api_get",
-                  "demo_get",
+                  // "api_list",
+                  // "api_get",
+                  // "demo_get",
                   "database_list",
                   "datatable_list",
                   "subagent_dispatch",
                   "plan_update",
                   "request_user_input",
-                  "diagnostics_get",
-                  "grep_search",
-                  "document_list",
-                  "document_focused",
-                  "line_get",
-                  "line_set",
+                  // "diagnostics_get",
+                  // "grep_search",
+                  // "document_list",
+                  // "document_focused",
+                  // "line_get",
+                  // "line_set",
                   "memory_search",
                   "thread_start"
               }
@@ -49,11 +55,27 @@ BaseAgent::BaseAgent(QString id, QObject *parent)
           {
               "hardware",
               {
-                  "request_user_input",
                   "port_list",
                   "port_config_get",
                   "port_create",
                   "port_delete",
+                  "request_user_input"
+              }
+          },
+          {
+              "software",
+              {
+                  "api_list",
+                  "api_get",
+                  "demo_get",
+                  "request_user_input",
+                  "diagnostics_get",
+                  "grep_search",
+                  "document_list",
+                  "document_focused",
+                  "line_get",
+                  "line_set",
+                  "thread_start"
               }
           }
       } {

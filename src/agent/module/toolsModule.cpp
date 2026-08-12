@@ -144,28 +144,44 @@ void ToolsModule::initialize() {
             {
                 "function", QJsonObject{
                     {"name", "subagent_dispatch"},
-                    {"description", "Delegate a focused task to a specialized agent and wait for its final result. Use the hardware agent for port discovery, configuration, creation, and deletion."},
+                    {"description", "Delegate one or more independent tasks to specialized agents, run them concurrently, and wait for all final results."},
                     {
                         "parameters", QJsonObject{
                             {"type", "object"},
                             {
                                 "properties", QJsonObject{
                                     {
-                                        "role", QJsonObject{
-                                            {"type", "string"},
-                                            {"enum", QJsonArray{"hardware"}},
-                                            {"description", "The registered specialized agent id."}
-                                        }
-                                    },
-                                    {
-                                        "task", QJsonObject{
-                                            {"type", "string"},
-                                            {"description", "A complete, self-contained task for the specialized agent."}
+                                        "tasks", QJsonObject{
+                                            {"type", "array"},
+                                            {"description", "Independent tasks that can run concurrently."},
+                                            {
+                                                "items", QJsonObject{
+                                                    {"type", "object"},
+                                                    {
+                                                        "properties", QJsonObject{
+                                                            {
+                                                                "role", QJsonObject{
+                                                                    {"type", "string"},
+                                                                    {"enum", QJsonArray{"hardware", "software"}},
+                                                                    {"description", "The specialized agent role."}
+                                                                }
+                                                            },
+                                                            {
+                                                                "task", QJsonObject{
+                                                                    {"type", "string"},
+                                                                    {"description", "A complete, self-contained task for the specialized agent."}
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {"required", QJsonArray{"role", "task"}}
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             },
-                            {"required", QJsonArray{"role", "task"}}
+                            {"required", QJsonArray{"tasks"}}
                         }
                     }
                 }
@@ -701,17 +717,32 @@ QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, 
 QFuture<QString> ToolsModule::toolExecute(const QString &runtimeId, const QString &name, const QString &arguments) {
     const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
     if (name == "subagent_dispatch") {
-        const auto role = object.value("role").toString();
-        auto *worker = g_agent->subagentDispatch(role, object.value("task").toString());
-        if (worker == nullptr) return QtFuture::makeReadyValueFuture(QString("Unknown agent role: %1").arg(role));
-
+        const auto tasks = object.value("tasks").toArray();
+        if (tasks.isEmpty()) return QtFuture::makeReadyValueFuture(QString("No subagent tasks were provided."));
         auto promise = QSharedPointer<QPromise<QString>>::create();
+        auto results = QSharedPointer<QJsonArray>::create();
+        auto remaining = QSharedPointer<qsizetype>::create(tasks.size());
+        for (qsizetype index = 0; index < tasks.size(); ++index) results->append(QJsonObject{});
         promise->start();
         const auto future = promise->future();
-        connect(worker, &RuntimeModule::finishRun, this, [promise](const QString &result) {
-            promise->addResult(result);
+        const auto finish = [promise, results, remaining](const qsizetype index, const QString &role, const QString &result) {
+            (*results)[index] = QJsonObject{{"role", role}, {"result", result}};
+            if (--*remaining > 0) return;
+            promise->addResult(QString::fromUtf8(QJsonDocument(*results).toJson(QJsonDocument::Compact)));
             promise->finish();
-        });
+        };
+        for (qsizetype index = 0; index < tasks.size(); ++index) {
+            const auto task = tasks.at(index).toObject();
+            const auto role = task.value("role").toString();
+            auto *worker = g_agent->subagentDispatch(role, task.value("task").toString());
+            if (worker == nullptr) {
+                finish(index, role, QString("Unknown agent role: %1").arg(role));
+                continue;
+            }
+            connect(worker, &RuntimeModule::finishRun, this, [finish, index, role](const QString &result) {
+                finish(index, role, result);
+            });
+        }
         return future;
     }
     if (name == "thread_start") {
@@ -943,7 +974,10 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
     } else if (name == "datatable_list") {
         chatText = "List available datatables";
     } else if (name == "subagent_dispatch") {
-        chatText = QString("Delegate task to %1 agent").arg(object.value("role").toString());
+        const auto tasks = object.value("tasks").toArray();
+        chatText = tasks.size() == 1
+                       ? QString("Delegate task to %1 agent").arg(tasks.first().toObject().value("role").toString())
+                       : QString("Delegate %1 tasks to subagents").arg(tasks.size());
     } else if (name == "plan_update") {
         chatText = "Update plan";
     } else if (name == "request_user_input") {

@@ -14,6 +14,7 @@
 #include "agent/provider/baseProvider.h"
 #include "agent/provider/providerModule.h"
 #include "agent/role/hardwareAgent.h"
+#include "agent/role/softwareAgent.h"
 #include "agent/role/supervisorAgent.h"
 #include "core/globalManager.h"
 #include "document/documentModule.h"
@@ -322,6 +323,7 @@ void AgentModule::userInputDisable(const QString &runtimeId) const {
 RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString &task) {
     BaseAgent *agent{};
     if (role == "hardware") agent = new HardwareAgent();
+    if (role == "software") agent = new SoftwareAgent();
     if (agent == nullptr) return nullptr;
 
     const auto conversation = m_sqlModule->conversationGet(m_conversationId).first;

@@ -204,7 +204,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                 stateSet(AgentState::Permission, text);
                 break;
             }
-            if (m_agent->roleGet() == "supervisor" && !m_turn.planned && m_agent->planRequired(m_turn.toolCount) && !planUpdate) {
+            if (!m_turn.planned && m_agent->planRequired(m_turn.toolCount) && !planUpdate) {
                 if (showToolMessage) emit appendChat(message.id, " ✗");
                 toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
                 break;
