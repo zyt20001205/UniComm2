@@ -220,13 +220,13 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Permission: {
-            if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for approval...");
+            if (m_turn.conversationId.isEmpty()) g_agent->subagentUpdate(m_id, "Waiting for approval...");
             g_agent->permissionRequest(m_id, payload.toString());
         }
         break;
         case AgentState::UserInput: {
             const auto request = payload.toMap();
-            if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, "Waiting for input...");
+            if (m_turn.conversationId.isEmpty()) g_agent->subagentUpdate(m_id, "Waiting for input...");
             g_agent->userInputRequest(m_id, request);
         }
         break;
@@ -237,7 +237,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                 break;
             }
 
-            if (m_agent->roleGet() != "supervisor") g_agent->subagentUpdate(m_id, m_toolsModule->toolTextGet(toolCall.name, toolCall.arguments));
+            if (m_turn.conversationId.isEmpty()) g_agent->subagentUpdate(m_id, m_toolsModule->toolTextGet(toolCall.name, toolCall.arguments));
             const auto turnId = m_turn.id;
             auto future = m_toolsModule->toolExecute(m_id, toolCall.name, toolCall.arguments);
             future.then(this, [this, turnId, toolCall](const QString &result) {

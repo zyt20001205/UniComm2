@@ -38,7 +38,7 @@ QList<SqlModule::Conversation> SqlModule::conversationsGet() const {
 
     QSqlQuery query(database);
     if (!query.exec(R"(
-        SELECT id, title, mode, provider, model, created_at, updated_at
+        SELECT id, title, strategy, mode, provider, model, created_at, updated_at
         FROM conversations
         ORDER BY updated_at DESC
     )")) {
@@ -51,11 +51,12 @@ QList<SqlModule::Conversation> SqlModule::conversationsGet() const {
         conversations.append(Conversation{
             .id = query.value(0).toString(),
             .title = query.value(1).toString(),
-            .mode = query.value(2).toInt(),
-            .provider = query.value(3).toString(),
-            .model = query.value(4).toString(),
-            .createdAt = query.value(5).toLongLong(),
-            .updatedAt = query.value(6).toLongLong()
+            .strategy = query.value(2).toInt(),
+            .mode = query.value(3).toInt(),
+            .provider = query.value(4).toString(),
+            .model = query.value(5).toString(),
+            .createdAt = query.value(6).toLongLong(),
+            .updatedAt = query.value(7).toLongLong()
         });
     }
     return conversations;
@@ -67,7 +68,7 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
 
     QSqlQuery query(database);
     query.prepare(R"(
-        SELECT id, title, mode, provider, model, summary, compacted_turn_id, context_tokens, created_at, updated_at
+        SELECT id, title, strategy, mode, provider, model, summary, compacted_turn_id, context_tokens, created_at, updated_at
         FROM conversations
         WHERE id = :id
     )");
@@ -77,14 +78,15 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
     const Conversation conversation{
         .id = query.value(0).toString(),
         .title = query.value(1).toString(),
-        .mode = query.value(2).toInt(),
-        .provider = query.value(3).toString(),
-        .model = query.value(4).toString(),
-        .summary = query.value(5).toString(),
-        .compactedTurnId = query.value(6).toString(),
-        .contextTokens = query.value(7).toLongLong(),
-        .createdAt = query.value(8).toLongLong(),
-        .updatedAt = query.value(9).toLongLong()
+        .strategy = query.value(2).toInt(),
+        .mode = query.value(3).toInt(),
+        .provider = query.value(4).toString(),
+        .model = query.value(5).toString(),
+        .summary = query.value(6).toString(),
+        .compactedTurnId = query.value(7).toString(),
+        .contextTokens = query.value(8).toLongLong(),
+        .createdAt = query.value(9).toLongLong(),
+        .updatedAt = query.value(10).toLongLong()
     };
 
     QSqlQuery messageQuery(database);
@@ -201,11 +203,12 @@ void SqlModule::conversationInsert(const Conversation &conversation) const {
 
     QSqlQuery query(database);
     query.prepare(R"(
-        INSERT INTO conversations (id, title, mode, provider, model, created_at, updated_at)
-        VALUES (:id, :title, :mode, :provider, :model, :createdAt, :updatedAt)
+        INSERT INTO conversations (id, title, strategy, mode, provider, model, created_at, updated_at)
+        VALUES (:id, :title, :strategy, :mode, :provider, :model, :createdAt, :updatedAt)
     )");
     query.bindValue(":id", conversation.id);
     query.bindValue(":title", conversation.title);
+    query.bindValue(":strategy", conversation.strategy);
     query.bindValue(":mode", conversation.mode);
     query.bindValue(":provider", conversation.provider);
     query.bindValue(":model", conversation.model);
@@ -241,6 +244,23 @@ void SqlModule::conversationDelete(const QString &id) const {
     query.bindValue(":id", id);
     if (query.exec()) return;
     qDebug() << "agent database conversation delete failed:" << query.lastError().text();
+}
+
+void SqlModule::conversationStrategySet(const QString &id, const int strategy) const {
+    auto database = QSqlDatabase::database(m_connectionName, false);
+    if (!database.isOpen()) return;
+
+    QSqlQuery query(database);
+    query.prepare(R"(
+        UPDATE conversations
+        SET strategy = :strategy, updated_at = :updatedAt
+        WHERE id = :id
+    )");
+    query.bindValue(":id", id);
+    query.bindValue(":strategy", strategy);
+    query.bindValue(":updatedAt", QDateTime::currentMSecsSinceEpoch());
+    if (query.exec()) return;
+    qDebug() << "agent database conversation strategy set failed:" << query.lastError().text();
 }
 
 void SqlModule::conversationModeSet(const QString &id, const int mode) const {
@@ -407,6 +427,7 @@ bool SqlModule::initialize() const {
             CREATE TABLE IF NOT EXISTS conversations (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
+                strategy INTEGER NOT NULL,
                 mode INTEGER,
                 provider TEXT,
                 model TEXT,
@@ -464,7 +485,7 @@ bool SqlModule::initialize() const {
         )",
         "CREATE INDEX IF NOT EXISTS conversations_updated_at ON conversations(updated_at DESC)",
         "CREATE INDEX IF NOT EXISTS messages_turn_id ON messages(conversation_id, turn_id, sequence)",
-        "PRAGMA user_version = 5"
+        "PRAGMA user_version = 6"
     };
     for (const auto &statement: schema) {
         QSqlQuery query(database);

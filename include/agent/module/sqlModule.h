@@ -14,6 +14,7 @@ public:
     struct Conversation {
         QString id{};
         QString title{};
+        int strategy{};
         int mode{};
         QString provider{};
         QString model{};
@@ -62,6 +63,8 @@ public:
     void conversationRename(const QString &id, const QString &title) const;
 
     void conversationDelete(const QString &id) const;
+
+    void conversationStrategySet(const QString &id, int strategy) const;
 
     void conversationModeSet(const QString &id, int mode) const;
 

@@ -24,6 +24,13 @@ public:
     using AgentState = RuntimeModule::AgentState;
     using AgentMode = RuntimeModule::AgentMode;
 
+    struct AgentStrategy {
+        enum {
+            Solo,
+            Team
+        };
+    };
+
     explicit AgentModule();
 
     ~AgentModule() override;
@@ -51,6 +58,8 @@ public:
     Q_INVOKABLE void conversationRename(const QString &title);
 
     Q_INVOKABLE void conversationDelete();
+
+    Q_INVOKABLE void conversationStrategySet(int strategy);
 
     Q_INVOKABLE void conversationModeSet(int mode);
 
@@ -84,6 +93,8 @@ signals:
     void changeState();
 
 private:
+    void primaryRuntimeConnect(RuntimeModule *runtime);
+
     void modelUpdate(const QString &provider, const QString &model) const;
 
     void turnCreate(const QString &turnId, qint64 startedAt) const;
@@ -106,6 +117,7 @@ private:
     QObject *m_textArea{};
     QObject *m_permissionCard{};
     QObject *m_userInputCard{};
+    QObject *m_strategyButton{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
 
@@ -115,6 +127,8 @@ private:
     ProviderModule *m_providerModule{};
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};
+    QString m_general{};
+    QString m_primary{};
     QString m_supervisor{};
     QHash<QString, RuntimeModule *> m_runtimes{};
 };

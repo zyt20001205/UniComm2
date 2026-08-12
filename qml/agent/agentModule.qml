@@ -874,6 +874,28 @@ Item {
                 spacing: 4
 
                 Button {
+                    id: strategyButton
+                    property int strategy: 0
+                    leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
+                    enabled: agentModule.state === 0
+                    Layout.preferredWidth: strategyLabel.implicitWidth + leftPadding + rightPadding
+                    Layout.preferredHeight: 28
+
+                    contentItem: Label {
+                        id: strategyLabel
+                        text: strategyButton.strategy === 0 ? qsTr("Solo") : qsTr("Team")
+                        color: global.fore
+                    }
+
+                    background: Rectangle {
+                        color: strategyButton.down ? global.backPressed : strategyButton.hovered ? global.backHover : "transparent"
+                        radius: 6
+                    }
+
+                    onClicked: agentModule.conversationStrategySet(strategy === 0 ? 1 : 0)
+                }
+
+                Button {
                     id: modeButton
                     property int mode: 0
                     leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
@@ -1513,6 +1535,7 @@ Item {
             "textArea": textArea,
             "permissionCard": permissionCard,
             "userInputCard": userInputCard,
+            "strategyButton": strategyButton,
             "modeButton": modeButton,
             "modelButton": modelButton
         };
