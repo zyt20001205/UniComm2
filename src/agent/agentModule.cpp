@@ -384,7 +384,7 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
 
 void AgentModule::modelUpdate(const QString &provider, const QString &model) const {
     if (provider.isEmpty() || model.isEmpty()) {
-        m_modelButton->setProperty("text", "");
+        m_modelButton->setProperty("text", tr("Select model"));
         QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(double, 0));
         return;
     }

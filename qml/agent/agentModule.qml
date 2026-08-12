@@ -876,61 +876,47 @@ Item {
                 Button {
                     id: strategyButton
                     property int strategy: 0
-                    leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    checkable: true
+                    checked: strategy === 1
                     enabled: agentModule.state === 0
-                    Layout.preferredWidth: strategyLabel.implicitWidth + leftPadding + rightPadding
-                    Layout.preferredHeight: 28
+                    flat: true
+                    icon.source: checked ? "qrc:/icon/team.svg" : "qrc:/icon/solo.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 28; Layout.preferredHeight: 28
 
-                    contentItem: Label {
-                        id: strategyLabel
-                        text: strategyButton.strategy === 0 ? qsTr("Solo") : qsTr("Team")
-                        color: global.fore
+                    onClicked: agentModule.conversationStrategySet(checked ? 1 : 0)
+
+                    HoverHandler {
+                        onHoveredChanged: {
+                            if (!hovered) mainToolTip.text = ""
+                        }
+                        onPointChanged: {
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = strategyButton.strategy === 0
+                                ? qsTr("Solo mode\nA general agent completes the task directly.\nClick to switch to Team mode.")
+                                : qsTr("Team mode\nA supervisor coordinates specialized agents.\nClick to switch to Solo mode.")
+                        }
                     }
-
-                    background: Rectangle {
-                        color: strategyButton.down ? global.backPressed : strategyButton.hovered ? global.backHover : "transparent"
-                        radius: 6
-                    }
-
-                    onClicked: agentModule.conversationStrategySet(strategy === 0 ? 1 : 0)
                 }
 
                 Button {
                     id: modeButton
                     property int mode: 0
-                    leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0 && mode >= 0
-                    Layout.preferredWidth: modeButtonContent.implicitWidth + leftPadding + rightPadding
+                    flat: true
+                    text: mode === 0 ? qsTr("Chat") :
+                          mode === 1 ? qsTr("Read") :
+                          mode === 2 ? qsTr("Write") :
+                          mode === 3 ? qsTr("Full access") : ""
+                    icon.source: mode === 0 ? "qrc:/icon/chat.svg" :
+                                 mode === 1 ? "qrc:/icon/eye.svg" :
+                                 mode === 2 ? "qrc:/icon/edit.svg" :
+                                 mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
+                    icon.color: mode === 3 ? global.warningFore3 : global.fore
+                    icon.width: 16; icon.height: 16
+                    palette.buttonText: mode === 3 ? global.warningFore3 : global.fore
                     Layout.preferredHeight: 28
-
-                    contentItem: RowLayout {
-                        id: modeButtonContent
-                        spacing: 5
-
-                        IconImage {
-                            color: modeButton.mode === 3 ? global.warningFore3 : global.fore
-                            source: modeButton.mode === 0 ? "qrc:/icon/chat.svg" :
-                                    modeButton.mode === 1 ? "qrc:/icon/eye.svg" :
-                                        modeButton.mode === 2 ? "qrc:/icon/edit.svg" :
-                                            modeButton.mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
-                            sourceSize.width: 16; sourceSize.height: 16
-                            Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                        }
-
-                        Label {
-                            text: modeButton.mode === 0 ? qsTr("Chat") :
-                                    modeButton.mode === 1 ? qsTr("Read") :
-                                        modeButton.mode === 2 ? qsTr("Write") :
-                                            modeButton.mode === 3 ? qsTr("Full access") : ""
-                            color: modeButton.mode === 3 ? global.warningFore3 : global.fore
-                        }
-
-                    }
-
-                    background: Rectangle {
-                        color: modeButton.down ? global.backPressed : modeButton.hovered ? global.backHover : "transparent"
-                        radius: 6
-                    }
 
                     onClicked: {
                         const globalPos = modeButton.mapToGlobal(0, -modeMenu.implicitHeight - 4);
@@ -941,25 +927,10 @@ Item {
 
                 Button {
                     id: modelButton
-                    leftPadding: 7; rightPadding: 7; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0
-                    Layout.preferredWidth: modelButtonContent.implicitWidth + leftPadding + rightPadding
+                    flat: true
+                    text: qsTr("Select model")
                     Layout.preferredHeight: 28
-
-                    contentItem: RowLayout {
-                        id: modelButtonContent
-                        spacing: 5
-
-                        Label {
-                            text: modelButton.text.length > 0 ? modelButton.text : qsTr("Select model")
-                            color: global.fore
-                        }
-                    }
-
-                    background: Rectangle {
-                        color: modelButton.down ? global.backPressed : modelButton.hovered ? global.backHover : "transparent"
-                        radius: 6
-                    }
 
                     onClicked: {
                         const globalPos = modelButton.mapToGlobal(0, -modelMenu.implicitHeight - 4);
