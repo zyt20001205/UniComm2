@@ -113,7 +113,8 @@ int ScintillaWidget::heightGet() const {
 QHash<QString, int> ScintillaWidget::indexGet(Position position) const {
     if (position == -1) position = positionGet();
     const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, position));
-    const int character = static_cast<int>(send(SCI_GETCOLUMN, position));
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const int character = static_cast<int>(send(SCI_COUNTCODEUNITS, lineStart, position));
     return QHash<QString, int>{
         {"line", line},
         {"character", character}
@@ -327,7 +328,11 @@ Position ScintillaWidget::positionGet(const int line, const int character) const
     if (character == -1) {
         return send(SCI_GETLINEENDPOSITION, line);
     }
-    return send(SCI_POSITIONRELATIVE, send(SCI_POSITIONFROMLINE, line), character);
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const Position lineEnd = send(SCI_GETLINEENDPOSITION, line);
+    const Position lineLength = send(SCI_COUNTCODEUNITS, lineStart, lineEnd);
+    const Position offset = qBound(Position{}, static_cast<Position>(character), lineLength);
+    return send(SCI_POSITIONRELATIVECODEUNITS, lineStart, offset);
 }
 
 Position ScintillaWidget::positionGet(const QPoint &point) const {
@@ -373,7 +378,8 @@ void ScintillaWidget::targetSetWhole() const {
 }
 
 Position ScintillaWidget::targetSearch(const QString &text) const {
-    return send(SCI_SEARCHINTARGET, text.size(), reinterpret_cast<uptr_t>(text.toUtf8().constData())); // NOLINT
+    const auto utf8 = text.toUtf8();
+    return send(SCI_SEARCHINTARGET, utf8.size(), reinterpret_cast<uptr_t>(utf8.constData())); // NOLINT
 }
 
 // public: selection
