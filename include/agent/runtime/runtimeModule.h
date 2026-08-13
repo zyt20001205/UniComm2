@@ -139,7 +139,6 @@ private:
 
     QString m_id{};
     BaseAgent *m_agent{};
-    QString m_error{};
     TurnContext m_turn{};
     int m_state{AgentState::Ready};
     QNetworkReply *m_reply{};

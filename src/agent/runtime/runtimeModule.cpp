@@ -95,10 +95,34 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
     emit changeState();
     switch (state) {
         case AgentState::Ready: break;
+        case AgentState::Abort: {
+            if (m_reply != nullptr) {
+                m_reply->abort();
+                break;
+            }
+            if (!m_turn.id.isEmpty() && m_turn.conversationId.isEmpty()) {
+                const auto result = payload.toString().isEmpty() ? QString("Agent task aborted.") : payload.toString();
+                m_turn = {};
+                stateSet(AgentState::Ready);
+                emit finishRun(result);
+                break;
+            }
+            if (!m_turn.id.isEmpty()) {
+                const auto finishedAt = QDateTime::currentMSecsSinceEpoch();
+                for (auto &message: m_turn.messages) {
+                    if (message.createdAt == 0) message.createdAt = finishedAt;
+                    if (message.role == "assistant") emit finishChat(message.id);
+                }
+                m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
+                emit finishTurn(m_turn.id, finishedAt);
+            }
+            m_turn = {};
+            stateSet(AgentState::Ready);
+        }
+            break;
         case AgentState::Error: {
-            m_error = payload.toString();
             emit showError(payload.toString());
-            stateSet(AgentState::Abort);
+            stateSet(AgentState::Abort, payload);
         }
         break;
         case AgentState::Pre: {
@@ -153,33 +177,6 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             auto *provider = m_providerModule->providerGet(providerId);
             const auto body = provider->requestBuild(modelId, context, tools, true);
             conversationSend(provider, body);
-        }
-        break;
-        case AgentState::Abort: {
-            if (m_reply != nullptr) {
-                m_reply->abort();
-                break;
-            }
-            if (!m_turn.id.isEmpty() && m_turn.conversationId.isEmpty()) {
-                const auto result = m_error.isEmpty() ? QString("Agent task aborted.") : m_error;
-                m_error.clear();
-                m_turn = {};
-                stateSet(AgentState::Ready);
-                emit finishRun(result);
-                break;
-            }
-            if (!m_turn.id.isEmpty()) {
-                const auto finishedAt = QDateTime::currentMSecsSinceEpoch();
-                for (auto &message: m_turn.messages) {
-                    if (message.createdAt == 0) message.createdAt = finishedAt;
-                    if (message.role == "assistant") emit finishChat(message.id);
-                }
-                m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
-                emit finishTurn(m_turn.id, finishedAt);
-            }
-            m_error.clear();
-            m_turn = {};
-            stateSet(AgentState::Ready);
         }
         break;
         case AgentState::ToolCall: {
