@@ -115,8 +115,6 @@ private:
     QObject *m_modeMenu{};
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};
-    QObject *m_permissionCard{};
-    QObject *m_userInputCard{};
     QObject *m_strategyButton{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};

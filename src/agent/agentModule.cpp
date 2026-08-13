@@ -98,8 +98,6 @@ void AgentModule::propertySet(const QVariantHash &objects) {
 void AgentModule::propertyGet(const QVariantMap &objects) {
     m_conversationComboBox = qvariant_cast<QObject *>(objects["conversationComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
-    m_permissionCard = qvariant_cast<QObject *>(objects["permissionCard"]);
-    m_userInputCard = qvariant_cast<QObject *>(objects["userInputCard"]);
     m_strategyButton = qvariant_cast<QObject *>(objects["strategyButton"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
@@ -175,7 +173,7 @@ void AgentModule::conversationGet(const QString &id) {
     m_primary = conversation.strategy == AgentStrategy::Solo ? m_general : m_supervisor;
     QString turnId{};
     qint64 finishedAt{};
-    QHash<QString, QPair<QString, QString>> toolCalls{};
+    QHash<QString, QPair<QString, QString> > toolCalls{};
     for (const auto &message: messages) {
         const auto &role = message.role;
         if (message.turnId != turnId) {
@@ -275,8 +273,7 @@ void AgentModule::conversationRollback() {
 void AgentModule::abort() const {
     auto *primary = m_runtimes.value(m_primary);
     primary->abort();
-    m_permissionCard->setProperty("runtimeId", "");
-    m_userInputCard->setProperty("runtimeId", "");
+    QMetaObject::invokeMethod(m_root, "requestsClear");
     const auto runtimes = m_runtimes.values();
     for (auto *runtime: runtimes) {
         if (runtime == primary || runtime->roleGet() == "general" || runtime->roleGet() == "supervisor") continue;
@@ -294,22 +291,24 @@ void AgentModule::compact() const {
 }
 
 void AgentModule::permission(const QString &runtimeId, const bool status) const {
-    m_runtimes.value(runtimeId)->permission(status);
+    if (auto *runtime = m_runtimes.value(runtimeId)) runtime->permission(status);
 }
 
 void AgentModule::userInput(const QString &runtimeId, const QString &answer) const {
-    m_runtimes.value(runtimeId)->userInput(answer);
+    if (auto *runtime = m_runtimes.value(runtimeId)) runtime->userInput(answer);
 }
 
 // public: frontend
 void AgentModule::permissionRequest(const QString &runtimeId, const QString &message) const {
-    m_permissionCard->setProperty("runtimeId", runtimeId);
-    m_permissionCard->setProperty("message", message);
+    const auto *runtime = m_runtimes.value(runtimeId);
+    if (runtime == nullptr) return;
+    QMetaObject::invokeMethod(m_root, "permissionRequest",Q_ARG(QString, runtimeId),Q_ARG(QString, runtime->roleGet()),Q_ARG(QString, message));
 }
 
 void AgentModule::userInputRequest(const QString &runtimeId, const QVariantMap &request) const {
-    m_userInputCard->setProperty("runtimeId", runtimeId);
-    m_userInputCard->setProperty("request", request);
+    const auto *runtime = m_runtimes.value(runtimeId);
+    if (runtime == nullptr) return;
+    QMetaObject::invokeMethod(m_root, "userInputRequest",Q_ARG(QString, runtimeId),Q_ARG(QString, runtime->roleGet()),Q_ARG(QVariant, request));
 }
 
 void AgentModule::planUpdate(const QString &runtimeId, const QJsonObject &plan) const {

@@ -11,6 +11,14 @@ Item {
     property var chatMap: ({})
     property var subagentMap: ({})
 
+    ListModel {
+        id: permissionModel
+    }
+
+    ListModel {
+        id: userInputModel
+    }
+
     Rectangle {
         anchors.fill: parent
         color: global.back
@@ -531,12 +539,13 @@ Item {
         }
 
         Item {
-            id: permissionCard
-            property string runtimeId
-            property string message
-            visible: runtimeId.length > 0
+            id: permissionCards
+            visible: permissionModel.count > 0
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? permissionLayout.implicitHeight + 20 : 0
+            Layout.preferredHeight: visible && permissionSwipeView.currentItem
+                ? permissionSwipeView.currentItem.cardImplicitHeight
+                    + (permissionSwipeView.count > 1 ? permissionIndicator.implicitHeight : 0)
+                : 0
 
             Rectangle {
                 anchors.fill: parent
@@ -555,7 +564,7 @@ Item {
                 opacity: 0.2
 
                 SequentialAnimation on opacity {
-                    running: permissionCard.visible
+                    running: permissionCards.visible
                     loops: Animation.Infinite
 
                     NumberAnimation {
@@ -579,98 +588,124 @@ Item {
             }
 
             ColumnLayout {
-                id: permissionLayout
                 anchors.fill: parent
-                anchors.margins: 10
-                spacing: 4
+                spacing: 0
 
-                RowLayout {
+                SwipeView {
+                    id: permissionSwipeView
+                    clip: true
+                    interactive: true
+                    orientation: Qt.Horizontal
                     Layout.fillWidth: true
-                    spacing: 8
+                    Layout.preferredHeight: currentItem ? currentItem.cardImplicitHeight : 0
 
-                    IconImage {
-                        color: global.fore
-                        source: "qrc:/icon/shield.svg"
-                        sourceSize.width: 16; sourceSize.height: 16
-                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                    }
+                    Repeater {
+                        model: permissionModel
 
-                    Label {
-                        text: qsTr("Allow this action?")
-                        font.bold: true
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true
-                    }
+                        delegate: Item {
+                            id: permissionPage
+                            required property string runtimeId
+                            required property string role
+                            required property string message
+                            readonly property real cardImplicitHeight: permissionLayout.implicitHeight + 20
 
-                    Button {
-                        id: denyButton
-                        text: qsTr("Deny")
-                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
+                            ColumnLayout {
+                                id: permissionLayout
+                                anchors.fill: parent
+                                anchors.margins: 10
+                                spacing: 4
 
-                        onClicked: {
-                            const runtimeId = permissionCard.runtimeId
-                            permissionCard.runtimeId = ""
-                            agentModule.permission(runtimeId, false)
-                        }
-                    }
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 8
 
-                    Button {
-                        id: allowButton
-                        text: qsTr("Allow")
-                        highlighted: true
-                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
+                                    IconImage {
+                                        color: global.fore
+                                        source: "qrc:/icon/shield.svg"
+                                        sourceSize.width: 16; sourceSize.height: 16
+                                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                                    }
 
-                        onClicked: {
-                            const runtimeId = permissionCard.runtimeId
-                            permissionCard.runtimeId = ""
-                            agentModule.permission(runtimeId, true)
+                                    Label {
+                                        text: qsTr("Allow this action?")
+                                        font.bold: true
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Label {
+                                        text: permissionPage.role === "hardware" ? qsTr("Hardware") :
+                                              permissionPage.role === "software" ? qsTr("Software") :
+                                              permissionPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
+                                        color: global.stroke
+                                    }
+
+                                    Button {
+                                        text: qsTr("Deny")
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
+
+                                        onClicked: {
+                                            rootItem.permissionResponse(permissionPage.runtimeId, false)
+                                        }
+                                    }
+
+                                    Button {
+                                        text: qsTr("Allow")
+                                        highlighted: true
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
+
+                                        onClicked: {
+                                            rootItem.permissionResponse(permissionPage.runtimeId, true)
+                                        }
+                                    }
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 8
+
+                                    Item {
+                                        Layout.preferredWidth: 16
+                                    }
+
+                                    Label {
+                                        text: permissionPage.message
+                                        color: global.fore
+                                        wrapMode: Text.Wrap
+                                        Layout.fillWidth: true
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
+                PageIndicator {
+                    id: permissionIndicator
+                    visible: permissionSwipeView.count > 1
+                    count: permissionSwipeView.count
+                    currentIndex: permissionSwipeView.currentIndex
+                    Layout.fillWidth: false
+                    Layout.preferredHeight: visible ? implicitHeight : 0
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                    Item {
-                        Layout.preferredWidth: 16
-                    }
-
-                    Label {
-                        id: permissionLabel
-                        text: permissionCard.message
-                        color: global.fore
-                        wrapMode: Text.Wrap
-                        Layout.fillWidth: true
+                    background: Rectangle {
+                        color: "transparent"
                     }
                 }
             }
         }
 
         Item {
-            id: userInputCard
-            property string runtimeId
-            property var request: ({"question": "", "options": []})
-            visible: runtimeId.length > 0
+            id: userInputCards
+            visible: userInputModel.count > 0
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? userInputLayout.implicitHeight + 20 : 0
-
-            function submit(): void {
-                const answer = answerTextField.text.trim()
-                if (answer.length === 0) return
-                const runtimeId = userInputCard.runtimeId
-                userInputCard.runtimeId = ""
-                agentModule.userInput(runtimeId, answer)
-                answerTextField.clear()
-            }
-
-            onVisibleChanged: {
-                if (!visible) return
-                answerTextField.clear()
-                answerTextField.forceActiveFocus()
-            }
+            Layout.preferredHeight: visible && userInputSwipeView.currentItem
+                ? userInputSwipeView.currentItem.cardImplicitHeight
+                    + (userInputSwipeView.count > 1 ? userInputIndicator.implicitHeight : 0)
+                : 0
 
             Rectangle {
                 anchors.fill: parent
@@ -689,7 +724,7 @@ Item {
                 opacity: 0.2
 
                 SequentialAnimation on opacity {
-                    running: userInputCard.visible
+                    running: userInputCards.visible
                     loops: Animation.Infinite
 
                     NumberAnimation {
@@ -713,107 +748,159 @@ Item {
             }
 
             ColumnLayout {
-                id: userInputLayout
                 anchors.fill: parent
-                anchors.margins: 10
-                spacing: 8
+                spacing: 0
 
-                RowLayout {
+                SwipeView {
+                    id: userInputSwipeView
+                    clip: true
+                    interactive: true
+                    orientation: Qt.Horizontal
                     Layout.fillWidth: true
-                    spacing: 8
-
-                    IconImage {
-                        color: global.fore
-                        source: "qrc:/icon/chat.svg"
-                        sourceSize.width: 16; sourceSize.height: 16
-                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                    }
-
-                    Label {
-                        text: qsTr("Input required")
-                        font.bold: true
-                        Layout.fillWidth: true
-                    }
-                }
-
-                Label {
-                    text: userInputCard.request.question || ""
-                    color: global.fore
-                    wrapMode: Text.Wrap
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 24
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 24
-                    spacing: 8
+                    Layout.preferredHeight: currentItem ? currentItem.cardImplicitHeight : 0
 
                     Repeater {
-                        model: userInputCard.request.options || []
+                        model: userInputModel
 
-                        delegate: Button {
-                            id: optionButton
-                            required property var modelData
-                            text: modelData.description
-                                ? modelData.label + " — " + modelData.description
-                                : modelData.label
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 28
+                        delegate: Item {
+                            id: userInputPage
+                            required property string runtimeId
+                            required property string role
+                            required property string question
+                            required property var options
+                            readonly property real cardImplicitHeight: userInputLayout.implicitHeight + 20
 
-                            contentItem: Label {
-                                text: optionButton.text
-                                color: optionButton.palette.buttonText
-                                font: optionButton.font
-                                elide: Text.ElideRight
-                                horizontalAlignment: Text.AlignLeft
-                                verticalAlignment: Text.AlignVCenter
+                            function submit(): void {
+                                const answer = answerTextField.text.trim()
+                                if (answer.length === 0) return
+                                rootItem.userInputResponse(userInputPage.runtimeId, answer)
                             }
 
-                            onClicked: {
-                                answerTextField.text = modelData.label
-                                answerTextField.forceActiveFocus()
-                                answerTextField.selectAll()
+                            ColumnLayout {
+                                id: userInputLayout
+                                anchors.fill: parent
+                                anchors.margins: 10
+                                spacing: 8
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 8
+
+                                    IconImage {
+                                        color: global.fore
+                                        source: "qrc:/icon/chat.svg"
+                                        sourceSize.width: 16; sourceSize.height: 16
+                                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                                    }
+
+                                    Label {
+                                        text: qsTr("Input required")
+                                        font.bold: true
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Label {
+                                        text: userInputPage.role === "hardware" ? qsTr("Hardware") :
+                                              userInputPage.role === "software" ? qsTr("Software") :
+                                              userInputPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
+                                        color: global.stroke
+                                    }
+                                }
+
+                                Label {
+                                    text: userInputPage.question
+                                    color: global.fore
+                                    wrapMode: Text.Wrap
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 24
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 24
+                                    spacing: 8
+
+                                    Repeater {
+                                        model: userInputPage.options
+
+                                        delegate: Button {
+                                            id: optionButton
+                                            required property var modelData
+                                            text: modelData.description
+                                                ? modelData.label + " — " + modelData.description
+                                                : modelData.label
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: 28
+
+                                            contentItem: Label {
+                                                text: optionButton.text
+                                                color: optionButton.palette.buttonText
+                                                font: optionButton.font
+                                                elide: Text.ElideRight
+                                                horizontalAlignment: Text.AlignLeft
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
+
+                                            onClicked: {
+                                                answerTextField.text = modelData.label
+                                                answerTextField.forceActiveFocus()
+                                                answerTextField.selectAll()
+                                            }
+                                        }
+                                    }
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 24
+                                    spacing: 8
+
+                                    TextField {
+                                        id: answerTextField
+                                        placeholderText: qsTr("Enter your answer")
+                                        selectByMouse: true
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 28
+
+                                        onAccepted: userInputPage.submit()
+                                    }
+
+                                    Button {
+                                        text: qsTr("Don't ask")
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
+
+                                        onClicked: {
+                                            rootItem.userInputResponse(userInputPage.runtimeId, "")
+                                        }
+                                    }
+
+                                    Button {
+                                        text: qsTr("Submit")
+                                        highlighted: true
+                                        enabled: answerTextField.text.trim().length > 0
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
+
+                                        onClicked: userInputPage.submit()
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 24
-                    spacing: 8
+                PageIndicator {
+                    id: userInputIndicator
+                    visible: userInputSwipeView.count > 1
+                    count: userInputSwipeView.count
+                    currentIndex: userInputSwipeView.currentIndex
+                    Layout.fillWidth: false
+                    Layout.preferredHeight: visible ? implicitHeight : 0
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                    TextField {
-                        id: answerTextField
-                        placeholderText: qsTr("Enter your answer")
-                        selectByMouse: true
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 28
-
-                        onAccepted: userInputCard.submit()
-                    }
-
-                    Button {
-                        text: qsTr("Don't ask")
-                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
-
-                        onClicked: {
-                            const runtimeId = userInputCard.runtimeId
-                            userInputCard.runtimeId = ""
-                            agentModule.userInput(runtimeId, "")
-                        }
-                    }
-
-                    Button {
-                        text: qsTr("Submit")
-                        highlighted: true
-                        enabled: answerTextField.text.trim().length > 0
-                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                        Layout.preferredWidth: 80; Layout.preferredHeight: 28
-
-                        onClicked: userInputCard.submit()
+                    background: Rectangle {
+                        color: "transparent"
                     }
                 }
             }
@@ -1425,6 +1512,7 @@ Item {
         chatView.followTail = true
         planCard.explanation = ""
         planCard.steps = []
+        requestsClear()
         compactStatusTimer.stop()
         compactCard.completed = false
         usageUpdate(0)
@@ -1480,6 +1568,52 @@ Item {
         rootItem.subagentMap[runtimeId].message = message
     }
 
+    function permissionRequest(runtimeId: string, role: string, message: string): void {
+        permissionModel.append({
+            "runtimeId": runtimeId,
+            "role": role,
+            "message": message
+        })
+        permissionSwipeView.currentIndex = permissionModel.count - 1
+    }
+
+    function permissionResponse(runtimeId: string, status: bool): void {
+        agentModule.permission(runtimeId, status)
+        for (let index = 0; index < permissionModel.count; ++index) {
+            if (permissionModel.get(index).runtimeId !== runtimeId) continue
+            permissionModel.remove(index)
+            permissionSwipeView.currentIndex = Math.min(permissionSwipeView.currentIndex, permissionModel.count - 1)
+            return
+        }
+    }
+
+    function userInputRequest(runtimeId: string, role: string, request): void {
+        const question = request && request.question ? request.question : ""
+        const options = request && request.options ? request.options : []
+        userInputModel.append({
+            "runtimeId": runtimeId,
+            "role": role,
+            "question": question,
+            "options": options
+        })
+        userInputSwipeView.currentIndex = userInputModel.count - 1
+    }
+
+    function userInputResponse(runtimeId: string, answer: string): void {
+        agentModule.userInput(runtimeId, answer)
+        for (let index = 0; index < userInputModel.count; ++index) {
+            if (userInputModel.get(index).runtimeId !== runtimeId) continue
+            userInputModel.remove(index)
+            userInputSwipeView.currentIndex = Math.min(userInputSwipeView.currentIndex, userInputModel.count - 1)
+            return
+        }
+    }
+
+    function requestsClear(): void {
+        permissionModel.clear()
+        userInputModel.clear()
+    }
+
     function planUpdate(plan): void {
         planCard.explanation = plan.explanation ? plan.explanation : ""
         planCard.steps = plan.plan ? plan.plan : []
@@ -1504,8 +1638,6 @@ Item {
         const objects = {
             "conversationComboBox": conversationComboBox,
             "textArea": textArea,
-            "permissionCard": permissionCard,
-            "userInputCard": userInputCard,
             "strategyButton": strategyButton,
             "modeButton": modeButton,
             "modelButton": modelButton
