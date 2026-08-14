@@ -312,8 +312,8 @@ bool CodeWidget::eventFilter(QObject *watched, QEvent *event) {
             m_dwellTimer->stop();
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             const auto modifiers = mouseEvent->modifiers();
-            const auto position = m_scintillaWidget->positionGet(localPos);
-            const auto index = m_scintillaWidget->indexGet(position);
+            const auto position = m_scintillaWidget->cast<Scintilla::Position>(ScintillaWidget::ViewportPoint{localPos});
+            const auto index = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(position);
             // margin click
             if (localPos.x() < m_scintillaWidget->marginWidthGet()) return false;
             // text area click
@@ -321,8 +321,8 @@ bool CodeWidget::eventFilter(QObject *watched, QEvent *event) {
                 if (modifiers == Qt::ControlModifier) {
                     m_scintillaWidget->positionSet(position);
                     if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::Hyperlink) {
-                        emit requestDefinition(m_documentUrl, index["line"], index["character"]);
-                        emit requestReferences(m_documentUrl, index["line"], index["character"]);
+                        emit requestDefinition(m_documentUrl, index.line, index.character);
+                        emit requestReferences(m_documentUrl, index.line, index.character);
                     }
                     return false;
                 }
@@ -337,7 +337,7 @@ bool CodeWidget::eventFilter(QObject *watched, QEvent *event) {
             const auto modifiers = mouseEvent->modifiers();
             if (modifiers == Qt::ControlModifier) {
                 m_dwellTimer->stop();
-                const auto position = m_scintillaWidget->positionGet(localPos);
+                const auto position = m_scintillaWidget->cast<Scintilla::Position>(ScintillaWidget::ViewportPoint{localPos});
                 navigationToggle(position);
                 return true;
             }
@@ -854,9 +854,9 @@ void CodeWidget::hoverRequest() {
     if (!rect().contains(localPos)) return;
     const auto closePosition = m_scintillaWidget->closePositionGet(localPos);
     if (closePosition == -1) return;
-    const auto index = m_scintillaWidget->indexGet(closePosition);
-    const auto line = index["line"];
-    const auto character = index["character"];
+    const auto index = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(closePosition);
+    const auto line = index.line;
+    const auto character = index.character;
     if (line == 0 && character == 0) return;
     // show diagnostic if exists
     QString diagnosticText = "<table width='100%'>";
@@ -973,14 +973,14 @@ void CodeWidget::spellCheckRequest() {
 void CodeWidget::commentToggle() {
     if (m_scintillaWidget->textGetSelected().isEmpty()) {
         const auto position = m_scintillaWidget->positionGet();
-        const auto index = m_scintillaWidget->indexGet(position);
-        auto text = m_scintillaWidget->textGet(index["line"], 0, index["line"], -1);
+        const auto index = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(position);
+        auto text = m_scintillaWidget->textGet(index.line, 0, index.line, -1);
         if (text.contains("--")) {
             text.remove("--");
         } else {
             text = "--" + text;
         }
-        m_scintillaWidget->textSet(text, index["line"], 0, index["line"], -1);
+        m_scintillaWidget->textSet(text, index.line, 0, index.line, -1);
     } else {
         auto text = m_scintillaWidget->textGetSelected();
         if (text.contains("--[[") || text.contains("]]")) {
@@ -1006,8 +1006,8 @@ void CodeWidget::navigationToggle(const Scintilla::Position position) const {
         m_toolTip->setProperty("text", "");
     } else {
         if (navigable(position)) {
-            const auto wordIndex = m_scintillaWidget->wordIndexGet(position);
-            m_scintillaWidget->indicatorFill(ScintillaIndicator::Hyperlink, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
+            const auto wordRange = m_scintillaWidget->wordIndexGet(position);
+            m_scintillaWidget->indicatorFill(ScintillaIndicator::Hyperlink, wordRange.start.line, wordRange.start.character, wordRange.end.line, wordRange.end.character);
             m_toolTip->setProperty("position", QCursor::pos());
             m_toolTip->setProperty("text", tr("Click to navigate"));
         } else {

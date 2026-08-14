@@ -726,46 +726,39 @@ void EditorWidget::permissionSet() const {
 // private: search
 void EditorWidget::searchRequest(const QString &text) {
     searchClear();
-    m_search["text"] = text;
     if (!text.isEmpty()) {
         int current = 0;
-        int total = 0;
-        QVariantList startList{};
-        QVariantList endList{};
 
         m_scintillaWidget->targetSetWhole();
         while (true) {
             if (m_scintillaWidget->targetSearch(text) == -1) break;
-            const auto start = m_scintillaWidget->targetGetStart();
-            const auto end = m_scintillaWidget->targetGetEnd();
-            startList.append(start);
-            endList.append(end);
-            const auto startIndex = m_scintillaWidget->indexGet(start);
-            const auto endIndex = m_scintillaWidget->indexGet(end);
+            const auto range = ScintillaWidget::PositionRange{
+                m_scintillaWidget->targetGetStart(),
+                m_scintillaWidget->targetGetEnd()
+            };
+            m_search.matches.append(range);
+            const auto indexRange = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(range);
             m_scintillaWidget->indicatorFill(
                 ScintillaIndicator::Result,
-                startIndex["line"],
-                startIndex["character"],
-                endIndex["line"],
-                endIndex["character"]
+                indexRange.start.line,
+                indexRange.start.character,
+                indexRange.end.line,
+                indexRange.end.character
             );
-            if (m_selection["startPosition"] > start) current++;
-            m_scintillaWidget->targetSetStart(end);
+            if (m_selection["startPosition"] > range.start) current++;
+            m_scintillaWidget->targetSetStart(range.end);
             m_scintillaWidget->targetSetEnd(m_scintillaWidget->lengthGet());
         }
-        total = static_cast<int>(startList.size());
-        if (current == total) current--;
-
-        m_search["current"] = current;
-        m_search["total"] = total;
-        m_search["start"] = startList;
-        m_search["end"] = endList;
+        const auto total = static_cast<int>(m_search.matches.size());
+        if (current == total && total > 0) current--;
+        m_search.current = current;
     }
     searchResponse();
 }
 
 void EditorWidget::searchResponse() {
-    if (m_search["total"].toInt() == 0) {
+    const auto total = static_cast<int>(m_search.matches.size());
+    if (total == 0) {
         m_searchWidget->searchEnable(false);
         m_searchWidget->replaceEnable(false);
         m_searchWidget->searchResponse("0/0");
@@ -773,89 +766,70 @@ void EditorWidget::searchResponse() {
     }
     m_searchWidget->searchEnable(true);
     m_searchWidget->replaceEnable(true);
-    const auto total = m_search["total"].toInt();
-    const auto current = m_search["current"].toInt();
+    const auto current = m_search.current;
     m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current + 1), QString::number(total)));
-    const auto startList = m_search["start"].toList();
-    const auto endList = m_search["end"].toList();
-    const auto startIndex = m_scintillaWidget->indexGet(startList[current].toInt());
-    const auto endIndex = m_scintillaWidget->indexGet(endList[current].toInt());
+    const auto indexRange = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(m_search.matches[current]);
     m_scintillaWidget->indexSet(
-        startIndex["line"],
-        startIndex["character"]
+        indexRange.start.line,
+        indexRange.start.character
     );
     m_scintillaWidget->indicatorFill(
         ScintillaIndicator::Current,
-        startIndex["line"],
-        startIndex["character"],
-        endIndex["line"],
-        endIndex["character"]
+        indexRange.start.line,
+        indexRange.start.character,
+        indexRange.end.line,
+        indexRange.end.character
     );
 }
 
 void EditorWidget::searchPrev() {
     m_scintillaWidget->indicatorClear(ScintillaIndicator::Current);
-    const auto current = m_search["current"].toInt();
-    const auto total = m_search["total"].toInt();
-    if (current != 0) {
-        m_search["current"] = current - 1;
-    } else {
-        m_search["current"] = total - 1;
-    }
+    const auto total = static_cast<int>(m_search.matches.size());
+    if (m_search.current != 0) m_search.current--;
+    else m_search.current = total - 1;
     searchResponse();
 }
 
 void EditorWidget::searchNext() {
     m_scintillaWidget->indicatorClear(ScintillaIndicator::Current);
-    const auto current = m_search["current"].toInt();
-    const auto total = m_search["total"].toInt();
-    if (current != total - 1) {
-        m_search["current"] = current + 1;
-    } else {
-        m_search["current"] = 0;
-    }
+    const auto total = static_cast<int>(m_search.matches.size());
+    if (m_search.current != total - 1) m_search.current++;
+    else m_search.current = 0;
     searchResponse();
 }
 
 void EditorWidget::searchClear() {
-    m_search.clear();
+    m_search = {};
     m_scintillaWidget->indicatorClear(ScintillaIndicator::Result);
     m_scintillaWidget->indicatorClear(ScintillaIndicator::Current);
 }
 
 void EditorWidget::textReplace(const QString &text) {
-    const auto current = m_search["current"].toInt();
-    const auto startList = m_search["start"].toList();
-    const auto endList = m_search["end"].toList();
-    const auto startIndex = m_scintillaWidget->indexGet(startList[current].toInt());
-    const auto endIndex = m_scintillaWidget->indexGet(endList[current].toInt());
+    const auto indexRange = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(m_search.matches[m_search.current]);
     m_scintillaWidget->indexSet(
-        startIndex["line"],
-        startIndex["character"]
+        indexRange.start.line,
+        indexRange.start.character
     );
     m_scintillaWidget->textSet(
         text,
-        startIndex["line"],
-        startIndex["character"],
-        endIndex["line"],
-        endIndex["character"]
+        indexRange.start.line,
+        indexRange.start.character,
+        indexRange.end.line,
+        indexRange.end.character
     );
     m_searchWidget->searchRequest();
 }
 
 void EditorWidget::allReplace(const QString &text) {
     m_scintillaWidget->undoBegin();
-    for (int index = m_search["total"].toInt() - 1; index >= 0; --index) {
-        const auto startList = m_search["start"].toList();
-        const auto endList = m_search["end"].toList();
-        const auto startIndex = m_scintillaWidget->indexGet(startList[index].toInt());
-        const auto endIndex = m_scintillaWidget->indexGet(endList[index].toInt());
+    for (int index = static_cast<int>(m_search.matches.size()) - 1; index >= 0; --index) {
+        const auto indexRange = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(m_search.matches[index]);
         m_scintillaWidget->textSet(
             text,
-            startIndex["line"],
-            startIndex["character"],
-            endIndex["line"],
-            endIndex["character"]
+            indexRange.start.line,
+            indexRange.start.character,
+            indexRange.end.line,
+            indexRange.end.character
         );
     }
     m_scintillaWidget->undoEnd();

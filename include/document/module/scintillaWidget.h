@@ -11,21 +11,31 @@ class ScintillaWidget final : public ScintillaEdit {
     Q_OBJECT
 
 public:
-    enum class IndexEncoding {
-        Utf8,
-        Utf16,
-        Utf32
-    };
-
-    template<IndexEncoding Encoding>
-    struct Index {
+    struct Utf8Index {
         int line{};
         int character{};
     };
 
-    using Utf8Index = Index<IndexEncoding::Utf8>;
-    using Utf16Index = Index<IndexEncoding::Utf16>;
-    using Utf32Index = Index<IndexEncoding::Utf32>;
+    struct Utf16Index {
+        int line{};
+        int character{};
+    };
+
+    struct Utf32Index {
+        int line{};
+        int character{};
+    };
+
+    template<typename T>
+    struct Range {
+        T start{};
+        T end{};
+    };
+
+    using PositionRange = Range<Scintilla::Position>;
+    using Utf8IndexRange = Range<Utf8Index>;
+    using Utf16IndexRange = Range<Utf16Index>;
+    using Utf32IndexRange = Range<Utf32Index>;
 
     struct ViewportPoint {
         QPoint value{};
@@ -36,21 +46,28 @@ public:
     };
 
     template<typename To, typename From>
-    [[nodiscard]] To cast(const From &from) const {
-        using Source = std::remove_cvref_t<From>;
-        static_assert(coordinateType<To> && coordinateType<Source>);
+    [[nodiscard]] Range<To> cast(const Range<From> &from) const {
+        return Range<To>{
+            cast<To>(from.start),
+            cast<To>(from.end)
+        };
+    }
 
-        if constexpr (std::is_same_v<To, Source>) {
+    template<typename To, typename From>
+    [[nodiscard]] To cast(const From &from) const {
+        static_assert(coordinateType<To> && coordinateType<From>);
+
+        if constexpr (std::is_same_v<To, From>) {
             return from;
-        } else if constexpr (pointType<To> && pointType<Source>) {
+        } else if constexpr (pointType<To> && pointType<From>) {
             return pointCast<To>(from);
-        } else if constexpr (std::is_same_v<Source, GlobalPoint>) {
+        } else if constexpr (std::is_same_v<From, GlobalPoint>) {
             return cast<To>(cast<ViewportPoint>(from));
         } else if constexpr (std::is_same_v<To, GlobalPoint>) {
             return pointCast<GlobalPoint>(cast<ViewportPoint>(from));
         } else if constexpr (std::is_same_v<To, Scintilla::Position>) {
             return positionFrom(from);
-        } else if constexpr (std::is_same_v<Source, Scintilla::Position>) {
+        } else if constexpr (std::is_same_v<From, Scintilla::Position>) {
             return positionCast<To>(from);
         } else {
             return cast<To>(cast<Scintilla::Position>(from));
@@ -103,11 +120,7 @@ public:
 
     [[nodiscard]] int heightGet() const;
 
-    [[nodiscard]] QHash<QString, int> indexGet(Scintilla::Position position = -1) const;
-
-    [[nodiscard]] QHash<QString, int> wordIndexGet(Scintilla::Position position, bool onlyWordCharacters = true) const;
-
-    [[nodiscard]] QHash<QString, int> wordIndexGet(int line = -1, int character = -1, bool onlyWordCharacters = true) const;
+    [[nodiscard]] Utf16IndexRange wordIndexGet(Scintilla::Position position = -1, bool onlyWordCharacters = true) const;
 
     void indexSet(int line, int character) const;
 
@@ -152,8 +165,6 @@ public:
     [[nodiscard]] bool atLineEnd() const;
 
     [[nodiscard]] Scintilla::Position positionGet(int line = -1, int character = -1) const;
-
-    [[nodiscard]] Scintilla::Position positionGet(const QPoint &point) const;
 
     [[nodiscard]] Scintilla::Position closePositionGet(const QPoint &point) const;
 

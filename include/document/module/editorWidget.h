@@ -1,10 +1,11 @@
 #ifndef UNICOMM_EDITORWIDGET_H
 #define UNICOMM_EDITORWIDGET_H
 
+#include "document/module/scintillaWidget.h"
+
 #include <QJsonObject>
 #include <QWidget>
 
-class ScintillaWidget;
 class SearchWidget;
 
 class EditorWidget : public QWidget {
@@ -68,6 +69,11 @@ protected:
     QTimer *m_contentTimer{};
 
 private:
+    struct SearchState {
+        int current{};
+        QList<ScintillaWidget::PositionRange> matches{};
+    };
+
     void documentOpen() const;
 
     void permissionSet() const;
@@ -93,7 +99,7 @@ private:
     SearchWidget *m_searchWidget{};
 
     QHash<QChar, QChar> m_pair{};
-    QVariantHash m_search{};
+    SearchState m_search{};
 };
 
 #endif //UNICOMM_EDITORWIDGET_H

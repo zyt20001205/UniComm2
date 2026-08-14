@@ -395,14 +395,15 @@ void DocumentModule::indexSet(const QUrl &documentUrl, const int line, const int
 }
 
 void DocumentModule::indexGet() const {
-    QHash<QString, int> index{};
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(m_focusedUrl))) index = codePage->handler()->indexGet();
-    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(m_focusedUrl))) index = textPage->handler()->indexGet();
-    if (index.isEmpty()) return;
+    const ScintillaWidget *scintilla{};
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(m_focusedUrl))) scintilla = codePage->handler();
+    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(m_focusedUrl))) scintilla = textPage->handler();
+    if (!scintilla) return;
+    const auto index = scintilla->cast<ScintillaWidget::Utf16Index>(scintilla->positionGet());
     g_cursorPosition = {
         {"url", m_focusedUrl},
-        {"line", index["line"]},
-        {"character", index["character"]}
+        {"line", index.line},
+        {"character", index.character}
     };
 }
 
@@ -538,12 +539,13 @@ void DocumentModule::completionRequest(const QUrl &documentUrl, int line, int ch
 void DocumentModule::completionResponse(const QUrl &documentUrl, const QJsonArray &items) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         const auto *scintilla = codePage->handler();
-        const auto wordIndex = scintilla->wordIndexGet();
-        const auto startLine = wordIndex["startLine"];
-        const auto startCharacter = wordIndex["startCharacter"];
-        const auto endLine = wordIndex["endLine"];
-        const auto endCharacter = wordIndex["endCharacter"];
-        const auto typed = scintilla->indexGet()["character"] - startCharacter;
+        const auto wordRange = scintilla->wordIndexGet();
+        const auto startLine = wordRange.start.line;
+        const auto startCharacter = wordRange.start.character;
+        const auto endLine = wordRange.end.line;
+        const auto endCharacter = wordRange.end.character;
+        const auto index = scintilla->cast<ScintillaWidget::Utf16Index>(scintilla->positionGet());
+        const auto typed = index.character - startCharacter;
         const auto height = scintilla->heightGet();
         auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
         position.ry() += height;
@@ -582,9 +584,9 @@ void DocumentModule::definitionRequest(const QUrl &documentUrl, const int line, 
 void DocumentModule::definitionResponse(const QUrl &documentUrl, const QJsonArray &definitions) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         const auto *scintilla = codePage->handler();
-        const auto wordIndex = scintilla->wordIndexGet();
-        const auto startLine = wordIndex["startLine"];
-        const auto startCharacter = wordIndex["startCharacter"];
+        const auto wordRange = scintilla->wordIndexGet();
+        const auto startLine = wordRange.start.line;
+        const auto startCharacter = wordRange.start.character;
         const auto height = scintilla->heightGet();
         auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
         position.ry() += height;
@@ -730,9 +732,9 @@ void DocumentModule::implementationRequest(const QUrl &documentUrl, const int li
 void DocumentModule::implementationResponse(const QUrl &documentUrl, const QJsonArray &implementations) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         const auto *scintilla = codePage->handler();
-        const auto wordIndex = scintilla->wordIndexGet();
-        const auto startLine = wordIndex["startLine"];
-        const auto startCharacter = wordIndex["startCharacter"];
+        const auto wordRange = scintilla->wordIndexGet();
+        const auto startLine = wordRange.start.line;
+        const auto startCharacter = wordRange.start.character;
         const auto height = scintilla->heightGet();
         auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
         position.ry() += height;
@@ -849,9 +851,9 @@ void DocumentModule::referencesRequest(const QUrl &documentUrl, int line, int ch
 void DocumentModule::referencesResponse(const QUrl &documentUrl, const QJsonArray &references) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         const auto *scintilla = codePage->handler();
-        const auto wordIndex = scintilla->wordIndexGet();
-        const auto startLine = wordIndex["startLine"];
-        const auto startCharacter = wordIndex["startCharacter"];
+        const auto wordRange = scintilla->wordIndexGet();
+        const auto startLine = wordRange.start.line;
+        const auto startCharacter = wordRange.start.character;
         const auto height = scintilla->heightGet();
         auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
         position.ry() += height;
@@ -904,9 +906,9 @@ void DocumentModule::signatureHelpRequest(const QUrl &documentUrl, int line, int
 void DocumentModule::signatureHelpResponse(const QUrl &documentUrl, const QJsonArray &signatures) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         const auto *scintilla = codePage->handler();
-        const auto wordIndex = scintilla->wordIndexGet();
-        const auto startLine = wordIndex["startLine"];
-        const auto startCharacter = wordIndex["startCharacter"];
+        const auto wordRange = scintilla->wordIndexGet();
+        const auto startLine = wordRange.start.line;
+        const auto startCharacter = wordRange.start.character;
         const auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter - 1}).value;
         // call signature show
         const QVariantHash signatureSession = {
@@ -938,9 +940,9 @@ void DocumentModule::typeDefinitionRequest(const QUrl &documentUrl, const int li
 void DocumentModule::typeDefinitionResponse(const QUrl &documentUrl, const QJsonArray &typeDefinitions) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         const auto *scintilla = codePage->handler();
-        const auto wordIndex = scintilla->wordIndexGet();
-        const auto startLine = wordIndex["startLine"];
-        const auto startCharacter = wordIndex["startCharacter"];
+        const auto wordRange = scintilla->wordIndexGet();
+        const auto startLine = wordRange.start.line;
+        const auto startCharacter = wordRange.start.character;
         const auto height = scintilla->heightGet();
         auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
         position.ry() += height;
@@ -1038,11 +1040,12 @@ void DocumentModule::navigationRecord(const QUrl &documentUrl, const int line, c
     m_navigationHistory["index"] = m_navigationHistory["index"].toInt() + 1;
     // src index
     if (documentUrl.isEmpty()) {
-        const auto index = qobject_cast<CodePage *>(m_pageHash[m_focusedUrl])->handler()->indexGet();
+        const auto *scintilla = qobject_cast<CodePage *>(m_pageHash[m_focusedUrl])->handler();
+        const auto index = scintilla->cast<ScintillaWidget::Utf16Index>(scintilla->positionGet());
         const auto navigationSession = QVariantHash{
             {"documentUrl", m_focusedUrl},
-            {"line", index["line"]},
-            {"character", index["character"]}
+            {"line", index.line},
+            {"character", index.character}
         };
         QVariantList list = m_navigationHistory["list"].toList();
         list.append(navigationSession);

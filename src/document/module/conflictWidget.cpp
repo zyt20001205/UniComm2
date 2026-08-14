@@ -32,11 +32,11 @@ bool ConflictWidget::eventFilter(QObject *watched, QEvent *event) {
         }
         if (event->type() == QEvent::MouseButtonPress) {
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
-            const auto &position = m_scintillaWidget->positionGet(localPos);
+            const auto position = m_scintillaWidget->cast<Scintilla::Position>(ScintillaWidget::ViewportPoint{localPos});
             // text area click
             if (mouseEvent->button() == Qt::LeftButton) {
-                const auto &index = m_scintillaWidget->indexGet(position);
-                const auto &line = index["line"];
+                const auto index = m_scintillaWidget->cast<ScintillaWidget::Utf16Index>(position);
+                const auto line = index.line;
                 const int indicators = m_scintillaWidget->indicatorGet(position);
                 if (indicators & (1 << ScintillaIndicator::ConflictStart | 1 << ScintillaIndicator::ConflictSeparator | 1 << ScintillaIndicator::ConflictEnd)) {
                     const auto hunk = m_hunk.value(line);
@@ -60,7 +60,7 @@ bool ConflictWidget::eventFilter(QObject *watched, QEvent *event) {
                 }
             }
         } else if (event->type() == QEvent::MouseMove) {
-            const auto &position = m_scintillaWidget->positionGet(localPos);
+            const auto position = m_scintillaWidget->cast<Scintilla::Position>(ScintillaWidget::ViewportPoint{localPos});
             QString tooltip{};
             if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::ConflictStart) tooltip = tr("Accept Current");
             else if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::ConflictSeparator) tooltip = tr("Accept Both");

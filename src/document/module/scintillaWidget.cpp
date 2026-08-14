@@ -109,31 +109,12 @@ int ScintillaWidget::heightGet() const {
     return static_cast<int>(send(SCI_TEXTHEIGHT, 0));
 }
 
-// public: index
-QHash<QString, int> ScintillaWidget::indexGet(Position position) const {
+ScintillaWidget::Utf16IndexRange ScintillaWidget::wordIndexGet(Position position, const bool onlyWordCharacters) const {
     if (position == -1) position = positionResolve(-1, -1);
-    const auto index = cast<Utf16Index>(position);
-    return QHash<QString, int>{
-        {"line", index.line},
-        {"character", index.character}
-    };
-}
-
-QHash<QString, int> ScintillaWidget::wordIndexGet(const Position position, const bool onlyWordCharacters) const {
-    const Position startPosition{send(SCI_WORDSTARTPOSITION, position, onlyWordCharacters)};
-    const Position endPosition{send(SCI_WORDENDPOSITION, position, onlyWordCharacters)};
-    const auto startIndex = cast<Utf16Index>(startPosition);
-    const auto endIndex = cast<Utf16Index>(endPosition);
-    return QHash<QString, int>{
-        {"startLine", startIndex.line},
-        {"startCharacter", startIndex.character},
-        {"endLine", endIndex.line},
-        {"endCharacter", endIndex.character}
-    };
-}
-
-QHash<QString, int> ScintillaWidget::wordIndexGet(const int line, const int character, const bool onlyWordCharacters) const {
-    return wordIndexGet(positionResolve(line, character), onlyWordCharacters);
+    return cast<Utf16Index>(PositionRange{
+        send(SCI_WORDSTARTPOSITION, position, onlyWordCharacters),
+        send(SCI_WORDENDPOSITION, position, onlyWordCharacters)
+    });
 }
 
 void ScintillaWidget::indexSet(const int line, const int character) const {
@@ -309,10 +290,6 @@ bool ScintillaWidget::atLineEnd() const {
 // public: position
 Position ScintillaWidget::positionGet(const int line, const int character) const {
     return positionResolve(line, character);
-}
-
-Position ScintillaWidget::positionGet(const QPoint &point) const {
-    return cast<Position>(ViewportPoint{point});
 }
 
 Position ScintillaWidget::closePositionGet(const QPoint &point) const {
