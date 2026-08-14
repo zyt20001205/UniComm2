@@ -3,6 +3,7 @@
 
 #include "ScintillaEdit.h"
 #include <QStringList>
+#include <type_traits>
 
 class QQuickWidget;
 
@@ -10,6 +11,56 @@ class ScintillaWidget final : public ScintillaEdit {
     Q_OBJECT
 
 public:
+    enum class IndexEncoding {
+        Utf8,
+        Utf16,
+        Utf32
+    };
+
+    template<IndexEncoding Encoding>
+    struct Index {
+        int line{};
+        int character{};
+    };
+
+    using Utf8Index = Index<IndexEncoding::Utf8>;
+    using Utf16Index = Index<IndexEncoding::Utf16>;
+    using Utf32Index = Index<IndexEncoding::Utf32>;
+
+    struct Position {
+        Scintilla::Position value{};
+    };
+
+    struct ViewportPoint {
+        QPoint value{};
+    };
+
+    struct GlobalPoint {
+        QPoint value{};
+    };
+
+    template<typename To, typename From>
+    [[nodiscard]] To cast(const From &from) const {
+        using Source = std::remove_cvref_t<From>;
+        static_assert(coordinateType<To> && coordinateType<Source>);
+
+        if constexpr (std::is_same_v<To, Source>) {
+            return from;
+        } else if constexpr (pointType<To> && pointType<Source>) {
+            return pointCast<To>(from);
+        } else if constexpr (std::is_same_v<Source, GlobalPoint>) {
+            return cast<To>(cast<ViewportPoint>(from));
+        } else if constexpr (std::is_same_v<To, GlobalPoint>) {
+            return pointCast<GlobalPoint>(cast<ViewportPoint>(from));
+        } else if constexpr (std::is_same_v<To, Position>) {
+            return positionFrom(from);
+        } else if constexpr (std::is_same_v<Source, Position>) {
+            return positionCast<To>(from);
+        } else {
+            return cast<To>(cast<Position>(from));
+        }
+    }
+
     explicit ScintillaWidget(QWidget *parent = nullptr);
 
     ~ScintillaWidget() override = default;
@@ -163,6 +214,49 @@ public:
     void undoEnd() const;
 
 private:
+    template<typename T>
+    static constexpr bool coordinateType = std::is_same_v<T, Position>
+                                           || std::is_same_v<T, Utf8Index>
+                                           || std::is_same_v<T, Utf16Index>
+                                           || std::is_same_v<T, Utf32Index>
+                                           || std::is_same_v<T, ViewportPoint>
+                                           || std::is_same_v<T, GlobalPoint>;
+
+    template<typename T>
+    static constexpr bool pointType = std::is_same_v<T, ViewportPoint>
+                                      || std::is_same_v<T, GlobalPoint>;
+
+    template<typename To, typename From>
+    [[nodiscard]] To pointCast(const From &from) const {
+        if constexpr (std::is_same_v<To, GlobalPoint>) return GlobalPoint{viewport()->mapToGlobal(from.value)};
+        else return ViewportPoint{viewport()->mapFromGlobal(from.value)};
+    }
+
+    template<typename To>
+    [[nodiscard]] To positionCast(const Position &position) const {
+        if constexpr (std::is_same_v<To, Utf8Index>) return utf8IndexFrom(position);
+        else if constexpr (std::is_same_v<To, Utf16Index>) return utf16IndexFrom(position);
+        else if constexpr (std::is_same_v<To, Utf32Index>) return utf32IndexFrom(position);
+        else return viewportPointFrom(position);
+    }
+
+    [[nodiscard]] Position positionFrom(const Utf8Index &index) const;
+
+    [[nodiscard]] Position positionFrom(const Utf16Index &index) const;
+
+    [[nodiscard]] Position positionFrom(const Utf32Index &index) const;
+
+    [[nodiscard]] Position positionFrom(const ViewportPoint &point) const;
+
+    [[nodiscard]] Position positionResolve(int line, int character) const;
+
+    [[nodiscard]] Utf8Index utf8IndexFrom(const Position &position) const;
+
+    [[nodiscard]] Utf16Index utf16IndexFrom(const Position &position) const;
+
+    [[nodiscard]] Utf32Index utf32IndexFrom(const Position &position) const;
+
+    [[nodiscard]] ViewportPoint viewportPointFrom(const Position &position) const;
 };
 
 #endif //UNICOMM_SCINTILLAWIDGET_H
