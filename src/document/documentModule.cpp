@@ -545,10 +545,8 @@ void DocumentModule::completionResponse(const QUrl &documentUrl, const QJsonArra
         const auto endCharacter = wordIndex["endCharacter"];
         const auto typed = scintilla->indexGet()["character"] - startCharacter;
         const auto height = scintilla->heightGet();
-        const auto point = scintilla->pointGet(startLine, startCharacter);
-        const auto x = point["x"];
-        const auto y = point["y"] + height;
-        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
+        position.ry() += height;
         // call completion show
         const QVariantHash completionSession = {
             {"documentUrl", documentUrl},
@@ -588,10 +586,8 @@ void DocumentModule::definitionResponse(const QUrl &documentUrl, const QJsonArra
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
         const auto height = scintilla->heightGet();
-        const auto point = scintilla->pointGet(startLine, startCharacter);
-        const auto x = point["x"];
-        const auto y = point["y"] + height;
-        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
+        position.ry() += height;
         // call navigation show
         const QVariantHash navigationSession = {
             {"type", "definition"},
@@ -738,10 +734,8 @@ void DocumentModule::implementationResponse(const QUrl &documentUrl, const QJson
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
         const auto height = scintilla->heightGet();
-        const auto point = scintilla->pointGet(startLine, startCharacter);
-        const auto x = point["x"];
-        const auto y = point["y"] + height;
-        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
+        position.ry() += height;
         // call navigation show
         const QVariantHash navigationSession = {
             {"type", "implementation"},
@@ -859,10 +853,8 @@ void DocumentModule::referencesResponse(const QUrl &documentUrl, const QJsonArra
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
         const auto height = scintilla->heightGet();
-        const auto point = scintilla->pointGet(startLine, startCharacter);
-        const auto x = point["x"];
-        const auto y = point["y"] + height;
-        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
+        position.ry() += height;
         // call navigation show
         const QVariantHash navigationSession = {
             {"type", "reference"},
@@ -915,10 +907,7 @@ void DocumentModule::signatureHelpResponse(const QUrl &documentUrl, const QJsonA
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
-        const auto point = scintilla->pointGet(startLine, startCharacter - 1);
-        const auto x = point["x"];
-        const auto y = point["y"];
-        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        const auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter - 1}).value;
         // call signature show
         const QVariantHash signatureSession = {
             {"documentUrl", documentUrl},
@@ -953,10 +942,8 @@ void DocumentModule::typeDefinitionResponse(const QUrl &documentUrl, const QJson
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
         const auto height = scintilla->heightGet();
-        const auto point = scintilla->pointGet(startLine, startCharacter);
-        const auto x = point["x"];
-        const auto y = point["y"] + height;
-        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        auto position = scintilla->cast<ScintillaWidget::GlobalPoint>(ScintillaWidget::Utf16Index{startLine, startCharacter}).value;
+        position.ry() += height;
         // call navigation show
         const QVariantHash navigationSession = {
             {"type", "typeDefinition"},

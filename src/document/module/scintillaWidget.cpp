@@ -300,15 +300,6 @@ int ScintillaWidget::markerGet(const int line) const {
     return static_cast<int>(send(SCI_MARKERGET, line));
 }
 
-// public: point
-QHash<QString, int> ScintillaWidget::pointGet(const int line, const int character) const {
-    const auto point = cast<ViewportPoint>(positionResolve(line, character));
-    return QHash<QString, int>{
-        {"x", point.value.x()},
-        {"y", point.value.y()}
-    };
-}
-
 bool ScintillaWidget::atLineEnd() const {
     const Position position = positionResolve(-1, -1);
     const Position lineEndPosition{send(SCI_GETLINEENDPOSITION, lineGet(position.value))};

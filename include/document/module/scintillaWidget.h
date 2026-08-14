@@ -153,8 +153,6 @@ public:
 
     [[nodiscard]] int markerGet(int line) const;
 
-    [[nodiscard]] QHash<QString, int> pointGet(int line, int character) const;
-
     [[nodiscard]] bool atLineEnd() const;
 
     [[nodiscard]] Scintilla::Position positionGet(int line = -1, int character = -1) const;
