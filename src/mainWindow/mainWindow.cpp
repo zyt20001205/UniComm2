@@ -618,21 +618,16 @@ void MainWindow::layoutInit() {
 
     addDockWidget(m_documentModule->welcomePage(), KDDockWidgets::Location_OnRight);
     // left
-    addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(400, 0)));
+    addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(600, 0)));
     addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
     addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
     // right
-    addDockWidget(m_breakpointModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(300, 0)));
-    addDockWidget(m_debugModule, KDDockWidgets::Location_OnBottom, m_breakpointModule);
-    addDockWidget(m_watchModule, KDDockWidgets::Location_OnBottom, m_debugModule);
+    addDockWidget(m_agentModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(800, 0)));
     // bottom
     addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(0, 200)));
     m_logModule->addDockWidgetAsTab(m_gitModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
     m_logModule->addDockWidgetAsTab(m_diagnosticsModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
-    addDockWidget(m_databaseModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(600, 0)));
-    m_databaseModule->addDockWidgetAsTab(m_datatableModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
-    m_databaseModule->addDockWidgetAsTab(m_dataplotModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
-    addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_databaseModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(300, 0)));
+    addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(800, 0)));
 
     if (!m_mainConfig["state"].toString().isEmpty()) {
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
