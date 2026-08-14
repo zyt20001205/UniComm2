@@ -18,7 +18,7 @@
   "agentConfig": {
     "id": "",
     "mcp": {},
-    "providers": []
+    "providers": ["deepseek"]
   },
   "logConfig": {
     "fontFamily": "Segoe UI",
