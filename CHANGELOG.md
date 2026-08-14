@@ -1,9 +1,82 @@
+# v0.3.0-alpha1
+
+## Highlights
+
+- Reworked the LLM module into the new Agent module.
+- Added solo/team agent workflows with supervisor, software, hardware, and general agent roles.
+- Added persistent agent context, SQLite-backed history, token usage tracking, permission controls, and user input request handling.
+- Expanded port support with BLE, WebSocket client/server, SSL server, and richer port configuration tools.
+- Reworked editor/document internals, including code page/document page naming, search window, Scintilla coordinate cleanup, and UTF-8/UTF-16 fixes.
+- Updated terminal rendering and input handling with the UniComm vterm fork.
+- Refined the UI with toast notifications, setting windows, permission cards, task state icons, and theme updates.
+
+## Agent
+
+- Replaced the old LLM module with the Agent module.
+- Added provider management based on OpenAI-compatible providers.
+- Added agent roles for supervisor, software, hardware, and general workflows.
+- Added solo/team strategy support.
+- Added context compaction, token usage display, and SQLite-backed agent storage.
+- Added `plan_update`, `request_user_input`, permission display/control, and multi-input request handling.
+- Added file, memory, port, terminal, and tool-call integration for agent workflows.
+
+## Ports and APIs
+
+- Added Bluetooth LE support.
+- Added WebSocket client and server support.
+- Added SSL server support.
+- Added FTP and filesystem APIs.
+- Reworked HTTP, IMAP, SMTP, ModbusAscii, ModbusRtu, ModbusTcp, file, and port APIs.
+- Moved UniComm Lua annotations and demos under `resources/meta/3rd/UniComm`.
+- Removed the standalone SendModule.
+
+## Document and Editor
+
+- Reworked Lua pages into code pages and base pages into document pages.
+- Added Web page support.
+- Moved assistant widgets under the document assistant/module structure.
+- Added document search window support.
+- Cleaned up Scintilla coordinate handling and fixed UTF-8/UTF-16 position issues.
+- Improved Markdown/WebView handling and page naming/icons.
+
+## Terminal
+
+- Switched to the UniComm vterm fork.
+- Improved terminal sizing, scrolling, input modifiers, and rendering behavior.
+- Expanded terminal session management.
+
+## UI
+
+- Added toast notifications.
+- Added agent management UI and permission cards.
+- Updated status/task icons and warning/info visuals.
+- Improved threadpool, database/datatable, port setting, Git, and main window interactions.
+- Updated themes.
+
+## Infrastructure and Dependencies
+
+- Added SQLite runtime dependencies.
+- Added Qt SQL and WebSockets runtime dependencies.
+- Added SimpleBLE dependencies.
+- Added Whisper dependencies.
+- Added Lexilla dependencies.
+- Updated build/dependency packaging scripts.
+
+## Fixes
+
+- Fixed UTF-8/UTF-16 editor position handling.
+- Fixed vterm Ctrl modifier behavior.
+- Fixed terminal size policy issues.
+- Fixed WebView whitespace/page naming issues.
+- Fixed agent abort/error state behavior.
+
 # v0.2.0-alpha3
 
 ## Highlights
 
 - Added a built-in Git workflow for status, log graph, diff/show, commit, push, fetch, merge/rebase, upstream detection, proxy configuration, and conflict resolution.
-- Introduced a new terminal experience based on vterm/ConPTY, with ANSI/true-color rendering, UTF-8 support, cursor handling, mouse scroll, middle-click paste, and OSC 52 clipboard support.
+- Introduced a new terminal experience based on vterm/ConPTY, with ANSI/true-color rendering, UTF-8 support, cursor handling, mouse scroll, middle-click paste, and OSC 52 clipboard
+  support.
 - Added WebView and Markdown page support on top of the DocumentModule foundation.
 - Added BigModel provider support.
 - Added terminal session management and Markdown syntax highlighting support.
@@ -21,7 +94,8 @@
 
 - Added vterm/ConPTY terminal widget infrastructure.
 - Added ANSI color and true-color rendering.
-- Added UTF-8 support, cursor rendering/blinking, resize behavior, scroll handling, mouse/key/modifier event routing, middle-click paste, bell callback, and OSC 52 clipboard support.
+- Added UTF-8 support, cursor rendering/blinking, resize behavior, scroll handling, mouse/key/modifier event routing, middle-click paste, bell callback, and OSC 52 clipboard
+  support.
 - Added configurable terminal sessions and batch/PowerShell icons.
 - Added a terminal management window and persisted terminal configuration back to `config.json`.
 
