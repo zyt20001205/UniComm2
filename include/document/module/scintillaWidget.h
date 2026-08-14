@@ -27,10 +27,6 @@ public:
     using Utf16Index = Index<IndexEncoding::Utf16>;
     using Utf32Index = Index<IndexEncoding::Utf32>;
 
-    struct Position {
-        Scintilla::Position value{};
-    };
-
     struct ViewportPoint {
         QPoint value{};
     };
@@ -52,12 +48,12 @@ public:
             return cast<To>(cast<ViewportPoint>(from));
         } else if constexpr (std::is_same_v<To, GlobalPoint>) {
             return pointCast<GlobalPoint>(cast<ViewportPoint>(from));
-        } else if constexpr (std::is_same_v<To, Position>) {
+        } else if constexpr (std::is_same_v<To, Scintilla::Position>) {
             return positionFrom(from);
-        } else if constexpr (std::is_same_v<Source, Position>) {
+        } else if constexpr (std::is_same_v<Source, Scintilla::Position>) {
             return positionCast<To>(from);
         } else {
-            return cast<To>(cast<Position>(from));
+            return cast<To>(cast<Scintilla::Position>(from));
         }
     }
 
@@ -213,7 +209,7 @@ public:
 
 private:
     template<typename T>
-    static constexpr bool coordinateType = std::is_same_v<T, Position>
+    static constexpr bool coordinateType = std::is_same_v<T, Scintilla::Position>
                                            || std::is_same_v<T, Utf8Index>
                                            || std::is_same_v<T, Utf16Index>
                                            || std::is_same_v<T, Utf32Index>
@@ -231,30 +227,30 @@ private:
     }
 
     template<typename To>
-    [[nodiscard]] To positionCast(const Position &position) const {
+    [[nodiscard]] To positionCast(const Scintilla::Position position) const {
         if constexpr (std::is_same_v<To, Utf8Index>) return utf8IndexFrom(position);
         else if constexpr (std::is_same_v<To, Utf16Index>) return utf16IndexFrom(position);
         else if constexpr (std::is_same_v<To, Utf32Index>) return utf32IndexFrom(position);
         else return viewportPointFrom(position);
     }
 
-    [[nodiscard]] Position positionFrom(const Utf8Index &index) const;
+    [[nodiscard]] Scintilla::Position positionFrom(const Utf8Index &index) const;
 
-    [[nodiscard]] Position positionFrom(const Utf16Index &index) const;
+    [[nodiscard]] Scintilla::Position positionFrom(const Utf16Index &index) const;
 
-    [[nodiscard]] Position positionFrom(const Utf32Index &index) const;
+    [[nodiscard]] Scintilla::Position positionFrom(const Utf32Index &index) const;
 
-    [[nodiscard]] Position positionFrom(const ViewportPoint &point) const;
+    [[nodiscard]] Scintilla::Position positionFrom(const ViewportPoint &point) const;
 
-    [[nodiscard]] Position positionResolve(int line, int character) const;
+    [[nodiscard]] Scintilla::Position positionResolve(int line, int character) const;
 
-    [[nodiscard]] Utf8Index utf8IndexFrom(const Position &position) const;
+    [[nodiscard]] Utf8Index utf8IndexFrom(Scintilla::Position position) const;
 
-    [[nodiscard]] Utf16Index utf16IndexFrom(const Position &position) const;
+    [[nodiscard]] Utf16Index utf16IndexFrom(Scintilla::Position position) const;
 
-    [[nodiscard]] Utf32Index utf32IndexFrom(const Position &position) const;
+    [[nodiscard]] Utf32Index utf32IndexFrom(Scintilla::Position position) const;
 
-    [[nodiscard]] ViewportPoint viewportPointFrom(const Position &position) const;
+    [[nodiscard]] ViewportPoint viewportPointFrom(Scintilla::Position position) const;
 };
 
 #endif //UNICOMM_SCINTILLAWIDGET_H

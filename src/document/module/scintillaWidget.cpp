@@ -110,16 +110,16 @@ int ScintillaWidget::heightGet() const {
 }
 
 // public: index
-QHash<QString, int> ScintillaWidget::indexGet(Scintilla::Position position) const {
-    if (position == -1) position = positionResolve(-1, -1).value;
-    const auto index = cast<Utf16Index>(Position{position});
+QHash<QString, int> ScintillaWidget::indexGet(Position position) const {
+    if (position == -1) position = positionResolve(-1, -1);
+    const auto index = cast<Utf16Index>(position);
     return QHash<QString, int>{
         {"line", index.line},
         {"character", index.character}
     };
 }
 
-QHash<QString, int> ScintillaWidget::wordIndexGet(const Scintilla::Position position, const bool onlyWordCharacters) const {
+QHash<QString, int> ScintillaWidget::wordIndexGet(const Position position, const bool onlyWordCharacters) const {
     const Position startPosition{send(SCI_WORDSTARTPOSITION, position, onlyWordCharacters)};
     const Position endPosition{send(SCI_WORDENDPOSITION, position, onlyWordCharacters)};
     const auto startIndex = cast<Utf16Index>(startPosition);
@@ -133,11 +133,11 @@ QHash<QString, int> ScintillaWidget::wordIndexGet(const Scintilla::Position posi
 }
 
 QHash<QString, int> ScintillaWidget::wordIndexGet(const int line, const int character, const bool onlyWordCharacters) const {
-    return wordIndexGet(positionResolve(line, character).value, onlyWordCharacters);
+    return wordIndexGet(positionResolve(line, character), onlyWordCharacters);
 }
 
 void ScintillaWidget::indexSet(const int line, const int character) const {
-    positionSet(positionResolve(line, character).value);
+    positionSet(positionResolve(line, character));
 }
 
 // public: indicator
@@ -156,33 +156,33 @@ void ScintillaWidget::indicatorDefine(const int type, const QVariantHash &sessio
 void ScintillaWidget::indicatorFill(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) const {
     const Position start = positionResolve(startLine, startCharacter);
     const Position end = positionResolve(endLine, endCharacter);
-    const Scintilla::Position length = end.value - start.value;
+    const Position length = end - start;
     if (length <= 0) return;
     send(SCI_SETINDICATORCURRENT, type); // NOLINT
-    send(SCI_INDICATORFILLRANGE, start.value, length); // NOLINT
+    send(SCI_INDICATORFILLRANGE, start, length); // NOLINT
     if (time == -1) return;
     QTimer::singleShot(time, [this, type, startLine, startCharacter, endLine, endCharacter] { indicatorClear(type, startLine, startCharacter, endLine, endCharacter); });
 }
 
 void ScintillaWidget::indicatorClear(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     Position start{};
-    Scintilla::Position lengthFill{};
+    Position lengthFill{};
     if (startLine != -1) {
         start = positionResolve(startLine, startCharacter);
-        lengthFill = positionResolve(endLine, endCharacter).value - start.value;
+        lengthFill = positionResolve(endLine, endCharacter) - start;
     } else {
         lengthFill = send(SCI_GETTEXTLENGTH);
     }
     send(SCI_SETINDICATORCURRENT, type); // NOLINT
-    send(SCI_INDICATORCLEARRANGE, start.value, lengthFill); // NOLINT
+    send(SCI_INDICATORCLEARRANGE, start, lengthFill); // NOLINT
 }
 
-int ScintillaWidget::indicatorGet(const Scintilla::Position position) const {
+int ScintillaWidget::indicatorGet(const Position position) const {
     return static_cast<int>(send(SCI_INDICATORALLONFOR, position));
 }
 
 // public: length
-Scintilla::Position ScintillaWidget::lengthGet() const {
+Position ScintillaWidget::lengthGet() const {
     return send(SCI_GETLENGTH);
 }
 
@@ -202,7 +202,7 @@ void ScintillaWidget::lineDuplicate() const {
     send(SCI_LINEDUPLICATE); // NOLINT
 }
 
-int ScintillaWidget::lineGet(const Scintilla::Position position) const {
+int ScintillaWidget::lineGet(const Position position) const {
     return static_cast<int>(send(SCI_LINEFROMPOSITION, position));
 }
 
@@ -302,24 +302,24 @@ int ScintillaWidget::markerGet(const int line) const {
 
 bool ScintillaWidget::atLineEnd() const {
     const Position position = positionResolve(-1, -1);
-    const Position lineEndPosition{send(SCI_GETLINEENDPOSITION, lineGet(position.value))};
-    return position.value == lineEndPosition.value;
+    const Position lineEndPosition = send(SCI_GETLINEENDPOSITION, lineGet(position));
+    return position == lineEndPosition;
 }
 
 // public: position
-Scintilla::Position ScintillaWidget::positionGet(const int line, const int character) const {
-    return positionResolve(line, character).value;
+Position ScintillaWidget::positionGet(const int line, const int character) const {
+    return positionResolve(line, character);
 }
 
-Scintilla::Position ScintillaWidget::positionGet(const QPoint &point) const {
-    return cast<Position>(ViewportPoint{point}).value;
+Position ScintillaWidget::positionGet(const QPoint &point) const {
+    return cast<Position>(ViewportPoint{point});
 }
 
-Scintilla::Position ScintillaWidget::closePositionGet(const QPoint &point) const {
+Position ScintillaWidget::closePositionGet(const QPoint &point) const {
     return send(SCI_POSITIONFROMPOINTCLOSE, point.x(), point.y());
 }
 
-void ScintillaWidget::positionSet(const Scintilla::Position position) const {
+void ScintillaWidget::positionSet(const Position position) const {
     send(SCI_GOTOPOS, position); // NOLINT
 }
 
@@ -333,19 +333,19 @@ void ScintillaWidget::searchFlagsSet(const bool matchCase, const bool wholeWord,
     send(SCI_SETSEARCHFLAGS, flags); // NOLINT
 }
 
-Scintilla::Position ScintillaWidget::targetGetStart() const {
+Position ScintillaWidget::targetGetStart() const {
     return send(SCI_GETTARGETSTART);
 }
 
-void ScintillaWidget::targetSetStart(const Scintilla::Position position) const {
+void ScintillaWidget::targetSetStart(const Position position) const {
     send(SCI_SETTARGETSTART, position); // NOLINT
 }
 
-Scintilla::Position ScintillaWidget::targetGetEnd() const {
+Position ScintillaWidget::targetGetEnd() const {
     return send(SCI_GETTARGETEND);
 }
 
-void ScintillaWidget::targetSetEnd(const Scintilla::Position position) const {
+void ScintillaWidget::targetSetEnd(const Position position) const {
     send(SCI_SETTARGETEND, position); // NOLINT
 }
 
@@ -353,7 +353,7 @@ void ScintillaWidget::targetSetWhole() const {
     send(SCI_TARGETWHOLEDOCUMENT); // NOLINT
 }
 
-Scintilla::Position ScintillaWidget::targetSearch(const QString &text) const {
+Position ScintillaWidget::targetSearch(const QString &text) const {
     const auto utf8 = text.toUtf8();
     return send(SCI_SEARCHINTARGET, utf8.size(), reinterpret_cast<uptr_t>(utf8.constData())); // NOLINT
 }
@@ -363,7 +363,7 @@ QHash<QString, int> ScintillaWidget::selectionGet() const {
     const auto index = cast<Utf16Index>(positionResolve(-1, -1));
     const Position startPosition{send(SCI_GETSELECTIONSTART)};
     const Position endPosition{send(SCI_GETSELECTIONEND)};
-    const int characters = static_cast<int>(send(SCI_COUNTCHARACTERS, startPosition.value, endPosition.value));
+    const int characters = static_cast<int>(send(SCI_COUNTCHARACTERS, startPosition, endPosition));
     const auto startIndex = cast<Utf16Index>(startPosition);
     const auto endIndex = cast<Utf16Index>(endPosition);
     return QHash<QString, int>{
@@ -371,7 +371,7 @@ QHash<QString, int> ScintillaWidget::selectionGet() const {
         {"character", index.character},
         {"startLine", startIndex.line},
         {"startCharacter", startIndex.character},
-        {"startPosition", static_cast<int>(startPosition.value)},
+        {"startPosition", static_cast<int>(startPosition)},
         {"endLine", endIndex.line},
         {"endCharacter", endIndex.character},
         {"lines", endIndex.line - startIndex.line},
@@ -382,7 +382,7 @@ QHash<QString, int> ScintillaWidget::selectionGet() const {
 void ScintillaWidget::selectionSet(const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     const Position anchor = positionResolve(startLine, startCharacter);
     const Position caret = positionResolve(endLine, endCharacter);
-    send(SCI_SETSEL, anchor.value, caret.value); // NOLINT
+    send(SCI_SETSEL, anchor, caret); // NOLINT
 }
 
 // public: style
@@ -407,7 +407,7 @@ void ScintillaWidget::styleDefine(const int type, const QVariantHash &session) c
     // if (session.contains("locale")) send(SCI_SETFONTLOCALE, type, reinterpret_cast<sptr_t>(session["locale"].toString().toUtf8().constData())); // NOLINT
 }
 
-int ScintillaWidget::styleGet(const Scintilla::Position position) const {
+int ScintillaWidget::styleGet(const Position position) const {
     return send(SCI_GETSTYLEAT, position); // NOLINT
 }
 
@@ -416,15 +416,15 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
     if (startLine != -1) {
         start = positionResolve(startLine, startCharacter);
         const Position end = positionResolve(startLine, startCharacter + length);
-        length = static_cast<int>(end.value - start.value);
+        length = static_cast<int>(end - start);
     } else {
         length = static_cast<int>(lengthGet());
     }
-    if (start.value < 0 || start.value + length > lengthGet() || length <= 0) {
+    if (start < 0 || start + length > lengthGet() || length <= 0) {
         // qDebug() << "long string skipped (this is lua language server bug)";
         return;
     }
-    send(SCI_STARTSTYLING, start.value); // NOLINT
+    send(SCI_STARTSTYLING, start); // NOLINT
     send(SCI_SETSTYLING, length, type); // NOLINT
 }
 
@@ -441,20 +441,20 @@ void ScintillaWidget::textClear() const {
 QString ScintillaWidget::textGet(const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     Position startPosition{};
     Position endPosition{};
-    Scintilla::Position length{};
+    Position length{};
     if (startLine == -1) {
-        endPosition = Position{lengthGet()};
+        endPosition = lengthGet();
         length = lengthGet();
     } else {
         const auto lineCount = lineCountGet();
         if (startLine < 0 || startLine >= lineCount || endLine < startLine) return {};
         startPosition = positionResolve(startLine, startCharacter);
         endPosition = positionResolve(qMin(endLine, lineCount - 1), endCharacter);
-        length = endPosition.value - startPosition.value;
+        length = endPosition - startPosition;
     }
     if (length < 0 || length > static_cast<int>(lengthGet())) return {};
     QByteArray buffer(static_cast<int>(length + 1), '\0');
-    Sci_TextRange tr = {{static_cast<int>(startPosition.value), static_cast<int>(endPosition.value)}, buffer.data()};
+    Sci_TextRange tr = {{static_cast<int>(startPosition), static_cast<int>(endPosition)}, buffer.data()};
     send(SCI_GETTEXTRANGE, 0, reinterpret_cast<sptr_t>(&tr));
     buffer.chop(1); // Remove extra NUL
     return QString::fromUtf8(buffer.constData(), static_cast<int>(length));
@@ -507,67 +507,67 @@ void ScintillaWidget::undoEnd() const {
 }
 
 // private:
-ScintillaWidget::Position ScintillaWidget::positionFrom(const Utf8Index &index) const {
+Position ScintillaWidget::positionFrom(const Utf8Index &index) const {
     const int line = qBound(0, index.line, lineCountGet() - 1);
-    const Scintilla::Position lineStart = send(SCI_POSITIONFROMLINE, line);
-    const Scintilla::Position lineEnd = send(SCI_GETLINEENDPOSITION, line);
-    const Scintilla::Position offset = qBound(Scintilla::Position{}, static_cast<Scintilla::Position>(index.character), lineEnd - lineStart);
-    return Position{lineStart + offset};
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const Position lineEnd = send(SCI_GETLINEENDPOSITION, line);
+    const Position offset = qBound(Position{}, static_cast<Position>(index.character), lineEnd - lineStart);
+    return lineStart + offset;
 }
 
-ScintillaWidget::Position ScintillaWidget::positionFrom(const Utf16Index &index) const {
+Position ScintillaWidget::positionFrom(const Utf16Index &index) const {
     const int line = qBound(0, index.line, lineCountGet() - 1);
-    const Scintilla::Position lineStart = send(SCI_POSITIONFROMLINE, line);
-    const Scintilla::Position lineEnd = send(SCI_GETLINEENDPOSITION, line);
-    const Scintilla::Position lineLength = send(SCI_COUNTCODEUNITS, lineStart, lineEnd);
-    const Scintilla::Position offset = qBound(Scintilla::Position{}, static_cast<Scintilla::Position>(index.character), lineLength);
-    return Position{send(SCI_POSITIONRELATIVECODEUNITS, lineStart, offset)};
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const Position lineEnd = send(SCI_GETLINEENDPOSITION, line);
+    const Position lineLength = send(SCI_COUNTCODEUNITS, lineStart, lineEnd);
+    const Position offset = qBound(Position{}, static_cast<Position>(index.character), lineLength);
+    return send(SCI_POSITIONRELATIVECODEUNITS, lineStart, offset);
 }
 
-ScintillaWidget::Position ScintillaWidget::positionFrom(const Utf32Index &index) const {
+Position ScintillaWidget::positionFrom(const Utf32Index &index) const {
     const int line = qBound(0, index.line, lineCountGet() - 1);
-    const Scintilla::Position lineStart = send(SCI_POSITIONFROMLINE, line);
-    const Scintilla::Position lineEnd = send(SCI_GETLINEENDPOSITION, line);
-    const Scintilla::Position lineLength = send(SCI_COUNTCHARACTERS, lineStart, lineEnd);
-    const Scintilla::Position offset = qBound(Scintilla::Position{}, static_cast<Scintilla::Position>(index.character), lineLength);
-    return Position{send(SCI_POSITIONRELATIVE, lineStart, offset)};
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const Position lineEnd = send(SCI_GETLINEENDPOSITION, line);
+    const Position lineLength = send(SCI_COUNTCHARACTERS, lineStart, lineEnd);
+    const Position offset = qBound(Position{}, static_cast<Position>(index.character), lineLength);
+    return send(SCI_POSITIONRELATIVE, lineStart, offset);
 }
 
-ScintillaWidget::Position ScintillaWidget::positionFrom(const ViewportPoint &point) const {
-    return Position{send(SCI_POSITIONFROMPOINT, point.value.x(), point.value.y())};
+Position ScintillaWidget::positionFrom(const ViewportPoint &point) const {
+    return send(SCI_POSITIONFROMPOINT, point.value.x(), point.value.y());
 }
 
-ScintillaWidget::Position ScintillaWidget::positionResolve(const int line, const int character) const {
-    if (line == -1) return Position{send(SCI_GETCURRENTPOS)};
-    if (character == -1) return Position{send(SCI_GETLINEENDPOSITION, line)};
+Position ScintillaWidget::positionResolve(const int line, const int character) const {
+    if (line == -1) return send(SCI_GETCURRENTPOS);
+    if (character == -1) return send(SCI_GETLINEENDPOSITION, line);
     return cast<Position>(Utf16Index{line, character});
 }
 
-ScintillaWidget::Utf8Index ScintillaWidget::utf8IndexFrom(const Position &position) const {
-    const Scintilla::Position boundedPosition = qBound(Scintilla::Position{}, position.value, lengthGet());
+ScintillaWidget::Utf8Index ScintillaWidget::utf8IndexFrom(const Position position) const {
+    const Position boundedPosition = qBound(Position{}, position, lengthGet());
     const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, boundedPosition));
-    const Scintilla::Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
     return Utf8Index{line, static_cast<int>(boundedPosition - lineStart)};
 }
 
-ScintillaWidget::Utf16Index ScintillaWidget::utf16IndexFrom(const Position &position) const {
-    const Scintilla::Position boundedPosition = qBound(Scintilla::Position{}, position.value, lengthGet());
+ScintillaWidget::Utf16Index ScintillaWidget::utf16IndexFrom(const Position position) const {
+    const Position boundedPosition = qBound(Position{}, position, lengthGet());
     const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, boundedPosition));
-    const Scintilla::Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
     const int character = static_cast<int>(send(SCI_COUNTCODEUNITS, lineStart, boundedPosition));
     return Utf16Index{line, character};
 }
 
-ScintillaWidget::Utf32Index ScintillaWidget::utf32IndexFrom(const Position &position) const {
-    const Scintilla::Position boundedPosition = qBound(Scintilla::Position{}, position.value, lengthGet());
+ScintillaWidget::Utf32Index ScintillaWidget::utf32IndexFrom(const Position position) const {
+    const Position boundedPosition = qBound(Position{}, position, lengthGet());
     const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, boundedPosition));
-    const Scintilla::Position lineStart = send(SCI_POSITIONFROMLINE, line);
+    const Position lineStart = send(SCI_POSITIONFROMLINE, line);
     const int character = static_cast<int>(send(SCI_COUNTCHARACTERS, lineStart, boundedPosition));
     return Utf32Index{line, character};
 }
 
-ScintillaWidget::ViewportPoint ScintillaWidget::viewportPointFrom(const Position &position) const {
-    const Scintilla::Position boundedPosition = qBound(Scintilla::Position{}, position.value, lengthGet());
+ScintillaWidget::ViewportPoint ScintillaWidget::viewportPointFrom(const Position position) const {
+    const Position boundedPosition = qBound(Position{}, position, lengthGet());
     const int x = static_cast<int>(send(SCI_POINTXFROMPOSITION, 0, boundedPosition));
     const int y = static_cast<int>(send(SCI_POINTYFROMPOSITION, 0, boundedPosition));
     return ViewportPoint{QPoint{x, y}};
