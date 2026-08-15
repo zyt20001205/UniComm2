@@ -17,8 +17,12 @@ public:
 
     Q_INVOKABLE void workspaceOpen();
 
+    Q_INVOKABLE void documentOpen(const QUrl &documentUrl);
+
 signals:
     void openWorkspace();
+
+    void openDocument(const QUrl &documentUrl);
 
 private:
     QQuickWidget *m_welcomeWidget{};

@@ -29,7 +29,7 @@ Item {
             text: qsTr("GitHub")
             font.pixelSize: 16
 
-            onClicked: Qt.openUrlExternally("https://github.com/zyt20001205/UniComm")
+            onClicked: welcomePage.documentOpen("https://github.com/zyt20001205/UniComm")
         }
     }
 }

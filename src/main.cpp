@@ -33,8 +33,7 @@ int main(int argc, char *argv[]) {
     if (ConfigManager::mainConfigLoad()) return 1;
     KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory());
     KDDockWidgets::Config::self().setDockWidgetFactoryFunc(dockWidgetFactory);
-    auto *mainWindow = new MainWindow();
-    mainWindow->showMaximized();
+    new MainWindow();
     // application exec
     return QApplication::exec();
 }

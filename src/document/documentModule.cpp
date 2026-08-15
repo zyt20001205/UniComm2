@@ -49,6 +49,7 @@ DocumentModule::DocumentModule(QWidget *parent)
     connect(m_watcherTimer, &QTimer::timeout, this, [this] { m_watcher->blockSignals(false); });
     qApp->installEventFilter(m_codeAssistant);
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
+    connect(m_welcomePage, &WelcomePage::openDocument, this, &DocumentModule::documentOpen, Qt::QueuedConnection);
     connect(this, &DocumentModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &DocumentModule::charAdd);
     connect(m_codeAssistant, &CodeAssistant::setIndex, this, &DocumentModule::indexSet);

@@ -61,7 +61,6 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     setAttribute(Qt::WA_DeleteOnClose);
     QWidget::setWindowTitle("UniComm");
     QWidget::setWindowIcon(QIcon(":/icon/icon.ico"));
-    QWidget::showMaximized();
 
     moduleInit();
     shortcutInit();
@@ -616,23 +615,27 @@ void MainWindow::layoutInit() {
     auto *statusBar = this->statusBar();
     statusBar->addWidget(m_statusModule, 1);
 
-    addDockWidget(m_documentModule->welcomePage(), KDDockWidgets::Location_OnRight);
-    // left
-    addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(600, 0)));
-    addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
-    addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
-    // right
-    addDockWidget(m_agentModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(800, 0)));
-    // bottom
-    addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(0, 200)));
-    m_logModule->addDockWidgetAsTab(m_gitModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
-    m_logModule->addDockWidgetAsTab(m_diagnosticsModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
-    addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(800, 0)));
-
+    bool restored = false;
     if (!m_mainConfig["state"].toString().isEmpty()) {
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
         KDDockWidgets::LayoutSaver layoutSaver;
-        layoutSaver.restoreLayout(layoutData);
+        restored = layoutSaver.restoreLayout(layoutData);
+    }
+    if (!restored) {
+        showMaximized();
+
+        addDockWidget(m_documentModule->welcomePage(), KDDockWidgets::Location_OnRight);
+        // left
+        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(600, 0)));
+        addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
+        addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
+        // right
+        addDockWidget(m_agentModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(800, 0)));
+        // bottom
+        addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(0, 200)));
+        m_logModule->addDockWidgetAsTab(m_gitModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
+        m_logModule->addDockWidgetAsTab(m_diagnosticsModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
+        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(800, 0)));
     }
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

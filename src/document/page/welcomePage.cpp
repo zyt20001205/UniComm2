@@ -23,3 +23,7 @@ void WelcomePage::propertySet(const QVariantHash &objects) {
 void WelcomePage::workspaceOpen() {
     emit openWorkspace();
 }
+
+void WelcomePage::documentOpen(const QUrl &documentUrl) {
+    emit openDocument(documentUrl);
+}
