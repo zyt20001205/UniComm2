@@ -89,10 +89,11 @@ as the boundary between those concerns:
 - Existing scripts remain useful as normal source files with completion,
   diagnostics, debugging, and version control.
 
-<!--
-The real-workflow demo section will be added after its scenarios and recordings
-are finalized. Keep the section outcome-oriented rather than architecture-oriented.
--->
+## Demos
+
+| Workflow                                                                | Result                                                                                                                                                             |
+|:------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Modbus telemetry to FTP](https://www.bilibili.com/video/BV1Jxby6NEVr/) | The Agent creates the required Modbus RTU and FTP ports, collects register samples in a DataTable, exports them to CSV, uploads the file, and verifies the result. |
 
 ## Capabilities
 
