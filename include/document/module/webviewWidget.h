@@ -46,6 +46,8 @@ private:
 
     void closeWebView();
 
+    void themeApply() const;
+
     void registerEvents();
 
     bool m_oleInitialized{};

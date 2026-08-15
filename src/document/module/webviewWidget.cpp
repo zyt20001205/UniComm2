@@ -1,5 +1,6 @@
 #include "document/module/webviewWidget.h"
 
+#include <QColor>
 #include <QDir>
 #include <QResizeEvent>
 #include <QStandardPaths>
@@ -12,6 +13,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <WebView2.h>
+
+#include "globals.h"
+#include "core/globalManager.h"
 
 namespace {
     template<typename Interface>
@@ -183,6 +187,7 @@ void WebviewWidget::ensureCreated() {
                 emit errorOccurred("Failed to get WebView2");
                 return S_OK;
             }
+            themeApply();
             registerEvents();
 
             if (SUCCEEDED(m_webView->QueryInterface(IID_ICoreWebView2_28, (void**)&m_webView28))) {
@@ -251,6 +256,36 @@ void WebviewWidget::closeWebView() {
     }
     m_ready = false;
     m_creating = false;
+}
+
+void WebviewWidget::themeApply() const {
+    if (!g_globalManager || !m_controller || !m_webView) return;
+
+    ICoreWebView2_13 *webView13{};
+    if (SUCCEEDED(m_webView->QueryInterface(IID_ICoreWebView2_13, reinterpret_cast<void **>(&webView13)))) {
+        ICoreWebView2Profile *profile{};
+        if (SUCCEEDED(webView13->get_Profile(&profile))) {
+            const auto colorScheme = g_globalManager->themeGet() == Theme::Light
+                                         ? COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT
+                                         : COREWEBVIEW2_PREFERRED_COLOR_SCHEME_DARK;
+            profile->put_PreferredColorScheme(colorScheme);
+            profile->Release();
+        }
+        webView13->Release();
+    }
+
+    ICoreWebView2Controller2 *controller2{};
+    if (SUCCEEDED(m_controller->QueryInterface(IID_ICoreWebView2Controller2, reinterpret_cast<void **>(&controller2)))) {
+        const QColor background(g_globalManager->backGet());
+        const COREWEBVIEW2_COLOR color{
+            255,
+            static_cast<BYTE>(background.red()),
+            static_cast<BYTE>(background.green()),
+            static_cast<BYTE>(background.blue())
+        };
+        controller2->put_DefaultBackgroundColor(color);
+        controller2->Release();
+    }
 }
 
 void WebviewWidget::registerEvents() {
