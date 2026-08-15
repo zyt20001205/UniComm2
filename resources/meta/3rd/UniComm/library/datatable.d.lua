@@ -4,22 +4,46 @@
 ---| string
 ---| '"__PLACEHOLDER__DATATABLEKEY__"'
 
+---
+---Access configured columns in the current workspace Data Table.
+---
+---Each key identifies one column and maintains its own next row for appending.
+---
+---[Data Table demo](../demo/datatable.lua)
+---
 datatable = {}
 
----Retrieves a list of all available datatable keys.
----@return table
+---
+---Returns all configured Data Table column keys.
+---
+---The order is unspecified.
+---
+---@return string[] keys
 function datatable.list() end
 
----Clears all data from the datatable。
+---
+---Removes all rows and resets every column's append position without removing columns.
+---
+---@return nil
 function datatable.clear() end
 
----Writes data to an available key in datatable.
----@param key datatableKey The key to write to.
----@param value boolean|number|string The value to write.
+---
+---Appends a value to the next row of a configured Data Table column.
+---
+---An unknown key raises an error. Write once to every column for each logical row
+---to keep their independently tracked append positions aligned.
+---
+---@param key datatableKey Target column key.
+---@param value boolean|number|string Value to append.
 ---@return nil
 function datatable.write(key, value) end
 
----Exports the datatable to a CSV file.
----@param path? string (default: "") The path of csv file; when omitted uses timestamp as file name.
+---
+---Exports the current Data Table rows to a CSV file.
+---
+---Relative paths start from the current workspace. When omitted, a timestamped
+---file name is generated automatically.
+---
+---@param path? string (default: "") CSV output path.
 ---@return nil
 function datatable.export(path) end
