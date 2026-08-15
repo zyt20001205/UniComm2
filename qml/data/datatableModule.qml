@@ -78,7 +78,6 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
-                    gesturePolicy: TapHandler.DragWithinBounds
 
                     onDoubleTapped: horizontalHeaderView.edit(horizontalHeaderView.index(row, column))
                 }

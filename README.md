@@ -27,6 +27,12 @@ ports, and brings the results back into the same workspace.
 
 </div>
 
+<p align="center">
+<a href="docs/assets/screenshot/hero.png"><img src="docs/assets/screenshot/hero.png" alt="UniComm running an Agent-generated Modbus TCP commissioning workflow"></a>
+</p>
+
+<p align="center"><sub>An Agent-generated Lua workflow writes Modbus registers, verifies the readback, and records the results in one workspace.</sub></p>
+
 ## What is UniComm?
 
 UniComm is a Windows desktop workspace for engineers who need to communicate

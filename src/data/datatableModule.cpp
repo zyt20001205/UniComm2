@@ -69,7 +69,7 @@ void DatatableModule::datatableInsert(int index, const QString &key) {
     };
     m_datatableSession.insert(key, sessionHash);
 
-    if (index == -1) index = g_datatableHeaderItemModel->columnCount();
+    if (index == -1) index = g_datatableHeaderItemModel->rowCount();
     auto *item = new QStandardItem(key); // NOLINT
     item->setData(false, Qt::WhatsThisRole);
     g_datatableHeaderItemModel->insertRow(index, item);
