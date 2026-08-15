@@ -3793,7 +3793,7 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("LLM")
+            text: qsTr("Agent")
             checkable: true
             checked: agentModuleAction ? agentModuleAction.checked : false
 
