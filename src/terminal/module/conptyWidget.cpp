@@ -1,6 +1,5 @@
 #include "terminal/module/conptyWidget.h"
 
-#include <QDir>
 #include <QMetaObject>
 #include <QProcessEnvironment>
 #include <QUrl>
@@ -17,8 +16,7 @@ ConptyWidget::~ConptyWidget() {
     stop();
 }
 
-bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QString &workingDirectory,
-                        const QString &environment, const int rows, const int cols) {
+bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QUrl &workingDirectory, const QString &environment, const int rows, const int cols) {
     if (program.isEmpty() || rows < 1 || cols < 1) return false;
 
     HANDLE h_inputRead{};
@@ -79,7 +77,7 @@ bool ConptyWidget::start(const QUrl &program, const QString &arguments, const QS
     const auto &commandLine = QString("\"%1\" %2").arg(_program, arguments);
     const auto &applicationName = _program.toStdWString();
     auto command = commandLine.toStdWString();
-    const auto &directory = QDir::toNativeSeparators(workingDirectory).toStdWString();
+    const auto &directory = workingDirectory.toLocalFile().toStdWString();
     auto _environment = environmentParse(environment).toStdWString();
 
     PROCESS_INFORMATION processInfo{};
