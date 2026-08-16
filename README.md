@@ -91,9 +91,10 @@ as the boundary between those concerns:
 
 ## Demos
 
-| Workflow                                                                | Result                                                                                                                                                             |
-|:------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Modbus telemetry to FTP](https://www.bilibili.com/video/BV1Jxby6NEVr/) | The Agent creates the required Modbus RTU and FTP ports, collects register samples in a DataTable, exports them to CSV, uploads the file, and verifies the result. |
+| Workflow                                                                          | Result                                                                                                                                                             |
+|:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Modbus telemetry to FTP](https://www.bilibili.com/video/BV1Jxby6NEVr/)           | The Agent creates the required Modbus RTU and FTP ports, collects register samples in a DataTable, exports them to CSV, uploads the file, and verifies the result. |
+| [ESP protocol to Bark notification](https://www.bilibili.com/video/BV1cZbQ64EYA/) | The Agent reads a custom ESP32 protocol, builds a Lua workflow that blinks and verifies the board LED, requests the Bark key, and sends a completion notification. |
 
 ## Capabilities
 
