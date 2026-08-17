@@ -256,10 +256,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     // open page
     if (!m_pageHash.contains(documentUrl)) {
         const auto documentPage = documentConstruct(documentUrl);
-        if (qobject_cast<MarkdownPage *>(documentPage)) {
-            documentPage->setFloating(true);
-            documentPage->open();
-        }
         if (m_focusedUrl.isEmpty()) {
             m_welcomePage->open();
             m_welcomePage->addDockWidgetAsTab(documentPage);

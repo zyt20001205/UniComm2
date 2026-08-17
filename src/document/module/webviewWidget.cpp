@@ -200,6 +200,11 @@ void WebviewWidget::ensureCreated() {
             }
 
             resizeWebView();
+            QTimer::singleShot(0, this, [this] {
+                for (auto *ancestor = parentWidget(); ancestor; ancestor = ancestor->parentWidget()) {
+                    ancestor->update();
+                }
+            });
             m_ready = m_webView && m_controller;
             emit readyChanged(m_ready);
             if (!m_pendingHtml.isEmpty()) setHtml(m_pendingHtml);
