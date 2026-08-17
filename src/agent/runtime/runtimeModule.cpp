@@ -119,7 +119,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             m_turn = {};
             stateSet(AgentState::Ready);
         }
-            break;
+        break;
         case AgentState::Error: {
             emit showError(payload.toString());
             stateSet(AgentState::Abort, payload);
@@ -357,7 +357,10 @@ void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonOb
             if (!toolCalls->isEmpty()) {
                 QJsonArray _toolCalls{};
                 for (auto toolCall: toolCalls->values()) {
-                    if (toolCall.id.isEmpty() || toolCall.name.isEmpty()) continue;
+                    if (toolCall.name.isEmpty()) continue;
+
+                    if (toolCall.id.isEmpty()) toolCall.id = "call_" + QUuid::createUuid().toString(QUuid::WithoutBraces);
+
                     _toolCalls.append(QJsonObject{
                         {"id", toolCall.id},
                         {"type", "function"},
