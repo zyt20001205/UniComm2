@@ -15,6 +15,7 @@ Item {
     readonly property int infoLevel: 2
     readonly property int successLevel: 3
     readonly property int maximumVisible: 5
+    readonly property int motionDuration: 200
     property int nextId
 
     ListModel {
@@ -40,7 +41,6 @@ Item {
                 height: toastPopup.implicitHeight
                 property real remaining: 1
                 property real popupOpacity: 0
-                property real popupOffset: 24
                 property bool closing: false
                 readonly property url iconSource: toastLevel === root.errorLevel ? "qrc:/icon/error.svg"
                                                   : toastLevel === root.warningLevel ? "qrc:/icon/warning.svg"
@@ -53,19 +53,20 @@ Item {
 
                 Behavior on y {
                     NumberAnimation {
-                        duration: 160
-                        easing.type: Easing.OutCubic
+                        duration: root.motionDuration
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: [0.33, 0, 0.67, 1, 1, 1]
                     }
                 }
 
                 ToolTip {
                     id: toastPopup
                     parent: toastDelegate
-                    x: toastDelegate.popupOffset
                     y: 0
                     width: toastDelegate.width
                     padding: 0
                     closePolicy: Popup.NoAutoClose
+                    popupType: Popup.Item
                     delay: 0
                     timeout: -1
                     visible: true
@@ -142,26 +143,15 @@ Item {
                     }
                 }
 
-                ParallelAnimation {
+                NumberAnimation {
                     id: enterAnimation
-
-                    NumberAnimation {
-                        target: toastDelegate
-                        property: "popupOpacity"
-                        from: 0
-                        to: 1
-                        duration: 160
-                        easing.type: Easing.OutCubic
-                    }
-
-                    NumberAnimation {
-                        target: toastDelegate
-                        property: "popupOffset"
-                        from: 24
-                        to: 0
-                        duration: 160
-                        easing.type: Easing.OutCubic
-                    }
+                    target: toastDelegate
+                    property: "popupOpacity"
+                    from: 0
+                    to: 1
+                    duration: root.motionDuration
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: [0.33, 0, 0.67, 1, 1, 1]
                 }
 
                 NumberAnimation {
@@ -175,24 +165,14 @@ Item {
                     onFinished: toastDelegate.beginDismiss()
                 }
 
-                ParallelAnimation {
+                NumberAnimation {
                     id: exitAnimation
-
-                    NumberAnimation {
-                        target: toastDelegate
-                        property: "popupOpacity"
-                        to: 0
-                        duration: 140
-                        easing.type: Easing.InCubic
-                    }
-
-                    NumberAnimation {
-                        target: toastDelegate
-                        property: "popupOffset"
-                        to: 24
-                        duration: 140
-                        easing.type: Easing.InCubic
-                    }
+                    target: toastDelegate
+                    property: "popupOpacity"
+                    to: 0
+                    duration: root.motionDuration
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: [0.33, 0, 0.67, 1, 1, 1]
 
                     onFinished: root.dismiss(toastDelegate.toastId)
                 }
@@ -212,14 +192,12 @@ Item {
         }
     }
 
-    function show(level: int, title: string, text: string, displayTime: int): void {
-        const normalizedLevel = level >= errorLevel && level <= successLevel ? level : infoLevel
-        const duration = displayTime > 0 ? displayTime : 5000
+    function show(level: int, title: string, text: string, duration: int): void {
         const toast = {
             "toastId": ++nextId,
-            "toastLevel": normalizedLevel,
-            "toastTitle": title === undefined || title === null ? "" : String(title),
-            "toastText": text === undefined || text === null ? "" : String(text),
+            "toastLevel": level,
+            "toastTitle": title || "",
+            "toastText": text || "",
             "toastDuration": duration
         }
         if (activeToasts.count >= maximumVisible) activeToasts.remove(0)
