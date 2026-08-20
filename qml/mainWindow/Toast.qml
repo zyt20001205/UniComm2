@@ -8,7 +8,7 @@ import QtQuick.Layouts
 Item {
     id: root
     width: 360
-    height: toastColumn.implicitHeight
+    height: activeToasts.count > 0 ? Math.max(1, toastColumn.implicitHeight) : 0
 
     readonly property int errorLevel: 0
     readonly property int warningLevel: 1
@@ -41,6 +41,7 @@ Item {
                 property real remaining: 1
                 property real popupOpacity: 0
                 property real popupOffset: 24
+                property bool closing: false
                 readonly property url iconSource: toastLevel === root.errorLevel ? "qrc:/icon/error.svg"
                                                   : toastLevel === root.warningLevel ? "qrc:/icon/warning.svg"
                                                   : toastLevel === root.infoLevel ? "qrc:/icon/info.svg"
@@ -73,6 +74,7 @@ Item {
                     exit: null
 
                     contentItem: ColumnLayout {
+                        id: toastContent
                         spacing: 0
 
                         RowLayout {
@@ -114,6 +116,18 @@ Item {
                                     visible: toastDelegate.toastText.length > 0
                                     Layout.fillWidth: true
                                 }
+                            }
+
+                            Button {
+                                flat: true
+                                focusPolicy: Qt.NoFocus
+                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                icon.source: "qrc:/icon/dismiss.svg"
+                                icon.width: 12; icon.height: 12
+                                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                Layout.alignment: Qt.AlignTop
+
+                                onClicked: toastDelegate.beginDismiss()
                             }
                         }
 
@@ -158,7 +172,7 @@ Item {
                     to: 0
                     duration: toastDelegate.toastDuration
 
-                    onFinished: exitAnimation.start()
+                    onFinished: toastDelegate.beginDismiss()
                 }
 
                 ParallelAnimation {
@@ -183,18 +197,18 @@ Item {
                     onFinished: root.dismiss(toastDelegate.toastId)
                 }
 
+                function beginDismiss(): void {
+                    if (closing) return
+                    closing = true
+                    progressAnimation.stop()
+                    exitAnimation.start()
+                }
+
                 Component.onCompleted: {
                     enterAnimation.start()
                     progressAnimation.start()
                 }
             }
-        }
-    }
-
-    Behavior on height {
-        NumberAnimation {
-            duration: 160
-            easing.type: Easing.OutCubic
         }
     }
 

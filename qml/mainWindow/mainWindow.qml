@@ -236,12 +236,6 @@ Item {
         }
     }
 
-    Toast {
-        id: mainWindowToast
-        x: mainGeometry.x + mainGeometry.width - width - 20
-        y: mainGeometry.y + mainGeometry.height - height - 20
-    }
-
     ToolTip {
         id: mainWindowTextView
         parent: Overlay.overlay
@@ -4860,7 +4854,6 @@ Item {
             "mainWindowMessageDialog": mainWindowMessageDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,
             "mainWindowLinkMenu": mainWindowLinkMenu,
-            "mainWindowToast": mainWindowToast,
             "mainWindowTextView": mainWindowTextView,
             "mainWindowToolTip": mainWindowToolTip,
 

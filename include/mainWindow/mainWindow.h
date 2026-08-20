@@ -81,12 +81,16 @@ private:
 
     void overlayUpdate() const;
 
+    void toastUpdate() const;
+
     void mainConfigSave();
 
     void maximizeToggle();
 
     QJsonObject m_mainConfig{};
     QQuickView *m_overlay{};
+    QQuickView *m_toastView{};
+    QObject *m_toast{};
     QObject *m_closeDialog{};
     QObject *m_quitDialog{};
 

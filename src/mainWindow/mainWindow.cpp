@@ -80,6 +80,8 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 }
 
 MainWindow::~MainWindow() {
+    delete m_toastView;
+
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] main window destructed").arg(timestamp);
 }
@@ -129,7 +131,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantHash agentObjects = {
         {"mainWindowLinkMenu", objects["mainWindowLinkMenu"]},
-        {"mainWindowToast", objects["mainWindowToast"]},
+        {"mainWindowToast", QVariant::fromValue(m_toast)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"documentModule", QVariant::fromValue(m_documentModule)},
         {"agentModuleRenameDialog", objects["agentModuleRenameDialog"]},
@@ -176,7 +178,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_diagnosticsModule->propertySet(diagnosticsObjects);
 
     const QVariantHash documentObjects = {
-        {"mainWindowToast", objects["mainWindowToast"]},
+        {"mainWindowToast", QVariant::fromValue(m_toast)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
@@ -260,7 +262,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantHash fileObjects = {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
-        {"mainWindowToast", objects["mainWindowToast"]}
+        {"mainWindowToast", QVariant::fromValue(m_toast)}
     };
     m_fileModule->propertySet(fileObjects);
 
@@ -649,15 +651,35 @@ void MainWindow::overlayInit() {
     m_overlay->setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput);
     m_overlay->setTransientParent(windowHandle());
     propertySet();
+
+    m_toastView = new QQuickView(m_overlay->engine(), nullptr);
+    m_toastView->setResizeMode(QQuickView::SizeViewToRootObject);
+    m_toastView->setColor(Qt::transparent);
+    m_toastView->setFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus);
+    m_toastView->setTransientParent(windowHandle());
+    m_toastView->setSource(QUrl("qrc:/qml/mainWindow/Toast.qml"));
+    m_toast = m_toastView->rootObject();
+    m_toastView->hide();
+
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
 
     overlayUpdate();
+    toastUpdate();
     m_overlay->show();
-    QTimer::singleShot(0, m_overlay, [this] { overlayUpdate(); });
-    connect(windowHandle(), &QWindow::screenChanged, m_overlay, [this] { overlayUpdate(); });
+    QTimer::singleShot(0, m_overlay, [this] {
+        overlayUpdate();
+        toastUpdate();
+    });
+    connect(m_toastView, &QWindow::widthChanged, m_toastView, [this] { toastUpdate(); });
+    connect(m_toastView, &QWindow::heightChanged, m_toastView, [this] { toastUpdate(); });
+    connect(windowHandle(), &QWindow::screenChanged, m_overlay, [this] {
+        overlayUpdate();
+        toastUpdate();
+    });
     connect(windowHandle(), &QWindow::visibilityChanged, m_overlay, [this](const QWindow::Visibility visible) {
         if (visible == QWindow::Minimized || visible == QWindow::Hidden) m_overlay->hide();
         else m_overlay->show();
+        toastUpdate();
     });
 }
 
@@ -675,6 +697,30 @@ void MainWindow::overlayUpdate() const {
         screen->geometry().size()
     );
     m_overlay->rootObject()->setProperty("mainGeometry", mainGeometry);
+}
+
+void MainWindow::toastUpdate() const {
+    if (!m_toastView) return;
+
+    auto *screen = windowHandle()->screen();
+    if (!screen) return;
+
+    m_toastView->setScreen(screen);
+    const auto geometry = screen->geometry();
+    m_toastView->setPosition(
+        geometry.x() + geometry.width() - m_toastView->width() - 20,
+        geometry.y() + geometry.height() - m_toastView->height() - 20
+    );
+
+    const auto visibility = windowHandle()->visibility();
+    const bool shouldShow = m_toastView->height() > 0
+                            && visibility != QWindow::Minimized
+                            && visibility != QWindow::Hidden;
+    if (shouldShow) {
+        m_toastView->show();
+    } else {
+        m_toastView->hide();
+    }
 }
 
 void MainWindow::mainConfigSave() {
