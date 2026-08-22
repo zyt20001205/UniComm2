@@ -3,6 +3,8 @@
 
 #include <QVariantHash>
 
+class ToastModule;
+
 class FileModule final : public QObject {
     Q_OBJECT
 
@@ -56,7 +58,7 @@ private:
     void didDeleteFilesNotification(const QUrl &fileUrl);
 
     QObject *m_messageDialog{};
-    QObject *m_toast{};
+    ToastModule *m_toast{};
 };
 
 #endif //UNICOMM_FILEMODULE_H

@@ -37,6 +37,8 @@ Item {
                 required property string toastTitle
                 required property string toastText
                 required property int toastDuration
+                required property string toastActionText
+                required property int toastActionId
                 width: toastColumn.width
                 height: toastPopup.implicitHeight
                 property real remaining: 1
@@ -117,6 +119,17 @@ Item {
                                     visible: toastDelegate.toastText.length > 0
                                     Layout.fillWidth: true
                                 }
+
+                                Button {
+                                    flat: true
+                                    focusPolicy: Qt.NoFocus
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    text: toastDelegate.toastActionText
+                                    visible: toastDelegate.toastActionId >= 0 && text.length > 0
+                                    Layout.alignment: Qt.AlignLeft
+
+                                    onClicked: toastDelegate.triggerAction()
+                                }
                             }
 
                             Button {
@@ -184,6 +197,13 @@ Item {
                     exitAnimation.start()
                 }
 
+                function triggerAction(): void {
+                    if (closing || toastActionId < 0) return
+                    const actionId = toastActionId
+                    beginDismiss()
+                    toastModule.actionTrigger(actionId)
+                }
+
                 Component.onCompleted: {
                     enterAnimation.start()
                     progressAnimation.start()
@@ -192,22 +212,30 @@ Item {
         }
     }
 
-    function show(level: int, title: string, text: string, duration: int): void {
+    function show(level: int, title: string, text: string, duration: int,
+                  actionText: string, actionId: int): void {
         const toast = {
             "toastId": ++nextId,
             "toastLevel": level,
-            "toastTitle": title || "",
-            "toastText": text || "",
-            "toastDuration": duration
+            "toastTitle": title,
+            "toastText": text,
+            "toastDuration": duration,
+            "toastActionText": actionText,
+            "toastActionId": actionId
         }
-        if (activeToasts.count >= maximumVisible) activeToasts.remove(0)
+        if (activeToasts.count >= maximumVisible) removeAt(0)
         activeToasts.append(toast)
     }
 
-    function dismiss(toastId) {
+    function removeAt(index: int): void {
+        toastModule.actionRemove(activeToasts.get(index).toastActionId)
+        activeToasts.remove(index)
+    }
+
+    function dismiss(toastId: int): void {
         for (let index = 0; index < activeToasts.count; ++index) {
             if (activeToasts.get(index).toastId === toastId) {
-                activeToasts.remove(index)
+                removeAt(index)
                 break
             }
         }

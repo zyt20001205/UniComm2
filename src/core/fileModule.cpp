@@ -8,6 +8,7 @@
 #include <QUrl>
 
 #include "globals.h"
+#include "mainWindow/toastModule.h"
 #include "util/uniCast.h"
 
 // public
@@ -17,7 +18,7 @@ FileModule::FileModule(QObject *parent)
 
 void FileModule::propertySet(const QVariantHash &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
-    m_toast = qvariant_cast<QObject *>(objects["mainWindowToast"]);
+    m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
 }
 
 void FileModule::fileOpenInExplorer(const QUrl &fileUrl) {
@@ -183,7 +184,7 @@ void FileModule::fileDelete(const QUrl &fileUrl) {
 void FileModule::copyToClipboard(const QString &text) const {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(text);
-    QMetaObject::invokeMethod(m_toast, "show", Q_ARG(int, ToastLevel::Success), Q_ARG(QString, tr("Copied to clipboard")), Q_ARG(QString, QString()), Q_ARG(int, 3000));
+    m_toast->show(ToastLevel::Success, tr("Copied to clipboard"), {}, 3000);
 }
 
 QString FileModule::linesGet(const QUrl &documentUrl, const int startLine, const int lineCount) {

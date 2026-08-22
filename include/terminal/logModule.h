@@ -7,6 +7,7 @@
 class QQuickWidget;
 class QTextBrowser;
 class QTextDocument;
+class ToastModule;
 
 class LogModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -47,9 +48,9 @@ public:
 private:
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
-    QObject *m_messageDialog{};
     QObject *m_textView{};
     QObject *m_textArea{};
+    ToastModule *m_toast{};
     QTextDocument *m_textDocument{};
     QString m_errorFore{};
     QString m_warningFore{};

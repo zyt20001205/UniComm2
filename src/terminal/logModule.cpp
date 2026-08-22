@@ -1,6 +1,8 @@
 #include "terminal/logModule.h"
 
+#include <QDesktopServices>
 #include <QFileDialog>
+#include <QSaveFile>
 #include <QJsonArray>
 #include <QPrinter>
 #include <QQmlContext>
@@ -11,6 +13,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "mainWindow/toastModule.h"
 
 // public
 LogModule::LogModule()
@@ -30,8 +33,8 @@ LogModule::~LogModule() {
 }
 
 void LogModule::propertySet(const QVariantHash &objects) {
-    m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_textView = qvariant_cast<QObject *>(objects["mainWindowTextView"]);
+    m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
     const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     m_textView->setProperty("font", font);
 
@@ -154,9 +157,7 @@ bool LogModule::logSaveCheck() const {
     QTextDocument document;
     document.setHtml(m_textArea->property("text").toString());
     if (document.toPlainText().isEmpty()) {
-        m_messageDialog->setProperty("title", tr("Error"));
-        m_messageDialog->setProperty("text", tr("Log is empty."));
-        QMetaObject::invokeMethod(m_messageDialog, "open");
+        m_toast->show(ToastLevel::Warning, tr("Nothing to export"), tr("Log is empty."), 3000);
         return false;
     }
     return true;
@@ -167,21 +168,20 @@ void LogModule::logSave(const QUrl &fileUrl) {
     QTextDocument document;
     document.setHtml(m_textArea->property("text").toString());
     if (filePath.endsWith(".txt", Qt::CaseInsensitive)) {
-        QFile file(filePath);
+        bool saved = false;
+        QSaveFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream stream(&file);
             stream << document.toPlainText();
-            file.close();
-            logAppend(LogLevel::Info,
-                      QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "");
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
+            stream.flush();
+            if (stream.status() == QTextStream::Ok) saved = file.commit();
+        }
+        if (saved) {
+            m_toast->show(ToastLevel::Success, tr("Log exported"), filePath, 5000, tr("Open"), [fileUrl] {
+                QDesktopServices::openUrl(fileUrl);
+            });
         } else {
-            logAppend(LogLevel::Error, "log save failed", "");
-            // logging
-            const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log save failed").arg(timestamp);
+            m_toast->show(ToastLevel::Error, tr("Log export failed"), filePath);
         }
     }
 }

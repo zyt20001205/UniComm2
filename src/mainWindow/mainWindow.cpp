@@ -43,6 +43,7 @@
 
 #include "mainWindow/menuModule.h"
 #include "mainWindow/statusModule.h"
+#include "mainWindow/toastModule.h"
 #include "port/portModule.h"
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
@@ -80,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 }
 
 MainWindow::~MainWindow() {
-    delete m_toastView;
+    delete m_toastModule;
 
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] main window destructed").arg(timestamp);
@@ -131,7 +132,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantHash agentObjects = {
         {"mainWindowLinkMenu", objects["mainWindowLinkMenu"]},
-        {"mainWindowToast", QVariant::fromValue(m_toast)},
+        {"mainWindowToast", QVariant::fromValue(m_toastModule)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"documentModule", QVariant::fromValue(m_documentModule)},
         {"agentModuleRenameDialog", objects["agentModuleRenameDialog"]},
@@ -178,7 +179,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_diagnosticsModule->propertySet(diagnosticsObjects);
 
     const QVariantHash documentObjects = {
-        {"mainWindowToast", QVariant::fromValue(m_toast)},
+        {"mainWindowToast", QVariant::fromValue(m_toastModule)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
@@ -222,11 +223,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_gitModule->propertySet(gitObjects);
 
     const QVariantHash logObjects = {
-        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowLinkMenu", objects["mainWindowLinkMenu"]},
         {"mainWindowTextView", objects["mainWindowTextView"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
-        {"logModuleHeightDialog", objects["logModuleHeightDialog"]}
+        {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
+        {"mainWindowToast", QVariant::fromValue(m_toastModule)}
     };
     m_logModule->propertySet(logObjects);
 
@@ -262,7 +263,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantHash fileObjects = {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
-        {"mainWindowToast", QVariant::fromValue(m_toast)}
+        {"mainWindowToast", QVariant::fromValue(m_toastModule)}
     };
     m_fileModule->propertySet(fileObjects);
 
@@ -652,34 +653,19 @@ void MainWindow::overlayInit() {
     m_overlay->setTransientParent(windowHandle());
     propertySet();
 
-    m_toastView = new QQuickView(m_overlay->engine(), nullptr);
-    m_toastView->setResizeMode(QQuickView::SizeViewToRootObject);
-    m_toastView->setColor(Qt::transparent);
-    m_toastView->setFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus);
-    m_toastView->setTransientParent(windowHandle());
-    m_toastView->setSource(QUrl("qrc:/qml/mainWindow/Toast.qml"));
-    m_toast = m_toastView->rootObject();
-    m_toastView->hide();
+    auto *owner = windowHandle();
+    Q_ASSERT(owner);
+    m_toastModule = new ToastModule(m_overlay->engine(), *owner);
 
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
 
     overlayUpdate();
-    toastUpdate();
     m_overlay->show();
-    QTimer::singleShot(0, m_overlay, [this] {
-        overlayUpdate();
-        toastUpdate();
-    });
-    connect(m_toastView, &QWindow::widthChanged, m_toastView, [this] { toastUpdate(); });
-    connect(m_toastView, &QWindow::heightChanged, m_toastView, [this] { toastUpdate(); });
-    connect(windowHandle(), &QWindow::screenChanged, m_overlay, [this] {
-        overlayUpdate();
-        toastUpdate();
-    });
+    QTimer::singleShot(0, m_overlay, [this] { overlayUpdate(); });
+    connect(windowHandle(), &QWindow::screenChanged, m_overlay, [this] { overlayUpdate(); });
     connect(windowHandle(), &QWindow::visibilityChanged, m_overlay, [this](const QWindow::Visibility visible) {
         if (visible == QWindow::Minimized || visible == QWindow::Hidden) m_overlay->hide();
         else m_overlay->show();
-        toastUpdate();
     });
 }
 
@@ -697,30 +683,6 @@ void MainWindow::overlayUpdate() const {
         screen->geometry().size()
     );
     m_overlay->rootObject()->setProperty("mainGeometry", mainGeometry);
-}
-
-void MainWindow::toastUpdate() const {
-    if (!m_toastView) return;
-
-    auto *screen = windowHandle()->screen();
-    if (!screen) return;
-
-    m_toastView->setScreen(screen);
-    const auto geometry = screen->geometry();
-    m_toastView->setPosition(
-        geometry.x() + geometry.width() - m_toastView->width() - 20,
-        geometry.y() + geometry.height() - m_toastView->height() - 20
-    );
-
-    const auto visibility = windowHandle()->visibility();
-    const bool shouldShow = m_toastView->height() > 0
-                            && visibility != QWindow::Minimized
-                            && visibility != QWindow::Hidden;
-    if (shouldShow) {
-        m_toastView->show();
-    } else {
-        m_toastView->hide();
-    }
 }
 
 void MainWindow::mainConfigSave() {

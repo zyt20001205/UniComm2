@@ -29,6 +29,7 @@ class NuspellModule;
 class PortModule;
 class DocumentModule;
 class StatusModule;
+class ToastModule;
 class StructureModule;
 class TerminalModule;
 class ThreadpoolModule;
@@ -81,16 +82,13 @@ private:
 
     void overlayUpdate() const;
 
-    void toastUpdate() const;
-
     void mainConfigSave();
 
     void maximizeToggle();
 
     QJsonObject m_mainConfig{};
     QQuickView *m_overlay{};
-    QQuickView *m_toastView{};
-    QObject *m_toast{};
+    ToastModule *m_toastModule{};
     QObject *m_closeDialog{};
     QObject *m_quitDialog{};
 

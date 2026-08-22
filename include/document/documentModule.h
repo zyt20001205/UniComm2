@@ -18,6 +18,7 @@ class CodeAssistant;
 class CodePage;
 class EditorWidget;
 class SignatureWidget;
+class ToastModule;
 
 class DocumentModule final : public QObject {
     Q_OBJECT
@@ -201,7 +202,7 @@ private:
 
     QJsonObject m_config{};
     QJsonObject m_theme{};
-    QObject *m_toast{};
+    ToastModule *m_toast{};
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};

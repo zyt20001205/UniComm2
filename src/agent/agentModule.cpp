@@ -19,6 +19,7 @@
 #include "agent/role/supervisorAgent.h"
 #include "core/globalManager.h"
 #include "document/documentModule.h"
+#include "mainWindow/toastModule.h"
 
 // public
 AgentModule::AgentModule()
@@ -51,7 +52,7 @@ AgentModule::~AgentModule() {
 }
 
 void AgentModule::propertySet(const QVariantHash &objects) {
-    m_toast = qvariant_cast<QObject *>(objects["mainWindowToast"]);
+    m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
     m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
 
     m_manageWindow->setTitle(tr("Agent Settings"));
@@ -349,7 +350,7 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     });
     connect(runtime, &RuntimeModule::showError, this, [this, runtime](const QString &message) {
         if (runtime != m_runtimes.value(m_primary)) return;
-        QMetaObject::invokeMethod(m_toast, "show", Q_ARG(int, 0), Q_ARG(QString, tr("Agent")), Q_ARG(QString, message), Q_ARG(int, 5000));
+        m_toast->show(ToastLevel::Error, tr("Agent"), message);
     });
     connect(runtime, &RuntimeModule::createTurn, this, [this, runtime](const QString &turnId, const qint64 startedAt) {
         if (runtime != m_runtimes.value(m_primary)) return;

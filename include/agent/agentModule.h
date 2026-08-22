@@ -15,6 +15,7 @@ class ContextModule;
 class ProviderModule;
 class SqlModule;
 class ToolsModule;
+class ToastModule;
 
 class AgentModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -111,7 +112,7 @@ private:
     QQuickWidget *m_widget{};
     QQuickView *m_manageWindow{};
     QObject *m_root{};
-    QObject *m_toast{};
+    ToastModule *m_toast{};
     QObject *m_modeMenu{};
     QObject *m_conversationComboBox{};
     QObject *m_textArea{};
