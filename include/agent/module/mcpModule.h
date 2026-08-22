@@ -7,7 +7,11 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
+#include <QStandardItemModel>
 #include <QUrl>
+
+class QStandardItem;
+class McpModel;
 
 class McpModule final : public QObject {
     Q_OBJECT
@@ -23,15 +27,12 @@ public:
 
     [[nodiscard]] QFuture<QString> toolExecute(const QString &name, const QString &arguments);
 
+    [[nodiscard]] McpModel *mcpModelGet() const;
+
 signals:
     void registerTools(const QJsonArray &tools);
 
 private:
-    struct Server {
-        bool enabled{};
-        QString name{};
-    };
-
     struct Response {
         QByteArray buffer{};
         QJsonObject object{};
@@ -51,9 +52,33 @@ private:
 
     static void responseRead(Response &response, int id, bool finished);
 
-    QHash<QUrl, Server> m_servers{};
+    QHash<QUrl, QStandardItem *> m_servers{};
     QHash<QString, Tool> m_tools{};
+    McpModel *m_mcpModel{};
     int m_id = 0;
+};
+
+class McpModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    using QStandardItemModel::QStandardItemModel;
+
+    enum Role {
+        UrlRole = Qt::UserRole + 1,
+        EnabledRole,
+        VersionRole,
+        DescriptionRole,
+        WebsiteUrlRole,
+        InstructionsRole,
+        SupportedVersionsRole,
+        CapabilitiesRole,
+        CacheScopeRole,
+        TtlMsRole,
+        ErrorRole
+    };
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
 #endif //UNICOMM_MCPMODULE_H

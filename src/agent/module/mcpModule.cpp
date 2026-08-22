@@ -8,6 +8,7 @@
 #include <QNetworkRequest>
 #include <QPromise>
 #include <QSharedPointer>
+#include <QStandardItem>
 #include <QStringList>
 
 #include <utility>
@@ -16,21 +17,43 @@
 
 // public
 McpModule::McpModule(const QJsonObject &mcpConfig, QObject *parent)
-    : QObject(parent) {
-    for (auto it = mcpConfig.begin(); it != mcpConfig.end(); ++it) m_servers.insert(QUrl(it.key()), Server{it.value().toBool()});
+    : QObject(parent),
+      m_mcpModel(new McpModel(this)) {
+    for (auto it = mcpConfig.begin(); it != mcpConfig.end(); ++it) {
+        const auto url = QUrl(it.key());
+        auto *item = new QStandardItem(url.host()); // NOLINT
+        item->setData(url, McpModel::UrlRole);
+        item->setData(it.value().toBool(), McpModel::EnabledRole);
+        m_mcpModel->appendRow(item);
+        m_servers.insert(url, item);
+    }
 }
 
 void McpModule::initialize() {
     for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) {
-        if (!it.value().enabled) continue;
+        if (!it.value()->data(McpModel::EnabledRole).toBool()) continue;
         const auto &serverUrl = it.key();
         request(serverUrl, "server/discover", {}).then(this, [this, serverUrl](const QJsonObject &response) {
             const auto result = response.value("result").toObject();
             const auto serverInfo = result.value("_meta").toObject().value("io.modelcontextprotocol/serverInfo").toObject();
             const auto name = serverInfo.value("name").toString();
-            m_servers[serverUrl].name = name;
+            auto *item = m_servers.value(serverUrl);
+            if (!name.isEmpty()) item->setText(name);
+            item->setData(serverInfo.value("version").toString(), McpModel::VersionRole);
+            item->setData(serverInfo.value("description").toString(), McpModel::DescriptionRole);
+            item->setData(serverInfo.value("websiteUrl").toString(), McpModel::WebsiteUrlRole);
+            const auto icons = serverInfo.value("icons").toArray();
+            item->setData(icons.isEmpty() ? QUrl{} : QUrl(icons.first().toObject().value("src").toString()), Qt::DecorationRole);
+            item->setData(result.value("instructions").toString(), McpModel::InstructionsRole);
+            QStringList supportedVersions{};
+            for (const auto &value: result.value("supportedVersions").toArray()) supportedVersions.append(value.toString());
+            item->setData(supportedVersions, McpModel::SupportedVersionsRole);
+            item->setData(result.value("capabilities").toObject().toVariantMap(), McpModel::CapabilitiesRole);
+            item->setData(result.value("cacheScope").toString(), McpModel::CacheScopeRole);
+            item->setData(result.value("ttlMs").toInteger(), McpModel::TtlMsRole);
+            item->setData(response.contains("error") ? response.value("error").toObject().value("message").toString() : QString{}, McpModel::ErrorRole);
             qDebug().noquote() << "MCP discover:" << (name.isEmpty() ? serverUrl.toString() : name) << '\n'
-                    << QString::fromUtf8(QJsonDocument(response).toJson(QJsonDocument::Indented));
+                               << QString::fromUtf8(QJsonDocument(response).toJson(QJsonDocument::Indented));
         });
     }
 }
@@ -38,7 +61,7 @@ void McpModule::initialize() {
 void McpModule::toolsGet() {
     m_tools.clear();
     for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) {
-        if (it.value().enabled) toolsGet(it.key(), {}, {});
+        if (it.value()->data(McpModel::EnabledRole).toBool()) toolsGet(it.key(), {}, {});
     }
 }
 
@@ -67,6 +90,10 @@ QFuture<QString> McpModule::toolExecute(const QString &name, const QString &argu
     });
 }
 
+McpModel *McpModule::mcpModelGet() const {
+    return m_mcpModel;
+}
+
 // private
 void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArray tools) {
     QJsonObject params{};
@@ -75,7 +102,7 @@ void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArra
         if (response.contains("error")) return;
 
         const auto result = response.value("result").toObject();
-        auto prefix = m_servers.value(serverUrl).name.toLower();
+        auto prefix = m_servers.value(serverUrl)->text().toLower();
         if (prefix.isEmpty()) prefix = serverUrl.host().toLower();
         for (qsizetype index = 0; index < prefix.size(); ++index) {
             if (!prefix.at(index).isLetterOrNumber() && prefix.at(index) != '_' && prefix.at(index) != '-') prefix[index] = '_';
@@ -193,4 +220,20 @@ void McpModule::responseRead(Response &response, const int id, const bool finish
         const auto object = QJsonDocument::fromJson(data).object();
         if (object.value("id").toInt(-1) == id) response.object = object;
     }
+}
+
+QHash<int, QByteArray> McpModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[UrlRole] = "url";
+    roles[EnabledRole] = "enabled";
+    roles[VersionRole] = "version";
+    roles[DescriptionRole] = "description";
+    roles[WebsiteUrlRole] = "websiteUrl";
+    roles[InstructionsRole] = "instructions";
+    roles[SupportedVersionsRole] = "supportedVersions";
+    roles[CapabilitiesRole] = "capabilities";
+    roles[CacheScopeRole] = "cacheScope";
+    roles[TtlMsRole] = "ttlMs";
+    roles[ErrorRole] = "error";
+    return roles;
 }
