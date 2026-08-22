@@ -45,6 +45,11 @@ public:
 
     Q_INVOKABLE void linkClick(const QUrl &customUrl) const;
 
+signals:
+    void fileOpenInExplorer(const QUrl &fileUrl);
+
+    void fileOpenInApplication(const QUrl &fileUrl);
+
 private:
     QJsonObject m_config{};
     QQuickWidget *m_widget{};

@@ -1,6 +1,5 @@
 #include "terminal/logModule.h"
 
-#include <QDesktopServices>
 #include <QFileDialog>
 #include <QSaveFile>
 #include <QJsonArray>
@@ -177,8 +176,9 @@ void LogModule::logSave(const QUrl &fileUrl) {
             if (stream.status() == QTextStream::Ok) saved = file.commit();
         }
         if (saved) {
-            m_toast->show(ToastLevel::Success, tr("Log exported"), filePath, 5000, tr("Open"), [fileUrl] {
-                QDesktopServices::openUrl(fileUrl);
+            m_toast->show(ToastLevel::Success, tr("Log exported"), filePath, 5000, {
+                {tr("Open"), [this, fileUrl] { emit fileOpenInApplication(fileUrl); }},
+                {tr("Show in Explorer"), [this, fileUrl] { emit fileOpenInExplorer(fileUrl); }}
             });
         } else {
             m_toast->show(ToastLevel::Error, tr("Log export failed"), filePath);

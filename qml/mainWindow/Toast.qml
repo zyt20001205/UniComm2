@@ -37,8 +37,8 @@ Item {
                 required property string toastTitle
                 required property string toastText
                 required property int toastDuration
-                required property string toastActionText
-                required property int toastActionId
+                required property var toastActions
+                required property int toastActionGroupId
                 width: toastColumn.width
                 height: toastPopup.implicitHeight
                 property real remaining: 1
@@ -128,35 +128,45 @@ Item {
                                     Layout.fillWidth: true
                                 }
 
-                                Button {
-                                    id: actionButton
-
-                                    flat: true
-                                    hoverEnabled: true
-                                    focusPolicy: Qt.NoFocus
-                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                    text: toastDelegate.toastActionText
-                                    visible: toastDelegate.toastActionId >= 0 && text.length > 0
-                                    Layout.alignment: Qt.AlignLeft
+                                Flow {
+                                    spacing: 12
+                                    visible: toastDelegate.toastActionGroupId >= 0
+                                    Layout.fillWidth: true
                                     Layout.topMargin: 4
 
-                                    background: Item {}
+                                    Repeater {
+                                        model: toastDelegate.toastActions
 
-                                    contentItem: Label {
-                                        text: actionButton.text
-                                        color: actionButton.down ? global.brandBackSelected
-                                                                 : actionButton.hovered ? global.brandBack
-                                                                                        : global.brandLink
-                                        font.underline: actionButton.hovered
-                                        horizontalAlignment: Text.AlignLeft
-                                        verticalAlignment: Text.AlignVCenter
+                                        delegate: Button {
+                                            id: actionButton
+                                            required property string actionText
+                                            required property int actionIndex
+
+                                            flat: true
+                                            hoverEnabled: true
+                                            focusPolicy: Qt.NoFocus
+                                            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                            text: actionText
+
+                                            background: Item {}
+
+                                            contentItem: Label {
+                                                text: actionButton.text
+                                                color: actionButton.down ? global.brandBackSelected
+                                                                         : actionButton.hovered ? global.brandBack
+                                                                                                : global.brandLink
+                                                font.underline: actionButton.hovered
+                                                horizontalAlignment: Text.AlignLeft
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
+
+                                            HoverHandler {
+                                                cursorShape: Qt.PointingHandCursor
+                                            }
+
+                                            onClicked: toastDelegate.triggerAction(actionIndex)
+                                        }
                                     }
-
-                                    HoverHandler {
-                                        cursorShape: Qt.PointingHandCursor
-                                    }
-
-                                    onClicked: toastDelegate.triggerAction()
                                 }
                             }
 
@@ -225,11 +235,11 @@ Item {
                     exitAnimation.start()
                 }
 
-                function triggerAction(): void {
-                    if (closing || toastActionId < 0) return
-                    const actionId = toastActionId
+                function triggerAction(actionIndex: int): void {
+                    if (closing || toastActionGroupId < 0) return
+                    const actionGroupId = toastActionGroupId
                     beginDismiss()
-                    toastModule.actionTrigger(actionId)
+                    toastModule.actionTrigger(actionGroupId, actionIndex)
                 }
 
                 Component.onCompleted: {
@@ -241,22 +251,22 @@ Item {
     }
 
     function show(level: int, title: string, text: string, duration: int,
-                  actionText: string, actionId: int): void {
+                  actions: var, actionGroupId: int): void {
         const toast = {
             "toastId": ++nextId,
             "toastLevel": level,
             "toastTitle": title,
             "toastText": text,
             "toastDuration": duration,
-            "toastActionText": actionText,
-            "toastActionId": actionId
+            "toastActions": actions,
+            "toastActionGroupId": actionGroupId
         }
         if (activeToasts.count >= maximumVisible) removeAt(0)
         activeToasts.append(toast)
     }
 
     function removeAt(index: int): void {
-        toastModule.actionRemove(activeToasts.get(index).toastActionId)
+        toastModule.actionRemove(activeToasts.get(index).toastActionGroupId)
         activeToasts.remove(index)
     }
 
