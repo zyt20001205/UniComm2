@@ -12,6 +12,7 @@ class QQuickWidget;
 
 class ConversationModel;
 class ContextModule;
+class McpModule;
 class ProviderModule;
 class SqlModule;
 class ToolsModule;
@@ -123,6 +124,7 @@ private:
     QString m_conversationId{};
     ConversationModel *m_conversationModel{};
     ContextModule *m_contextModule{};
+    McpModule *m_mcpModule{};
     ProviderModule *m_providerModule{};
     SqlModule *m_sqlModule{};
     ToolsModule *m_toolsModule{};

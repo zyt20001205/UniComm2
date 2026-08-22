@@ -3,12 +3,12 @@
 #include <QDateTime>
 #include <QQmlContext>
 #include <QQuickItem>
-#include <QQuickView>
 #include <QQuickWidget>
 #include <QUuid>
 
 #include "globals.h"
 #include "agent/module/contextModule.h"
+#include "agent/module/mcpModule.h"
 #include "agent/module/sqlModule.h"
 #include "agent/module/toolsModule.h"
 #include "agent/provider/baseProvider.h"
@@ -30,6 +30,7 @@ AgentModule::AgentModule()
       m_conversationId(m_config["id"].toString()),
       m_conversationModel(new ConversationModel(this)),
       m_contextModule(new ContextModule(this)),
+      m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_providerModule(new ProviderModule(m_config["providers"].toArray(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
       m_toolsModule(new ToolsModule(m_sqlModule, this)) {
@@ -79,6 +80,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     primaryRuntimeConnect(m_runtimes.value(m_general));
     primaryRuntimeConnect(m_runtimes.value(m_supervisor));
     m_toolsModule->initialize();
+    m_mcpModule->initialize();
 
     m_providerModule->propertySet(QVariantHash{
         {"agentModuleModelMenu", objects["agentModuleModelMenu"]}

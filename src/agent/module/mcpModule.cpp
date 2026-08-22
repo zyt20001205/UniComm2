@@ -1,5 +1,6 @@
 #include "agent/module/mcpModule.h"
 
+#include <QDebug>
 #include <QFuture>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -16,15 +17,29 @@
 // public
 McpModule::McpModule(const QJsonObject &mcpConfig, QObject *parent)
     : QObject(parent) {
-    for (auto it = mcpConfig.begin(); it != mcpConfig.end(); ++it) {
-        const auto config = it.value().toObject();
-        if (config.value("enabled").toBool(true)) m_servers.insert(it.key(), QUrl(config.value("url").toString()));
+    for (auto it = mcpConfig.begin(); it != mcpConfig.end(); ++it) m_servers.insert(QUrl(it.key()), Server{it.value().toBool()});
+}
+
+void McpModule::initialize() {
+    for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) {
+        if (!it.value().enabled) continue;
+        const auto &serverUrl = it.key();
+        request(serverUrl, "server/discover", {}).then(this, [this, serverUrl](const QJsonObject &response) {
+            const auto result = response.value("result").toObject();
+            const auto serverInfo = result.value("_meta").toObject().value("io.modelcontextprotocol/serverInfo").toObject();
+            const auto name = serverInfo.value("name").toString();
+            m_servers[serverUrl].name = name;
+            qDebug().noquote() << "MCP discover:" << (name.isEmpty() ? serverUrl.toString() : name) << '\n'
+                    << QString::fromUtf8(QJsonDocument(response).toJson(QJsonDocument::Indented));
+        });
     }
 }
 
 void McpModule::toolsGet() {
     m_tools.clear();
-    for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) toolsGet(it.key(), {}, {});
+    for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) {
+        if (it.value().enabled) toolsGet(it.key(), {}, {});
+    }
 }
 
 QFuture<QString> McpModule::toolExecute(const QString &name, const QString &arguments) {
@@ -34,7 +49,7 @@ QFuture<QString> McpModule::toolExecute(const QString &name, const QString &argu
         {"name", tool.name},
         {"arguments", QJsonDocument::fromJson(arguments.toUtf8()).object()}
     };
-    return request(tool.serverId, "tools/call", params, tool.name).then(this, [](const QJsonObject &response) {
+    return request(tool.serverUrl, "tools/call", params, tool.name).then(this, [](const QJsonObject &response) {
         if (response.contains("error")) {
             return QString::fromUtf8(QJsonDocument(response.value("error").toObject()).toJson(QJsonDocument::Compact));
         }
@@ -53,18 +68,23 @@ QFuture<QString> McpModule::toolExecute(const QString &name, const QString &argu
 }
 
 // private
-void McpModule::toolsGet(const QString &serverId, const QString &cursor, QJsonArray tools) {
+void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArray tools) {
     QJsonObject params{};
     if (!cursor.isEmpty()) params["cursor"] = cursor;
-    request(serverId, "tools/list", params).then(this, [this, serverId, tools = std::move(tools)](const QJsonObject &response) mutable {
+    request(serverUrl, "tools/list", params).then(this, [this, serverUrl, tools = std::move(tools)](const QJsonObject &response) mutable {
         if (response.contains("error")) return;
 
         const auto result = response.value("result").toObject();
+        auto prefix = m_servers.value(serverUrl).name.toLower();
+        if (prefix.isEmpty()) prefix = serverUrl.host().toLower();
+        for (qsizetype index = 0; index < prefix.size(); ++index) {
+            if (!prefix.at(index).isLetterOrNumber() && prefix.at(index) != '_' && prefix.at(index) != '-') prefix[index] = '_';
+        }
         for (const auto &value: result.value("tools").toArray()) {
             const auto tool = value.toObject();
             const auto name = tool.value("name").toString();
-            const auto exposedName = serverId + "__" + name;
-            m_tools.insert(exposedName, Tool{serverId, name});
+            const auto exposedName = prefix + "__" + name;
+            m_tools.insert(exposedName, Tool{serverUrl, name});
             tools.append(QJsonObject{
                 {"type", "function"},
                 {
@@ -79,11 +99,11 @@ void McpModule::toolsGet(const QString &serverId, const QString &cursor, QJsonAr
 
         const auto cursor = result.value("nextCursor").toString();
         if (cursor.isEmpty()) emit registerTools(tools);
-        else toolsGet(serverId, cursor, std::move(tools));
+        else toolsGet(serverUrl, cursor, std::move(tools));
     });
 }
 
-QFuture<QJsonObject> McpModule::request(const QString &serverId, const QString &method, QJsonObject params, const QString &name) {
+QFuture<QJsonObject> McpModule::request(const QUrl &serverUrl, const QString &method, QJsonObject params, const QString &name) {
     const auto protocolVersion = "2026-07-28";
     params["_meta"] = QJsonObject{
         {"io.modelcontextprotocol/protocolVersion", protocolVersion},
@@ -103,14 +123,14 @@ QFuture<QJsonObject> McpModule::request(const QString &serverId, const QString &
         {"method", method},
         {"params", params}
     };
-    QNetworkRequest request(m_servers.value(serverId));
+    QNetworkRequest request(serverUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Accept", "application/json, text/event-stream");
     request.setRawHeader("MCP-Protocol-Version", protocolVersion);
     request.setRawHeader("Mcp-Method", method.toUtf8());
     if (!name.isEmpty()) request.setRawHeader("Mcp-Name", headerValueGet(name));
 
-    auto promise = QSharedPointer<QPromise<QJsonObject>>::create();
+    auto promise = QSharedPointer<QPromise<QJsonObject> >::create();
     promise->start();
     const auto future = promise->future();
     auto response = QSharedPointer<Response>::create();
