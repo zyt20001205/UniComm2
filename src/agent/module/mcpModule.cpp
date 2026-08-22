@@ -54,21 +54,16 @@ void McpModule::serverRemove(const QUrl &serverUrl) {
     const auto row = m_servers.value(serverUrl)->row();
     m_servers.remove(serverUrl);
     m_mcpModel->removeRow(row);
-    for (auto it = m_tools.begin(); it != m_tools.end();) {
-        if (it.value().serverUrl == serverUrl) it = m_tools.erase(it);
-        else ++it;
-    }
+    toolsRemove(serverUrl);
+    toolsRegister();
 }
 
 void McpModule::enabledSet(const QUrl &serverUrl, const bool enabled) {
     m_servers.value(serverUrl)->setData(enabled, McpModel::EnabledRole);
     if (enabled) initialize(serverUrl);
-}
-
-void McpModule::toolsGet() {
-    m_tools.clear();
-    for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) {
-        if (it.value()->data(McpModel::EnabledRole).toBool()) toolsGet(it.key(), {}, {});
+    else {
+        toolsRemove(serverUrl);
+        toolsRegister();
     }
 }
 
@@ -97,6 +92,14 @@ QFuture<QString> McpModule::toolExecute(const QString &name, const QString &argu
     });
 }
 
+bool McpModule::toolContains(const QString &name) const {
+    return m_tools.contains(name);
+}
+
+bool McpModule::toolReadOnly(const QString &name) const {
+    return m_tools.value(name).readOnly;
+}
+
 McpModel *McpModule::mcpModelGet() const {
     return m_mcpModel;
 }
@@ -104,7 +107,7 @@ McpModel *McpModule::mcpModelGet() const {
 // private
 void McpModule::initialize(const QUrl &serverUrl) {
     request(serverUrl, "server/discover", {}).then(this, [this, serverUrl](const QJsonObject &response) {
-        if (!m_servers.contains(serverUrl)) return;
+        if (response.contains("error") || !m_servers.contains(serverUrl)) return;
         const auto result = response.value("result").toObject();
         const auto serverInfo = result.value("_meta").toObject().value("io.modelcontextprotocol/serverInfo").toObject();
         const auto name = serverInfo.value("name").toString();
@@ -122,14 +125,17 @@ void McpModule::initialize(const QUrl &serverUrl) {
         item->setData(result.value("capabilities").toObject().toVariantMap(), McpModel::CapabilitiesRole);
         item->setData(result.value("cacheScope").toString(), McpModel::CacheScopeRole);
         item->setData(result.value("ttlMs").toInteger(), McpModel::TtlMsRole);
+        toolsRemove(serverUrl);
+        toolsRegister();
+        toolsGet(serverUrl, {});
     });
 }
 
-void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArray tools) {
+void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor) {
     QJsonObject params{};
     if (!cursor.isEmpty()) params["cursor"] = cursor;
-    request(serverUrl, "tools/list", params).then(this, [this, serverUrl, tools = std::move(tools)](const QJsonObject &response) mutable {
-        if (response.contains("error") || !m_servers.contains(serverUrl)) return;
+    request(serverUrl, "tools/list", params).then(this, [this, serverUrl](const QJsonObject &response) {
+        if (response.contains("error") || !m_servers.contains(serverUrl) || !m_servers.value(serverUrl)->data(McpModel::EnabledRole).toBool()) return;
 
         const auto result = response.value("result").toObject();
         auto prefix = m_servers.value(serverUrl)->text().toLower();
@@ -141,8 +147,7 @@ void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArra
             const auto tool = value.toObject();
             const auto name = tool.value("name").toString();
             const auto exposedName = prefix + "__" + name;
-            m_tools.insert(exposedName, Tool{serverUrl, name});
-            tools.append(QJsonObject{
+            const QJsonObject definition{
                 {"type", "function"},
                 {
                     "function", QJsonObject{
@@ -151,13 +156,32 @@ void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArra
                         {"parameters", tool.value("inputSchema")}
                     }
                 }
+            };
+            m_tools.insert(exposedName, Tool{
+                serverUrl,
+                name,
+                definition,
+                tool.value("annotations").toObject().value("readOnlyHint").toBool()
             });
         }
 
         const auto cursor = result.value("nextCursor").toString();
-        if (cursor.isEmpty()) emit registerTools(tools);
-        else toolsGet(serverUrl, cursor, std::move(tools));
+        if (cursor.isEmpty()) toolsRegister();
+        else toolsGet(serverUrl, cursor);
     });
+}
+
+void McpModule::toolsRemove(const QUrl &serverUrl) {
+    for (auto it = m_tools.begin(); it != m_tools.end();) {
+        if (it.value().serverUrl == serverUrl) it = m_tools.erase(it);
+        else ++it;
+    }
+}
+
+void McpModule::toolsRegister() {
+    QJsonArray tools{};
+    for (const auto &tool: std::as_const(m_tools)) tools.append(tool.definition);
+    emit registerTools(tools);
 }
 
 QFuture<QJsonObject> McpModule::request(const QUrl &serverUrl, const QString &method, QJsonObject params, const QString &name) {

@@ -9,18 +9,21 @@
 #include <QSet>
 
 class SqlModule;
+class McpModule;
 
 class ToolsModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit ToolsModule(SqlModule *sqlModule, QObject *parent = nullptr);
+    explicit ToolsModule(McpModule *mcpModule, SqlModule *sqlModule, QObject *parent = nullptr);
 
     ~ToolsModule() override = default;
 
     void initialize();
 
-    [[nodiscard]] QJsonArray toolsGet(const QSet<QString> &names) const;
+    void toolsRegister(const QJsonArray &tools);
+
+    [[nodiscard]] QJsonArray toolsGet(const QSet<QString> &names, bool includeMcp) const;
 
     [[nodiscard]] QPair<bool, QString> toolCall(int mode, const QString &name, const QString &arguments) const;
 
@@ -35,6 +38,8 @@ private:
 
     QHash<QString, int> m_portTypes{};
     QJsonArray m_tools{};
+    QJsonArray m_mcpTools{};
+    McpModule *m_mcpModule{};
     SqlModule *m_sqlModule{};
     QSet<QString> m_writeGroup{};
     QSet<QString> m_fullAccessGroup{};

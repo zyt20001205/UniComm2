@@ -33,7 +33,8 @@ AgentModule::AgentModule()
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_providerModule(new ProviderModule(m_config["providers"].toArray(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
-      m_toolsModule(new ToolsModule(m_sqlModule, this)) {
+      m_toolsModule(new ToolsModule(m_mcpModule, m_sqlModule, this)) {
+    connect(m_mcpModule, &McpModule::registerTools, m_toolsModule, &ToolsModule::toolsRegister);
     auto *general = new RuntimeModule(new GeneralAgent(), runtimeServicesGet(), this); // NOLINT
     m_general = general->idGet();
     m_runtimes.insert(m_general, general);

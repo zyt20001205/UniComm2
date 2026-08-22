@@ -127,7 +127,7 @@ QString BaseAgent::systemGet() const {
 }
 
 QJsonArray BaseAgent::toolsGet(const ToolsModule &toolsModule) const {
-    return toolsModule.toolsGet(m_tools.value(m_role));
+    return toolsModule.toolsGet(m_tools.value(m_role), m_role == "general" || m_role == "supervisor");
 }
 
 bool BaseAgent::planRequired(const qsizetype) const {

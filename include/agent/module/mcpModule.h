@@ -29,9 +29,11 @@ public:
 
     void enabledSet(const QUrl &serverUrl, bool enabled);
 
-    void toolsGet();
-
     [[nodiscard]] QFuture<QString> toolExecute(const QString &name, const QString &arguments);
+
+    [[nodiscard]] bool toolContains(const QString &name) const;
+
+    [[nodiscard]] bool toolReadOnly(const QString &name) const;
 
     [[nodiscard]] McpModel *mcpModelGet() const;
 
@@ -48,11 +50,17 @@ private:
     struct Tool {
         QUrl serverUrl{};
         QString name{};
+        QJsonObject definition{};
+        bool readOnly{};
     };
 
     void initialize(const QUrl &serverUrl);
 
-    void toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArray tools);
+    void toolsGet(const QUrl &serverUrl, const QString &cursor);
+
+    void toolsRemove(const QUrl &serverUrl);
+
+    void toolsRegister();
 
     [[nodiscard]] QFuture<QJsonObject> request(const QUrl &serverUrl, const QString &method, QJsonObject params, const QString &name = {});
 

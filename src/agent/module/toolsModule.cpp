@@ -7,6 +7,7 @@
 
 #include "globals.h"
 #include "agent/agentModule.h"
+#include "agent/module/mcpModule.h"
 #include "agent/module/sqlModule.h"
 #include "agent/runtime/runtimeModule.h"
 #include "data/databaseModule.h"
@@ -17,13 +18,14 @@
 #include "service/ripgrep.h"
 
 // public
-ToolsModule::ToolsModule(SqlModule *sqlModule, QObject *parent)
+ToolsModule::ToolsModule(McpModule *mcpModule, SqlModule *sqlModule, QObject *parent)
     : QObject(parent),
       m_portTypes{
           {"serial_port", PortType::SerialPort},
           {"tcp_client", PortType::TcpClient},
           {"ssl_client", PortType::SslClient}
       },
+      m_mcpModule(mcpModule),
       m_sqlModule(sqlModule),
       m_writeGroup{"line_set", "port_create"},
       m_fullAccessGroup{"port_delete", "script_exec"} {
@@ -705,11 +707,18 @@ void ToolsModule::initialize() {
     };
 }
 
-QJsonArray ToolsModule::toolsGet(const QSet<QString> &names) const {
+void ToolsModule::toolsRegister(const QJsonArray &tools) {
+    m_mcpTools = tools;
+}
+
+QJsonArray ToolsModule::toolsGet(const QSet<QString> &names, const bool includeMcp) const {
     QJsonArray tools{};
     for (const auto &value: m_tools) {
         const auto name = value.toObject().value("function").toObject().value("name").toString();
         if (names.contains(name)) tools.append(value);
+    }
+    if (includeMcp) {
+        for (const auto &tool: m_mcpTools) tools.append(tool);
     }
     return tools;
 }
@@ -719,6 +728,7 @@ QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, 
 }
 
 QFuture<QString> ToolsModule::toolExecute(const QString &runtimeId, const QString &name, const QString &arguments) {
+    if (m_mcpModule->toolContains(name)) return m_mcpModule->toolExecute(name, arguments);
     const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
     if (name == "subagent_dispatch") {
         const auto tasks = object.value("tasks").toArray();
@@ -1051,6 +1061,9 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
 }
 
 bool ToolsModule::permissionGet(const int mode, const QString &name) const {
+    if (m_mcpModule->toolContains(name)) {
+        return mode != RuntimeModule::AgentMode::Chat && (m_mcpModule->toolReadOnly(name) || mode == RuntimeModule::AgentMode::FullAccess);
+    }
     switch (mode) {
         case RuntimeModule::AgentMode::Chat: return false;
         case RuntimeModule::AgentMode::Read: return !m_writeGroup.contains(name) && !m_fullAccessGroup.contains(name);
