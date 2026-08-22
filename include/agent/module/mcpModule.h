@@ -1,10 +1,12 @@
 #ifndef UNICOMM_MCPMODULE_H
 #define UNICOMM_MCPMODULE_H
 
+#include <QFuture>
+#include <QHash>
 #include <QJsonObject>
 #include <QObject>
+#include <QUrl>
 
-class QNetworkRequest;
 class McpModule final : public QObject {
     Q_OBJECT
 
@@ -13,17 +15,35 @@ public:
 
     ~McpModule() override = default;
 
-    void initialize();
+    void toolsGet();
 
-    [[nodiscard]] QString toolsCall(const QString &owner, const QString &name, const QString &arguments);
+    [[nodiscard]] QFuture<QString> toolExecute(const QString &name, const QString &arguments);
 
 signals:
-    void registerTools(const QString &name, const QJsonArray &tools);
+    void registerTools(const QJsonArray &tools);
 
 private:
-    void toolsList(const QString &name);
+    struct Response {
+        QByteArray buffer{};
+        QJsonObject object{};
+        bool eventStream{};
+    };
 
-    QHash<QString, QNetworkRequest> m_requests{};
+    struct Tool {
+        QString serverId{};
+        QString name{};
+    };
+
+    void toolsGet(const QString &serverId, const QString &cursor, QJsonArray tools);
+
+    [[nodiscard]] QFuture<QJsonObject> request(const QString &serverId, const QString &method, QJsonObject params, const QString &name = {});
+
+    [[nodiscard]] static QByteArray headerValueGet(const QString &value);
+
+    static void responseRead(Response &response, int id, bool finished);
+
+    QHash<QString, QUrl> m_servers{};
+    QHash<QString, Tool> m_tools{};
     int m_id = 0;
 };
 

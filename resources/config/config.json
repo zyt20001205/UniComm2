@@ -1,4 +1,9 @@
 {
+  "agentConfig": {
+    "id": "",
+    "mcp": {},
+    "providers": ["deepseek"]
+  },
   "breakpointConfig": {
   },
   "databaseConfig": [
@@ -14,11 +19,6 @@
   "gitConfig": {
     "fontFamily": "Consolas",
     "fontSize": 10
-  },
-  "agentConfig": {
-    "id": "",
-    "mcp": {},
-    "providers": ["deepseek"]
   },
   "logConfig": {
     "fontFamily": "Segoe UI",
