@@ -24,14 +24,14 @@ McpModule::McpModule(const QJsonObject &mcpConfig, QObject *parent)
         item->setData(url, McpModel::UrlRole);
         item->setData(it.value().toBool(), McpModel::EnabledRole);
         m_mcpModel->appendRow(item);
-        m_servers.insert(url, item);
+        m_servers.insert(url, Server{item});
     }
 }
 
 void McpModule::initialize() {
     for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) {
-        if (!it.value()->data(McpModel::EnabledRole).toBool()) continue;
-        initialize(it.key());
+        if (!it.value().item->data(McpModel::EnabledRole).toBool()) continue;
+        serverDiscover(it.key());
     }
 }
 
@@ -45,13 +45,13 @@ QString McpModule::serverInsert(const QUrl &serverUrl) {
     item->setData(serverUrl, McpModel::UrlRole);
     item->setData(true, McpModel::EnabledRole);
     m_mcpModel->appendRow(item);
-    m_servers.insert(serverUrl, item);
-    initialize(serverUrl);
+    m_servers.insert(serverUrl, Server{item});
+    serverDiscover(serverUrl);
     return {};
 }
 
 void McpModule::serverRemove(const QUrl &serverUrl) {
-    const auto row = m_servers.value(serverUrl)->row();
+    const auto row = m_servers.value(serverUrl).item->row();
     m_servers.remove(serverUrl);
     m_mcpModel->removeRow(row);
     toolsRemove(serverUrl);
@@ -59,8 +59,8 @@ void McpModule::serverRemove(const QUrl &serverUrl) {
 }
 
 void McpModule::enabledSet(const QUrl &serverUrl, const bool enabled) {
-    m_servers.value(serverUrl)->setData(enabled, McpModel::EnabledRole);
-    if (enabled) initialize(serverUrl);
+    m_servers.value(serverUrl).item->setData(enabled, McpModel::EnabledRole);
+    if (enabled) serverDiscover(serverUrl);
     else {
         toolsRemove(serverUrl);
         toolsRegister();
@@ -105,40 +105,88 @@ McpModel *McpModule::mcpModelGet() const {
 }
 
 // private
-void McpModule::initialize(const QUrl &serverUrl) {
+void McpModule::serverDiscover(const QUrl &serverUrl) {
+    auto &server = m_servers[serverUrl];
+    server.protocolVersion = StatelessVersion;
+    server.sessionId.clear();
+
     request(serverUrl, "server/discover", {}).then(this, [this, serverUrl](const QJsonObject &response) {
+        if (!m_servers.contains(serverUrl)) return;
+        if (!response.contains("error")) {
+            serverUpdate(serverUrl, response.value("result").toObject());
+            return;
+        }
+
+        const auto error = response.value("error").toObject();
+        const auto message = error.value("message").toString();
+        if (error.value("code").toInt() != -32601 && !message.contains("Unsupported protocol version", Qt::CaseInsensitive)) return;
+        serverInitialize(serverUrl);
+    });
+}
+
+void McpModule::serverInitialize(const QUrl &serverUrl) {
+    auto &server = m_servers[serverUrl];
+    server.protocolVersion = StatefulVersion;
+    server.sessionId.clear();
+    const auto params = QJsonObject{
+        {"protocolVersion", StatefulVersion},
+        {"capabilities", QJsonObject{}},
+        {
+            "clientInfo", QJsonObject{
+                {"name", "UniComm"},
+                {"version", "0.3.0-alpha1"}
+            }
+        }
+    };
+    request(serverUrl, "initialize", params).then(this, [this, serverUrl](const QJsonObject &response) {
         if (response.contains("error") || !m_servers.contains(serverUrl)) return;
         const auto result = response.value("result").toObject();
-        const auto serverInfo = result.value("_meta").toObject().value("io.modelcontextprotocol/serverInfo").toObject();
-        const auto name = serverInfo.value("name").toString();
-        auto *item = m_servers.value(serverUrl);
-        if (!name.isEmpty()) item->setText(name);
-        item->setData(serverInfo.value("version").toString(), McpModel::VersionRole);
-        item->setData(serverInfo.value("description").toString(), McpModel::DescriptionRole);
-        item->setData(serverInfo.value("websiteUrl").toString(), McpModel::WebsiteUrlRole);
-        const auto icons = serverInfo.value("icons").toArray();
-        item->setData(icons.isEmpty() ? QUrl{} : QUrl(icons.first().toObject().value("src").toString()), Qt::DecorationRole);
-        item->setData(result.value("instructions").toString(), McpModel::InstructionsRole);
-        QStringList supportedVersions{};
-        for (const auto &value: result.value("supportedVersions").toArray()) supportedVersions.append(value.toString());
-        item->setData(supportedVersions, McpModel::SupportedVersionsRole);
-        item->setData(result.value("capabilities").toObject().toVariantMap(), McpModel::CapabilitiesRole);
-        item->setData(result.value("cacheScope").toString(), McpModel::CacheScopeRole);
-        item->setData(result.value("ttlMs").toInteger(), McpModel::TtlMsRole);
-        toolsRemove(serverUrl);
-        toolsRegister();
-        toolsGet(serverUrl, {});
+        m_servers[serverUrl].protocolVersion = result.value("protocolVersion").toString();
+        serverNotify(serverUrl, result);
     });
+}
+
+void McpModule::serverNotify(const QUrl &serverUrl, const QJsonObject &result) {
+    request(serverUrl, "notifications/initialized", {}).then(this, [this, serverUrl, result](const QJsonObject &response) {
+        if (response.contains("error")) return;
+        serverUpdate(serverUrl, result);
+    });
+}
+
+void McpModule::serverUpdate(const QUrl &serverUrl, const QJsonObject &result) {
+    if (!m_servers.contains(serverUrl)) return;
+    auto serverInfo = result.value("serverInfo").toObject();
+    if (serverInfo.isEmpty()) serverInfo = result.value("_meta").toObject().value("io.modelcontextprotocol/serverInfo").toObject();
+    auto name = serverInfo.value("title").toString();
+    if (name.isEmpty()) name = serverInfo.value("name").toString();
+    auto *item = m_servers.value(serverUrl).item;
+    if (!name.isEmpty()) item->setText(name);
+    item->setData(serverInfo.value("version").toString(), McpModel::VersionRole);
+    item->setData(serverInfo.value("description").toString(), McpModel::DescriptionRole);
+    item->setData(serverInfo.value("websiteUrl").toString(), McpModel::WebsiteUrlRole);
+    const auto icons = serverInfo.value("icons").toArray();
+    item->setData(icons.isEmpty() ? QUrl{} : QUrl(icons.first().toObject().value("src").toString()), Qt::DecorationRole);
+    item->setData(result.value("instructions").toString(), McpModel::InstructionsRole);
+    QStringList supportedVersions{};
+    for (const auto &value: result.value("supportedVersions").toArray()) supportedVersions.append(value.toString());
+    if (supportedVersions.isEmpty() && result.contains("protocolVersion")) supportedVersions.append(result.value("protocolVersion").toString());
+    item->setData(supportedVersions, McpModel::SupportedVersionsRole);
+    item->setData(result.value("capabilities").toObject().toVariantMap(), McpModel::CapabilitiesRole);
+    item->setData(result.value("cacheScope").toString(), McpModel::CacheScopeRole);
+    item->setData(result.value("ttlMs").toInteger(), McpModel::TtlMsRole);
+    toolsRemove(serverUrl);
+    toolsRegister();
+    toolsGet(serverUrl, {});
 }
 
 void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor) {
     QJsonObject params{};
     if (!cursor.isEmpty()) params["cursor"] = cursor;
     request(serverUrl, "tools/list", params).then(this, [this, serverUrl](const QJsonObject &response) {
-        if (response.contains("error") || !m_servers.contains(serverUrl) || !m_servers.value(serverUrl)->data(McpModel::EnabledRole).toBool()) return;
+        if (response.contains("error") || !m_servers.contains(serverUrl) || !m_servers.value(serverUrl).item->data(McpModel::EnabledRole).toBool()) return;
 
         const auto result = response.value("result").toObject();
-        auto prefix = m_servers.value(serverUrl)->text().toLower();
+        auto prefix = m_servers.value(serverUrl).item->text().toLower();
         if (prefix.isEmpty()) prefix = serverUrl.host().toLower();
         for (qsizetype index = 0; index < prefix.size(); ++index) {
             if (!prefix.at(index).isLetterOrNumber() && prefix.at(index) != '_' && prefix.at(index) != '-') prefix[index] = '_';
@@ -185,31 +233,39 @@ void McpModule::toolsRegister() {
 }
 
 QFuture<QJsonObject> McpModule::request(const QUrl &serverUrl, const QString &method, QJsonObject params, const QString &name) {
-    const auto protocolVersion = "2026-07-28";
-    params["_meta"] = QJsonObject{
-        {"io.modelcontextprotocol/protocolVersion", protocolVersion},
-        {
-            "io.modelcontextprotocol/clientInfo", QJsonObject{
-                {"name", "UniComm"},
-                {"version", "0.3.0-alpha1"}
-            }
-        },
-        {"io.modelcontextprotocol/clientCapabilities", QJsonObject{}}
-    };
+    const auto server = m_servers.value(serverUrl);
+    const auto stateless = server.protocolVersion == StatelessVersion;
+    if (stateless) {
+        params["_meta"] = QJsonObject{
+            {"io.modelcontextprotocol/protocolVersion", server.protocolVersion},
+            {
+                "io.modelcontextprotocol/clientInfo", QJsonObject{
+                    {"name", "UniComm"},
+                    {"version", "0.3.0-alpha1"}
+                }
+            },
+            {"io.modelcontextprotocol/clientCapabilities", QJsonObject{}}
+        };
+    }
 
-    const auto id = m_id++;
-    const auto body = QJsonObject{
+    const auto notification = method.startsWith("notifications/");
+    const auto id = notification ? -1 : m_id++;
+    QJsonObject body{
         {"jsonrpc", "2.0"},
-        {"id", id},
         {"method", method},
         {"params", params}
     };
+    if (!notification) body["id"] = id;
     QNetworkRequest request(serverUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Accept", "application/json, text/event-stream");
-    request.setRawHeader("MCP-Protocol-Version", protocolVersion);
-    request.setRawHeader("Mcp-Method", method.toUtf8());
-    if (!name.isEmpty()) request.setRawHeader("Mcp-Name", headerValueGet(name));
+    request.setRawHeader("MCP-Protocol-Version", server.protocolVersion.toUtf8());
+    if (stateless) {
+        request.setRawHeader("Mcp-Method", method.toUtf8());
+        if (!name.isEmpty()) request.setRawHeader("Mcp-Name", headerValueGet(name));
+    } else if (!server.sessionId.isEmpty() && method != "initialize") {
+        request.setRawHeader("Mcp-Session-Id", server.sessionId);
+    }
 
     auto promise = QSharedPointer<QPromise<QJsonObject> >::create();
     promise->start();
@@ -221,12 +277,15 @@ QFuture<QJsonObject> McpModule::request(const QUrl &serverUrl, const QString &me
         response->buffer.append(reply->readAll());
         responseRead(*response, id, false);
     });
-    connect(reply, &QNetworkReply::finished, this, [reply, promise, response, id] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, promise, response, serverUrl, notification, id] {
         response->eventStream = reply->header(QNetworkRequest::ContentTypeHeader).toString().startsWith("text/event-stream");
-        response->buffer.append(reply->readAll());
+        if (reply->isOpen()) response->buffer.append(reply->readAll());
         responseRead(*response, id, true);
+        const auto sessionId = reply->rawHeader("Mcp-Session-Id");
+        if (!sessionId.isEmpty() && m_servers.contains(serverUrl)) m_servers[serverUrl].sessionId = sessionId;
         if (response->object.isEmpty()) {
-            response->object["error"] = QJsonObject{{"message", reply->error() == QNetworkReply::NoError ? "Invalid MCP response." : reply->errorString()}};
+            if (notification && reply->error() == QNetworkReply::NoError) response->object["result"] = QJsonObject{};
+            else response->object["error"] = QJsonObject{{"message", reply->error() == QNetworkReply::NoError ? "Invalid MCP response." : reply->errorString()}};
         }
         promise->addResult(response->object);
         promise->finish();

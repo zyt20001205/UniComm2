@@ -41,10 +41,19 @@ signals:
     void registerTools(const QJsonArray &tools);
 
 private:
+    static constexpr auto StatelessVersion = "2026-07-28";
+    static constexpr auto StatefulVersion = "2025-11-25";
+
     struct Response {
         QByteArray buffer{};
         QJsonObject object{};
         bool eventStream{};
+    };
+
+    struct Server {
+        QStandardItem *item{};
+        QString protocolVersion{StatelessVersion};
+        QByteArray sessionId{};
     };
 
     struct Tool {
@@ -54,7 +63,13 @@ private:
         bool readOnly{};
     };
 
-    void initialize(const QUrl &serverUrl);
+    void serverDiscover(const QUrl &serverUrl);
+
+    void serverInitialize(const QUrl &serverUrl);
+
+    void serverNotify(const QUrl &serverUrl, const QJsonObject &result);
+
+    void serverUpdate(const QUrl &serverUrl, const QJsonObject &result);
 
     void toolsGet(const QUrl &serverUrl, const QString &cursor);
 
@@ -68,7 +83,7 @@ private:
 
     static void responseRead(Response &response, int id, bool finished);
 
-    QHash<QUrl, QStandardItem *> m_servers{};
+    QHash<QUrl, Server> m_servers{};
     QHash<QString, Tool> m_tools{};
     McpModel *m_mcpModel{};
     int m_id = 0;
