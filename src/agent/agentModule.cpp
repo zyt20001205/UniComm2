@@ -60,6 +60,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_manageWindow->setTransientParent(g_mainWindow->windowHandle());
     m_manageWindow->rootContext()->setContextProperty("agentModule", this);
     m_manageWindow->rootContext()->setContextProperty("global", g_globalManager);
+    m_manageWindow->rootContext()->setContextProperty("mcpModel", m_mcpModule->mcpModelGet());
     m_manageWindow->setResizeMode(QQuickView::SizeRootObjectToView);
     m_manageWindow->setSource(QUrl("qrc:/qml/agent/agentManageWindow.qml"));
 
@@ -126,6 +127,33 @@ int AgentModule::stateGet() const {
 
 void AgentModule::apikeySet(const QString &provider, const QString &apikey) const {
     m_providerModule->apikeySet(provider, apikey);
+}
+
+QString AgentModule::mcpInsert(const QUrl &url) {
+    const auto error = m_mcpModule->serverInsert(url);
+    if (!error.isEmpty()) return error;
+
+    auto mcp = m_config["mcp"].toObject();
+    mcp[url.toString()] = true;
+    m_config["mcp"] = mcp;
+    agentConfigSave();
+    return {};
+}
+
+void AgentModule::mcpRemove(const QUrl &url) {
+    auto mcp = m_config["mcp"].toObject();
+    mcp.remove(url.toString());
+    m_config["mcp"] = mcp;
+    m_mcpModule->serverRemove(url);
+    agentConfigSave();
+}
+
+void AgentModule::mcpEnabledSet(const QUrl &url, const bool enabled) {
+    auto mcp = m_config["mcp"].toObject();
+    mcp[url.toString()] = enabled;
+    m_config["mcp"] = mcp;
+    m_mcpModule->enabledSet(url, enabled);
+    agentConfigSave();
 }
 
 // public: conversation management

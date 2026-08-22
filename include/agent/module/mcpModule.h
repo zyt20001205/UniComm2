@@ -23,6 +23,12 @@ public:
 
     void initialize();
 
+    [[nodiscard]] QString serverInsert(const QUrl &serverUrl);
+
+    void serverRemove(const QUrl &serverUrl);
+
+    void enabledSet(const QUrl &serverUrl, bool enabled);
+
     void toolsGet();
 
     [[nodiscard]] QFuture<QString> toolExecute(const QString &name, const QString &arguments);
@@ -43,6 +49,8 @@ private:
         QUrl serverUrl{};
         QString name{};
     };
+
+    void initialize(const QUrl &serverUrl);
 
     void toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArray tools);
 
@@ -74,8 +82,7 @@ public:
         SupportedVersionsRole,
         CapabilitiesRole,
         CacheScopeRole,
-        TtlMsRole,
-        ErrorRole
+        TtlMsRole
     };
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;

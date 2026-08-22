@@ -4,6 +4,7 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QHash>
 #include <QStandardItemModel>
+#include <QUrl>
 
 #include "agent/runtime/runtimeModule.h"
 
@@ -50,6 +51,12 @@ public:
     [[nodiscard]] int stateGet() const;
 
     Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
+
+    Q_INVOKABLE QString mcpInsert(const QUrl &url);
+
+    Q_INVOKABLE void mcpRemove(const QUrl &url);
+
+    Q_INVOKABLE void mcpEnabledSet(const QUrl &url, bool enabled);
 
     Q_INVOKABLE void conversationsGet();
 

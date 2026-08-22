@@ -1,6 +1,5 @@
 #include "agent/module/mcpModule.h"
 
-#include <QDebug>
 #include <QFuture>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -32,30 +31,38 @@ McpModule::McpModule(const QJsonObject &mcpConfig, QObject *parent)
 void McpModule::initialize() {
     for (auto it = m_servers.cbegin(); it != m_servers.cend(); ++it) {
         if (!it.value()->data(McpModel::EnabledRole).toBool()) continue;
-        const auto &serverUrl = it.key();
-        request(serverUrl, "server/discover", {}).then(this, [this, serverUrl](const QJsonObject &response) {
-            const auto result = response.value("result").toObject();
-            const auto serverInfo = result.value("_meta").toObject().value("io.modelcontextprotocol/serverInfo").toObject();
-            const auto name = serverInfo.value("name").toString();
-            auto *item = m_servers.value(serverUrl);
-            if (!name.isEmpty()) item->setText(name);
-            item->setData(serverInfo.value("version").toString(), McpModel::VersionRole);
-            item->setData(serverInfo.value("description").toString(), McpModel::DescriptionRole);
-            item->setData(serverInfo.value("websiteUrl").toString(), McpModel::WebsiteUrlRole);
-            const auto icons = serverInfo.value("icons").toArray();
-            item->setData(icons.isEmpty() ? QUrl{} : QUrl(icons.first().toObject().value("src").toString()), Qt::DecorationRole);
-            item->setData(result.value("instructions").toString(), McpModel::InstructionsRole);
-            QStringList supportedVersions{};
-            for (const auto &value: result.value("supportedVersions").toArray()) supportedVersions.append(value.toString());
-            item->setData(supportedVersions, McpModel::SupportedVersionsRole);
-            item->setData(result.value("capabilities").toObject().toVariantMap(), McpModel::CapabilitiesRole);
-            item->setData(result.value("cacheScope").toString(), McpModel::CacheScopeRole);
-            item->setData(result.value("ttlMs").toInteger(), McpModel::TtlMsRole);
-            item->setData(response.contains("error") ? response.value("error").toObject().value("message").toString() : QString{}, McpModel::ErrorRole);
-            qDebug().noquote() << "MCP discover:" << (name.isEmpty() ? serverUrl.toString() : name) << '\n'
-                               << QString::fromUtf8(QJsonDocument(response).toJson(QJsonDocument::Indented));
-        });
+        initialize(it.key());
     }
+}
+
+QString McpModule::serverInsert(const QUrl &serverUrl) {
+    if (!serverUrl.isValid() || serverUrl.host().isEmpty() || (serverUrl.scheme() != "http" && serverUrl.scheme() != "https")) {
+        return tr("Enter a valid HTTP(S) URL.");
+    }
+    if (m_servers.contains(serverUrl)) return tr("This MCP server already exists.");
+
+    auto *item = new QStandardItem(serverUrl.host()); // NOLINT
+    item->setData(serverUrl, McpModel::UrlRole);
+    item->setData(true, McpModel::EnabledRole);
+    m_mcpModel->appendRow(item);
+    m_servers.insert(serverUrl, item);
+    initialize(serverUrl);
+    return {};
+}
+
+void McpModule::serverRemove(const QUrl &serverUrl) {
+    const auto row = m_servers.value(serverUrl)->row();
+    m_servers.remove(serverUrl);
+    m_mcpModel->removeRow(row);
+    for (auto it = m_tools.begin(); it != m_tools.end();) {
+        if (it.value().serverUrl == serverUrl) it = m_tools.erase(it);
+        else ++it;
+    }
+}
+
+void McpModule::enabledSet(const QUrl &serverUrl, const bool enabled) {
+    m_servers.value(serverUrl)->setData(enabled, McpModel::EnabledRole);
+    if (enabled) initialize(serverUrl);
 }
 
 void McpModule::toolsGet() {
@@ -95,11 +102,34 @@ McpModel *McpModule::mcpModelGet() const {
 }
 
 // private
+void McpModule::initialize(const QUrl &serverUrl) {
+    request(serverUrl, "server/discover", {}).then(this, [this, serverUrl](const QJsonObject &response) {
+        if (!m_servers.contains(serverUrl)) return;
+        const auto result = response.value("result").toObject();
+        const auto serverInfo = result.value("_meta").toObject().value("io.modelcontextprotocol/serverInfo").toObject();
+        const auto name = serverInfo.value("name").toString();
+        auto *item = m_servers.value(serverUrl);
+        if (!name.isEmpty()) item->setText(name);
+        item->setData(serverInfo.value("version").toString(), McpModel::VersionRole);
+        item->setData(serverInfo.value("description").toString(), McpModel::DescriptionRole);
+        item->setData(serverInfo.value("websiteUrl").toString(), McpModel::WebsiteUrlRole);
+        const auto icons = serverInfo.value("icons").toArray();
+        item->setData(icons.isEmpty() ? QUrl{} : QUrl(icons.first().toObject().value("src").toString()), Qt::DecorationRole);
+        item->setData(result.value("instructions").toString(), McpModel::InstructionsRole);
+        QStringList supportedVersions{};
+        for (const auto &value: result.value("supportedVersions").toArray()) supportedVersions.append(value.toString());
+        item->setData(supportedVersions, McpModel::SupportedVersionsRole);
+        item->setData(result.value("capabilities").toObject().toVariantMap(), McpModel::CapabilitiesRole);
+        item->setData(result.value("cacheScope").toString(), McpModel::CacheScopeRole);
+        item->setData(result.value("ttlMs").toInteger(), McpModel::TtlMsRole);
+    });
+}
+
 void McpModule::toolsGet(const QUrl &serverUrl, const QString &cursor, QJsonArray tools) {
     QJsonObject params{};
     if (!cursor.isEmpty()) params["cursor"] = cursor;
     request(serverUrl, "tools/list", params).then(this, [this, serverUrl, tools = std::move(tools)](const QJsonObject &response) mutable {
-        if (response.contains("error")) return;
+        if (response.contains("error") || !m_servers.contains(serverUrl)) return;
 
         const auto result = response.value("result").toObject();
         auto prefix = m_servers.value(serverUrl)->text().toLower();
@@ -234,6 +264,5 @@ QHash<int, QByteArray> McpModel::roleNames() const {
     roles[CapabilitiesRole] = "capabilities";
     roles[CacheScopeRole] = "cacheScope";
     roles[TtlMsRole] = "ttlMs";
-    roles[ErrorRole] = "error";
     return roles;
 }
