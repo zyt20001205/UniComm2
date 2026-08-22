@@ -121,12 +121,32 @@ Item {
                                 }
 
                                 Button {
+                                    id: actionButton
+
                                     flat: true
+                                    hoverEnabled: true
                                     focusPolicy: Qt.NoFocus
                                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                                     text: toastDelegate.toastActionText
                                     visible: toastDelegate.toastActionId >= 0 && text.length > 0
                                     Layout.alignment: Qt.AlignLeft
+                                    Layout.topMargin: 4
+
+                                    background: Item {}
+
+                                    contentItem: Label {
+                                        text: actionButton.text
+                                        color: actionButton.down ? global.brandBackSelected
+                                                                 : actionButton.hovered ? global.brandBack
+                                                                                        : global.brandLink
+                                        font.underline: actionButton.hovered
+                                        horizontalAlignment: Text.AlignLeft
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+
+                                    HoverHandler {
+                                        cursorShape: Qt.PointingHandCursor
+                                    }
 
                                     onClicked: toastDelegate.triggerAction()
                                 }
