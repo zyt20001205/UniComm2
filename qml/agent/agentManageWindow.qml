@@ -320,6 +320,7 @@ Item {
                                     id: apikeyTextField
                                     text: providerCard.providerApikey
                                     placeholderText: qsTr("Enter API key")
+                                    echoMode: TextInput.Password
                                     Layout.fillWidth: true
 
                                     onAccepted: agentModule.apikeySet(providerCard.providerId, text)
