@@ -80,6 +80,14 @@ Item {
                         id: toastContent
                         spacing: 0
 
+                        HoverHandler {
+                            onHoveredChanged: {
+                                if (toastDelegate.closing) return
+                                if (hovered) progressAnimation.pause()
+                                else progressAnimation.resume()
+                            }
+                        }
+
                         RowLayout {
                             spacing: 8
                             Layout.fillWidth: true
