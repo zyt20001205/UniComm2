@@ -25,6 +25,10 @@ public:
 
     [[nodiscard]] BaseProvider *providerGet(const QString &id) const;
 
+    [[nodiscard]] ProviderModel *providerModelGet() const {
+        return m_providerModel;
+    }
+
 signals:
     void modelsChanged();
 
@@ -44,6 +48,7 @@ public:
     enum Role {
         IdRole = Qt::UserRole + 1,
         ApikeyRole,
+        ApiRole,
         ModelsRole
     };
 
@@ -58,6 +63,7 @@ public:
 
     enum Role {
         IdRole = Qt::UserRole + 1,
+        ModelIdRole,
         ContextWindowRole,
         MaxOutputTokensRole
     };

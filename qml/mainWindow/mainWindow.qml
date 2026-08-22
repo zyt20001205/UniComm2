@@ -347,41 +347,6 @@ Item {
 
     // agent module
     Dialog {
-        id: agentModuleApikeyDialog
-        parent: Overlay.overlay
-        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
-        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
-        width: 600
-        modal: true
-        standardButtons: Dialog.Ok
-        property string provider
-        property string apikey
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            agentModuleApikeyTextField.text = agentModuleApikeyDialog.apikey
-            agentModuleApikeyTextField.forceActiveFocus()
-            agentModuleApikeyTextField.selectAll()
-        }
-        onAccepted: {
-            agentModule.apikeySet(agentModuleApikeyDialog.provider, agentModuleApikeyTextField.text)
-        }
-
-        TextField {
-            id: agentModuleApikeyTextField
-            width: parent.width
-            placeholderText: qsTr("Enter key:")
-
-            onAccepted: agentModuleApikeyDialog.accept()
-            Keys.onEscapePressed: agentModuleApikeyDialog.reject()
-        }
-    }
-
-    Dialog {
         id: agentModuleRenameDialog
         parent: Overlay.overlay
         x: mainScreenItem.x + (mainScreenItem.width - width) / 2
@@ -522,23 +487,8 @@ Item {
                 id: providerMenu
                 property string providerId: model.id
                 property string providerName: model.display
-                property string apikey: model.apikey
                 property var providerModels: model.models
                 title: providerName
-
-                MenuItem {
-                    text: qsTr("API Key")
-
-                    onTriggered: {
-                        agentModuleApikeyDialog.title = qsTr("Enter %1 API Key").arg(providerMenu.providerName)
-                        agentModuleApikeyDialog.provider = providerMenu.providerId
-                        agentModuleApikeyDialog.apikey = providerMenu.apikey
-                        agentModuleApikeyDialog.open()
-                    }
-                }
-
-                MenuSeparator {
-                }
 
                 Instantiator {
                     model: providerMenu.providerModels

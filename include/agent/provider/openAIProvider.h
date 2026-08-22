@@ -25,6 +25,10 @@ public:
         return m_name;
     }
 
+    [[nodiscard]] QUrl apiGet() const {
+        return m_api;
+    }
+
     [[nodiscard]] ProviderModelModel *modelListGet() const {
         return m_modelList;
     }

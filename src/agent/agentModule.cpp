@@ -62,6 +62,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_manageWindow->rootContext()->setContextProperty("agentModule", this);
     m_manageWindow->rootContext()->setContextProperty("global", g_globalManager);
     m_manageWindow->rootContext()->setContextProperty("mcpModel", m_mcpModule->mcpModelGet());
+    m_manageWindow->rootContext()->setContextProperty("providerModel", m_providerModule->providerModelGet());
     m_manageWindow->setResizeMode(QQuickView::SizeRootObjectToView);
     m_manageWindow->setSource(QUrl("qrc:/qml/agent/agentManageWindow.qml"));
 

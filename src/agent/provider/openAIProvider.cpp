@@ -82,6 +82,7 @@ void OpenAIProvider::modelsGet() {
             const auto model = modelGet(value.toObject().value("id").toString());
             auto *item = new QStandardItem(model.name); // NOLINT
             item->setData(model.id, ProviderModelModel::IdRole);
+            item->setData(model.id, ProviderModelModel::ModelIdRole);
             item->setData(model.contextWindow, ProviderModelModel::ContextWindowRole);
             item->setData(model.maxOutputTokens, ProviderModelModel::MaxOutputTokensRole);
             m_modelList->appendRow(item);

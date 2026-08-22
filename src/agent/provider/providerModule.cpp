@@ -30,6 +30,7 @@ void ProviderModule::initialize() {
         auto *item = new QStandardItem(provider->nameGet()); // NOLINT
         item->setData(id, ProviderModel::IdRole);
         item->setData("", ProviderModel::ApikeyRole);
+        item->setData(provider->apiGet(), ProviderModel::ApiRole);
         item->setData(QVariant::fromValue(provider->modelListGet()), ProviderModel::ModelsRole);
         m_providerModel->appendRow(item);
 
@@ -53,6 +54,7 @@ QHash<int, QByteArray> ProviderModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[IdRole] = "id";
     roles[ApikeyRole] = "apikey";
+    roles[ApiRole] = "api";
     roles[ModelsRole] = "models";
     return roles;
 }
@@ -60,6 +62,7 @@ QHash<int, QByteArray> ProviderModel::roleNames() const {
 QHash<int, QByteArray> ProviderModelModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[IdRole] = "id";
+    roles[ModelIdRole] = "modelId";
     roles[ContextWindowRole] = "contextWindow";
     roles[MaxOutputTokensRole] = "maxOutputTokens";
     return roles;

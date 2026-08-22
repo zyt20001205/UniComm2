@@ -38,20 +38,24 @@ Item {
                 clip: true
                 currentIndex: 0
                 model: [
-                    qsTr("Models"),
-                    qsTr("MCP"),
-                    qsTr("Skills"),
-                    qsTr("Hooks"),
-                    qsTr("Context")
+                    { "title": qsTr("Models"), "icon": "qrc:/icon/model.svg" },
+                    { "title": qsTr("MCP"), "icon": "qrc:/icon/mcp.svg" },
+                    { "title": qsTr("Skills"), "icon": "qrc:/icon/skill.svg" },
+                    { "title": qsTr("Hooks"), "icon": "qrc:/icon/hook.svg" },
+                    { "title": qsTr("Context"), "icon": "qrc:/icon/database.svg" }
                 ]
                 spacing: 2
 
                 delegate: ItemDelegate {
                     required property int index
-                    required property string modelData
+                    required property var modelData
                     width: navigationView.width
                     height: 36
-                    text: modelData
+                    text: modelData.title
+                    icon.source: modelData.icon
+                    icon.width: 18
+                    icon.height: 18
+                    spacing: 10
                     highlighted: navigationView.currentIndex === index
 
                     onClicked: navigationView.currentIndex = index
@@ -66,6 +70,10 @@ Item {
             SettingsPage {
                 title: qsTr("Models")
                 description: qsTr("Configure model providers, credentials, and available models.")
+
+                ModelsContent {
+                    anchors.fill: parent
+                }
             }
 
             SettingsPage {
@@ -210,6 +218,187 @@ Item {
                 id: contentItem
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+            }
+        }
+    }
+
+    component ModelsContent: ScrollView {
+        id: modelsScrollView
+        clip: true
+        contentWidth: availableWidth
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+        ColumnLayout {
+            width: modelsScrollView.availableWidth
+            spacing: 14
+
+            Repeater {
+                model: providerModel
+
+                delegate: Rectangle {
+                    id: providerCard
+                    property string providerId: model.id
+                    property string providerName: model.display
+                    property string providerApikey: model.apikey
+                    property url providerApi: model.api
+                    property var providerModels: model.models
+
+                    radius: 6
+                    color: global.backHover
+                    border.color: global.stroke
+                    implicitHeight: providerLayout.implicitHeight + 32
+                    Layout.fillWidth: true
+
+                    RowLayout {
+                        id: providerLayout
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 12
+
+                        Rectangle {
+                            radius: 6
+                            color: global.backSelected
+                            Layout.preferredWidth: 42
+                            Layout.preferredHeight: 42
+                            Layout.alignment: Qt.AlignTop
+
+                            IconImage {
+                                anchors.centerIn: parent
+                                width: 24
+                                height: 24
+                                source: "qrc:/icon/" + providerCard.providerId + ".svg"
+                            }
+                        }
+
+                        ColumnLayout {
+                            spacing: 10
+                            Layout.fillWidth: true
+
+                            RowLayout {
+                                spacing: 8
+                                Layout.fillWidth: true
+
+                                Label {
+                                    text: providerCard.providerName
+                                    font.bold: true
+                                }
+
+                                Label {
+                                    text: providerCard.providerId
+                                    color: global.stroke
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
+                                }
+                            }
+
+                            Label {
+                                text: providerCard.providerApi.toString()
+                                color: global.stroke
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                color: global.stroke
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 1
+                            }
+
+                            Label {
+                                text: qsTr("API Key")
+                                font.bold: true
+                            }
+
+                            RowLayout {
+                                spacing: 8
+                                Layout.fillWidth: true
+
+                                TextField {
+                                    id: apikeyTextField
+                                    text: providerCard.providerApikey
+                                    placeholderText: qsTr("Enter API key")
+                                    Layout.fillWidth: true
+
+                                    onAccepted: agentModule.apikeySet(providerCard.providerId, text)
+                                }
+
+                                Button {
+                                    text: qsTr("Save")
+                                    enabled: apikeyTextField.text.length > 0
+
+                                    onClicked: agentModule.apikeySet(providerCard.providerId, apikeyTextField.text)
+                                }
+                            }
+
+                            Rectangle {
+                                color: global.stroke
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 1
+                            }
+
+                            Label {
+                                text: qsTr("Available Models")
+                                font.bold: true
+                            }
+
+                            Repeater {
+                                model: providerCard.providerModels
+
+                                delegate: Rectangle {
+                                    required property int index
+                                    required property string display
+                                    required property string modelId
+                                    required property int contextWindow
+                                    required property int maxOutputTokens
+
+                                    radius: 4
+                                    color: index % 2 === 0 ? global.back : "transparent"
+                                    implicitHeight: 38
+                                    Layout.fillWidth: true
+
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 10
+                                        anchors.rightMargin: 10
+                                        spacing: 12
+
+                                        ColumnLayout {
+                                            spacing: 0
+                                            Layout.fillWidth: true
+
+                                            Label {
+                                                text: display
+                                                elide: Text.ElideRight
+                                                Layout.fillWidth: true
+                                            }
+
+                                            Label {
+                                                text: modelId
+                                                color: global.stroke
+                                                font.pixelSize: 11
+                                                elide: Text.ElideRight
+                                                Layout.fillWidth: true
+                                            }
+                                        }
+
+                                        Label {
+                                            text: qsTr("Context %1").arg(contextWindow.toLocaleString(Qt.locale(), "f", 0))
+                                            color: global.stroke
+                                        }
+
+                                        Label {
+                                            text: qsTr("Output %1").arg(maxOutputTokens.toLocaleString(Qt.locale(), "f", 0))
+                                            color: global.stroke
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
