@@ -108,6 +108,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("fileModule", m_fileModule);
     m_overlay->rootContext()->setContextProperty("terminalModule", m_terminalModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
+    m_overlay->rootContext()->setContextProperty("undoModule", m_undoModule);
     m_overlay->rootContext()->setContextProperty("watchModule", m_watchModule);
 
     m_overlay->rootContext()->setContextProperty("agentModuleAction", QVariant::fromValue(m_agentModule->toggleAction()));
@@ -559,6 +560,10 @@ void MainWindow::shortcutInit() {
     auto shortcutConfig = g_workspaceConfig["shortcutConfig"].toObject();
     const auto *maximizeShortcut = new QShortcut(QKeySequence("F11"), this); // NOLINT
     connect(maximizeShortcut, &QShortcut::activated, this, &MainWindow::maximizeToggle);
+    const auto *undoShortcut = new QShortcut(QKeySequence("Ctrl+Z"), this); // NOLINT
+    connect(undoShortcut, &QShortcut::activated, m_undoModule, &UndoModule::undo);
+    const auto *redoShortcut = new QShortcut(QKeySequence("Ctrl+Y"), this); // NOLINT
+    connect(redoShortcut, &QShortcut::activated, m_undoModule, &UndoModule::redo);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "shortcut initialized");

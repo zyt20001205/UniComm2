@@ -45,8 +45,6 @@ QVariantHash CodeWidget::menuLoad(const QString &name) const {
     QVariantHash menuSession{};
     if (name == "edit") {
         menuSession = {
-            {"undoable", m_scintillaWidget->undoable()},
-            {"redoable", m_scintillaWidget->redoable()},
             {"copiable", m_scintillaWidget->copiable()},
             {"pastable", m_scintillaWidget->pastable()}
         };
@@ -96,11 +94,7 @@ QVariantHash CodeWidget::menuLoad(const QString &name) const {
 
 void CodeWidget::menuCall(const QString &name) const {
     m_scintillaWidget->focusSet(true);
-    if (name == "undo") {
-        m_scintillaWidget->undo();
-    } else if (name == "redo") {
-        m_scintillaWidget->redo();
-    } else if (name == "cut") {
+    if (name == "cut") {
         m_scintillaWidget->cut();
     } else if (name == "copy") {
         m_scintillaWidget->copy();

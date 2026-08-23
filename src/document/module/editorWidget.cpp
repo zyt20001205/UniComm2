@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QFile>
+#include <QKeyEvent>
 #include <QShortcut>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -102,6 +103,13 @@ void EditorWidget::documentGoto() {
 }
 
 bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_scintillaWidget && event->type() == QEvent::ShortcutOverride) {
+        auto *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->matches(QKeySequence::Undo) || keyEvent->matches(QKeySequence::Redo)) {
+            event->accept();
+            return true;
+        }
+    }
     if (watched == m_scintillaWidget && event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {

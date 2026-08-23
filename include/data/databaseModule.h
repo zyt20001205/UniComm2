@@ -40,6 +40,8 @@ signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
 private:
+    [[nodiscard]] bool _databaseRename(const QString &oldKey, const QString &newKey);
+
     void databaseIndex();
 
     QQuickWidget *m_widget{};

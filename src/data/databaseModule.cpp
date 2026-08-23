@@ -7,6 +7,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "core/undoModule.h"
 #include "mainWindow/toastModule.h"
 
 // public
@@ -75,6 +76,8 @@ int DatabaseModule::databaseInsert(int index, const QString &key) {
         m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key), 3000);
         return -1;
     }
+
+    g_undo->clear();
     auto *keyItem = new QStandardItem(_key); // NOLINT
     keyItem->setData(_key, DatabaseModel::KeyRole);
     auto *valueItem = new QStandardItem(); // NOLINT
@@ -84,6 +87,12 @@ int DatabaseModule::databaseInsert(int index, const QString &key) {
 }
 
 void DatabaseModule::databaseRemove(const int index) {
+    if (index < 0 || index >= g_databaseStandardItemModel->rowCount()) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."), 3000);
+        return;
+    }
+
+    g_undo->clear();
     g_databaseStandardItemModel->removeRow(index);
     databaseIndex();
 }
@@ -100,16 +109,25 @@ bool DatabaseModule::databaseRename(const int index, const QString &key) {
         return false;
     }
 
-    auto *item = g_databaseStandardItemModel->item(index, 0);
-    if (_key == item->text()) return true;
+    const auto oldKey = g_databaseStandardItemModel->item(index, 0)->text();
+    if (_key == oldKey) return true;
     if (m_databaseHash.contains(_key)) {
         m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key), 3000);
         return false;
     }
 
-    item->setText(_key);
-    item->setData(_key, DatabaseModel::KeyRole);
-    databaseIndex();
+    g_undo->push(
+        tr("Database Rename"),
+        [this, oldKey, newKey = _key] {
+            const auto success = _databaseRename(oldKey, newKey);
+            Q_ASSERT(success);
+            Q_UNUSED(success);
+        },
+        [this, oldKey, newKey = _key] {
+            const auto success = _databaseRename(newKey, oldKey);
+            Q_ASSERT(success);
+            Q_UNUSED(success);
+        });
     return true;
 }
 
@@ -137,6 +155,19 @@ bool DatabaseModule::databaseWrite(const QString &key, const QString &value) {
 }
 
 // private
+bool DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKey) {
+    const auto iterator = m_databaseHash.constFind(oldKey);
+    if (iterator == m_databaseHash.cend() || m_databaseHash.contains(newKey)) return false;
+
+    auto *item = g_databaseStandardItemModel->item(iterator.value(), 0);
+    if (!item) return false;
+
+    item->setText(newKey);
+    item->setData(newKey, DatabaseModel::KeyRole);
+    databaseIndex();
+    return true;
+}
+
 void DatabaseModule::databaseIndex() {
     m_databaseHash.clear();
     for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {

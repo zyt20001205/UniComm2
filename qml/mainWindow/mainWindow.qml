@@ -3261,7 +3261,7 @@ Item {
 
         MenuItem {
             id: menuModuleEditUndoItem
-            enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.undoable : false
+            enabled: undoModule.canUndo
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -3275,7 +3275,7 @@ Item {
                 }
 
                 Label {
-                    text: qsTr("Undo")
+                    text: undoModule.canUndo ? qsTr("Undo %1").arg(undoModule.undoText) : qsTr("Undo")
                 }
 
                 Item {
@@ -3287,12 +3287,12 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuCall("undo")
+            onTriggered: undoModule.undo()
         }
 
         MenuItem {
             id: menuModuleEditRedoItem
-            enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.redoable : false
+            enabled: undoModule.canRedo
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -3306,7 +3306,7 @@ Item {
                 }
 
                 Label {
-                    text: qsTr("Redo")
+                    text: undoModule.canRedo ? qsTr("Redo %1").arg(undoModule.redoText) : qsTr("Redo")
                 }
 
                 Item {
@@ -3318,7 +3318,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuCall("redo")
+            onTriggered: undoModule.redo()
         }
 
         MenuSeparator {
