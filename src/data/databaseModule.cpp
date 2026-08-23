@@ -26,7 +26,9 @@ DatabaseModule::~DatabaseModule() {
 void DatabaseModule::propertySet(const QVariantHash &objects) {
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
     for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
-        databaseInsert(-1, value.toString());
+        const auto success = _databaseInsert(g_databaseStandardItemModel->rowCount(), value.toString());
+        Q_ASSERT(success);
+        Q_UNUSED(success);
     }
 
     m_widget->rootContext()->setContextProperty("databaseModule", this);
@@ -77,12 +79,18 @@ int DatabaseModule::databaseInsert(int index, const QString &key) {
         return -1;
     }
 
-    g_undo->clear();
-    auto *keyItem = new QStandardItem(_key); // NOLINT
-    keyItem->setData(_key, DatabaseModel::KeyRole);
-    auto *valueItem = new QStandardItem(); // NOLINT
-    g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
-    databaseIndex();
+    g_undo->push(
+        tr("Database Insert"),
+        [this, index, _key] {
+            const auto success = _databaseInsert(index, _key);
+            Q_ASSERT(success);
+            Q_UNUSED(success);
+        },
+        [this, _key] {
+            const auto success = _databaseRemove(_key);
+            Q_ASSERT(success);
+            Q_UNUSED(success);
+        });
     return index;
 }
 
@@ -92,9 +100,19 @@ void DatabaseModule::databaseRemove(const int index) {
         return;
     }
 
-    g_undo->clear();
-    g_databaseStandardItemModel->removeRow(index);
-    databaseIndex();
+    const auto key = g_databaseStandardItemModel->item(index, 0)->text();
+    g_undo->push(
+        tr("Database Remove"),
+        [this, key] {
+            const auto success = _databaseRemove(key);
+            Q_ASSERT(success);
+            Q_UNUSED(success);
+        },
+        [this, index, key] {
+            const auto success = _databaseInsert(index, key);
+            Q_ASSERT(success);
+            Q_UNUSED(success);
+        });
 }
 
 bool DatabaseModule::databaseRename(const int index, const QString &key) {
@@ -134,7 +152,7 @@ bool DatabaseModule::databaseRename(const int index, const QString &key) {
 void DatabaseModule::databaseSwap(const int src, const int dst) {
     const auto tmp = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, tmp);
-    databaseIndex();
+    databaseCache();
 }
 
 void DatabaseModule::databaseClear(const int index) {
@@ -155,6 +173,27 @@ bool DatabaseModule::databaseWrite(const QString &key, const QString &value) {
 }
 
 // private
+bool DatabaseModule::_databaseInsert(const int index, const QString &key) {
+    if (index < 0 || index > g_databaseStandardItemModel->rowCount()
+        || key.isEmpty() || m_databaseHash.contains(key)) return false;
+
+    auto *keyItem = new QStandardItem(key); // NOLINT
+    keyItem->setData(key, DatabaseModel::KeyRole);
+    auto *valueItem = new QStandardItem(); // NOLINT
+    g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
+    databaseCache();
+    return true;
+}
+
+bool DatabaseModule::_databaseRemove(const QString &key) {
+    const auto iterator = m_databaseHash.constFind(key);
+    if (iterator == m_databaseHash.cend()) return false;
+
+    g_databaseStandardItemModel->removeRow(iterator.value());
+    databaseCache();
+    return true;
+}
+
 bool DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKey) {
     const auto iterator = m_databaseHash.constFind(oldKey);
     if (iterator == m_databaseHash.cend() || m_databaseHash.contains(newKey)) return false;
@@ -164,11 +203,11 @@ bool DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKe
 
     item->setText(newKey);
     item->setData(newKey, DatabaseModel::KeyRole);
-    databaseIndex();
+    databaseCache();
     return true;
 }
 
-void DatabaseModule::databaseIndex() {
+void DatabaseModule::databaseCache() {
     m_databaseHash.clear();
     for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {
         const QString key = g_databaseStandardItemModel->item(i, 0)->text();
