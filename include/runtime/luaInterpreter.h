@@ -7,6 +7,7 @@
 #include <sol/state.hpp>
 
 class QEventLoop;
+class QJsonObject;
 class QStandardItemModel;
 class Data;
 class IO;
@@ -23,7 +24,7 @@ class LuaInterpreter final : public QObject {
 public:
     explicit LuaInterpreter(const QVariantMap &luaSession , QObject *parent = nullptr);
 
-    void start(const QString &script);
+    [[nodiscard]] QJsonObject start(const QString &script);
 
     void inputWrite(const QByteArray &data) const;
 

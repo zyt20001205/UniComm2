@@ -1,5 +1,6 @@
 #include "terminal/terminalModule.h"
 
+#include <QJsonArray>
 #include <QQmlContext>
 #include <QQuickView>
 #include <QUuid>

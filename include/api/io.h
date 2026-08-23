@@ -3,6 +3,8 @@
 
 #include <cstdio>
 
+#include <QJsonObject>
+#include <QMutex>
 #include <QObject>
 
 class QEventLoop;
@@ -24,9 +26,15 @@ public:
 
     void redirect(lua_State *L);
 
+    QJsonObject finish();
+
     void print(const sol::variadic_args &args) const;
 
-    void inputWrite(const QByteArray &data) const;
+    void stdIn(const QByteArray &data) const;
+
+    void stdOut(const QByteArray &data) const;
+
+    void stdErr(const QByteArray &data) const;
 
     void message(const std::string &text) const;
 
@@ -38,6 +46,18 @@ signals:
     void newMessageDialog(const QEventLoop *eventloop, const QString &text) const;
 
 private:
+    struct OutputBuffer {
+        QByteArray output{};
+        QByteArray error{};
+    };
+
+    enum class Stream {
+        Output,
+        Error
+    };
+
+    void append(Stream stream, const QByteArray &data);
+
     [[nodiscard]] static std::FILE *fileOpen(void *&handle, int flags, const char *mode);
 
     static void handleClose(void *&handle);
@@ -46,11 +66,15 @@ private:
 
     QString m_threadId{};
     void *m_inputWrite{};
-    void *m_outputRead{};
+    void *m_stdoutRead{};
+    void *m_stderrRead{};
     void *m_stdin{};
     void *m_stdout{};
     void *m_stderr{};
-    QThread *m_outputThread{};
+    QThread *m_stdoutThread{};
+    QThread *m_stderrThread{};
+    QMutex m_outputMutex{};
+    OutputBuffer m_output{};
 };
 
 #endif //UNICOMM_IO_H

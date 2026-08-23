@@ -315,7 +315,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     }
 }
 
-void LuaInterpreter::start(const QString &script) {
+QJsonObject LuaInterpreter::start(const QString &script) {
     lua_State *L = m_lua.lua_state();
     m_io->redirect(L);
     // load session
@@ -340,16 +340,17 @@ void LuaInterpreter::start(const QString &script) {
     );
     if (!result.valid()) {
         const sol::error err = result;
-        emit appendLog(LogLevel::Error, QString::fromStdString(err.what()), "");
+        m_io->stdErr(QString::fromStdString(err.what()).toUtf8() + '\n');
     }
     // frontend
     emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Debug, -1);
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
+    return m_io->finish();
 }
 
 void LuaInterpreter::inputWrite(const QByteArray &data) const {
-    m_io->inputWrite(data);
+    m_io->stdIn(data);
 }
 
 void LuaInterpreter::stateSet(const int state) {
@@ -525,7 +526,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                             if (result.as<bool>()) session["state"] = Debug::Pause;
                         } else {
                             const sol::error err = condition_result;
-                            emit This->appendLog(LogLevel::Error, QString::fromStdString(err.what()), "");
+                            This->m_io->stdErr(QString::fromStdString(err.what()).toUtf8() + '\n');
                         }
                         lua_settop(L, base);
                     }
@@ -554,7 +555,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                     [This, L, ar, currentUrl](const QString &documentUrl, const QString &expression, const QString &value, const QString &type) {
                         disconnect(This, &LuaInterpreter::setValue, This, nullptr);
                         if (currentUrl != documentUrl) {
-                            emit This->appendLog(LogLevel::Error, QString("Hot update failed: Not in the current file scope"), "");
+                            This->m_io->stdErr("Hot update failed: Not in the current file scope\n");
                             return;
                         }
                         bool updated = false;
@@ -595,7 +596,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         }
                         // value not found
                         if (!updated) {
-                            emit This->appendLog(LogLevel::Error, QString("Hot update failed: variable '%1' not found").arg(expression), "");
+                            This->m_io->stdErr(QString("Hot update failed: variable '%1' not found\n").arg(expression).toUtf8());
                         } else {
                             // watch handle
                             watchSet(L, ar);

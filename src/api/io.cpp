@@ -17,43 +17,31 @@ IO::IO(const QString &threadId, QObject *parent)
 }
 
 IO::~IO() {
+    finish();
     handleClose(m_inputWrite);
     if (m_stdin) {
         fclose(static_cast<FILE *>(m_stdin));
         m_stdin = nullptr;
     }
-    if (m_stdout) {
-        fclose(static_cast<FILE *>(m_stdout));
-        m_stdout = nullptr;
-    }
-    if (m_stderr) {
-        fclose(static_cast<FILE *>(m_stderr));
-        m_stderr = nullptr;
-    }
-    if (m_outputThread) {
-        m_outputThread->wait();
-        delete m_outputThread;
-        m_outputThread = nullptr;
-    }
-    handleClose(m_outputRead);
 }
 
 void IO::redirect(lua_State *L) {
     HANDLE inputRead{};
     HANDLE inputWrite{};
-    HANDLE outputRead{};
+    HANDLE stdoutRead{};
     HANDLE stdoutWrite{};
+    HANDLE stderrRead{};
     HANDLE stderrWrite{};
     if (!CreatePipe(&inputRead, &inputWrite, nullptr, 0)) throw sol::error("create stdin pipe failed");
-    if (!CreatePipe(&outputRead, &stdoutWrite, nullptr, 0)) {
+    if (!CreatePipe(&stdoutRead, &stdoutWrite, nullptr, 0)) {
         CloseHandle(inputRead);
         CloseHandle(inputWrite);
         throw sol::error("create stdout pipe failed");
     }
-    if (!DuplicateHandle(GetCurrentProcess(), stdoutWrite, GetCurrentProcess(), &stderrWrite, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+    if (!CreatePipe(&stderrRead, &stderrWrite, nullptr, 0)) {
         CloseHandle(inputRead);
         CloseHandle(inputWrite);
-        CloseHandle(outputRead);
+        CloseHandle(stdoutRead);
         CloseHandle(stdoutWrite);
         throw sol::error("create stderr pipe failed");
     }
@@ -72,7 +60,8 @@ void IO::redirect(lua_State *L) {
         if (stdoutFile) fclose(stdoutFile);
         if (stderrFile) fclose(stderrFile);
         CloseHandle(inputWrite);
-        CloseHandle(outputRead);
+        CloseHandle(stdoutRead);
+        CloseHandle(stderrRead);
         throw sol::error("open standard stream failed");
     }
 
@@ -92,7 +81,8 @@ void IO::redirect(lua_State *L) {
         fclose(stdoutFile);
         fclose(stderrFile);
         CloseHandle(inputWrite);
-        CloseHandle(outputRead);
+        CloseHandle(stdoutRead);
+        CloseHandle(stderrRead);
         throw sol::error("standard stream is unavailable");
     }
 
@@ -100,18 +90,31 @@ void IO::redirect(lua_State *L) {
     stdoutStream->f = stdoutFile;
     stderrStream->f = stderrFile;
     m_inputWrite = inputWrite;
-    m_outputRead = outputRead;
+    m_stdoutRead = stdoutRead;
+    m_stderrRead = stderrRead;
     m_stdin = stdinFile;
     m_stdout = stdoutFile;
     m_stderr = stderrFile;
-    m_outputThread = QThread::create([this] {
+    m_stdoutThread = QThread::create([this] {
         char buffer[4096]{};
         DWORD read{};
-        while (ReadFile(m_outputRead, buffer, sizeof(buffer), &read, nullptr) && read > 0) {
-            emit writeTerminal(m_threadId, QByteArray(buffer, static_cast<qsizetype>(read)));
+        while (ReadFile(m_stdoutRead, buffer, sizeof(buffer), &read, nullptr) && read > 0) {
+            const QByteArray data(buffer, static_cast<qsizetype>(read));
+            append(Stream::Output, data);
+            emit writeTerminal(m_threadId, data);
         }
     });
-    m_outputThread->start();
+    m_stderrThread = QThread::create([this] {
+        char buffer[4096]{};
+        DWORD read{};
+        while (ReadFile(m_stderrRead, buffer, sizeof(buffer), &read, nullptr) && read > 0) {
+            const QByteArray data(buffer, static_cast<qsizetype>(read));
+            append(Stream::Error, data);
+            emit writeTerminal(m_threadId, data);
+        }
+    });
+    m_stdoutThread->start();
+    m_stderrThread->start();
 
     pathCast(L, "io", "open", 1);
     pathCast(L, "io", "input", 1);
@@ -121,10 +124,50 @@ void IO::redirect(lua_State *L) {
     pathCast(L, "os", "rename", 2);
 }
 
-void IO::inputWrite(const QByteArray &data) const {
+QJsonObject IO::finish() {
+    if (m_stdout) {
+        fclose(static_cast<FILE *>(m_stdout));
+        m_stdout = nullptr;
+    }
+    if (m_stderr) {
+        fclose(static_cast<FILE *>(m_stderr));
+        m_stderr = nullptr;
+    }
+    if (m_stdoutThread) {
+        m_stdoutThread->wait();
+        delete m_stdoutThread;
+        m_stdoutThread = nullptr;
+    }
+    if (m_stderrThread) {
+        m_stderrThread->wait();
+        delete m_stderrThread;
+        m_stderrThread = nullptr;
+    }
+    handleClose(m_stdoutRead);
+    handleClose(m_stderrRead);
+    const QMutexLocker locker(&m_outputMutex);
+    return {
+        {"output", QString::fromUtf8(m_output.output)},
+        {"err", QString::fromUtf8(m_output.error)}
+    };
+}
+
+void IO::stdIn(const QByteArray &data) const {
     if (!m_inputWrite || data.isEmpty()) return;
     DWORD written{};
     WriteFile(m_inputWrite, data.constData(), data.size(), &written, nullptr);
+}
+
+void IO::stdOut(const QByteArray &data) const {
+    auto *file = static_cast<FILE *>(m_stdout);
+    if (!file || fwrite(data.constData(), 1, static_cast<size_t>(data.size()), file) != static_cast<size_t>(data.size()))
+        throw sol::error("stdout write failed");
+}
+
+void IO::stdErr(const QByteArray &data) const {
+    auto *file = static_cast<FILE *>(m_stderr);
+    if (!file || fwrite(data.constData(), 1, static_cast<size_t>(data.size()), file) != static_cast<size_t>(data.size()))
+        throw sol::error("stderr write failed");
 }
 
 void IO::print(const sol::variadic_args &args) const {
@@ -155,9 +198,7 @@ void IO::print(const sol::variadic_args &args) const {
         first = false;
     }
     data.append('\n');
-    auto *file = static_cast<FILE *>(m_stdout);
-    if (!file || fwrite(data.constData(), 1, static_cast<size_t>(data.size()), file) != static_cast<size_t>(data.size()))
-        throw sol::error("stdout write failed");
+    stdOut(data);
 }
 
 void IO::message(const std::string &text) const {
@@ -185,6 +226,12 @@ void IO::speak(const std::string &text) {
 }
 
 // private
+void IO::append(const Stream stream, const QByteArray &data) {
+    const QMutexLocker locker(&m_outputMutex);
+    if (stream == Stream::Output) m_output.output.append(data);
+    else m_output.error.append(data);
+}
+
 std::FILE *IO::fileOpen(void *&handle, const int flags, const char *mode) {
     const auto descriptor = _open_osfhandle(reinterpret_cast<std::intptr_t>(handle), flags);
     if (descriptor == -1) return nullptr;

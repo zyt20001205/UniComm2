@@ -2,7 +2,7 @@
 #define UNICOMM_THREADPOOL_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
-#include <QJsonArray>
+#include <QJsonObject>
 #include <QStandardItemModel>
 
 class QTableWidget;
@@ -42,7 +42,7 @@ signals:
 
     void writeTerminal(const QString &id, const QByteArray &data);
 
-    void finishThread(const QString &threadId, const QJsonArray &result);
+    void finishThread(const QString &threadId, const QJsonObject &output);
 
     void trackQuit(float secondaryProgress, const QString &secondaryLog) const;
 

@@ -679,7 +679,7 @@ void ToolsModule::initialize() {
                     {"name", "script_exec"},
                     {
                         "description",
-                        "Execute the specified script. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings."
+                        "Execute the specified script and return a JSON object containing output (stdout) and err (stderr). Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings. Use print or io.write to expose results; port communication logs remain in the Log panel."
                     },
                     {
                         "parameters", QJsonObject{
@@ -766,10 +766,10 @@ QFuture<QString> ToolsModule::toolExecute(const QString &runtimeId, const QStrin
         auto connection = QSharedPointer<QMetaObject::Connection>::create();
         promise->start();
         const auto future = promise->future();
-        *connection = connect(g_threadpool, &ThreadpoolModule::finishThread, this, [threadId, promise, connection](const QString &id, const QJsonArray &result) {
+        *connection = connect(g_threadpool, &ThreadpoolModule::finishThread, this, [threadId, promise, connection](const QString &id, const QJsonObject &output) {
             if (id != *threadId) return;
             disconnect(*connection);
-            promise->addResult(QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact)));
+            promise->addResult(QString::fromUtf8(QJsonDocument(output).toJson(QJsonDocument::Compact)));
             promise->finish();
         });
         g_threadpool->threadStart(documentUrl, InterpreterMode::Agent, *threadId);

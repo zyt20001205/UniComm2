@@ -71,7 +71,7 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
                                    const int endCharacter) {
     auto *worker = new QThread(); // NOLINT
     threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
-    auto buffer = QSharedPointer<QJsonArray>::create();
+    auto output = QSharedPointer<QJsonObject>::create();
     // preload thread with lua session
     QVariantMap luaSession{};
     luaSession.insert("mode", mode);
@@ -100,8 +100,8 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     // load thread with script
     const auto script = g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
-    connect(worker, &QThread::started, [interpreter, script] {
-        interpreter->start(script);
+    connect(worker, &QThread::started, [interpreter, script, output] {
+        *output = interpreter->start(script);
         QThread::currentThread()->quit();
     });
     m_threadHash.insert(threadId, worker);
@@ -114,28 +114,7 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
         emit startDebug(threadId);
         connect(worker, &QThread::finished, this, [this, threadId] { emit stopDebug(threadId); });
     } else if (mode == InterpreterMode::Agent) {
-        connect(interpreter, &LuaInterpreter::appendLog, this, [buffer](const int type, const QString &prefix, const QString &message) {
-            QString _type{};
-            switch (type) {
-                case LogLevel::Error: _type = "Error";
-                    break;
-                case LogLevel::Warning: _type = "Warning";
-                    break;
-                case LogLevel::Info: _type = "Info";
-                    break;
-                case LogLevel::Transmit: _type = "Transmit";
-                    break;
-                case LogLevel::Receive: _type = "Receive";
-                    break;
-            }
-            const auto session = QJsonObject{
-                {"type", _type},
-                {"prefix", prefix},
-                {"message", message}
-            };
-            buffer->append(session);
-        });
-        connect(worker, &QThread::finished, this, [this, threadId, buffer] { emit finishThread(threadId, *buffer); });
+        connect(worker, &QThread::finished, this, [this, threadId, output] { emit finishThread(threadId, *output); });
     }
     emit openTerminal(threadId, TerminalPage::Backend::Lua);
     worker->start();
