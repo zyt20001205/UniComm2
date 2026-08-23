@@ -679,7 +679,7 @@ void ToolsModule::initialize() {
                     {"name", "script_exec"},
                     {
                         "description",
-                        "Execute the specified script and return a JSON object containing output (stdout) and err (stderr). Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings. Use print or io.write to expose results; port communication logs remain in the Log panel."
+                        "Execute the specified script and return a JSON object containing output (stdout), err (stderr), and truncated (whether either captured stream exceeded 64 KiB). Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings. Use print or io.write to expose results; port communication logs remain in the Log panel."
                     },
                     {
                         "parameters", QJsonObject{

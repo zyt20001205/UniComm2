@@ -20,7 +20,7 @@ class IO final : public QObject {
     Q_OBJECT
 
 public:
-    explicit IO(const QString &threadId, QObject *parent = nullptr);
+    explicit IO(const QString &threadId, bool capture, QObject *parent = nullptr);
 
     ~IO() override;
 
@@ -49,6 +49,7 @@ private:
     struct OutputBuffer {
         QByteArray output{};
         QByteArray error{};
+        bool truncated{};
     };
 
     enum class Stream {
@@ -64,7 +65,10 @@ private:
 
     static void pathCast(lua_State *L, const char *library, const char *function, int pathCount);
 
+    static constexpr qsizetype MaxStreamSize = 64 * 1024;
+
     QString m_threadId{};
+    bool m_capture{};
     void *m_inputWrite{};
     void *m_stdoutRead{};
     void *m_stderrRead{};

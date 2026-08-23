@@ -11,9 +11,10 @@
 #include "globals.h"
 #include "util/uniCast.h"
 
-IO::IO(const QString &threadId, QObject *parent)
+IO::IO(const QString &threadId, const bool capture, QObject *parent)
     : QObject(parent),
-      m_threadId(threadId) {
+      m_threadId(threadId),
+      m_capture(capture) {
 }
 
 IO::~IO() {
@@ -148,7 +149,8 @@ QJsonObject IO::finish() {
     const QMutexLocker locker(&m_outputMutex);
     return {
         {"output", QString::fromUtf8(m_output.output)},
-        {"err", QString::fromUtf8(m_output.error)}
+        {"err", QString::fromUtf8(m_output.error)},
+        {"truncated", m_output.truncated}
     };
 }
 
@@ -227,9 +229,18 @@ void IO::speak(const std::string &text) {
 
 // private
 void IO::append(const Stream stream, const QByteArray &data) {
+    if (!m_capture) return;
+
     const QMutexLocker locker(&m_outputMutex);
-    if (stream == Stream::Output) m_output.output.append(data);
-    else m_output.error.append(data);
+    auto &buffer = stream == Stream::Output ? m_output.output : m_output.error;
+    const auto available = MaxStreamSize - buffer.size();
+    if (available <= 0) {
+        m_output.truncated = true;
+        return;
+    }
+    const auto length = qMin(available, data.size());
+    buffer.append(data.first(length));
+    if (length < data.size()) m_output.truncated = true;
 }
 
 std::FILE *IO::fileOpen(void *&handle, const int flags, const char *mode) {
