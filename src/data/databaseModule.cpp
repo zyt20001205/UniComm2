@@ -78,7 +78,7 @@ int DatabaseModule::databaseInsert(int index, const QString &key) {
     }
 
     g_undo->push(
-        tr("Database Insert"),
+        tr("Database Insert (%1)").arg(_key),
         [this, index, _key] { _databaseInsert(index, _key); },
         [this, _key] { _databaseRemove(_key); });
     return index;
@@ -92,7 +92,7 @@ void DatabaseModule::databaseRemove(const int index) {
 
     const auto key = g_databaseStandardItemModel->item(index, 0)->text();
     g_undo->push(
-        tr("Database Remove"),
+        tr("Database Remove (%1)").arg(key),
         [this, key] { _databaseRemove(key); },
         [this, index, key] { _databaseInsert(index, key); });
 }
@@ -117,23 +117,24 @@ bool DatabaseModule::databaseRename(const int index, const QString &key) {
     }
 
     g_undo->push(
-        tr("Database Rename"),
+        tr("Database Rename (%1->%2)").arg(oldKey, _key),
         [this, oldKey, newKey = _key] { _databaseRename(oldKey, newKey); },
         [this, oldKey, newKey = _key] { _databaseRename(newKey, oldKey); });
     return true;
 }
 
-void DatabaseModule::databaseSwap(const int src, const int dst) {
+void DatabaseModule::databaseMove(const int src, const int dst) {
     if (src < 0 || src >= g_databaseStandardItemModel->rowCount() || dst < 0 || dst >= g_databaseStandardItemModel->rowCount()) {
         m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
         return;
     }
     if (src == dst) return;
 
+    const auto key = g_databaseStandardItemModel->item(src, 0)->text();
     g_undo->push(
-        tr("Database Swap"),
-        [this, src, dst] { _databaseSwap(src, dst); },
-        [this, src, dst] { _databaseSwap(dst, src); });
+        tr("Database Move (%1: %2->%3)").arg(key).arg(src + 1).arg(dst + 1),
+        [this, src, dst] { _databaseMove(src, dst); },
+        [this, src, dst] { _databaseMove(dst, src); });
 }
 
 void DatabaseModule::databaseClear(const int index) {
@@ -179,7 +180,7 @@ void DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKe
     databaseCache();
 }
 
-void DatabaseModule::_databaseSwap(const int src, const int dst) {
+void DatabaseModule::_databaseMove(const int src, const int dst) {
     const auto row = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, row);
     databaseCache();

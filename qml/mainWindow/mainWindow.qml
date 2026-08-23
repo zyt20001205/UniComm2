@@ -3251,6 +3251,7 @@ Item {
         id: menuModuleEditMenu
         implicitWidth: 300
         property var menuSession
+        readonly property int historyMenuMaximumHeight: 400
 
         onOpened: {
             mainWindow.overlayFlagSet(false, false)
@@ -3259,66 +3260,56 @@ Item {
         onClosed: widgetCount -= 1
         onAboutToShow: menuModuleEditMenu.menuSession = documentModule.menuLoad("edit")
 
-        MenuItem {
-            id: menuModuleEditUndoItem
+        Menu {
+            id: menuModuleEditUndoMenu
+            title: qsTr("Undo")
             enabled: undoModule.canUndo
+            implicitWidth: 300
+            implicitHeight: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
+                                     menuModuleEditMenu.historyMenuMaximumHeight)
+            icon.source: "qrc:/icon/undo.svg"
+            icon.width: 16; icon.height: 16
 
-            contentItem: RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 12; anchors.rightMargin: 12
+            onAboutToShow: menuModuleEditUndoInstantiator.model = undoModule.undoHistory()
 
-                IconImage {
-                    source: "qrc:/icon/undo.svg"
-                    sourceSize.width: 16
-                    sourceSize.height: 16
-                    color: menuModuleEditUndoItem.enabled ? global.fore : global.foreDisabled
+            Instantiator {
+                id: menuModuleEditUndoInstantiator
+                model: []
+                delegate: MenuItem {
+                    required property var modelData
+                    text: qsTr("%1. %2").arg(modelData.steps).arg(modelData.text)
+                    onTriggered: undoModule.undoTo(modelData.targetIndex)
                 }
 
-                Label {
-                    text: undoModule.canUndo ? qsTr("Undo %1").arg(undoModule.undoText) : qsTr("Undo")
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                Label {
-                    text: "Ctrl+Z"
-                }
+                onObjectAdded: (index, object) => menuModuleEditUndoMenu.addItem(object)
+                onObjectRemoved: (index, object) => menuModuleEditUndoMenu.removeItem(object)
             }
-
-            onTriggered: undoModule.undo()
         }
 
-        MenuItem {
-            id: menuModuleEditRedoItem
+        Menu {
+            id: menuModuleEditRedoMenu
+            title: qsTr("Redo")
             enabled: undoModule.canRedo
+            implicitWidth: 300
+            implicitHeight: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
+                                     menuModuleEditMenu.historyMenuMaximumHeight)
+            icon.source: "qrc:/icon/redo.svg"
+            icon.width: 16; icon.height: 16
 
-            contentItem: RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 12; anchors.rightMargin: 12
+            onAboutToShow: menuModuleEditRedoInstantiator.model = undoModule.redoHistory()
 
-                IconImage {
-                    source: "qrc:/icon/redo.svg"
-                    sourceSize.width: 16
-                    sourceSize.height: 16
-                    color: menuModuleEditRedoItem.enabled ? global.fore : global.foreDisabled
+            Instantiator {
+                id: menuModuleEditRedoInstantiator
+                model: []
+                delegate: MenuItem {
+                    required property var modelData
+                    text: qsTr("%1. %2").arg(modelData.steps).arg(modelData.text)
+                    onTriggered: undoModule.redoTo(modelData.targetIndex)
                 }
 
-                Label {
-                    text: undoModule.canRedo ? qsTr("Redo %1").arg(undoModule.redoText) : qsTr("Redo")
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                Label {
-                    text: "Ctrl+Y"
-                }
+                onObjectAdded: (index, object) => menuModuleEditRedoMenu.addItem(object)
+                onObjectRemoved: (index, object) => menuModuleEditRedoMenu.removeItem(object)
             }
-
-            onTriggered: undoModule.redo()
         }
 
         MenuSeparator {

@@ -92,7 +92,7 @@ Item {
                         }
                     }
                     let move = verticalHeaderView.moves[index]
-                    databaseModule.databaseSwap(move.oldVisualIndex, move.newVisualIndex)
+                    databaseModule.databaseMove(move.oldVisualIndex, move.newVisualIndex)
                     verticalHeaderView.clearRowReordering()
                     tableView.clearRowReordering()
                     verticalHeaderView.moves = []

@@ -5,26 +5,26 @@
 #include <QUndoCommand>
 
 namespace {
-class FunctionUndoCommand final : public QUndoCommand {
-public:
-    FunctionUndoCommand(const QString &text, std::function<void()> redo, std::function<void()> undo)
-        : QUndoCommand(text),
-          m_redo(std::move(redo)),
-          m_undo(std::move(undo)) {
-    }
+    class FunctionUndoCommand final : public QUndoCommand {
+    public:
+        FunctionUndoCommand(const QString &text, std::function<void()> redo, std::function<void()> undo)
+            : QUndoCommand(text),
+              m_redo(std::move(redo)),
+              m_undo(std::move(undo)) {
+        }
 
-    void redo() override {
-        m_redo();
-    }
+        void redo() override {
+            m_redo();
+        }
 
-    void undo() override {
-        m_undo();
-    }
+        void undo() override {
+            m_undo();
+        }
 
-private:
-    std::function<void()> m_redo;
-    std::function<void()> m_undo;
-};
+    private:
+        std::function<void()> m_redo;
+        std::function<void()> m_undo;
+    };
 }
 
 UndoModule::UndoModule(QObject *parent)
@@ -34,4 +34,42 @@ UndoModule::UndoModule(QObject *parent)
 
 void UndoModule::push(const QString &text, std::function<void()> redo, std::function<void()> undo) {
     QUndoStack::push(new FunctionUndoCommand(text, std::move(redo), std::move(undo)));
+}
+
+QVariantList UndoModule::undoHistory() const {
+    QVariantList history;
+    const int currentIndex = index();
+    history.reserve(currentIndex);
+    for (int commandIndex = currentIndex - 1; commandIndex >= 0; --commandIndex) {
+        history.append(QVariantMap{
+            {"text", text(commandIndex)},
+            {"targetIndex", commandIndex},
+            {"steps", currentIndex - commandIndex}
+        });
+    }
+    return history;
+}
+
+QVariantList UndoModule::redoHistory() const {
+    QVariantList history;
+    const int currentIndex = index();
+    history.reserve(count() - currentIndex);
+    for (int commandIndex = currentIndex; commandIndex < count(); ++commandIndex) {
+        history.append(QVariantMap{
+            {"text", text(commandIndex)},
+            {"targetIndex", commandIndex + 1},
+            {"steps", commandIndex - currentIndex + 1}
+        });
+    }
+    return history;
+}
+
+void UndoModule::undoTo(const int targetIndex) {
+    if (targetIndex < 0 || targetIndex >= index()) return;
+    setIndex(targetIndex);
+}
+
+void UndoModule::redoTo(const int targetIndex) {
+    if (targetIndex <= index() || targetIndex > count()) return;
+    setIndex(targetIndex);
 }

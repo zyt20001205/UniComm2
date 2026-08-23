@@ -29,7 +29,7 @@ public:
 
     Q_INVOKABLE void datatableRemove(int index);
 
-    [[nodiscard]] Q_INVOKABLE bool datatableRename(int index, const QString &key);
+    Q_INVOKABLE [[nodiscard]] bool datatableRename(int index, const QString &key);
 
     Q_INVOKABLE void datatableSwap(int src, int dst);
 

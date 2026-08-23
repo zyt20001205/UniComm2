@@ -28,9 +28,9 @@ public:
 
     Q_INVOKABLE void databaseRemove(int index);
 
-    [[nodiscard]] Q_INVOKABLE bool databaseRename(int index, const QString &key);
+    Q_INVOKABLE [[nodiscard]] bool databaseRename(int index, const QString &key);
 
-    Q_INVOKABLE void databaseSwap(int src, int dst);
+    Q_INVOKABLE void databaseMove(int src, int dst);
 
     Q_INVOKABLE static void databaseClear(int index);
 
@@ -46,7 +46,7 @@ private:
 
     void _databaseRename(const QString &oldKey, const QString &newKey);
 
-    void _databaseSwap(int src, int dst);
+    void _databaseMove(int src, int dst);
 
     void databaseCache();
 
