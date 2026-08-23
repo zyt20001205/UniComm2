@@ -8,6 +8,7 @@
 class DatabaseModel;
 class QQuickWidget;
 class QTableWidget;
+class ToastModule;
 
 class DatabaseModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -23,11 +24,11 @@ public:
 
     [[nodiscard]] QSet<QString> databaseList() const;
 
-    Q_INVOKABLE void databaseInsert(int index, const QString &key);
+    Q_INVOKABLE int databaseInsert(int index, const QString &key = QString());
 
     Q_INVOKABLE void databaseRemove(int index);
 
-    Q_INVOKABLE void databaseRename(int index, const QString &key);
+    [[nodiscard]] Q_INVOKABLE bool databaseRename(int index, const QString &key);
 
     Q_INVOKABLE void databaseSwap(int src, int dst);
 
@@ -43,6 +44,7 @@ private:
 
     QQuickWidget *m_widget{};
     QObject *m_root{};
+    ToastModule *m_toast{};
     QHash<QString, int> m_databaseHash{};
 };
 

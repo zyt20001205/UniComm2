@@ -7,6 +7,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "mainWindow/toastModule.h"
 
 // public
 DatabaseModule::DatabaseModule()
@@ -14,10 +15,6 @@ DatabaseModule::DatabaseModule()
       m_widget(new QQuickWidget()) {
     setWidget(m_widget);
     g_databaseStandardItemModel = new DatabaseModel();
-    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
-        const QString key = value.toString();
-        databaseInsert(-1, key);
-    }
 }
 
 DatabaseModule::~DatabaseModule() {
@@ -26,9 +23,13 @@ DatabaseModule::~DatabaseModule() {
 }
 
 void DatabaseModule::propertySet(const QVariantHash &objects) {
+    m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
+    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
+        databaseInsert(-1, value.toString());
+    }
+
     m_widget->rootContext()->setContextProperty("databaseModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
-    m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["databaseModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["databaseModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["databaseModuleRootMenu"]));
     m_widget->rootContext()->setContextProperty("standardItemModel", g_databaseStandardItemModel);
@@ -55,13 +56,31 @@ QSet<QString> DatabaseModule::databaseList() const {
     return keys;
 }
 
-void DatabaseModule::databaseInsert(int index, const QString &key) {
+int DatabaseModule::databaseInsert(int index, const QString &key) {
     if (index == -1) index = g_databaseStandardItemModel->rowCount();
-    auto *keyItem = new QStandardItem(key); // NOLINT
-    keyItem->setData(key, Qt::UserRole + 1);
+    if (index < 0 || index > g_databaseStandardItemModel->rowCount()) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."), 3000);
+        return -1;
+    }
+
+    auto _key = key.trimmed();
+    if (_key.isEmpty()) {
+        int suffix{};
+        do {
+            _key = suffix == 0 ? QStringLiteral("new") : QStringLiteral("new%1").arg(suffix);
+            ++suffix;
+        } while (m_databaseHash.contains(_key));
+    }
+    if (m_databaseHash.contains(_key)) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        return -1;
+    }
+    auto *keyItem = new QStandardItem(_key); // NOLINT
+    keyItem->setData(_key, DatabaseModel::KeyRole);
     auto *valueItem = new QStandardItem(); // NOLINT
     g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
     databaseIndex();
+    return index;
 }
 
 void DatabaseModule::databaseRemove(const int index) {
@@ -69,9 +88,29 @@ void DatabaseModule::databaseRemove(const int index) {
     databaseIndex();
 }
 
-void DatabaseModule::databaseRename(const int index, const QString &key) {
-    g_databaseStandardItemModel->item(index, 0)->setText(key);
+bool DatabaseModule::databaseRename(const int index, const QString &key) {
+    if (index < 0 || index >= g_databaseStandardItemModel->rowCount()) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."), 3000);
+        return false;
+    }
+
+    const auto _key = key.trimmed();
+    if (_key.isEmpty()) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key cannot be empty."), 3000);
+        return false;
+    }
+
+    auto *item = g_databaseStandardItemModel->item(index, 0);
+    if (_key == item->text()) return true;
+    if (m_databaseHash.contains(_key)) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        return false;
+    }
+
+    item->setText(_key);
+    item->setData(_key, DatabaseModel::KeyRole);
     databaseIndex();
+    return true;
 }
 
 void DatabaseModule::databaseSwap(const int src, const int dst) {
@@ -116,12 +155,12 @@ DatabaseModel::DatabaseModel(QObject *parent)
 
 QHash<int, QByteArray> DatabaseModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "key";
+    roles[KeyRole] = "key";
     return roles;
 }
 
 QVariant DatabaseModel::data(const QModelIndex &index, const int role) const {
-    if (role == Qt::UserRole + 1) {
+    if (role == KeyRole) {
         return QStandardItemModel::data(this->index(index.row(), 0), role);
     }
     return QStandardItemModel::data(index, role);

@@ -149,7 +149,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_breakpointModule->propertySet(breakpointObjects);
 
     const QVariantHash databaseObjects = {
-        {"databaseModuleEditDialog", objects["databaseModuleEditDialog"]},
+        {"mainWindowToast", QVariant::fromValue(m_toastModule)},
         {"databaseModuleTableMenu", objects["databaseModuleTableMenu"]},
         {"databaseModuleRootMenu", objects["databaseModuleRootMenu"]}
     };

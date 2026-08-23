@@ -737,50 +737,9 @@ Item {
     }
 
     // database module
-    Dialog {
-        id: databaseModuleEditDialog
-        parent: Overlay.overlay
-        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
-        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
-        width: 600
-        modal: true
-        title: qsTr("Enter Key Name")
-        standardButtons: Dialog.Ok
-        property int databaseIndex
-        property string databaseKey
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            databaseModuleNameTextField.text = databaseModuleEditDialog.databaseKey
-            databaseModuleNameTextField.forceActiveFocus()
-            databaseModuleNameTextField.selectAll()
-        }
-        onAccepted: {
-            if (databaseModuleEditDialog.databaseIndex === -1 || !databaseModuleEditDialog.databaseKey) {
-                databaseModule.databaseInsert(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
-            } else {
-                databaseModule.databaseRename(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
-            }
-        }
-
-        TextField {
-            id: databaseModuleNameTextField
-            width: parent.width
-            placeholderText: qsTr("Enter key:")
-
-            onAccepted: databaseModuleEditDialog.accept()
-            Keys.onEscapePressed: databaseModuleEditDialog.reject()
-        }
-    }
-
     Menu {
         id: databaseModuleTableMenu
         property int databaseIndex
-        property string databaseKey
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -793,11 +752,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                databaseModuleEditDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
-                databaseModuleEditDialog.databaseKey = ""
-                databaseModuleEditDialog.open()
-            }
+            onTriggered: databaseModule.databaseInsert(databaseModuleTableMenu.databaseIndex)
         }
 
         MenuItem {
@@ -831,11 +786,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                databaseModuleEditDialog.databaseIndex = -1
-                databaseModuleEditDialog.databaseKey = ""
-                databaseModuleEditDialog.open()
-            }
+            onTriggered: databaseModule.databaseInsert(-1)
         }
 
         Menu {
@@ -4816,7 +4767,6 @@ Item {
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,
 
-            "databaseModuleEditDialog": databaseModuleEditDialog,
             "databaseModuleTableMenu": databaseModuleTableMenu,
             "databaseModuleRootMenu": databaseModuleRootMenu,
 

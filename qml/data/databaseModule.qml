@@ -25,11 +25,7 @@ Item {
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignVCenter
 
-                onClicked: {
-                    editDialog.databaseIndex = -1
-                    editDialog.databaseKey = ""
-                    editDialog.open()
-                }
+                onClicked: databaseModule.databaseInsert(-1)
             }
 
             IconImage {
@@ -223,7 +219,6 @@ Item {
 
                     onSingleTapped: {
                         tableMenu.databaseIndex = model.row
-                        tableMenu.databaseKey = model.display
                         tableMenu.popup()
                     }
                 }
@@ -246,8 +241,11 @@ Item {
                     }
 
                     TableView.onCommit: {
-                        const key = text.trim()
-                        if (key) databaseModule.databaseRename(row, key)
+                        const view = tableView
+                        const index = view.index(row, column)
+                        if (!databaseModule.databaseRename(row, text)) {
+                            Qt.callLater(() => view.edit(index))
+                        }
                     }
                 }
             }
