@@ -26,10 +26,7 @@ Item {
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignVCenter
 
-                onClicked: {
-                    editDialog.datatableIndex = -1
-                    editDialog.open()
-                }
+                onClicked: datatableModule.datatableInsert(-1)
             }
 
             IconImage {
@@ -88,7 +85,6 @@ Item {
 
                     onSingleTapped: {
                         tableMenu.datatableIndex = model.column
-                        tableMenu.datatableKey = model.display
                         tableMenu.popup()
                     }
                 }
@@ -111,8 +107,11 @@ Item {
                     }
 
                     TableView.onCommit: {
-                        const key = text.trim()
-                        if (key) datatableModule.datatableRename(column, key)
+                        const view = horizontalHeaderView
+                        const index = view.index(row, column)
+                        if (!datatableModule.datatableRename(column, text)) {
+                            Qt.callLater(() => view.edit(index))
+                        }
                     }
                 }
             }

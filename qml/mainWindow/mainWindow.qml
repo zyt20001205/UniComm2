@@ -808,50 +808,9 @@ Item {
     }
 
     // datatable module
-    Dialog {
-        id: datatableModuleEditDialog
-        parent: Overlay.overlay
-        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
-        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
-        width: 600
-        modal: true
-        title: qsTr("Enter Key Name")
-        standardButtons: Dialog.Ok
-        property int datatableIndex
-        property string datatableKey
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            datatableModuleNameTextField.text = datatableModuleEditDialog.datatableKey
-            datatableModuleNameTextField.forceActiveFocus()
-            datatableModuleNameTextField.selectAll()
-        }
-        onAccepted: {
-            if (datatableModuleEditDialog.datatableIndex === -1 || !datatableModuleEditDialog.datatableKey) {
-                datatableModule.datatableInsert(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
-            } else {
-                datatableModule.datatableRename(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
-            }
-        }
-
-        TextField {
-            id: datatableModuleNameTextField
-            width: parent.width
-            placeholderText: qsTr("Enter key:")
-
-            onAccepted: datatableModuleEditDialog.accept()
-            Keys.onEscapePressed: datatableModuleEditDialog.reject()
-        }
-    }
-
     Menu {
         id: datatableModuleTableMenu
         property int datatableIndex
-        property string datatableKey
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -864,11 +823,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                datatableModuleEditDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
-                datatableModuleEditDialog.datatableKey = ""
-                datatableModuleEditDialog.open()
-            }
+            onTriggered: datatableModule.datatableInsert(datatableModuleTableMenu.datatableIndex)
         }
 
         MenuItem {
@@ -894,11 +849,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                datatableModuleEditDialog.datatableIndex = -1
-                datatableModuleEditDialog.datatableKey = ""
-                datatableModuleEditDialog.open()
-            }
+            onTriggered: datatableModule.datatableInsert(-1)
         }
 
         MenuItem {
@@ -4770,7 +4721,6 @@ Item {
             "databaseModuleTableMenu": databaseModuleTableMenu,
             "databaseModuleRootMenu": databaseModuleRootMenu,
 
-            "datatableModuleEditDialog": datatableModuleEditDialog,
             "datatableModuleTableMenu": datatableModuleTableMenu,
             "datatableModuleRootMenu": datatableModuleRootMenu,
 

@@ -161,7 +161,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_dataplotModule->propertySet(dataplotObjects);
 
     const QVariantHash datatableObjects = {
-        {"datatableModuleEditDialog", objects["datatableModuleEditDialog"]},
+        {"mainWindowToast", QVariant::fromValue(m_toastModule)},
         {"datatableModuleTableMenu", objects["datatableModuleTableMenu"]},
         {"datatableModuleRootMenu", objects["datatableModuleRootMenu"]}
     };

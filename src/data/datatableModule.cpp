@@ -10,6 +10,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "mainWindow/toastModule.h"
 #include "util/uniCast.h"
 
 // public
@@ -21,10 +22,6 @@ DatatableModule::DatatableModule()
     g_datatableStandardItemModel = new QStandardItemModel(this);
     m_transposeProxyModel = new QTransposeProxyModel(this);
     m_transposeProxyModel->setSourceModel(g_datatableHeaderItemModel);
-    for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
-        const QString key = value.toString();
-        datatableInsert(-1, key);
-    }
 }
 
 DatatableModule::~DatatableModule() {
@@ -33,9 +30,13 @@ DatatableModule::~DatatableModule() {
 }
 
 void DatatableModule::propertySet(const QVariantHash &objects) {
+    m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
+    for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
+        datatableInsert(-1, value.toString());
+    }
+
     m_widget->rootContext()->setContextProperty("datatableModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
-    m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
     m_widget->rootContext()->setContextProperty("headerItemModel", m_transposeProxyModel);
@@ -63,18 +64,37 @@ QSet<QString> DatatableModule::datatableList() const {
     return keys;
 }
 
-void DatatableModule::datatableInsert(int index, const QString &key) {
+int DatatableModule::datatableInsert(int index, const QString &key) {
+    if (index == -1) index = g_datatableHeaderItemModel->rowCount();
+    if (index < 0 || index > g_datatableHeaderItemModel->rowCount()) {
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."), 3000);
+        return -1;
+    }
+
+    auto _key = key.trimmed();
+    if (_key.isEmpty()) {
+        int suffix{};
+        do {
+            _key = suffix == 0 ? QStringLiteral("new") : QStringLiteral("new%1").arg(suffix);
+            ++suffix;
+        } while (m_datatableHash.contains(_key));
+    }
+    if (m_datatableHash.contains(_key)) {
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        return -1;
+    }
+
     const auto sessionHash = QVariantHash{
         {"length", 0}
     };
-    m_datatableSession.insert(key, sessionHash);
+    m_datatableSession.insert(_key, sessionHash);
 
-    if (index == -1) index = g_datatableHeaderItemModel->rowCount();
-    auto *item = new QStandardItem(key); // NOLINT
+    auto *item = new QStandardItem(_key); // NOLINT
     item->setData(false, Qt::WhatsThisRole);
     g_datatableHeaderItemModel->insertRow(index, item);
     g_datatableStandardItemModel->insertColumn(index);
     datatableIndex();
+    return index;
 }
 
 void DatatableModule::datatableRemove(const int index) {
@@ -86,13 +106,31 @@ void DatatableModule::datatableRemove(const int index) {
     datatableIndex();
 }
 
-void DatatableModule::datatableRename(const int index, const QString &key) {
-    const auto oldKey = g_datatableHeaderItemModel->item(index, 0)->text();
-    const auto oldSession = m_datatableSession.take(oldKey);
-    m_datatableSession.insert(key, oldSession);
+bool DatatableModule::datatableRename(const int index, const QString &key) {
+    if (index < 0 || index >= g_datatableHeaderItemModel->rowCount()) {
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."), 3000);
+        return false;
+    }
 
-    g_datatableHeaderItemModel->item(index, 0)->setText(key);
+    const auto _key = key.trimmed();
+    if (_key.isEmpty()) {
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key cannot be empty."), 3000);
+        return false;
+    }
+
+    const auto oldKey = g_datatableHeaderItemModel->item(index, 0)->text();
+    if (_key == oldKey) return true;
+    if (m_datatableHash.contains(_key)) {
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        return false;
+    }
+
+    const auto oldSession = m_datatableSession.take(oldKey);
+    m_datatableSession.insert(_key, oldSession);
+
+    g_datatableHeaderItemModel->item(index, 0)->setText(_key);
     datatableIndex();
+    return true;
 }
 
 void DatatableModule::datatableSwap(const int src, const int dst) {

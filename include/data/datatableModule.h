@@ -9,6 +9,8 @@ class QStandardItemModel;
 class QTableWidget;
 class QTransposeProxyModel;
 
+class ToastModule;
+
 class DatatableModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
@@ -23,11 +25,11 @@ public:
 
     [[nodiscard]] QSet<QString> datatableList() const;
 
-    Q_INVOKABLE void datatableInsert(int index, const QString &key);
+    Q_INVOKABLE int datatableInsert(int index, const QString &key = QString());
 
     Q_INVOKABLE void datatableRemove(int index);
 
-    Q_INVOKABLE void datatableRename(int index, const QString &key);
+    [[nodiscard]] Q_INVOKABLE bool datatableRename(int index, const QString &key);
 
     Q_INVOKABLE void datatableSwap(int src, int dst);
 
@@ -49,6 +51,7 @@ private:
 
     QQuickWidget *m_widget{};
     QQuickItem *m_item{};
+    ToastModule *m_toast{};
     QHash<QString, int> m_datatableHash{};
     QHash<QString, QVariantHash> m_datatableSession{};
     QTransposeProxyModel *m_transposeProxyModel{};
