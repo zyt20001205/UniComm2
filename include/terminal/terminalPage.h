@@ -33,6 +33,9 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
+signals:
+    void readTerminal(const QByteArray &data);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 

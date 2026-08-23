@@ -89,6 +89,9 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
         connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
         connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
         start();
+    } else {
+        m_vtermWidget->inputWrite("\x1b[20h");
+        connect(m_vtermWidget, &VtermWidget::outputWrite, this, &TerminalPage::readTerminal);
     }
 }
 

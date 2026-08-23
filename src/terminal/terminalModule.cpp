@@ -1,12 +1,12 @@
 #include "terminal/terminalModule.h"
 
-#include <QJsonArray>
 #include <QQmlContext>
 #include <QQuickView>
 #include <QUuid>
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "runtime/threadpoolModule.h"
 #include "terminal/logModule.h"
 #include "terminal/terminalPage.h"
 
@@ -132,6 +132,10 @@ TerminalPage *TerminalModule::terminalConstruct(const QUrl &terminalUrl, const i
     }
 
     auto *terminalPage = new TerminalPage(uniqueName, session, m_config, backend); // NOLINT
+    if (backend == TerminalPage::Backend::Lua) {
+        const auto &id = parts.at(1);
+        connect(terminalPage, &TerminalPage::readTerminal, this, [id](const QByteArray &data) { g_threadpool->inputWrite(id, data); });
+    }
     terminalPage->setTitle(terminalTitle);
     terminalPage->propertySet({});
 

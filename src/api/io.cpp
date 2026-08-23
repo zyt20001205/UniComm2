@@ -17,6 +17,11 @@ IO::IO(const QString &threadId, QObject *parent)
 }
 
 IO::~IO() {
+    handleClose(m_inputWrite);
+    if (m_stdin) {
+        fclose(static_cast<FILE *>(m_stdin));
+        m_stdin = nullptr;
+    }
     if (m_stdout) {
         fclose(static_cast<FILE *>(m_stdout));
         m_stdout = nullptr;
@@ -34,46 +39,69 @@ IO::~IO() {
 }
 
 void IO::redirect(lua_State *L) {
+    HANDLE inputRead{};
+    HANDLE inputWrite{};
     HANDLE outputRead{};
     HANDLE stdoutWrite{};
     HANDLE stderrWrite{};
-    if (!CreatePipe(&outputRead, &stdoutWrite, nullptr, 0)) throw sol::error("create stdout pipe failed");
+    if (!CreatePipe(&inputRead, &inputWrite, nullptr, 0)) throw sol::error("create stdin pipe failed");
+    if (!CreatePipe(&outputRead, &stdoutWrite, nullptr, 0)) {
+        CloseHandle(inputRead);
+        CloseHandle(inputWrite);
+        throw sol::error("create stdout pipe failed");
+    }
     if (!DuplicateHandle(GetCurrentProcess(), stdoutWrite, GetCurrentProcess(), &stderrWrite, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+        CloseHandle(inputRead);
+        CloseHandle(inputWrite);
         CloseHandle(outputRead);
         CloseHandle(stdoutWrite);
         throw sol::error("create stderr pipe failed");
     }
 
+    void *stdinHandle = inputRead;
     void *stdoutHandle = stdoutWrite;
     void *stderrHandle = stderrWrite;
-    auto *stdoutFile = fileOpen(stdoutHandle);
-    auto *stderrFile = fileOpen(stderrHandle);
+    auto *stdinFile = fileOpen(stdinHandle, _O_RDONLY | _O_TEXT, "r");
+    auto *stdoutFile = fileOpen(stdoutHandle, _O_WRONLY | _O_TEXT, "w");
+    auto *stderrFile = fileOpen(stderrHandle, _O_WRONLY | _O_TEXT, "w");
+    handleClose(stdinHandle);
     handleClose(stdoutHandle);
     handleClose(stderrHandle);
-    if (!stdoutFile || !stderrFile) {
+    if (!stdinFile || !stdoutFile || !stderrFile) {
+        if (stdinFile) fclose(stdinFile);
         if (stdoutFile) fclose(stdoutFile);
         if (stderrFile) fclose(stderrFile);
+        CloseHandle(inputWrite);
         CloseHandle(outputRead);
-        throw sol::error("open standard output failed");
+        throw sol::error("open standard stream failed");
     }
 
     lua_getglobal(L, "io");
+    lua_getfield(L, -1, "stdin");
+    auto *stdinStream = static_cast<luaL_Stream *>(luaL_testudata(L, -1, LUA_FILEHANDLE));
+    lua_pop(L, 1);
     lua_getfield(L, -1, "stdout");
     auto *stdoutStream = static_cast<luaL_Stream *>(luaL_testudata(L, -1, LUA_FILEHANDLE));
     lua_pop(L, 1);
     lua_getfield(L, -1, "stderr");
     auto *stderrStream = static_cast<luaL_Stream *>(luaL_testudata(L, -1, LUA_FILEHANDLE));
-    lua_pop(L, 2);
-    if (!stdoutStream || !stderrStream) {
+    lua_pop(L, 1);
+    lua_pop(L, 1);
+    if (!stdinStream || !stdoutStream || !stderrStream) {
+        fclose(stdinFile);
         fclose(stdoutFile);
         fclose(stderrFile);
+        CloseHandle(inputWrite);
         CloseHandle(outputRead);
-        throw sol::error("standard output is unavailable");
+        throw sol::error("standard stream is unavailable");
     }
 
+    stdinStream->f = stdinFile;
     stdoutStream->f = stdoutFile;
     stderrStream->f = stderrFile;
+    m_inputWrite = inputWrite;
     m_outputRead = outputRead;
+    m_stdin = stdinFile;
     m_stdout = stdoutFile;
     m_stderr = stderrFile;
     m_outputThread = QThread::create([this] {
@@ -84,6 +112,12 @@ void IO::redirect(lua_State *L) {
         }
     });
     m_outputThread->start();
+}
+
+void IO::inputWrite(const QByteArray &data) const {
+    if (!m_inputWrite || data.isEmpty()) return;
+    DWORD written{};
+    WriteFile(m_inputWrite, data.constData(), data.size(), &written, nullptr);
 }
 
 void IO::print(const sol::variadic_args &args) const {
@@ -144,11 +178,11 @@ void IO::speak(const std::string &text) {
 }
 
 // private
-std::FILE *IO::fileOpen(void *&handle) {
-    const auto descriptor = _open_osfhandle(reinterpret_cast<std::intptr_t>(handle), _O_WRONLY | _O_TEXT);
+std::FILE *IO::fileOpen(void *&handle, const int flags, const char *mode) {
+    const auto descriptor = _open_osfhandle(reinterpret_cast<std::intptr_t>(handle), flags);
     if (descriptor == -1) return nullptr;
     handle = nullptr;
-    auto *file = _fdopen(descriptor, "w");
+    auto *file = _fdopen(descriptor, mode);
     if (!file) {
         _close(descriptor);
         return nullptr;

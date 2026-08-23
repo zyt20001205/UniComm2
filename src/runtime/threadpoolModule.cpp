@@ -175,6 +175,10 @@ bool ThreadpoolModule::debugging() const {
     return m_debug != 0;
 }
 
+void ThreadpoolModule::inputWrite(const QString &threadId, const QByteArray &data) const {
+    if (auto *interpreter = m_interpreterHash.value(threadId)) interpreter->inputWrite(data);
+}
+
 void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
     if (m_interpreterHash.contains(threadId)) {
         if (state == Debug::Terminate) {

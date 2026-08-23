@@ -371,6 +371,10 @@ void LuaInterpreter::start(const QString &script) {
     lua_sethook(L, nullptr, 0, 0);
 }
 
+void LuaInterpreter::inputWrite(const QByteArray &data) const {
+    m_io->inputWrite(data);
+}
+
 void LuaInterpreter::stateSet(const int state) {
     m_luaSession["state"] = state;
     if (state == Debug::StepOver || state == Debug::StepOut) {

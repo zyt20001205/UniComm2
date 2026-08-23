@@ -25,6 +25,8 @@ public:
 
     void start(const QString &script);
 
+    void inputWrite(const QByteArray &data) const;
+
     void stateSet(int state);
 
     static void stackSet(lua_State *L, lua_Debug *ar);

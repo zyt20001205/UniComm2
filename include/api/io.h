@@ -26,6 +26,8 @@ public:
 
     void print(const sol::variadic_args &args) const;
 
+    void inputWrite(const QByteArray &data) const;
+
     void message(const std::string &text) const;
 
     static void speak(const std::string &text);
@@ -36,12 +38,14 @@ signals:
     void newMessageDialog(const QEventLoop *eventloop, const QString &text) const;
 
 private:
-    [[nodiscard]] static std::FILE *fileOpen(void *&handle);
+    [[nodiscard]] static std::FILE *fileOpen(void *&handle, int flags, const char *mode);
 
     static void handleClose(void *&handle);
 
     QString m_threadId{};
+    void *m_inputWrite{};
     void *m_outputRead{};
+    void *m_stdin{};
     void *m_stdout{};
     void *m_stderr{};
     QThread *m_outputThread{};

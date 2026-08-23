@@ -31,6 +31,8 @@ public:
 
     Q_INVOKABLE [[nodiscard]] bool debugging() const;
 
+    void inputWrite(const QString &threadId, const QByteArray &data) const;
+
     void stateSet(const QString &threadId, int state);
 
     Q_INVOKABLE void valueSet(const QString &threadId, const QString &documentUrl, const QString &expression, const QString &value, const QString &type);
