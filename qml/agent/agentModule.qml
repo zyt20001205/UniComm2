@@ -1383,6 +1383,8 @@ Item {
             property string reasoningBuffer
             property string contentBuffer
             readonly property string buffer: contentBuffer.length > 0 ? contentBuffer : reasoningBuffer
+            readonly property bool reasoning: role === "assistant" && contentBuffer.length === 0 && reasoningBuffer.length > 0
+            readonly property string displayBuffer: reasoning && turn.collapsed ? qsTr("Thinking...") : buffer
             background: Rectangle {
                 color: chatTextArea.role === "user" ? global.backSelected :
                         chatTextArea.role === "assistant" ? "transparent" :
@@ -1390,7 +1392,7 @@ Item {
                 radius: 6
             }
 
-            onBufferChanged: {
+            onDisplayBufferChanged: {
                 if (!timer.running) {
                     timer.start()
                 }
@@ -1401,7 +1403,7 @@ Item {
                 interval: 16
 
                 onTriggered: {
-                    chatTextArea.text = chatTextArea.buffer
+                    chatTextArea.text = chatTextArea.displayBuffer
                 }
             }
 
