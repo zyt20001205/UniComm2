@@ -12,6 +12,7 @@
 #include "core/globalManager.h"
 #include "document/module/scintillaWidget.h"
 #include "document/module/searchWidget.h"
+#include "mainWindow/toastModule.h"
 
 // public
 EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &documentUrl, QWidget *parent)
@@ -66,6 +67,7 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
 
 void EditorWidget::propertySet(const QVariantHash &objects) {
     m_theme = objects["theme"].toJsonObject();
+    m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
     m_propertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_gotoDialog = qvariant_cast<QObject *>(objects["documentModuleGotoDialog"]);
     m_searchWidget->propertySet(QVariantHash{
@@ -105,8 +107,18 @@ void EditorWidget::documentGoto() {
 bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scintillaWidget && event->type() == QEvent::ShortcutOverride) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
-        if (keyEvent->matches(QKeySequence::Undo) || keyEvent->matches(QKeySequence::Redo)) {
+        if (keyEvent->matches(QKeySequence::Undo)) {
             event->accept();
+            if (!m_scintillaWidget->undoable()) {
+                m_toast->show(ToastLevel::Info, tr("Undo"), tr("Nothing to undo."));
+            }
+            return true;
+        }
+        if (keyEvent->matches(QKeySequence::Redo)) {
+            event->accept();
+            if (!m_scintillaWidget->redoable()) {
+                m_toast->show(ToastLevel::Info, tr("Redo"), tr("Nothing to redo."));
+            }
             return true;
         }
     }

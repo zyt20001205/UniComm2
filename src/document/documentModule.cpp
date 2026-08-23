@@ -139,6 +139,7 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
             auto *conflictPage = qobject_cast<ConflictPage *>(documentPage);
             conflictPage->propertySet(QVariantHash{
                 {"theme", m_theme},
+                {"mainWindowToast", QVariant::fromValue(m_toast)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                 {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
@@ -167,6 +168,7 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
             auto *codePage = qobject_cast<CodePage *>(documentPage);
             codePage->propertySet(QVariantHash{
                 {"theme", m_theme},
+                {"mainWindowToast", QVariant::fromValue(m_toast)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
@@ -204,6 +206,7 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
             auto *markdownPage = qobject_cast<MarkdownPage *>(documentPage);
             markdownPage->propertySet(QVariantHash{
                 {"theme", m_theme},
+                {"mainWindowToast", QVariant::fromValue(m_toast)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                 {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
@@ -225,6 +228,7 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
             auto *textPage = qobject_cast<TextPage *>(documentPage);
             textPage->propertySet(QVariantHash{
                 {"theme", m_theme},
+                {"mainWindowToast", QVariant::fromValue(m_toast)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                 {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
@@ -677,7 +681,7 @@ void DocumentModule::formattingRequest(const QUrl &documentUrl) {
 
 void DocumentModule::formattingResponse(const QUrl &documentUrl, const QString &newText) const {
     if (newText.isEmpty()) {
-        m_toast->show(ToastLevel::Info, tr("Format"), tr("File is already formatted."), 3000);
+        m_toast->show(ToastLevel::Info, tr("Format"), tr("File is already formatted."));
     } else if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
         codePage->formattingResponse(newText);
     }

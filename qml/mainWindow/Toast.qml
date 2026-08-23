@@ -250,8 +250,7 @@ Item {
         }
     }
 
-    function show(level: int, title: string, text: string, duration: int,
-                  actions: var, actionGroupId: int): void {
+    function show(level: int, title: string, text: string, actions: var, actionGroupId: int, duration: int): void {
         const toast = {
             "toastId": ++nextId,
             "toastLevel": level,

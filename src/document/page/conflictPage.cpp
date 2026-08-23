@@ -34,6 +34,7 @@ void ConflictPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_conflictWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
+        {"mainWindowToast", objects["mainWindowToast"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
         {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]}

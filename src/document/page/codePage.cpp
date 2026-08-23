@@ -51,6 +51,7 @@ void CodePage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_codeWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
+        {"mainWindowToast", objects["mainWindowToast"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},

@@ -184,7 +184,7 @@ void FileModule::fileDelete(const QUrl &fileUrl) {
 void FileModule::copyToClipboard(const QString &text) const {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(text);
-    m_toast->show(ToastLevel::Success, tr("Copied to clipboard"), {}, 3000);
+    m_toast->show(ToastLevel::Success, tr("Copied to clipboard"));
 }
 
 QString FileModule::linesGet(const QUrl &documentUrl, const int startLine, const int lineCount) {

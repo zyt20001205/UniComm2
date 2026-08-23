@@ -67,7 +67,7 @@ QSet<QString> DatatableModule::datatableList() const {
 int DatatableModule::datatableInsert(int index, const QString &key) {
     if (index == -1) index = g_datatableHeaderItemModel->rowCount();
     if (index < 0 || index > g_datatableHeaderItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."));
         return -1;
     }
 
@@ -80,7 +80,7 @@ int DatatableModule::datatableInsert(int index, const QString &key) {
         } while (m_datatableHash.contains(_key));
     }
     if (m_datatableHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key));
         return -1;
     }
 
@@ -108,20 +108,20 @@ void DatatableModule::datatableRemove(const int index) {
 
 bool DatatableModule::datatableRename(const int index, const QString &key) {
     if (index < 0 || index >= g_datatableHeaderItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."));
         return false;
     }
 
     const auto _key = key.trimmed();
     if (_key.isEmpty()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key cannot be empty."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key cannot be empty."));
         return false;
     }
 
     const auto oldKey = g_datatableHeaderItemModel->item(index, 0)->text();
     if (_key == oldKey) return true;
     if (m_datatableHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key));
         return false;
     }
 

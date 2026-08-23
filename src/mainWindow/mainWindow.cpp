@@ -561,9 +561,21 @@ void MainWindow::shortcutInit() {
     const auto *maximizeShortcut = new QShortcut(QKeySequence("F11"), this); // NOLINT
     connect(maximizeShortcut, &QShortcut::activated, this, &MainWindow::maximizeToggle);
     const auto *undoShortcut = new QShortcut(QKeySequence("Ctrl+Z"), this); // NOLINT
-    connect(undoShortcut, &QShortcut::activated, m_undoModule, &UndoModule::undo);
+    connect(undoShortcut, &QShortcut::activated, this, [this] {
+        if (m_undoModule->canUndo()) {
+            m_undoModule->undo();
+        } else {
+            m_toastModule->show(ToastLevel::Info, tr("Undo"), tr("Nothing to undo."));
+        }
+    });
     const auto *redoShortcut = new QShortcut(QKeySequence("Ctrl+Y"), this); // NOLINT
-    connect(redoShortcut, &QShortcut::activated, m_undoModule, &UndoModule::redo);
+    connect(redoShortcut, &QShortcut::activated, this, [this] {
+        if (m_undoModule->canRedo()) {
+            m_undoModule->redo();
+        } else {
+            m_toastModule->show(ToastLevel::Info, tr("Redo"), tr("Nothing to redo."));
+        }
+    });
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "shortcut initialized");

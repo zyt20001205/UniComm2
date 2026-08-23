@@ -7,6 +7,7 @@
 #include <QWidget>
 
 class SearchWidget;
+class ToastModule;
 
 class EditorWidget : public QWidget {
     Q_OBJECT
@@ -62,6 +63,7 @@ protected:
 
     QUrl m_documentUrl{};
     QJsonObject m_theme{};
+    ToastModule *m_toast{};
     ScintillaWidget *m_scintillaWidget{};
     QHash<QString, int> m_selection{};
 

@@ -26,9 +26,7 @@ DatabaseModule::~DatabaseModule() {
 void DatabaseModule::propertySet(const QVariantHash &objects) {
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
     for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
-        const auto success = _databaseInsert(g_databaseStandardItemModel->rowCount(), value.toString());
-        Q_ASSERT(success);
-        Q_UNUSED(success);
+        _databaseInsert(g_databaseStandardItemModel->rowCount(), value.toString());
     }
 
     m_widget->rootContext()->setContextProperty("databaseModule", this);
@@ -62,7 +60,7 @@ QSet<QString> DatabaseModule::databaseList() const {
 int DatabaseModule::databaseInsert(int index, const QString &key) {
     if (index == -1) index = g_databaseStandardItemModel->rowCount();
     if (index < 0 || index > g_databaseStandardItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
         return -1;
     }
 
@@ -75,84 +73,67 @@ int DatabaseModule::databaseInsert(int index, const QString &key) {
         } while (m_databaseHash.contains(_key));
     }
     if (m_databaseHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key));
         return -1;
     }
 
     g_undo->push(
         tr("Database Insert"),
-        [this, index, _key] {
-            const auto success = _databaseInsert(index, _key);
-            Q_ASSERT(success);
-            Q_UNUSED(success);
-        },
-        [this, _key] {
-            const auto success = _databaseRemove(_key);
-            Q_ASSERT(success);
-            Q_UNUSED(success);
-        });
+        [this, index, _key] { _databaseInsert(index, _key); },
+        [this, _key] { _databaseRemove(_key); });
     return index;
 }
 
 void DatabaseModule::databaseRemove(const int index) {
     if (index < 0 || index >= g_databaseStandardItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
         return;
     }
 
     const auto key = g_databaseStandardItemModel->item(index, 0)->text();
     g_undo->push(
         tr("Database Remove"),
-        [this, key] {
-            const auto success = _databaseRemove(key);
-            Q_ASSERT(success);
-            Q_UNUSED(success);
-        },
-        [this, index, key] {
-            const auto success = _databaseInsert(index, key);
-            Q_ASSERT(success);
-            Q_UNUSED(success);
-        });
+        [this, key] { _databaseRemove(key); },
+        [this, index, key] { _databaseInsert(index, key); });
 }
 
 bool DatabaseModule::databaseRename(const int index, const QString &key) {
     if (index < 0 || index >= g_databaseStandardItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
         return false;
     }
 
     const auto _key = key.trimmed();
     if (_key.isEmpty()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key cannot be empty."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key cannot be empty."));
         return false;
     }
 
     const auto oldKey = g_databaseStandardItemModel->item(index, 0)->text();
     if (_key == oldKey) return true;
     if (m_databaseHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key));
         return false;
     }
 
     g_undo->push(
         tr("Database Rename"),
-        [this, oldKey, newKey = _key] {
-            const auto success = _databaseRename(oldKey, newKey);
-            Q_ASSERT(success);
-            Q_UNUSED(success);
-        },
-        [this, oldKey, newKey = _key] {
-            const auto success = _databaseRename(newKey, oldKey);
-            Q_ASSERT(success);
-            Q_UNUSED(success);
-        });
+        [this, oldKey, newKey = _key] { _databaseRename(oldKey, newKey); },
+        [this, oldKey, newKey = _key] { _databaseRename(newKey, oldKey); });
     return true;
 }
 
 void DatabaseModule::databaseSwap(const int src, const int dst) {
-    const auto tmp = g_databaseStandardItemModel->takeRow(src);
-    g_databaseStandardItemModel->insertRow(dst, tmp);
-    databaseCache();
+    if (src < 0 || src >= g_databaseStandardItemModel->rowCount() || dst < 0 || dst >= g_databaseStandardItemModel->rowCount()) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
+        return;
+    }
+    if (src == dst) return;
+
+    g_undo->push(
+        tr("Database Swap"),
+        [this, src, dst] { _databaseSwap(src, dst); },
+        [this, src, dst] { _databaseSwap(dst, src); });
 }
 
 void DatabaseModule::databaseClear(const int index) {
@@ -174,8 +155,7 @@ bool DatabaseModule::databaseWrite(const QString &key, const QString &value) {
 
 // private
 bool DatabaseModule::_databaseInsert(const int index, const QString &key) {
-    if (index < 0 || index > g_databaseStandardItemModel->rowCount()
-        || key.isEmpty() || m_databaseHash.contains(key)) return false;
+    if (index < 0 || index > g_databaseStandardItemModel->rowCount() || key.isEmpty() || m_databaseHash.contains(key)) return false;
 
     auto *keyItem = new QStandardItem(key); // NOLINT
     keyItem->setData(key, DatabaseModel::KeyRole);
@@ -185,26 +165,24 @@ bool DatabaseModule::_databaseInsert(const int index, const QString &key) {
     return true;
 }
 
-bool DatabaseModule::_databaseRemove(const QString &key) {
+void DatabaseModule::_databaseRemove(const QString &key) {
     const auto iterator = m_databaseHash.constFind(key);
-    if (iterator == m_databaseHash.cend()) return false;
-
     g_databaseStandardItemModel->removeRow(iterator.value());
     databaseCache();
-    return true;
 }
 
-bool DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKey) {
+void DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKey) {
     const auto iterator = m_databaseHash.constFind(oldKey);
-    if (iterator == m_databaseHash.cend() || m_databaseHash.contains(newKey)) return false;
-
     auto *item = g_databaseStandardItemModel->item(iterator.value(), 0);
-    if (!item) return false;
-
     item->setText(newKey);
     item->setData(newKey, DatabaseModel::KeyRole);
     databaseCache();
-    return true;
+}
+
+void DatabaseModule::_databaseSwap(const int src, const int dst) {
+    const auto row = g_databaseStandardItemModel->takeRow(src);
+    g_databaseStandardItemModel->insertRow(dst, row);
+    databaseCache();
 }
 
 void DatabaseModule::databaseCache() {

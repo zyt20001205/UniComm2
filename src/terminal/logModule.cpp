@@ -156,7 +156,7 @@ bool LogModule::logSaveCheck() const {
     QTextDocument document;
     document.setHtml(m_textArea->property("text").toString());
     if (document.toPlainText().isEmpty()) {
-        m_toast->show(ToastLevel::Warning, tr("Nothing to export"), tr("Log is empty."), 3000);
+        m_toast->show(ToastLevel::Warning, tr("Nothing to export"), tr("Log is empty."));
         return false;
     }
     return true;
@@ -176,7 +176,7 @@ void LogModule::logSave(const QUrl &fileUrl) {
             if (stream.status() == QTextStream::Ok) saved = file.commit();
         }
         if (saved) {
-            m_toast->show(ToastLevel::Success, tr("Log exported"), filePath, 5000, {
+            m_toast->show(ToastLevel::Success, tr("Log exported"), filePath, {
                 {tr("Open"), [this, fileUrl] { emit fileOpenInApplication(fileUrl); }},
                 {tr("Show in Explorer"), [this, fileUrl] { emit fileOpenInExplorer(fileUrl); }}
             });

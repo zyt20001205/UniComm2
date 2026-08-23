@@ -33,6 +33,7 @@ void MarkdownPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
+        {"mainWindowToast", objects["mainWindowToast"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
         {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]}

@@ -40,11 +40,13 @@ signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
 private:
-    [[nodiscard]] bool _databaseInsert(int index, const QString &key);
+    bool _databaseInsert(int index, const QString &key);
 
-    [[nodiscard]] bool _databaseRemove(const QString &key);
+    void _databaseRemove(const QString &key);
 
-    [[nodiscard]] bool _databaseRename(const QString &oldKey, const QString &newKey);
+    void _databaseRename(const QString &oldKey, const QString &newKey);
+
+    void _databaseSwap(int src, int dst);
 
     void databaseCache();
 

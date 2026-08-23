@@ -29,13 +29,12 @@ ToastModule::ToastModule(QQmlEngine *engine, QWindow &owner)
     QTimer::singleShot(0, this, &ToastModule::geometryUpdate);
 }
 
-void ToastModule::show(const int level, const QString &title, const QString &text, const int duration,
-                       QList<ToastAction> actions) {
+void ToastModule::show(const int level, const QString &title, const QString &text, QList<ToastAction> actions, const int duration) {
     if (!m_root) return;
 
     QVariantList actionModel;
-    QList<std::function<void()>> callbacks;
-    for (auto &action : actions) {
+    QList<std::function<void()> > callbacks;
+    for (auto &action: actions) {
         if (action.text.isEmpty() || !action.callback) continue;
         actionModel.append(QVariantMap{
             {"actionText", action.text},
@@ -49,6 +48,7 @@ void ToastModule::show(const int level, const QString &title, const QString &tex
         actionGroupId = m_actionGroupId++;
         m_callbackGroups.insert(actionGroupId, std::move(callbacks));
     }
+    const int toastDuration = duration == 0 ? (actionGroupId == -1 ? 3000 : 5000) : duration;
     const QVariant actionModelValue = actionModel;
     const bool invoked = QMetaObject::invokeMethod(
         m_root,
@@ -56,9 +56,9 @@ void ToastModule::show(const int level, const QString &title, const QString &tex
         Q_ARG(int, level),
         Q_ARG(QString, title),
         Q_ARG(QString, text),
-        Q_ARG(int, duration),
         Q_ARG(QVariant, actionModelValue),
-        Q_ARG(int, actionGroupId)
+        Q_ARG(int, actionGroupId),
+        Q_ARG(int, toastDuration)
     );
     if (!invoked) m_callbackGroups.remove(actionGroupId);
 }
