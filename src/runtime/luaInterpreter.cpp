@@ -7,8 +7,6 @@
 
 #include "globals.h"
 #include "api/data.h"
-#include "api/file.h"
-#include "api/filesystem.h"
 #include "api/ftp.h"
 #include "api/http.h"
 #include "api/imap.h"
@@ -66,27 +64,6 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         datatable.set_function("write", [](const std::string &key, const sol::object &value) { Data::datatableWrite(key, value); });
         datatable.set_function("export", [](const sol::optional<std::string> &fileName) { Data::datatableExport(fileName.value_or("")); });
         m_lua["datatable"] = datatable;
-    }
-    // Filesystem lib (static)
-    {
-        m_lua.new_usertype<File>(
-            "FileHandle",
-            sol::no_constructor,
-            "__close", [](File &file) { file.close(); },
-            "close", &File::close,
-            "flush", &File::flush,
-            "seek", &File::seek,
-            "read", &File::read,
-            "write", &File::write
-        );
-
-        auto filesystem = m_lua.create_table();
-        filesystem.set_function("open", [](const std::string &path, const sol::optional<std::string> &mode) {
-            return Filesystem::open(path, mode.value_or("r"));
-        });
-        filesystem.set_function("remove", &Filesystem::remove);
-        filesystem.set_function("rename", &Filesystem::rename);
-        m_lua["filesystem"] = filesystem;
     }
     // Ftp lib (instance)
     {

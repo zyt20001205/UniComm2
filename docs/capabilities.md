@@ -47,7 +47,7 @@ Additional or experimental transports:
 - HTTP.
 - FTP.
 - SMTP and IMAP.
-- File and filesystem operations.
+- Workspace-relative standard Lua file I/O.
 - Thread, input, string, and utility APIs.
 
 The Lua-facing declarations and examples live under

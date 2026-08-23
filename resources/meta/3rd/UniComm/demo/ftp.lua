@@ -26,9 +26,9 @@ for _, item in ipairs(entries) do
     print(item.name, item.type, item.size, item.modified)
 end
 
--- download() returns a binary Lua string; filesystem controls local persistence.
+-- download() returns a binary Lua string; standard Lua io controls local persistence.
 local data = ftp:download("hello.txt")
-local output <close> = filesystem.open("ftp-download.txt", "wb")
+local output <close> = assert(io.open("ftp-download.txt", "wb"))
 output:write(data)
 
 -- Remove all remote data created by this demo.

@@ -25,8 +25,8 @@
 - Added Bluetooth LE support.
 - Added WebSocket client and server support.
 - Added SSL server support.
-- Added FTP and filesystem APIs.
-- Reworked HTTP, IMAP, SMTP, ModbusAscii, ModbusRtu, ModbusTcp, file, and port APIs.
+- Added FTP and workspace-relative standard Lua I/O.
+- Reworked HTTP, IMAP, SMTP, ModbusAscii, ModbusRtu, ModbusTcp, and port APIs.
 - Moved UniComm Lua annotations and demos under `resources/meta/3rd/UniComm`.
 - Removed the standalone SendModule.
 

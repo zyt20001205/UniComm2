@@ -19,7 +19,7 @@ for index, body in ipairs(mail.body) do
     end
 
     local path = "imap-body-" .. index .. "." .. extension
-    local output <close> = filesystem.open(path, "wb")
+    local output <close> = assert(io.open(path, "wb"))
     output:write(body.data)
 end
 
@@ -29,7 +29,7 @@ for index, attachment in ipairs(mail.attachments) do
     print(attachment.name, attachment.contentType)
 
     local path = "imap-attachment-" .. index .. ".bin"
-    local output <close> = filesystem.open(path, "wb")
+    local output <close> = assert(io.open(path, "wb"))
     output:write(attachment.data)
 end
 

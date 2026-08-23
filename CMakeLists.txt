@@ -294,6 +294,8 @@ else ()
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${LUALS_DIR}"
             "${CMAKE_BINARY_DIR}/lua-language-server"
+            COMMAND ${CMAKE_COMMAND} -E remove_directory
+            "${CMAKE_BINARY_DIR}/lua-language-server/meta/3rd/UniComm"
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/meta"
             "${CMAKE_BINARY_DIR}/lua-language-server/meta"

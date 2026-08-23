@@ -5,10 +5,6 @@
   },
   "runtime": {
     "special" : {
-      "f.open": "require",
-      "f.close": "require",
-      "f.read": "require",
-      "f.write": "require",
       "thread.start": "require"
     },
     "version" : "Lua 5.5"
