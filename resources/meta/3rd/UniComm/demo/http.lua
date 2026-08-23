@@ -13,6 +13,6 @@ local body = [[
 
 local result = http:post("/post", header, body)
 
-io.log(result.statusCode)
-io.log(result.header)
-io.log(result.body)
+print(result.statusCode)
+print(result.header)
+print(result.body)

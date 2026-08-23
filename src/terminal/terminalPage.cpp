@@ -50,6 +50,10 @@ void TerminalPage::propertySet(const QVariantHash &objects) {
     m_root = m_widget->rootObject();
 }
 
+void TerminalPage::write(const QByteArray &data) const {
+    m_vtermWidget->inputWrite(data);
+}
+
 void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalItem = qvariant_cast<QObject *>(objects["terminalItem"]);
     auto *terminalItem = qobject_cast<QQuickItem *>(m_terminalItem);

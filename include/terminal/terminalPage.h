@@ -27,6 +27,8 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
+    void write(const QByteArray &data) const;
+
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
     bool eventFilter(QObject *watched, QEvent *event) override;

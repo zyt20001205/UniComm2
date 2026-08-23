@@ -4,7 +4,7 @@ local columns = datatable.list()
 
 -- list() returns configured column keys in an unspecified order.
 for _, key in ipairs(columns) do
-    io.log("datatable column", key)
+    print("datatable column", key)
 end
 
 if #columns == 0 then

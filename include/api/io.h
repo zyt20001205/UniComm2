@@ -17,15 +17,13 @@ public:
 
     ~IO() override = default;
 
-    void log(const sol::variadic_args &args);
+    [[nodiscard]] static QByteArray print(const sol::variadic_args &args);
 
     void message(const std::string &text) const;
 
     static void speak(const std::string &text);
 
 signals:
-    void appendLog(int type, const QString &prefix, const QString &message);
-
     void newMessageDialog(const QEventLoop *eventloop, const QString &text) const;
 };
 

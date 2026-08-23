@@ -4,7 +4,7 @@ local ftp = Ftp.new("FTP", 30000)
 ftp:login("anonymous", "anonymous@example.com")
 
 -- PWD and other metadata commands use the persistent FTP control connection.
-io.log("remote working directory", ftp:pwd())
+print("remote working directory", ftp:pwd())
 
 -- Work inside a disposable remote directory so existing files are not modified.
 local directory = "unicomm-ftp-demo-" .. os.time()
@@ -14,16 +14,16 @@ ftp:cd(directory)
 -- Transfer commands open a temporary passive data connection automatically.
 -- EPSV is preferred and PASV is used as the fallback.
 ftp:upload("hello.txt", "Hello from UniComm FTP!\n")
-io.log("hello.txt exists", ftp:exists("hello.txt"))
+print("hello.txt exists", ftp:exists("hello.txt"))
 
 -- stat() returns one FileInfo through MLST on the control connection.
 local entry = ftp:stat("hello.txt")
-io.log(entry.name, entry.type, entry.size, entry.modified)
+print(entry.name, entry.type, entry.size, entry.modified)
 
 -- list() returns multiple FileInfo values through MLSD on a data connection.
 local entries = ftp:list()
 for _, item in ipairs(entries) do
-    io.log(item.name, item.type, item.size, item.modified)
+    print(item.name, item.type, item.size, item.modified)
 end
 
 -- download() returns a binary Lua string; filesystem controls local persistence.

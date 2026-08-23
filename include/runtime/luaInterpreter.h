@@ -34,6 +34,8 @@ public:
     void valueSet(const QString &documentUrl, const QString &expression, const QString &value, const QString &type);
 
 signals:
+    void writeTerminal(const QString &id, const QByteArray &data);
+
     void openDocument(const QUrl &documentUrl);
 
     void addMarker(const QUrl &documentUrl, int type, int line, int time);

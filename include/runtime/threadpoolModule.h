@@ -38,6 +38,8 @@ public:
 signals:
     void openTerminal(const QString &id, int backend);
 
+    void writeTerminal(const QString &id, const QByteArray &data);
+
     void finishThread(const QString &threadId, const QJsonArray &result);
 
     void trackQuit(float secondaryProgress, const QString &secondaryLog) const;

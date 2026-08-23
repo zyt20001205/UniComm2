@@ -92,6 +92,7 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
     connect(interpreter, &LuaInterpreter::startThread, this,
             qOverload<const QUrl &, const int, QString &, const int, const int, const int, const int>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
+    connect(interpreter, &LuaInterpreter::writeTerminal, this, &ThreadpoolModule::writeTerminal);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::newMessageDialog, this, &ThreadpoolModule::messageDialogNew);
     interpreter->moveToThread(worker);

@@ -12,28 +12,35 @@ IO::IO(QObject *parent)
     : QObject(parent) {
 }
 
-void IO::log(const sol::variadic_args &args) {
-    std::function<void(const QString &, const QVariant &, int)> logging = [&](const QString &key, const QVariant &value, const int depth) {
-        QString indent{};
-        if (depth > 0) indent = QString("&nbsp;").repeated(depth * 4);
-
+QByteArray IO::print(const sol::variadic_args &args) {
+    QByteArray data{};
+    std::function<void(const QVariant &, int)> printing = [&](const QVariant &value, const int depth) {
         if (value.typeId() == QMetaType::QVariantMap) {
-            if (key.isEmpty()) emit appendLog(LogLevel::Info, indent, "{");
-            else emit appendLog(LogLevel::Info, QString("%1%2:").arg(indent, key), "{");
-            QVariantMap map = value.toMap();
-            for (auto it = map.begin(); it != map.end(); ++it) {
-                logging(it.key(), it.value(), depth + 1);
+            const auto map = value.toMap();
+            data.append('{');
+            for (auto it = map.constBegin(); it != map.constEnd(); ++it) {
+                data.append("\r\n");
+                data.append(QByteArray(" ").repeated((depth + 1) * 4));
+                data.append(it.key().toUtf8());
+                data.append(": ");
+                printing(it.value(), depth + 1);
             }
-            emit appendLog(LogLevel::Info, indent, "}");
-        } else {
-            if (key.isEmpty()) emit appendLog(LogLevel::Info, indent, value.toString());
-            else emit appendLog(LogLevel::Info, QString("%1%2:").arg(indent, key), value.toString());
-        }
+            if (!map.isEmpty()) {
+                data.append("\r\n");
+                data.append(QByteArray(" ").repeated(depth * 4));
+            }
+            data.append('}');
+        } else data.append(value.toString().toUtf8());
     };
 
+    bool first = true;
     for (const auto &arg: uni_cast<QVariantList>(args)) {
-        logging("", arg, 0);
+        if (!first) data.append('\t');
+        printing(arg, 0);
+        first = false;
     }
+    data.append("\r\n");
+    return data;
 }
 
 void IO::message(const std::string &text) const {

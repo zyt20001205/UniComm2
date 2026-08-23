@@ -2,11 +2,6 @@
 
 io = {}
 
----Logging.
----@param ... any
----@return nil
-function io.log(...) end
-
 ---Displays a message box with the specified text.
 ---@param text string The message text to display in the message box.
 ---@return nil

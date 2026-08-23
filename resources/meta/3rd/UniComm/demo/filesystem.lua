@@ -9,7 +9,7 @@ do
     file:flush()
 
     file:seek("set", 0)
-    io.log(file:read("a"))
+    print(file:read("a"))
 end
 
 -- Rename and remove files without opening a FileHandle.

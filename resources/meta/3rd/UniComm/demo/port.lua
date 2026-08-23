@@ -4,9 +4,9 @@ local timeout = 1000
 
 -- Discover configured ports and inspect the selected port.
 for _, portName in ipairs(port.list()) do
-    io.log(portName)
+    print(portName)
 end
-io.log(port.info(name))
+print(port.info(name))
 
 port.open(name)
 port.clear(name)
@@ -14,14 +14,14 @@ port.clear(name)
 -- readUntil includes the delimiter in the returned data.
 local line = "Hello from UniComm\r\n"
 port.write(name, line)
-io.log(port.readUntil(name, "\r\n", timeout))
+print(port.readUntil(name, "\r\n", timeout))
 
 -- read with a positive length waits for exactly that many bytes.
 local request = string.fromHex("01 03 00 00 00 01")
 port.write(name, request)
 local response = port.read(name, #request, timeout)
 ---@cast response string
-io.log(string.toHex(response, " "))
+print(string.toHex(response, " "))
 
 -- port.read(name) immediately drains all bytes currently in the receive buffer.
 

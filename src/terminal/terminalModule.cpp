@@ -156,6 +156,13 @@ void TerminalModule::terminalOpen(const QString &id, const int backend) {
     g_log->addDockWidgetAsTab(terminalPage);
 }
 
+void TerminalModule::terminalWrite(const QString &id, const QByteArray &data) const {
+    QUrl terminalUrl{};
+    terminalUrl.setScheme("terminal");
+    terminalUrl.setPath(QStringLiteral("/lua/%1").arg(id));
+    if (auto *terminalPage = m_terminalPageHash.value(terminalUrl.toString(QUrl::FullyEncoded))) terminalPage->write(data);
+}
+
 // public
 QHash<int, QByteArray> TerminalModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();

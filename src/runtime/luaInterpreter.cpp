@@ -43,6 +43,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // LuaStandard lib
     {
         m_lua.open_libraries();
+        m_lua.set_function("print", [this](const sol::variadic_args &args) {
+            emit writeTerminal(m_luaSession["threadId"].toString(), IO::print(args));
+        });
         // add workspace to search path
         sol::table package = m_lua["package"];
         const std::string currentPath = package["path"];
@@ -160,11 +163,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // IO lib (static)
     {
         auto io = m_lua["io"].get_or_create<sol::table>();
-        io.set_function("log", [this](const sol::variadic_args &args) { m_io->log(args); });
         io.set_function("message", [this](const std::string &text) { m_io->message(text); });
         io.set_function("speak", [](const std::string &text) { IO::speak(text); });
         m_lua["io"] = io;
-        connect(m_io, &IO::appendLog, this, &LuaInterpreter::appendLog);
         connect(m_io, &IO::newMessageDialog, this, [this](const QEventLoop *eventloop, const QString &text) {
             emit newMessageDialog(eventloop, m_luaSession["threadId"].toString(), text);
         });

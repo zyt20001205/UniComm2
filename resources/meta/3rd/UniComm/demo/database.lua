@@ -3,7 +3,7 @@ local keys = database.list()
 
 -- list() returns configured keys in an unspecified order.
 for _, key in ipairs(keys) do
-    io.log("database key", key)
+    print("database key", key)
 end
 
 local key = keys[1]

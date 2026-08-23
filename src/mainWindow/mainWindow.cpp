@@ -551,6 +551,7 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
     connect(m_threadpoolModule, &ThreadpoolModule::openTerminal, m_terminalModule, &TerminalModule::terminalOpen);
+    connect(m_threadpoolModule, &ThreadpoolModule::writeTerminal, m_terminalModule, &TerminalModule::terminalWrite);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
 }
 
