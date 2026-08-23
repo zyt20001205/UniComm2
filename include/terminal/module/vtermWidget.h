@@ -77,8 +77,6 @@ private:
 
     void renderDamage(const QRect &rect);
 
-    void outputRead();
-
     int screenDamage(VTermRect rect);
 
     int cursorMove(VTermPos pos, VTermPos oldPos, int visible);

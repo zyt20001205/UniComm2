@@ -16,6 +16,9 @@ VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
       m_screen(vterm_obtain_screen(m_vterm)),
       m_selectionBuffer(1024 * 1024, '\0') {
     vterm_set_utf8(m_vterm, 1);
+    vterm_output_set_callback(m_vterm, [](const char *data, const size_t size, void *user) {
+        emit static_cast<VtermWidget *>(user)->outputWrite(QByteArray(data, static_cast<qsizetype>(size)));
+    }, this);
     vterm_state_set_bold_highbright(m_state, 1);
 
     m_callbacks.damage = [](const VTermRect rect, void *user) -> int {
@@ -105,7 +108,6 @@ void VtermWidget::keyPressed(const int key, const int modifiers, const QString &
             vterm_keyboard_unichar(m_vterm, ch, characterModifier);
         }
     }
-    outputRead();
 }
 
 void VtermWidget::mousePressed(const int row, const int col, const int button, const int modifiers) {
@@ -113,7 +115,6 @@ void VtermWidget::mousePressed(const int row, const int col, const int button, c
     vterm_mouse_move(m_vterm, row, col, vtermModifier);
     const auto &vtermButton = uni_cast<VTermButton>(button);
     if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, true, vtermModifier);
-    outputRead();
 }
 
 void VtermWidget::mouseReleased(const int row, const int col, const int button, const int modifiers) {
@@ -121,13 +122,11 @@ void VtermWidget::mouseReleased(const int row, const int col, const int button, 
     vterm_mouse_move(m_vterm, row, col, vtermModifier);
     const auto &vtermButton = uni_cast<VTermButton>(button);
     if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, false, vtermModifier);
-    outputRead();
 }
 
 void VtermWidget::mouseMoved(const int row, const int col, const int button, const int modifiers) {
     const auto &vtermModifier = uni_cast<VTermModifier>(modifiers);
     vterm_mouse_move(m_vterm, row, col, vtermModifier);
-    outputRead();
 }
 
 void VtermWidget::mouseWheeled(const int row, const int col, const int lines, const int modifiers) {
@@ -138,7 +137,6 @@ void VtermWidget::mouseWheeled(const int row, const int col, const int lines, co
     for (int step = 0; step < steps; ++step) {
         vterm_mouse_button(m_vterm, button, true, vtermModifier);
     }
-    outputRead();
 }
 
 void VtermWidget::mouseScrolled(const int lines) {
@@ -253,17 +251,6 @@ void VtermWidget::renderDamage(const QRect &rect) {
     }
 
     emit setScreenDamage(damage, cells);
-}
-
-void VtermWidget::outputRead() {
-    QByteArray output;
-    char buffer[256]{};
-    while (vterm_output_get_buffer_current(m_vterm) > 0) {
-        const auto read = vterm_output_read(m_vterm, buffer, sizeof(buffer));
-        if (read == 0) break;
-        output.append(buffer, static_cast<qsizetype>(read));
-    }
-    emit outputWrite(output);
 }
 
 int VtermWidget::screenDamage(const VTermRect rect) {
