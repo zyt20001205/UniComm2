@@ -36,6 +36,8 @@ public:
     Q_INVOKABLE void valueSet(const QString &threadId, const QString &documentUrl, const QString &expression, const QString &value, const QString &type);
 
 signals:
+    void openTerminal(const QString &id, int backend);
+
     void finishThread(const QString &threadId, const QJsonArray &result);
 
     void trackQuit(float secondaryProgress, const QString &secondaryLog) const;

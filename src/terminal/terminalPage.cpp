@@ -15,12 +15,13 @@
 #include "terminal/module/vtermWidget.h"
 
 // public
-TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config)
+TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config, const int backend)
     : DockWidget(uniqueName),
+      m_backend(backend),
       m_config(config),
       m_session(session),
       m_widget(new QQuickWidget()),
-      m_conptyWidget(new ConptyWidget(this)),
+      m_conptyWidget(m_backend == Backend::Conpty ? new ConptyWidget(this) : nullptr),
       m_vtermWidget(new VtermWidget(24, 80, this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
@@ -69,8 +70,6 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
         damageOverlay->setSize(rect.size());
         damageOverlay->setVisible(true);
     });
-    connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
-    connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
     connect(m_vtermWidget, &VtermWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
     connect(m_vtermWidget, &VtermWidget::setScreenDamage, m_terminalWidget, &TerminalWidget::screenDamageSet);
     connect(m_vtermWidget, &VtermWidget::setCursorPosition, m_terminalWidget, &TerminalWidget::cursorPositionSet);
@@ -80,10 +79,13 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     connect(m_vtermWidget, &VtermWidget::setCursorShape, m_terminalWidget, &TerminalWidget::cursorShapeSet);
     connect(m_vtermWidget, &VtermWidget::setCursorMode, m_terminalWidget, &TerminalWidget::cursorModeSet);
 
-    connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
-
     connect(m_terminalWidget, &TerminalWidget::resize, this, &TerminalPage::_resize);
-    start();
+    if (m_conptyWidget) {
+        connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
+        connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
+        connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
+        start();
+    }
 }
 
 bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {

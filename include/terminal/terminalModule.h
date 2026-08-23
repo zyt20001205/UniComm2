@@ -5,10 +5,11 @@
 #include <QStandardItemModel>
 #include <QUrl>
 
+#include "terminal/terminalPage.h"
+
 class QQuickView;
 
 class TerminalModel;
-class TerminalPage;
 
 class TerminalModule final : public QObject {
     Q_OBJECT
@@ -32,9 +33,9 @@ public:
 
     Q_INVOKABLE void terminalSwap(int src, int dst) const;
 
-    [[nodiscard]] TerminalPage *terminalConstruct(const QUrl &terminalUrl);
+    [[nodiscard]] TerminalPage *terminalConstruct(const QUrl &terminalUrl, int backend = TerminalPage::Backend::Conpty);
 
-    Q_INVOKABLE void terminalOpen(const QString &id);
+    Q_INVOKABLE void terminalOpen(const QString &id, int backend = TerminalPage::Backend::Conpty);
 
 private:
     QJsonObject m_config{};

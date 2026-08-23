@@ -14,7 +14,14 @@ class TerminalPage final: public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config);
+    struct Backend {
+        enum {
+            Conpty,
+            Lua
+        };
+    };
+
+    explicit TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config, int backend = Backend::Conpty);
 
     ~TerminalPage() override;
 
@@ -36,6 +43,7 @@ private:
 
     void titleSet(const QString &title);
 
+    int m_backend{};
     QJsonObject m_config{};
     QVariantHash m_session{};
     QQuickWidget *m_widget{};

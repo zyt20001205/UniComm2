@@ -102,34 +102,56 @@ void TerminalModule::terminalSwap(const int src, const int dst) const {
     m_terminalModel->insertRow(dst, row);
 }
 
-TerminalPage *TerminalModule::terminalConstruct(const QUrl &terminalUrl) {
+TerminalPage *TerminalModule::terminalConstruct(const QUrl &terminalUrl, const int backend) {
     const auto parts = terminalUrl.path().split('/', Qt::SkipEmptyParts);
     if (parts.size() != 2) return nullptr;
-    const auto id = parts.at(0);
 
     const auto uniqueName = terminalUrl.toString(QUrl::FullyEncoded);
     if (auto *terminalPage = m_terminalPageHash.value(uniqueName)) return terminalPage;
 
-    for (const auto &value: m_config["terminals"].toArray()) {
-        auto session = value.toObject().toVariantHash();
-        if (session.take("id").toString() != id) continue;
-
-        auto *terminalPage = new TerminalPage(uniqueName, session, m_config); // NOLINT
-        terminalPage->setTitle(session["name"].toString());
-        terminalPage->propertySet({});
-
-        m_terminalPageHash.insert(uniqueName, terminalPage);
-        connect(terminalPage, &TerminalPage::destroyed, this, [this, uniqueName] { m_terminalPageHash.remove(uniqueName); });
-        return terminalPage;
+    QVariantHash session{};
+    QString terminalTitle{};
+    switch (backend) {
+        case TerminalPage::Backend::Conpty: {
+            const auto &id = parts.at(0);
+            for (const auto &value: m_config["terminals"].toArray()) {
+                auto candidate = value.toObject().toVariantHash();
+                if (candidate.take("id").toString() != id) continue;
+                session = candidate;
+                terminalTitle = session["name"].toString();
+                break;
+            }
+            if (session.isEmpty()) return nullptr;
+            break;
+        }
+        case TerminalPage::Backend::Lua: {
+            const auto &id = parts.at(1);
+            terminalTitle = id;
+            break;
+        }
     }
-    return nullptr;
+
+    auto *terminalPage = new TerminalPage(uniqueName, session, m_config, backend); // NOLINT
+    terminalPage->setTitle(terminalTitle);
+    terminalPage->propertySet({});
+
+    m_terminalPageHash.insert(uniqueName, terminalPage);
+    connect(terminalPage, &TerminalPage::destroyed, this, [this, uniqueName] { m_terminalPageHash.remove(uniqueName); });
+    return terminalPage;
 }
 
-void TerminalModule::terminalOpen(const QString &id) {
+void TerminalModule::terminalOpen(const QString &id, const int backend) {
     QUrl terminalUrl{};
     terminalUrl.setScheme("terminal");
-    terminalUrl.setPath(QStringLiteral("/%1/%2").arg(id, QUuid::createUuid().toString(QUuid::WithoutBraces)));
-    auto *terminalPage = terminalConstruct(terminalUrl);
+    switch (backend) {
+        case TerminalPage::Backend::Conpty:
+            terminalUrl.setPath(QStringLiteral("/%1/%2").arg(id, QUuid::createUuid().toString(QUuid::WithoutBraces)));
+            break;
+        case TerminalPage::Backend::Lua:
+            terminalUrl.setPath(QStringLiteral("/lua/%1").arg(id));
+            break;
+    }
+    auto *terminalPage = terminalConstruct(terminalUrl, backend);
     if (!terminalPage) return;
     g_log->addDockWidgetAsTab(terminalPage);
 }

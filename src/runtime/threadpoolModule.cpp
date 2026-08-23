@@ -13,6 +13,7 @@
 #include "core/globalManager.h"
 #include "runtime/luaInterpreter.h"
 #include "document/documentModule.h"
+#include "terminal/terminalPage.h"
 
 // public
 ThreadpoolModule::ThreadpoolModule()
@@ -135,6 +136,7 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
         });
         connect(worker, &QThread::finished, this, [this, threadId, buffer] { emit finishThread(threadId, *buffer); });
     }
+    emit openTerminal(threadId, TerminalPage::Backend::Lua);
     worker->start();
 }
 
