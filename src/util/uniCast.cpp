@@ -89,20 +89,6 @@ QVariant uni_cast<QVariant, sol::object>(const sol::object &s, const int depth) 
         }
         case sol::type::string: {
             const std::string str = s.as<std::string>();
-            bool raw = false;
-            for (const char ch: str) {
-                if (ch == '\r' || ch == '\n' || ch == '\t' || ch == ' ') {
-                    continue;
-                }
-                if ((ch >= 0x00 && ch <= 0x1F) || ch == 0x7F) {
-                    raw = true;
-                    break;
-                }
-            }
-            if (raw) {
-                const QByteArray byteArray(str.data(), static_cast<qsizetype>(str.size()));
-                return byteArray.toHex(' ').toUpper();
-            }
             QString string{};
             // try utf-8
             string = QString::fromUtf8(str.data(), static_cast<qsizetype>(str.size()));

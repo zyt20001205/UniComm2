@@ -6,6 +6,7 @@
 #include <sol/object.hpp>
 
 #include "globals.h"
+#include "sol/variadic_args.hpp"
 #include "util/uniCast.h"
 
 IO::IO(QObject *parent)
@@ -40,6 +41,23 @@ QByteArray IO::print(const sol::variadic_args &args) {
         first = false;
     }
     data.append("\r\n");
+    return data;
+}
+
+QByteArray IO::write(const sol::variadic_args &args) {
+    QByteArray data{};
+    lua_State *L = args.lua_state();
+    for (const auto &arg: args) {
+        if (arg.get_type() != sol::type::string && arg.get_type() != sol::type::number) throw sol::error("io.write expects string or number");
+
+        size_t length{};
+        const auto *string = luaL_tolstring(L, arg.stack_index(), &length);
+        for (size_t i = 0; i < length; ++i) {
+            if (string[i] == '\n' && (data.isEmpty() || data.back() != '\r')) data.append('\r');
+            data.append(string[i]);
+        }
+        lua_pop(L, 1);
+    }
     return data;
 }
 

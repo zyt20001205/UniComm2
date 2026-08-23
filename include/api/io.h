@@ -19,6 +19,8 @@ public:
 
     [[nodiscard]] static QByteArray print(const sol::variadic_args &args);
 
+    [[nodiscard]] static QByteArray write(const sol::variadic_args &args);
+
     void message(const std::string &text) const;
 
     static void speak(const std::string &text);
