@@ -1,5 +1,9 @@
 ---@meta
 
+---
+---Relative paths used by `io.open`, `io.input`, `io.output`, `io.lines`,
+---`os.remove`, and `os.rename` start from the current workspace.
+---
 io = {}
 
 ---Displays a message box with the specified text.

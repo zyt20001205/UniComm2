@@ -112,6 +112,13 @@ void IO::redirect(lua_State *L) {
         }
     });
     m_outputThread->start();
+
+    pathCast(L, "io", "open", 1);
+    pathCast(L, "io", "input", 1);
+    pathCast(L, "io", "output", 1);
+    pathCast(L, "io", "lines", 1);
+    pathCast(L, "os", "remove", 1);
+    pathCast(L, "os", "rename", 2);
 }
 
 void IO::inputWrite(const QByteArray &data) const {
@@ -195,4 +202,30 @@ void IO::handleClose(void *&handle) {
     if (!handle) return;
     CloseHandle(handle);
     handle = nullptr;
+}
+
+void IO::pathCast(lua_State *L, const char *library, const char *function, const int pathCount) {
+    lua_getglobal(L, library);
+    lua_getfield(L, -1, function);
+    lua_pushinteger(L, pathCount);
+    lua_pushcclosure(L, [](lua_State *L) -> int {
+        const int arguments = lua_gettop(L);
+        const int pathCount = static_cast<int>(lua_tointeger(L, lua_upvalueindex(2)));
+        for (int i = 1; i <= pathCount && i <= arguments; ++i) {
+            if (lua_type(L, i) != LUA_TSTRING) continue;
+            size_t size{};
+            const char *path = lua_tolstring(L, i, &size);
+            const auto documentUrl = uni_cast<QUrl>(LPath(QString::fromUtf8(path, static_cast<qsizetype>(size))));
+            const auto resolved = documentUrl.toLocalFile().toUtf8();
+            lua_pushlstring(L, resolved.constData(), static_cast<size_t>(resolved.size()));
+            lua_replace(L, i);
+        }
+
+        lua_pushvalue(L, lua_upvalueindex(1));
+        lua_insert(L, 1);
+        lua_call(L, arguments, LUA_MULTRET);
+        return lua_gettop(L);
+    }, 2);
+    lua_setfield(L, -2, function);
+    lua_pop(L, 1);
 }

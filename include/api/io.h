@@ -42,6 +42,8 @@ private:
 
     static void handleClose(void *&handle);
 
+    static void pathCast(lua_State *L, const char *library, const char *function, int pathCount);
+
     QString m_threadId{};
     void *m_inputWrite{};
     void *m_outputRead{};
