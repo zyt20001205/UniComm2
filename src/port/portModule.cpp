@@ -12,6 +12,7 @@
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "core/undoModule.h"
 #include "port/basePort.h"
 #include "port/bluetoothLe.h"
 #include "port/module/deviceDiscovery.h"
@@ -37,8 +38,10 @@ PortModule::PortModule()
     connect(m_portSetting, &PortSetting::editPort, this, &PortModule::portEdit);
     g_portModel = new PortModel(this);
     for (const auto &value: g_workspaceConfig["portConfig"].toArray()) {
-        const QJsonObject portConfig = value.toObject();
-        portInsert(-1, portConfig);
+        auto portConfig = value.toObject();
+        portDefaults(portConfig);
+        if (!portCheck(portConfig).isEmpty()) continue;
+        _portInsert(g_portModel->rowCount(), portConfig);
     }
 }
 
@@ -159,12 +162,12 @@ QJsonObject PortModule::portConfigGet(const int portType) {
     return portConfig;
 }
 
-QString PortModule::portCheck(const QJsonObject &portConfig) const {
+QString PortModule::portCheck(const QJsonObject &portConfig, const QString &oldPortName) const {
     const auto portType = portConfig.value("portType").toInt(-1);
     const auto portName = portConfig.value("portName").toString();
     if (portType < PortType::SerialPort || portType > PortType::BluetoothLe) return QString("Unsupported port type: %1.").arg(portType);
     if (portName.trimmed().isEmpty()) return "Port check failed: portName is empty.";
-    if (m_portHash.contains(portName)) return QString("Port check failed: '%1' already exists.").arg(portName);
+    if (portName != oldPortName && m_portHash.contains(portName)) return QString("Port check failed: '%1' already exists.").arg(portName);
 
     if (portType == PortType::SerialPort) {
         const auto baudRate = portConfig.value("baudRate").toInt();
@@ -196,11 +199,20 @@ QString PortModule::portCheck(const QJsonObject &portConfig) const {
     return {};
 }
 
-QString PortModule::portInsert(int index, QJsonObject portConfig) {
-    const auto defaults = portConfigGet(portConfig.value("portType").toInt(-1)).value("defaults").toObject();
-    for (auto iterator = defaults.constBegin(); iterator != defaults.constEnd(); ++iterator) {
-        if (!portConfig.contains(iterator.key())) portConfig.insert(iterator.key(), iterator.value());
+void PortModule::portSetting(const int index) const {
+    if (index == -1) {
+        m_portSetting->portSettingImport();
+    } else {
+        const auto *item = g_portModel->item(index, 0);
+        const QString portName = item->text();
+        const auto &portObject = m_portHash[portName];
+        const auto &portConfig = portObject->config();
+        m_portSetting->portSettingImport(portConfig);
     }
+}
+
+QString PortModule::portInsert(int index, QJsonObject portConfig) {
+    portDefaults(portConfig);
 
     const auto exception = portCheck(portConfig);
     const auto portName = portConfig.value("portName").toString();
@@ -210,6 +222,135 @@ QString PortModule::portInsert(int index, QJsonObject portConfig) {
     }
 
     if (index == -1) index = g_portModel->rowCount();
+    if (index < 0 || index > g_portModel->rowCount()) {
+        const auto error = QString("Port insert failed: invalid index %1.").arg(index);
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(portName), error);
+        return error;
+    }
+
+    g_undo->push(
+        tr("Port Insert (%1)").arg(portName),
+        [this, index, portConfig] { _portInsert(index, portConfig); },
+        [this, portName] { _portRemove(portName); });
+    return QString("Port '%1' inserted.").arg(portName);
+}
+
+void PortModule::portRemove(const int index) {
+    if (index < 0 || index >= g_portModel->rowCount()) {
+        emit appendLog(LogLevel::Error, "[Port]", QString("Port remove failed: invalid index %1.").arg(index));
+        return;
+    }
+
+    const auto portName = g_portModel->item(index, 0)->text();
+    const auto portConfig = m_portHash[portName]->config();
+    g_undo->push(
+        tr("Port Remove (%1)").arg(portName),
+        [this, portName] { _portRemove(portName); },
+        [this, index, portConfig] { _portInsert(index, portConfig); });
+}
+
+QString PortModule::portRemove(const QString &portName) {
+    const auto name = portName.trimmed();
+    const auto items = g_portModel->findItems(name);
+    if (items.isEmpty()) return QString("Port remove failed: '%1' does not exist.").arg(name);
+
+    portRemove(items.constFirst()->row());
+    return QString("Port '%1' removed.").arg(name);
+}
+
+void PortModule::portMove(const int src, const int dst) {
+    if (src < 0 || src >= g_portModel->rowCount() || dst < 0 || dst >= g_portModel->rowCount()) {
+        emit appendLog(LogLevel::Error, "[Port]", "Port move failed: invalid index.");
+        return;
+    }
+    if (src == dst) return;
+
+    const auto portName = g_portModel->item(src, 0)->text();
+    g_undo->push(
+        tr("Port Move (%1: %2->%3)").arg(portName).arg(src + 1).arg(dst + 1),
+        [this, src, dst] { _portMove(src, dst); },
+        [this, src, dst] { _portMove(dst, src); });
+}
+
+void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {
+    const auto items = g_portModel->findItems(oldPortName);
+    if (items.isEmpty()) {
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(oldPortName), "Port edit failed: port does not exist.");
+        return;
+    }
+
+    auto newPortConfig = portConfig;
+    portDefaults(newPortConfig);
+    const auto portName = newPortConfig.value("portName").toString();
+    if (const auto exception = portCheck(newPortConfig, oldPortName); !exception.isEmpty()) {
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(portName), exception);
+        return;
+    }
+
+    const auto index = items.constFirst()->row();
+    const auto oldPortConfig = m_portHash[oldPortName]->config();
+    if (newPortConfig == oldPortConfig) return;
+
+    const auto commandText = portName == oldPortName
+                                 ? tr("Port Edit (%1)").arg(portName)
+                                 : tr("Port Rename (%1->%2)").arg(oldPortName, portName);
+    g_undo->push(
+        commandText,
+        [this, index, oldPortName, newPortConfig] { _portEdit(index, oldPortName, newPortConfig); },
+        [this, index, portName, oldPortConfig] { _portEdit(index, portName, oldPortConfig); });
+}
+
+void PortModule::portToggle(const int index) {
+    const auto *item = g_portModel->item(index, 0);
+    const QString portName = item->text();
+    bool status = item->data(Qt::UserRole + 1).toBool();
+    auto port = m_portHash[portName];
+    if (status) {
+        QMetaObject::invokeMethod(port, [port] {
+            port->close();
+        }, Qt::QueuedConnection);
+    } else {
+        QMetaObject::invokeMethod(port, [port] {
+            port->open();
+        }, Qt::QueuedConnection);
+    }
+}
+
+void PortModule::portMonitor(const int index, const bool enabled) {
+    const QString portName = g_portModel->item(index, 0)->text();
+    auto *port = m_portHash[portName];
+    QMetaObject::invokeMethod(port, [port, enabled] {
+        port->monitor(enabled);
+    }, Qt::QueuedConnection);
+}
+
+void PortModule::portRefresh(const QString &portName, const QVariantHash &session) {
+    for (int row = 0; row < g_portModel->rowCount(); ++row) {
+        auto *item = g_portModel->item(row, 0);
+        if (item->text() == portName) {
+            if (session.contains("active")) item->setData(session.value("active"), Qt::UserRole + 1);
+            if (session.contains("capacity")) item->setData(session.value("capacity"), Qt::UserRole + 2);
+            if (session.contains("used")) item->setData(session.value("used"), Qt::UserRole + 3);
+            if (session.contains("lifetime")) item->setData(session.value("lifetime"), Qt::UserRole + 4);
+            if (session.contains("readCount")) item->setData(session.value("readCount"), Qt::UserRole + 5);
+            if (session.contains("readBytes")) item->setData(session.value("readBytes"), Qt::UserRole + 6);
+            if (session.contains("writeCount")) item->setData(session.value("writeCount"), Qt::UserRole + 7);
+            if (session.contains("writeBytes")) item->setData(session.value("writeBytes"), Qt::UserRole + 8);
+            break;
+        }
+    }
+}
+
+// private
+void PortModule::portDefaults(QJsonObject &portConfig) {
+    const auto defaults = portConfigGet(portConfig.value("portType").toInt(-1)).value("defaults").toObject();
+    for (auto iterator = defaults.constBegin(); iterator != defaults.constEnd(); ++iterator) {
+        if (!portConfig.contains(iterator.key())) portConfig.insert(iterator.key(), iterator.value());
+    }
+}
+
+void PortModule::_portInsert(const int index, const QJsonObject &portConfig) {
+    const auto portName = portConfig.value("portName").toString();
     auto *item = new QStandardItem(portName); // NOLINT
     item->setData(false, Qt::UserRole + 1);
     item->setData(0, Qt::UserRole + 2);
@@ -272,25 +413,11 @@ QString PortModule::portInsert(int index, QJsonObject portConfig) {
     connect(port, &BasePort::refreshPort, this, &PortModule::portRefresh);
     m_portHash.insert(portName, port);
     emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "initialized");
-    return QString("Port '%1' inserted.").arg(portName);
 }
 
-void PortModule::portSetting(const int index) const {
-    if (index == -1) {
-        m_portSetting->portSettingImport();
-    } else {
-        const auto *item = g_portModel->item(index, 0);
-        const QString portName = item->text();
-        const auto &portObject = m_portHash[portName];
-        const auto &portConfig = portObject->config();
-        m_portSetting->portSettingImport(portConfig);
-    }
-}
-
-void PortModule::portRemove(const int index) {
-    const auto *item = g_portModel->item(index, 0);
-    const QString portName = item->text();
-    g_portModel->removeRow(index);
+void PortModule::_portRemove(const QString &portName) {
+    const auto items = g_portModel->findItems(portName);
+    g_portModel->removeRow(items.constFirst()->row());
     auto *port = m_portHash.take(portName);
     auto *thread = port->thread();
     thread->quit();
@@ -298,76 +425,14 @@ void PortModule::portRemove(const int index) {
     emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "removed");
 }
 
-QString PortModule::portRemove(const QString &portName) {
-    const auto name = portName.trimmed();
-    const auto items = g_portModel->findItems(name);
-    if (items.isEmpty()) return QString("Port remove failed: '%1' does not exist.").arg(name);
-
-    portRemove(items.constFirst()->row());
-    return QString("Port '%1' removed.").arg(name);
+void PortModule::_portEdit(const int index, const QString &oldPortName, const QJsonObject &portConfig) {
+    _portRemove(oldPortName);
+    _portInsert(index, portConfig);
 }
 
-void PortModule::portSwap(const int src, const int dst) {
+void PortModule::_portMove(const int src, const int dst) {
     const auto tmp = g_portModel->takeRow(src);
     g_portModel->insertRow(dst, tmp);
-}
-
-void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {
-    const auto portName = portConfig["portName"].toString();
-    if (portName != oldPortName && m_portHash.contains(portName)) {
-        emit appendLog(LogLevel::Error, QString("[%1]").arg(portName), "already exists");
-        return;
-    }
-    int oldIndex = -1;
-    for (int row = 0; row < g_portModel->rowCount(); ++row) {
-        if (g_portModel->item(row, 0)->text() == oldPortName) {
-            oldIndex = row;
-            break;
-        }
-    }
-    portRemove(oldIndex);
-    portInsert(oldIndex, portConfig);
-}
-
-void PortModule::portToggle(const int index) {
-    const auto *item = g_portModel->item(index, 0);
-    const QString portName = item->text();
-    bool status = item->data(Qt::UserRole + 1).toBool();
-    auto port = m_portHash[portName];
-    if (status) {
-        QMetaObject::invokeMethod(port, [port] {
-            port->close();
-        }, Qt::QueuedConnection);
-    } else {
-        QMetaObject::invokeMethod(port, [port] {
-            port->open();
-        }, Qt::QueuedConnection);
-    }
-}
-
-void PortModule::portMonitor(const int index, const bool enabled) {
-    const QString portName = g_portModel->item(index, 0)->text();
-    auto *port = m_portHash[portName];
-    QMetaObject::invokeMethod(port, [port, enabled] {
-        port->monitor(enabled);
-    }, Qt::QueuedConnection);
-}
-
-void PortModule::portRefresh(const QString &portName, const QVariantHash &session) {
-    for (int row = 0; row < g_portModel->rowCount(); ++row) {
-        auto *item = g_portModel->item(row, 0);
-        if (item->text() == portName) {
-            if (session.contains("active")) item->setData(session.value("active"), Qt::UserRole + 1);
-            if (session.contains("capacity")) item->setData(session.value("capacity"), Qt::UserRole + 2);
-            if (session.contains("used")) item->setData(session.value("used"), Qt::UserRole + 3);
-            if (session.contains("lifetime")) item->setData(session.value("lifetime"), Qt::UserRole + 4);
-            if (session.contains("readCount")) item->setData(session.value("readCount"), Qt::UserRole + 5);
-            if (session.contains("readBytes")) item->setData(session.value("readBytes"), Qt::UserRole + 6);
-            if (session.contains("writeCount")) item->setData(session.value("writeCount"), Qt::UserRole + 7);
-            if (session.contains("writeBytes")) item->setData(session.value("writeBytes"), Qt::UserRole + 8);
-            break;
-        }
-    }
 }
 
 // public

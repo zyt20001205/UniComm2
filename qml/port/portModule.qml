@@ -93,7 +93,7 @@ Item {
                         }
                     }
                     let move = verticalHeaderView.moves[index]
-                    portModule.portSwap(move.oldVisualIndex, move.newVisualIndex)
+                    portModule.portMove(move.oldVisualIndex, move.newVisualIndex)
                     verticalHeaderView.clearRowReordering()
                     tableView.clearRowReordering()
                     verticalHeaderView.moves = []
