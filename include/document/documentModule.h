@@ -212,6 +212,8 @@ private:
 
     void navigationRecord(const QUrl &documentUrl, int line, int character);
 
+    void didCreateFilesNotification(const QUrl &documentUrl);
+
     void didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl);
 
     void didDeleteFilesNotification(const QUrl &documentUrl);

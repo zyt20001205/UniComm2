@@ -126,6 +126,7 @@ QString DocumentModule::directoryCreate(const QUrl &directoryUrl) {
     if (QFileInfo::exists(directoryPath)) return tr("Directory create failed: path already exists.");
     if (!QDir().mkpath(directoryPath)) return tr("Directory create failed: unable to create directory.");
 
+    didCreateFilesNotification(directoryUrl);
     emit appendLog(LogLevel::Info, "directory created at", QString("<a href='%1'>%2</a>").arg(directoryUrl.toString(), directoryUrl.toString()));
     return {};
 }
@@ -180,6 +181,7 @@ QString DocumentModule::documentCreate(const QUrl &documentUrl) {
     }
     document.close();
 
+    didCreateFilesNotification(documentUrl);
     documentOpen(documentUrl);
     emit appendLog(LogLevel::Info, "document created at", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
     return {};
@@ -1170,6 +1172,19 @@ void DocumentModule::navigationRecord(const QUrl &documentUrl, const int line, c
         list.append(navigationSession);
         m_navigationHistory["list"] = list;
     }
+}
+
+void DocumentModule::didCreateFilesNotification(const QUrl &documentUrl) {
+    const QJsonObject params{
+        {
+            "files", QJsonArray{
+                QJsonObject{
+                    {"uri", documentUrl.toString()}
+                }
+            }
+        }
+    };
+    emit notificationJson("workspace/didCreateFiles", params);
 }
 
 void DocumentModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {
