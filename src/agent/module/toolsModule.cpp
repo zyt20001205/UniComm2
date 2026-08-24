@@ -27,8 +27,8 @@ ToolsModule::ToolsModule(McpModule *mcpModule, SqlModule *sqlModule, QObject *pa
       },
       m_mcpModule(mcpModule),
       m_sqlModule(sqlModule),
-      m_writeGroup{"line_set", "port_create"},
-      m_fullAccessGroup{"port_delete", "script_exec"} {
+      m_writeGroup{"directory_create", "directory_rename", "document_create", "document_rename", "line_set", "port_create"},
+      m_fullAccessGroup{"directory_delete", "document_delete", "port_delete", "script_exec"} {
 }
 
 void ToolsModule::initialize() {
@@ -433,6 +433,200 @@ void ToolsModule::initialize() {
                                     "document_url"
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        },
+        // directoryList
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "directory_list"},
+                    {"description", "List the direct children of a directory and return URLs for subsequent directory and document operations. Omit directory_url to list the current workspace root."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "directory_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The absolute local file URL of the directory to list."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // directoryCreate
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "directory_create"},
+                    {"description", "Create a directory at an absolute local file URL."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "directory_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The absolute local file URL of the directory to create."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"directory_url"}}
+                        }
+                    }
+                }
+            }
+        },
+        // directoryDelete
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "directory_delete"},
+                    {"description", "Move an existing directory and all of its contents to the system trash."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "directory_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The absolute local file URL of the directory to delete."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"directory_url"}}
+                        }
+                    }
+                }
+            }
+        },
+        // directoryRename
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "directory_rename"},
+                    {"description", "Rename or move an existing directory to an exact target URL."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "source_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The absolute local file URL of the existing directory."}
+                                        }
+                                    },
+                                    {
+                                        "target_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The exact absolute local file URL for the renamed or moved directory."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"source_url", "target_url"}}
+                        }
+                    }
+                }
+            }
+        },
+        // documentCreate
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "document_create"},
+                    {"description", "Create and open an empty document at an absolute local file URL. Use line_set afterward to add content."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "document_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The absolute local file URL of the document to create."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"document_url"}}
+                        }
+                    }
+                }
+            }
+        },
+        // documentDelete
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "document_delete"},
+                    {"description", "Move an existing document to the system trash."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "document_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The absolute local file URL of the document to delete."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"document_url"}}
+                        }
+                    }
+                }
+            }
+        },
+        // documentRename
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "document_rename"},
+                    {"description", "Rename or move an existing document to an exact target URL."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "source_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The absolute local file URL of the existing document."}
+                                        }
+                                    },
+                                    {
+                                        "target_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The exact absolute local file URL for the renamed or moved document."}
+                                        }
+                                    }
+                                }
+                            },
+                            {"required", QJsonArray{"source_url", "target_url"}}
                         }
                     }
                 }
@@ -861,6 +1055,44 @@ QString ToolsModule::toolExecuteSync(const QString &runtimeId, const QString &na
         const auto diagnostics = g_document->diagnosticsGet(documentUrl);
         return QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact));
     }
+    if (name == "directory_list") {
+        const auto url = object.value("directory_url").toString();
+        const auto directoryUrl = url.isEmpty() ? g_workspaceUrl : QUrl(url);
+        if (!QFileInfo(directoryUrl.toLocalFile()).isDir()) return "Directory list failed: directory does not exist.";
+        return QString::fromUtf8(QJsonDocument(g_document->directoryList(directoryUrl)).toJson(QJsonDocument::Compact));
+    }
+    if (name == "directory_create") {
+        const auto directoryUrl = QUrl(object.value("directory_url").toString());
+        const auto error = g_document->directoryCreate(directoryUrl);
+        return error.isEmpty() ? QString("Directory created: %1").arg(directoryUrl.toString()) : error;
+    }
+    if (name == "directory_delete") {
+        const auto directoryUrl = QUrl(object.value("directory_url").toString());
+        const auto error = g_document->directoryDelete(directoryUrl);
+        return error.isEmpty() ? QString("Directory deleted: %1").arg(directoryUrl.toString()) : error;
+    }
+    if (name == "directory_rename") {
+        const auto sourceUrl = QUrl(object.value("source_url").toString());
+        const auto targetUrl = QUrl(object.value("target_url").toString());
+        const auto error = g_document->directoryRename(sourceUrl, targetUrl);
+        return error.isEmpty() ? QString("Directory renamed: %1").arg(targetUrl.toString()) : error;
+    }
+    if (name == "document_create") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto error = g_document->documentCreate(documentUrl);
+        return error.isEmpty() ? QString("Document created: %1").arg(documentUrl.toString()) : error;
+    }
+    if (name == "document_delete") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto error = g_document->documentDelete(documentUrl);
+        return error.isEmpty() ? QString("Document deleted: %1").arg(documentUrl.toString()) : error;
+    }
+    if (name == "document_rename") {
+        const auto sourceUrl = QUrl(object.value("source_url").toString());
+        const auto targetUrl = QUrl(object.value("target_url").toString());
+        const auto error = g_document->documentRename(sourceUrl, targetUrl);
+        return error.isEmpty() ? QString("Document renamed: %1").arg(targetUrl.toString()) : error;
+    }
     if (name == "grep_search") {
         const auto pattern = object.value("pattern").toString();
         const auto result = g_ripgrep->grep(pattern);
@@ -992,6 +1224,25 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Check diagnostics for %1").arg(documentName);
+    } else if (name == "directory_list") {
+        const auto url = object.value("directory_url").toString();
+        chatText = url.isEmpty() ? "List workspace directory" : QString("List directory %1").arg(QDir(QUrl(url).toLocalFile()).dirName());
+    } else if (name == "directory_create") {
+        chatText = QString("Create directory %1").arg(QUrl(object.value("directory_url").toString()).fileName());
+    } else if (name == "directory_delete") {
+        chatText = QString("Delete directory %1").arg(QUrl(object.value("directory_url").toString()).fileName());
+    } else if (name == "directory_rename") {
+        const auto sourceName = QUrl(object.value("source_url").toString()).fileName();
+        const auto targetName = QUrl(object.value("target_url").toString()).fileName();
+        chatText = QString("Rename directory %1 to %2").arg(sourceName, targetName);
+    } else if (name == "document_create") {
+        chatText = QString("Create document %1").arg(QUrl(object.value("document_url").toString()).fileName());
+    } else if (name == "document_delete") {
+        chatText = QString("Delete document %1").arg(QUrl(object.value("document_url").toString()).fileName());
+    } else if (name == "document_rename") {
+        const auto sourceName = QUrl(object.value("source_url").toString()).fileName();
+        const auto targetName = QUrl(object.value("target_url").toString()).fileName();
+        chatText = QString("Rename document %1 to %2").arg(sourceName, targetName);
     } else if (name == "line_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);

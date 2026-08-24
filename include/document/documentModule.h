@@ -46,6 +46,8 @@ public:
 
     void documentGoto(const QUrl &documentUrl) const;
 
+    [[nodiscard]] QJsonArray directoryList(const QUrl &directoryUrl) const;
+
     Q_INVOKABLE [[nodiscard]] QString directoryCreate(const QUrl &directoryUrl);
 
     Q_INVOKABLE [[nodiscard]] QString directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl);

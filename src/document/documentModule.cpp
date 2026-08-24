@@ -119,6 +119,20 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 }
 
 // public: directory
+QJsonArray DocumentModule::directoryList(const QUrl &directoryUrl) const {
+    QJsonArray entries{};
+    const QDir directory(directoryUrl.toLocalFile());
+    const auto fileInfos = directory.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden, QDir::DirsFirst | QDir::Name);
+    for (const auto &fileInfo: fileInfos) {
+        entries.append(QJsonObject{
+            {"name", fileInfo.fileName()},
+            {"url", QUrl::fromLocalFile(fileInfo.absoluteFilePath()).toString()},
+            {"type", fileInfo.isDir() ? "directory" : "document"}
+        });
+    }
+    return entries;
+}
+
 QString DocumentModule::directoryCreate(const QUrl &directoryUrl) {
     if (!directoryUrl.isLocalFile()) return tr("Directory create failed: URL is not local.");
 
