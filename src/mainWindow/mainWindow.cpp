@@ -488,6 +488,8 @@ void MainWindow::moduleInit() {
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_datatableModule, &DatatableModule::openFileInExplorer, m_fileModule, &FileModule::fileOpenInExplorer);
+    connect(m_datatableModule, &DatatableModule::openFileInApplication, m_fileModule, &FileModule::fileOpenInApplication);
 
     connect(m_debugModule, &DebugModule::getIndex, m_documentModule, &DocumentModule::indexGet);
     connect(m_debugModule, &DebugModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
@@ -514,8 +516,8 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule,
             qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
 
-    connect(m_logModule, &LogModule::fileOpenInExplorer, m_fileModule, &FileModule::fileOpenInExplorer);
-    connect(m_logModule, &LogModule::fileOpenInApplication, m_fileModule, &FileModule::fileOpenInApplication);
+    connect(m_logModule, &LogModule::openFileInExplorer, m_fileModule, &FileModule::fileOpenInExplorer);
+    connect(m_logModule, &LogModule::openFileInApplication, m_fileModule, &FileModule::fileOpenInApplication);
     connect(m_fileModule, &FileModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_fileModule, &FileModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);

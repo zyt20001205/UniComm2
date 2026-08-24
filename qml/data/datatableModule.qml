@@ -138,7 +138,7 @@ Item {
                         }
                     }
                     let move = horizontalHeaderView.moves[index]
-                    datatableModule.datatableSwap(move.oldVisualIndex, move.newVisualIndex)
+                    datatableModule.datatableMove(move.oldVisualIndex, move.newVisualIndex)
                     horizontalHeaderView.clearColumnReordering()
                     tableView.clearColumnReordering()
                     horizontalHeaderView.moves = []

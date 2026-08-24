@@ -177,8 +177,8 @@ void LogModule::logSave(const QUrl &fileUrl) {
         }
         if (saved) {
             m_toast->show(ToastLevel::Success, tr("Log exported"), filePath, {
-                {tr("Open"), [this, fileUrl] { emit fileOpenInApplication(fileUrl); }},
-                {tr("Show in Explorer"), [this, fileUrl] { emit fileOpenInExplorer(fileUrl); }}
+                {tr("Open"), [this, fileUrl] { emit openFileInApplication(fileUrl); }},
+                {tr("Show in Explorer"), [this, fileUrl] { emit openFileInExplorer(fileUrl); }}
             });
         } else {
             m_toast->show(ToastLevel::Error, tr("Log export failed"), filePath);
