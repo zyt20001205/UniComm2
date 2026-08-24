@@ -468,40 +468,6 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // documentList
-        QJsonObject{
-            {"type", "function"},
-            {
-                "function", QJsonObject{
-                    {"name", "document_list"},
-                    {"description", "Get the list of documents that are currently open in the editor."},
-                    {
-                        "parameters", QJsonObject{
-                            {"type", "object"},
-                            {"properties", QJsonObject{}},
-                            {"required", QJsonArray{}}
-                        }
-                    }
-                }
-            }
-        },
-        // documentFocused
-        QJsonObject{
-            {"type", "function"},
-            {
-                "function", QJsonObject{
-                    {"name", "document_focused"},
-                    {"description", "Get the currently focused document in the editor."},
-                    {
-                        "parameters", QJsonObject{
-                            {"type", "object"},
-                            {"properties", QJsonObject{}},
-                            {"required", QJsonArray{}}
-                        }
-                    }
-                }
-            }
-        },
         // linesGet
         QJsonObject{
             {"type", "function"},
@@ -900,17 +866,6 @@ QString ToolsModule::toolExecuteSync(const QString &runtimeId, const QString &na
         const auto result = g_ripgrep->grep(pattern);
         return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
     }
-    if (name == "document_list") {
-        const auto keys = g_document->documentList();
-        QJsonArray array{};
-        for (const auto &key: keys) {
-            array.append(key);
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "document_focused") {
-        return g_document->documentFocused();
-    }
     if (name == "line_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
@@ -1037,10 +992,6 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Check diagnostics for %1").arg(documentName);
-    } else if (name == "document_list") {
-        chatText = "List open documents";
-    } else if (name == "document_focused") {
-        chatText = "Get focused document";
     } else if (name == "line_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);

@@ -85,6 +85,8 @@ QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
     QVariantHash infoSession = {
         {"source", source.value},
         {"baseName", fileInfo.baseName()},
+        {"parentUrl", QUrl::fromLocalFile(fileInfo.absolutePath()).toString()},
+        {"suffix", fileInfo.suffix()},
         {"absolutePath", fileInfo.absoluteFilePath()},
         {"size", locale.formattedDataSize(fileInfo.size())},
         {"birthTime", fileInfo.birthTime().toString("yyyy-MM-dd HH:mm:ss")},

@@ -46,19 +46,15 @@ public:
 
     void documentGoto(const QUrl &documentUrl) const;
 
-    [[nodiscard]] QSet<QString> documentList() const;
-
-    [[nodiscard]] QString documentFocused() const;
-
     Q_INVOKABLE [[nodiscard]] QString directoryCreate(const QUrl &directoryUrl);
 
-    Q_INVOKABLE [[nodiscard]] QString directoryRename(const QUrl &directoryUrl, const QString &name);
+    Q_INVOKABLE [[nodiscard]] QString directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl);
 
     Q_INVOKABLE [[nodiscard]] QString directoryDelete(const QUrl &directoryUrl);
 
     Q_INVOKABLE [[nodiscard]] QString documentCreate(const QUrl &documentUrl);
 
-    Q_INVOKABLE [[nodiscard]] QString documentRename(const QUrl &documentUrl, const QString &name);
+    Q_INVOKABLE [[nodiscard]] QString documentRename(const QUrl &sourceUrl, const QUrl &targetUrl);
 
     Q_INVOKABLE [[nodiscard]] QString documentDelete(const QUrl &documentUrl);
 

@@ -2411,9 +2411,13 @@ Item {
 
         onAccepted: {
             if (fileModulePropertyNameTextField.text !== fileModulePropertyDialog.infoSession.baseName) {
+                const suffix = fileModulePropertyDialog.directory || !fileModulePropertyDialog.infoSession.suffix
+                    ? "" : "." + fileModulePropertyDialog.infoSession.suffix
+                const targetUrl = fileModulePropertyDialog.infoSession.parentUrl + "/"
+                    + encodeURIComponent(fileModulePropertyNameTextField.text + suffix)
                 const error = fileModulePropertyDialog.directory
-                    ? documentModule.directoryRename(fileModulePropertyDialog.documentUrl, fileModulePropertyNameTextField.text)
-                    : documentModule.documentRename(fileModulePropertyDialog.documentUrl, fileModulePropertyNameTextField.text)
+                    ? documentModule.directoryRename(fileModulePropertyDialog.documentUrl, targetUrl)
+                    : documentModule.documentRename(fileModulePropertyDialog.documentUrl, targetUrl)
                 operationErrorShow(error)
             }
             if (fileModulePropertyWritableCheckBox.checked !== fileModulePropertyDialog.infoSession.writable) {

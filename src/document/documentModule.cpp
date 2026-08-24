@@ -131,25 +131,22 @@ QString DocumentModule::directoryCreate(const QUrl &directoryUrl) {
     return {};
 }
 
-QString DocumentModule::directoryRename(const QUrl &directoryUrl, const QString &name) {
-    if (!directoryUrl.isLocalFile()) return tr("Directory rename failed: URL is not local.");
-    if (name.isEmpty()) return tr("Directory rename failed: name is empty.");
+QString DocumentModule::directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
+    if (!sourceUrl.isLocalFile() || !targetUrl.isLocalFile()) return tr("Directory rename failed: URL is not local.");
 
-    const QString directoryPath = directoryUrl.toLocalFile();
-    const QFileInfo directoryInfo(directoryPath);
+    const QString sourcePath = sourceUrl.toLocalFile();
+    const QString targetPath = targetUrl.toLocalFile();
+    const QFileInfo directoryInfo(sourcePath);
     if (!directoryInfo.isDir()) return tr("Directory rename failed: directory does not exist.");
+    if (sourcePath == targetPath) return {};
 
-    const QString newPath = directoryInfo.dir().filePath(name);
-    if (newPath == directoryPath) return {};
-
-    QFile directory(directoryPath);
-    if (!directory.rename(newPath)) {
+    QFile directory(sourcePath);
+    if (!directory.rename(targetPath)) {
         return tr("Directory rename failed: %1").arg(directory.errorString());
     }
 
-    const auto newUrl = QUrl::fromLocalFile(newPath);
-    didRenameFilesNotification(directoryUrl, newUrl);
-    emit appendLog(LogLevel::Info, "directory renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
+    didRenameFilesNotification(sourceUrl, targetUrl);
+    emit appendLog(LogLevel::Info, "directory renamed to", QString("<a href='%1'>%2</a>").arg(targetUrl.toString(), targetUrl.toString()));
     return {};
 }
 
@@ -187,27 +184,22 @@ QString DocumentModule::documentCreate(const QUrl &documentUrl) {
     return {};
 }
 
-QString DocumentModule::documentRename(const QUrl &documentUrl, const QString &name) {
-    if (!documentUrl.isLocalFile()) return tr("Document rename failed: URL is not a local file.");
-    if (name.isEmpty()) return tr("Document rename failed: name is empty.");
+QString DocumentModule::documentRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
+    if (!sourceUrl.isLocalFile() || !targetUrl.isLocalFile()) return tr("Document rename failed: URL is not a local file.");
 
-    const QString documentPath = documentUrl.toLocalFile();
-    const QFileInfo documentInfo(documentPath);
+    const QString sourcePath = sourceUrl.toLocalFile();
+    const QString targetPath = targetUrl.toLocalFile();
+    const QFileInfo documentInfo(sourcePath);
     if (!documentInfo.isFile()) return tr("Document rename failed: document does not exist.");
+    if (sourcePath == targetPath) return {};
 
-    const QString suffix = documentInfo.suffix();
-    const QString fileName = suffix.isEmpty() ? name : name + "." + suffix;
-    const QString newPath = documentInfo.dir().filePath(fileName);
-    if (newPath == documentPath) return {};
-
-    QFile document(documentPath);
-    if (!document.rename(newPath)) {
+    QFile document(sourcePath);
+    if (!document.rename(targetPath)) {
         return tr("Document rename failed: %1").arg(document.errorString());
     }
 
-    const auto newUrl = QUrl::fromLocalFile(newPath);
-    didRenameFilesNotification(documentUrl, newUrl);
-    emit appendLog(LogLevel::Info, "document renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
+    didRenameFilesNotification(sourceUrl, targetUrl);
+    emit appendLog(LogLevel::Info, "document renamed to", QString("<a href='%1'>%2</a>").arg(targetUrl.toString(), targetUrl.toString()));
     return {};
 }
 
@@ -385,18 +377,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
 void DocumentModule::documentGoto(const QUrl &documentUrl) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->documentGoto();
     else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->documentGoto();
-}
-
-QSet<QString> DocumentModule::documentList() const {
-    QSet<QString> keys{};
-    for (const auto &url: m_pageHash.keys()) {
-        keys.insert(url.toString());
-    }
-    return keys;
-}
-
-QString DocumentModule::documentFocused() const {
-    return m_focusedUrl.toString();
 }
 
 void DocumentModule::documentSave(const QUrl &documentUrl) const {
