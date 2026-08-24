@@ -26,7 +26,9 @@ DatabaseModule::~DatabaseModule() {
 void DatabaseModule::propertySet(const QVariantHash &objects) {
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
     for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
-        _databaseInsert(g_databaseStandardItemModel->rowCount(), value.toString());
+        const auto key = value.toString().trimmed();
+        if (key.isEmpty() || m_databaseHash.contains(key)) continue;
+        _databaseInsert(g_databaseStandardItemModel->rowCount(), key);
     }
 
     m_widget->rootContext()->setContextProperty("databaseModule", this);
@@ -155,15 +157,12 @@ bool DatabaseModule::databaseWrite(const QString &key, const QString &value) {
 }
 
 // private
-bool DatabaseModule::_databaseInsert(const int index, const QString &key) {
-    if (index < 0 || index > g_databaseStandardItemModel->rowCount() || key.isEmpty() || m_databaseHash.contains(key)) return false;
-
+void DatabaseModule::_databaseInsert(const int index, const QString &key) {
     auto *keyItem = new QStandardItem(key); // NOLINT
     keyItem->setData(key, DatabaseModel::KeyRole);
     auto *valueItem = new QStandardItem(); // NOLINT
     g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
     databaseCache();
-    return true;
 }
 
 void DatabaseModule::_databaseRemove(const QString &key) {

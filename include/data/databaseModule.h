@@ -40,7 +40,7 @@ signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
 private:
-    bool _databaseInsert(int index, const QString &key);
+    void _databaseInsert(int index, const QString &key);
 
     void _databaseRemove(const QString &key);
 
