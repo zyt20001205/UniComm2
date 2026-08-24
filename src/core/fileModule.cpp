@@ -3,9 +3,7 @@
 #include <QClipboard>
 #include <QDir>
 #include <QFileInfo>
-#include <QJsonArray>
 #include <QProcess>
-#include <QUrl>
 
 #include "globals.h"
 #include "mainWindow/toastModule.h"
@@ -17,7 +15,6 @@ FileModule::FileModule(QObject *parent)
 }
 
 void FileModule::propertySet(const QVariantHash &objects) {
-    m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
 }
 
@@ -96,6 +93,7 @@ QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
         {"readable", fileInfo.isReadable()},
         {"writable", fileInfo.isWritable()},
         {"hidden", fileInfo.isHidden()},
+        {"directory", fileInfo.isDir()},
     };
     return infoSession;
 }
@@ -108,77 +106,6 @@ void FileModule::fileWritable(const QUrl &fileUrl, const bool status) {
     else permissions &= ~(QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther);
     QFile::setPermissions(filePath, permissions);
     emit setPermission(fileUrl);
-}
-
-void FileModule::fileNew(const QUrl &fileUrl) {
-    const QString filePath = fileUrl.toLocalFile();
-    const QFileInfo fileInfo(filePath);
-    if (!fileInfo.suffix().isEmpty()) {
-        if (fileInfo.exists()) {
-            m_messageDialog->setProperty("title", tr("Error"));
-            m_messageDialog->setProperty("text", tr("File already exists."));
-            QMetaObject::invokeMethod(m_messageDialog, "open");
-        } else {
-            QFile file(filePath);
-            if (file.open(QIODevice::WriteOnly)) {
-                file.close();
-                emit openDocument(fileUrl);
-                emit appendLog(LogLevel::Info, "file created at", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
-            }
-        }
-    } else {
-        if (fileInfo.exists()) {
-            m_messageDialog->setProperty("title", tr("Error"));
-            m_messageDialog->setProperty("text", tr("Dir already exists."));
-            QMetaObject::invokeMethod(m_messageDialog, "open");
-        } else {
-            const QDir dir;
-            if (dir.mkpath(filePath)) {
-                emit appendLog(LogLevel::Info, "folder created at", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
-            }
-        }
-    }
-}
-
-void FileModule::fileRename(const QUrl &fileUrl, const QString &name) {
-    const QString filePath = fileUrl.toLocalFile();
-    const QFileInfo fileInfo(filePath);
-    if (fileInfo.isFile()) {
-        QFile file(filePath);
-        const QString newPath = fileInfo.dir().filePath(name + "." + fileInfo.suffix());
-        if (file.rename(newPath)) {
-            const auto newUrl = QUrl::fromLocalFile(newPath);
-            didRenameFilesNotification(fileUrl, newUrl);
-            emit appendLog(LogLevel::Info, "file renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
-        }
-    } else if (fileInfo.isDir()) {
-        QFile file(filePath);
-        const QString newPath = fileInfo.dir().filePath(name);
-        if (file.rename(newPath)) {
-            const auto newUrl = QUrl::fromLocalFile(newPath);
-            didRenameFilesNotification(fileUrl, newUrl);
-            emit appendLog(LogLevel::Info, "folder renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
-        }
-    }
-}
-
-void FileModule::fileDelete(const QUrl &fileUrl) {
-    const QString filePath = fileUrl.toLocalFile();
-    const QFileInfo fileInfo(filePath);
-    QString trashPath{};
-    if (fileInfo.isFile()) {
-        if (QFile::moveToTrash(filePath, &trashPath)) {
-            didDeleteFilesNotification(fileUrl);
-            const auto trashUrl = QUrl::fromLocalFile(trashPath);
-            emit appendLog(LogLevel::Info, "file deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
-        }
-    } else if (fileInfo.isDir()) {
-        if (QFile::moveToTrash(filePath, &trashPath)) {
-            didDeleteFilesNotification(fileUrl);
-            const auto trashUrl = QUrl::fromLocalFile(trashPath);
-            emit appendLog(LogLevel::Info, "file deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
-        }
-    }
 }
 
 void FileModule::copyToClipboard(const QString &text) const {
@@ -215,33 +142,4 @@ QString FileModule::textGet(const QUrl &documentUrl, const int startLine, const 
     }
     if (startLine < 0 || startLine >= lines.size() || endLine < startLine) return {};
     return lines.mid(startLine, qMin(endLine, static_cast<int>(lines.size() - 1)) - startLine + 1).join('\n');
-}
-
-void FileModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {
-    // did rename files notification to lua language server
-    const QJsonObject didRenameFilesParams{
-        {
-            "files", QJsonArray{
-                QJsonObject{
-                    {"oldUri", oldUrl.toString()},
-                    {"newUri", newUrl.toString()}
-                }
-            }
-        }
-    };
-    emit notificationJson("workspace/didRenameFiles", didRenameFilesParams);
-}
-
-void FileModule::didDeleteFilesNotification(const QUrl &fileUrl) {
-    // did delete files notification to lua language server
-    const QJsonObject didDeleteFilesParams{
-        {
-            "files", QJsonArray{
-                QJsonObject{
-                    {"uri", fileUrl.toString()}
-                }
-            }
-        }
-    };
-    emit notificationJson("workspace/didDeleteFiles", didDeleteFilesParams);
 }

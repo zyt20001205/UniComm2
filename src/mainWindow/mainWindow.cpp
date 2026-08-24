@@ -263,7 +263,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_structureModule->propertySet(structureObjects);
 
     const QVariantHash fileObjects = {
-        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowToast", QVariant::fromValue(m_toastModule)}
     };
     m_fileModule->propertySet(fileObjects);
@@ -518,13 +517,11 @@ void MainWindow::moduleInit() {
 
     connect(m_logModule, &LogModule::openFileInExplorer, m_fileModule, &FileModule::fileOpenInExplorer);
     connect(m_logModule, &LogModule::openFileInApplication, m_fileModule, &FileModule::fileOpenInApplication);
-    connect(m_fileModule, &FileModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_fileModule, &FileModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
+
     connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);
     connect(m_fileModule, &FileModule::appendBackground, m_statusModule, &StatusModule::backgroundAppend);
     connect(m_fileModule, &FileModule::removeBackground, m_statusModule, &StatusModule::backgroundRemove);
     connect(m_fileModule, &FileModule::refreshBackground, m_statusModule, &StatusModule::backgroundRefresh);
-    connect(m_fileModule, &FileModule::notificationJson, m_lspManager, &LSPManager::jsonNotification);
 
     connect(m_gitModule, &GitModule::updateIndex, m_explorerModule, &ExplorerModule::indexUpdate);
     connect(m_gitModule, &GitModule::openDocument, m_documentModule, &DocumentModule::documentOpen);

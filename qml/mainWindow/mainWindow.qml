@@ -201,6 +201,14 @@ Item {
         });
     }
 
+    function operationErrorShow(error) {
+        if (!error)
+            return
+        mainWindowMessageDialog.title = qsTr("Error")
+        mainWindowMessageDialog.text = error
+        mainWindowMessageDialog.open()
+    }
+
     Menu {
         id: mainWindowLinkMenu
         property url url
@@ -1942,7 +1950,7 @@ Item {
             if (!explorerModuleFileNameTextField.acceptableInput) {
                 return
             }
-            fileModule.fileNew(explorerModuleFileNewDialog.documentUrl + "/" + explorerModuleFileNameTextField.text)
+            operationErrorShow(documentModule.documentCreate(explorerModuleFileNewDialog.documentUrl + "/" + explorerModuleFileNameTextField.text))
         }
 
         Binding {
@@ -1985,7 +1993,8 @@ Item {
             explorerModuleFolderNameTextField.clear()
             explorerModuleFolderNameTextField.forceActiveFocus()
         }
-        onAccepted: fileModule.fileNew(explorerModuleFolderNewDialog.documentUrl + "/" + explorerModuleFolderNameTextField.text)
+        onAccepted: operationErrorShow(
+            documentModule.directoryCreate(explorerModuleFolderNewDialog.documentUrl + "/" + explorerModuleFolderNameTextField.text))
 
         TextField {
             id: explorerModuleFolderNameTextField
@@ -2072,7 +2081,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    fileModule.fileDelete(explorerModuleFileMenu.documentUrl)
+                    operationErrorShow(documentModule.documentDelete(explorerModuleFileMenu.documentUrl))
                     progress = 0
                     explorerModuleFileMenu.close()
                 }
@@ -2215,7 +2224,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    fileModule.fileDelete(explorerModuleFolderMenu.documentUrl)
+                    operationErrorShow(documentModule.directoryDelete(explorerModuleFolderMenu.documentUrl))
                     progress = 0
                     explorerModuleFolderMenu.close()
                 }
@@ -2378,6 +2387,7 @@ Item {
         standardButtons: Dialog.Ok | Dialog.Cancel
         property string documentUrl
         property var infoSession
+        property bool directory
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2386,6 +2396,7 @@ Item {
         onClosed: widgetCount -= 1
         onAboutToShow: {
             fileModulePropertyDialog.infoSession = fileModule.fileInfo(fileModulePropertyDialog.documentUrl)
+            fileModulePropertyDialog.directory = fileModulePropertyDialog.infoSession.directory
             fileModulePropertyImage.source = fileModulePropertyDialog.infoSession.source
             fileModulePropertyNameTextField.text = fileModulePropertyDialog.infoSession.baseName
             fileModulePropertySizeLabel.text = fileModulePropertyDialog.infoSession.size
@@ -2400,7 +2411,10 @@ Item {
 
         onAccepted: {
             if (fileModulePropertyNameTextField.text !== fileModulePropertyDialog.infoSession.baseName) {
-                fileModule.fileRename(fileModulePropertyDialog.documentUrl, fileModulePropertyNameTextField.text)
+                const error = fileModulePropertyDialog.directory
+                    ? documentModule.directoryRename(fileModulePropertyDialog.documentUrl, fileModulePropertyNameTextField.text)
+                    : documentModule.documentRename(fileModulePropertyDialog.documentUrl, fileModulePropertyNameTextField.text)
+                operationErrorShow(error)
             }
             if (fileModulePropertyWritableCheckBox.checked !== fileModulePropertyDialog.infoSession.writable) {
                 fileModule.fileWritable(fileModulePropertyDialog.documentUrl, fileModulePropertyWritableCheckBox.checked)

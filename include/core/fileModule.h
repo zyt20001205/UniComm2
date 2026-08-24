@@ -23,12 +23,6 @@ public:
 
     Q_INVOKABLE void fileWritable(const QUrl &fileUrl, bool status);
 
-    Q_INVOKABLE void fileNew(const QUrl &fileUrl);
-
-    Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name);
-
-    Q_INVOKABLE void fileDelete(const QUrl &fileUrl);
-
     Q_INVOKABLE void copyToClipboard(const QString &text) const;
 
     static QString linesGet(const QUrl &documentUrl, int startLine, int lineCount);
@@ -38,10 +32,6 @@ public:
     // void textSet();
 
 signals:
-    void appendLog(int type, const QString &prefix, const QString &message);
-
-    void openDocument(const QUrl &documentUrl);
-
     void setPermission(const QUrl &documentUrl);
 
     void appendBackground(int &taskId, const std::function<void()> &abort, const std::function<void()> &info);
@@ -50,14 +40,7 @@ signals:
 
     void refreshBackground(int taskId, const QString &message);
 
-    void notificationJson(const QString &method, const QJsonObject &params);
-
 private:
-    void didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl);
-
-    void didDeleteFilesNotification(const QUrl &fileUrl);
-
-    QObject *m_messageDialog{};
     ToastModule *m_toast{};
 };
 

@@ -50,6 +50,18 @@ public:
 
     [[nodiscard]] QString documentFocused() const;
 
+    Q_INVOKABLE [[nodiscard]] QString directoryCreate(const QUrl &directoryUrl);
+
+    Q_INVOKABLE [[nodiscard]] QString directoryRename(const QUrl &directoryUrl, const QString &name);
+
+    Q_INVOKABLE [[nodiscard]] QString directoryDelete(const QUrl &directoryUrl);
+
+    Q_INVOKABLE [[nodiscard]] QString documentCreate(const QUrl &documentUrl);
+
+    Q_INVOKABLE [[nodiscard]] QString documentRename(const QUrl &documentUrl, const QString &name);
+
+    Q_INVOKABLE [[nodiscard]] QString documentDelete(const QUrl &documentUrl);
+
     Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
 
     void documentReload(const QString &documentPath);
@@ -199,6 +211,10 @@ private:
     void textSetSelected(const QUrl &documentUrl, const QString &text);
 
     void navigationRecord(const QUrl &documentUrl, int line, int character);
+
+    void didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl);
+
+    void didDeleteFilesNotification(const QUrl &documentUrl);
 
     QJsonObject m_config{};
     QJsonObject m_theme{};

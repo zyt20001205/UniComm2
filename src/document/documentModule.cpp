@@ -1,6 +1,7 @@
 #include "document/documentModule.h"
 
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QImageReader>
@@ -117,7 +118,112 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
     m_config["fontSize"] = fontConfigScript["fontSize"].toInt();
 }
 
-// public: file
+// public: directory
+QString DocumentModule::directoryCreate(const QUrl &directoryUrl) {
+    if (!directoryUrl.isLocalFile()) return tr("Directory create failed: URL is not local.");
+
+    const QString directoryPath = directoryUrl.toLocalFile();
+    if (QFileInfo::exists(directoryPath)) return tr("Directory create failed: path already exists.");
+    if (!QDir().mkpath(directoryPath)) return tr("Directory create failed: unable to create directory.");
+
+    emit appendLog(LogLevel::Info, "directory created at", QString("<a href='%1'>%2</a>").arg(directoryUrl.toString(), directoryUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::directoryRename(const QUrl &directoryUrl, const QString &name) {
+    if (!directoryUrl.isLocalFile()) return tr("Directory rename failed: URL is not local.");
+    if (name.isEmpty()) return tr("Directory rename failed: name is empty.");
+
+    const QString directoryPath = directoryUrl.toLocalFile();
+    const QFileInfo directoryInfo(directoryPath);
+    if (!directoryInfo.isDir()) return tr("Directory rename failed: directory does not exist.");
+
+    const QString newPath = directoryInfo.dir().filePath(name);
+    if (newPath == directoryPath) return {};
+
+    QFile directory(directoryPath);
+    if (!directory.rename(newPath)) {
+        return tr("Directory rename failed: %1").arg(directory.errorString());
+    }
+
+    const auto newUrl = QUrl::fromLocalFile(newPath);
+    didRenameFilesNotification(directoryUrl, newUrl);
+    emit appendLog(LogLevel::Info, "directory renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::directoryDelete(const QUrl &directoryUrl) {
+    if (!directoryUrl.isLocalFile()) return tr("Directory delete failed: URL is not local.");
+
+    const QString directoryPath = directoryUrl.toLocalFile();
+    if (!QFileInfo(directoryPath).isDir()) return tr("Directory delete failed: directory does not exist.");
+
+    QString trashPath;
+    if (!QFile::moveToTrash(directoryPath, &trashPath)) return tr("Directory delete failed: unable to move directory to trash.");
+
+    didDeleteFilesNotification(directoryUrl);
+    const auto trashUrl = QUrl::fromLocalFile(trashPath);
+    emit appendLog(LogLevel::Info, "directory deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
+    return {};
+}
+
+// public: document
+QString DocumentModule::documentCreate(const QUrl &documentUrl) {
+    if (!documentUrl.isLocalFile()) return tr("Document create failed: URL is not a local file.");
+
+    const QString documentPath = documentUrl.toLocalFile();
+    if (QFileInfo::exists(documentPath)) return tr("Document create failed: path already exists.");
+
+    QFile document(documentPath);
+    if (!document.open(QIODevice::WriteOnly)) {
+        return tr("Document create failed: %1").arg(document.errorString());
+    }
+    document.close();
+
+    documentOpen(documentUrl);
+    emit appendLog(LogLevel::Info, "document created at", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::documentRename(const QUrl &documentUrl, const QString &name) {
+    if (!documentUrl.isLocalFile()) return tr("Document rename failed: URL is not a local file.");
+    if (name.isEmpty()) return tr("Document rename failed: name is empty.");
+
+    const QString documentPath = documentUrl.toLocalFile();
+    const QFileInfo documentInfo(documentPath);
+    if (!documentInfo.isFile()) return tr("Document rename failed: document does not exist.");
+
+    const QString suffix = documentInfo.suffix();
+    const QString fileName = suffix.isEmpty() ? name : name + "." + suffix;
+    const QString newPath = documentInfo.dir().filePath(fileName);
+    if (newPath == documentPath) return {};
+
+    QFile document(documentPath);
+    if (!document.rename(newPath)) {
+        return tr("Document rename failed: %1").arg(document.errorString());
+    }
+
+    const auto newUrl = QUrl::fromLocalFile(newPath);
+    didRenameFilesNotification(documentUrl, newUrl);
+    emit appendLog(LogLevel::Info, "document renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::documentDelete(const QUrl &documentUrl) {
+    if (!documentUrl.isLocalFile()) return tr("Document delete failed: URL is not a local file.");
+
+    const QString documentPath = documentUrl.toLocalFile();
+    if (!QFileInfo(documentPath).isFile()) return tr("Document delete failed: document does not exist.");
+
+    QString trashPath;
+    if (!QFile::moveToTrash(documentPath, &trashPath)) return tr("Document delete failed: unable to move document to trash.");
+
+    didDeleteFilesNotification(documentUrl);
+    const auto trashUrl = QUrl::fromLocalFile(trashPath);
+    emit appendLog(LogLevel::Info, "document deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
+    return {};
+}
+
 DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
     DocumentPage *documentPage{};
     const auto scheme = documentUrl.scheme().toLower();
@@ -1064,4 +1170,31 @@ void DocumentModule::navigationRecord(const QUrl &documentUrl, const int line, c
         list.append(navigationSession);
         m_navigationHistory["list"] = list;
     }
+}
+
+void DocumentModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {
+    const QJsonObject params{
+        {
+            "files", QJsonArray{
+                QJsonObject{
+                    {"oldUri", oldUrl.toString()},
+                    {"newUri", newUrl.toString()}
+                }
+            }
+        }
+    };
+    emit notificationJson("workspace/didRenameFiles", params);
+}
+
+void DocumentModule::didDeleteFilesNotification(const QUrl &documentUrl) {
+    const QJsonObject params{
+        {
+            "files", QJsonArray{
+                QJsonObject{
+                    {"uri", documentUrl.toString()}
+                }
+            }
+        }
+    };
+    emit notificationJson("workspace/didDeleteFiles", params);
 }
