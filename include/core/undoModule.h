@@ -2,6 +2,8 @@
 #define UNICOMM_UNDOMODULE_H
 
 #include <functional>
+#include <type_traits>
+#include <utility>
 
 #include <QUndoStack>
 #include <QVariantList>
@@ -14,9 +16,10 @@ public:
 
     ~UndoModule() override = default;
 
-    using QUndoStack::push;
-
-    void push(const QString &text, std::function<void()> redo, std::function<void()> undo);
+    template<typename Redo, typename Undo>
+    QString push(const QString &text, Redo redo, Undo undo, std::function<void(const QString &)> failed = {}) {
+        return _push(text, _action(std::move(redo)), _action(std::move(undo)), std::move(failed));
+    }
 
     Q_INVOKABLE [[nodiscard]] QVariantList undoHistory() const;
 
@@ -25,6 +28,45 @@ public:
     Q_INVOKABLE void undoTo(int targetIndex);
 
     Q_INVOKABLE void redoTo(int targetIndex);
+
+private:
+    template<typename Action>
+    static std::function<QString()> _action(Action action) {
+        using Result = std::invoke_result_t<Action &>;
+        static_assert(std::is_void_v<Result> || std::is_convertible_v<Result, QString>);
+
+        if constexpr (std::is_void_v<Result>) {
+            return [action = std::move(action)]() mutable {
+                std::invoke(action);
+                return QString{};
+            };
+        } else {
+            return [action = std::move(action)]() mutable -> QString {
+                return std::invoke(action);
+            };
+        }
+    }
+
+    QString _push(const QString &text, std::function<QString()> redo, std::function<QString()> undo, std::function<void(const QString &)> failed);
+};
+
+class UndoCommand final : public QUndoCommand {
+public:
+    UndoCommand(const QString &text, std::function<QString()> redo, std::function<QString()> undo, QSharedPointer<QString> result);
+
+    void redo() override;
+
+    void undo() override;
+
+    void failedSet(std::function<void(const QString &)> failed);
+
+private:
+    void execute(const std::function<QString()> &action);
+
+    std::function<QString()> m_redo;
+    std::function<QString()> m_undo;
+    std::function<void(const QString &)> m_failed;
+    QSharedPointer<QString> m_result;
 };
 
 #endif //UNICOMM_UNDOMODULE_H

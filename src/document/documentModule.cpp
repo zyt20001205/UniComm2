@@ -6,12 +6,14 @@
 #include <QFileSystemWatcher>
 #include <QImageReader>
 #include <QProcess>
+#include <QSharedPointer>
 #include <QTextBrowser>
 #include <QTimer>
 
 #include "globals.h"
 #include "core/fileModule.h"
 #include "core/globalManager.h"
+#include "core/undoModule.h"
 #include "document/assistant/codeAssistant.h"
 #include "document/module/scintillaWidget.h"
 #include "document/page/webPage.h"
@@ -138,11 +140,16 @@ QString DocumentModule::directoryCreate(const QUrl &directoryUrl) {
 
     const QString directoryPath = directoryUrl.toLocalFile();
     if (QFileInfo::exists(directoryPath)) return tr("Directory create failed: path already exists.");
-    if (!QDir().mkpath(directoryPath)) return tr("Directory create failed: unable to create directory.");
 
-    didCreateFilesNotification(directoryUrl);
-    emit appendLog(LogLevel::Info, "directory created at", QString("<a href='%1'>%2</a>").arg(directoryUrl.toString(), directoryUrl.toString()));
-    return {};
+    const auto trashUrl = QSharedPointer<QUrl>::create();
+    return g_undo->push(
+        tr("Directory Create (%1)").arg(QFileInfo(directoryPath).fileName()),
+        [this, directoryUrl, trashUrl] {
+            if (trashUrl->isEmpty()) return _directoryCreate(directoryUrl);
+            return _directoryRestore(directoryUrl, *trashUrl);
+        },
+        [this, directoryUrl, trashUrl] { return _directoryDelete(directoryUrl, *trashUrl); },
+        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
 }
 
 QString DocumentModule::directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
@@ -154,14 +161,11 @@ QString DocumentModule::directoryRename(const QUrl &sourceUrl, const QUrl &targe
     if (!directoryInfo.isDir()) return tr("Directory rename failed: directory does not exist.");
     if (sourcePath == targetPath) return {};
 
-    QFile directory(sourcePath);
-    if (!directory.rename(targetPath)) {
-        return tr("Directory rename failed: %1").arg(directory.errorString());
-    }
-
-    didRenameFilesNotification(sourceUrl, targetUrl);
-    emit appendLog(LogLevel::Info, "directory renamed to", QString("<a href='%1'>%2</a>").arg(targetUrl.toString(), targetUrl.toString()));
-    return {};
+    return g_undo->push(
+        tr("Directory Rename (%1->%2)").arg(QFileInfo(sourcePath).fileName(), QFileInfo(targetPath).fileName()),
+        [this, sourceUrl, targetUrl] { return _directoryRename(sourceUrl, targetUrl); },
+        [this, sourceUrl, targetUrl] { return _directoryRename(targetUrl, sourceUrl); },
+        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
 }
 
 QString DocumentModule::directoryDelete(const QUrl &directoryUrl) {
@@ -170,13 +174,12 @@ QString DocumentModule::directoryDelete(const QUrl &directoryUrl) {
     const QString directoryPath = directoryUrl.toLocalFile();
     if (!QFileInfo(directoryPath).isDir()) return tr("Directory delete failed: directory does not exist.");
 
-    QString trashPath;
-    if (!QFile::moveToTrash(directoryPath, &trashPath)) return tr("Directory delete failed: unable to move directory to trash.");
-
-    didDeleteFilesNotification(directoryUrl);
-    const auto trashUrl = QUrl::fromLocalFile(trashPath);
-    emit appendLog(LogLevel::Info, "directory deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
-    return {};
+    const auto trashUrl = QSharedPointer<QUrl>::create();
+    return g_undo->push(
+        tr("Directory Delete (%1)").arg(QFileInfo(directoryPath).fileName()),
+        [this, directoryUrl, trashUrl] { return _directoryDelete(directoryUrl, *trashUrl); },
+        [this, directoryUrl, trashUrl] { return _directoryRestore(directoryUrl, *trashUrl); },
+        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
 }
 
 // public: document
@@ -186,16 +189,18 @@ QString DocumentModule::documentCreate(const QUrl &documentUrl) {
     const QString documentPath = documentUrl.toLocalFile();
     if (QFileInfo::exists(documentPath)) return tr("Document create failed: path already exists.");
 
-    QFile document(documentPath);
-    if (!document.open(QIODevice::WriteOnly)) {
-        return tr("Document create failed: %1").arg(document.errorString());
-    }
-    document.close();
+    const auto trashUrl = QSharedPointer<QUrl>::create();
+    return g_undo->push(
+        tr("Document Create (%1)").arg(documentUrl.fileName()),
+        [this, documentUrl, trashUrl] {
+            if (trashUrl->isEmpty()) return _documentCreate(documentUrl);
 
-    didCreateFilesNotification(documentUrl);
-    documentOpen(documentUrl);
-    emit appendLog(LogLevel::Info, "document created at", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
-    return {};
+            const auto error = _documentRestore(documentUrl, *trashUrl);
+            if (error.isEmpty()) documentOpen(documentUrl);
+            return error;
+        },
+        [this, documentUrl, trashUrl] { return _documentDelete(documentUrl, *trashUrl); },
+        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
 }
 
 QString DocumentModule::documentRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
@@ -207,14 +212,11 @@ QString DocumentModule::documentRename(const QUrl &sourceUrl, const QUrl &target
     if (!documentInfo.isFile()) return tr("Document rename failed: document does not exist.");
     if (sourcePath == targetPath) return {};
 
-    QFile document(sourcePath);
-    if (!document.rename(targetPath)) {
-        return tr("Document rename failed: %1").arg(document.errorString());
-    }
-
-    didRenameFilesNotification(sourceUrl, targetUrl);
-    emit appendLog(LogLevel::Info, "document renamed to", QString("<a href='%1'>%2</a>").arg(targetUrl.toString(), targetUrl.toString()));
-    return {};
+    return g_undo->push(
+        tr("Document Rename (%1->%2)").arg(sourceUrl.fileName(), targetUrl.fileName()),
+        [this, sourceUrl, targetUrl] { return _documentRename(sourceUrl, targetUrl); },
+        [this, sourceUrl, targetUrl] { return _documentRename(targetUrl, sourceUrl); },
+        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
 }
 
 QString DocumentModule::documentDelete(const QUrl &documentUrl) {
@@ -223,13 +225,12 @@ QString DocumentModule::documentDelete(const QUrl &documentUrl) {
     const QString documentPath = documentUrl.toLocalFile();
     if (!QFileInfo(documentPath).isFile()) return tr("Document delete failed: document does not exist.");
 
-    QString trashPath;
-    if (!QFile::moveToTrash(documentPath, &trashPath)) return tr("Document delete failed: unable to move document to trash.");
-
-    didDeleteFilesNotification(documentUrl);
-    const auto trashUrl = QUrl::fromLocalFile(trashPath);
-    emit appendLog(LogLevel::Info, "document deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
-    return {};
+    const auto trashUrl = QSharedPointer<QUrl>::create();
+    return g_undo->push(
+        tr("Document Delete (%1)").arg(documentUrl.fileName()),
+        [this, documentUrl, trashUrl] { return _documentDelete(documentUrl, *trashUrl); },
+        [this, documentUrl, trashUrl] { return _documentRestore(documentUrl, *trashUrl); },
+        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
 }
 
 DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
@@ -1069,6 +1070,87 @@ void DocumentModule::spellCheckResponse(const QUrl &documentUrl, const QVariantL
 }
 
 // private
+QString DocumentModule::_directoryCreate(const QUrl &directoryUrl) {
+    if (!QDir().mkpath(directoryUrl.toLocalFile())) return tr("Directory create failed: unable to create directory.");
+
+    didCreateFilesNotification(directoryUrl);
+    emit appendLog(LogLevel::Info, "directory created at", QString("<a href='%1'>%2</a>").arg(directoryUrl.toString(), directoryUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::_directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
+    QFile directory(sourceUrl.toLocalFile());
+    if (!directory.rename(targetUrl.toLocalFile())) return tr("Directory rename failed: %1").arg(directory.errorString());
+
+    didRenameFilesNotification(sourceUrl, targetUrl);
+    emit appendLog(LogLevel::Info, "directory renamed to", QString("<a href='%1'>%2</a>").arg(targetUrl.toString(), targetUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::_directoryDelete(const QUrl &directoryUrl, QUrl &trashUrl) {
+    QString trashPath;
+    if (!QFile::moveToTrash(directoryUrl.toLocalFile(), &trashPath)) return tr("Directory delete failed: unable to move directory to trash.");
+
+    trashUrl = QUrl::fromLocalFile(trashPath);
+    didDeleteFilesNotification(directoryUrl);
+    emit appendLog(LogLevel::Info, "directory deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::_directoryRestore(const QUrl &directoryUrl, const QUrl &trashUrl) {
+    if (!trashUrl.isLocalFile()) return tr("Directory restore failed: trash path is unavailable.");
+    if (QFileInfo::exists(directoryUrl.toLocalFile())) return tr("Directory restore failed: path already exists.");
+
+    QFile directory(trashUrl.toLocalFile());
+    if (!directory.rename(directoryUrl.toLocalFile())) return tr("Directory restore failed: %1").arg(directory.errorString());
+
+    didCreateFilesNotification(directoryUrl);
+    emit appendLog(LogLevel::Info, "directory restored to", QString("<a href='%1'>%2</a>").arg(directoryUrl.toString(), directoryUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::_documentCreate(const QUrl &documentUrl) {
+    QFile document(documentUrl.toLocalFile());
+    if (!document.open(QIODevice::WriteOnly)) return tr("Document create failed: %1").arg(document.errorString());
+    document.close();
+
+    didCreateFilesNotification(documentUrl);
+    documentOpen(documentUrl);
+    emit appendLog(LogLevel::Info, "document created at", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::_documentRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
+    QFile document(sourceUrl.toLocalFile());
+    if (!document.rename(targetUrl.toLocalFile())) return tr("Document rename failed: %1").arg(document.errorString());
+
+    didRenameFilesNotification(sourceUrl, targetUrl);
+    emit appendLog(LogLevel::Info, "document renamed to", QString("<a href='%1'>%2</a>").arg(targetUrl.toString(), targetUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::_documentDelete(const QUrl &documentUrl, QUrl &trashUrl) {
+    QString trashPath;
+    if (!QFile::moveToTrash(documentUrl.toLocalFile(), &trashPath)) return tr("Document delete failed: unable to move document to trash.");
+
+    trashUrl = QUrl::fromLocalFile(trashPath);
+    didDeleteFilesNotification(documentUrl);
+    emit appendLog(LogLevel::Info, "document deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
+    return {};
+}
+
+QString DocumentModule::_documentRestore(const QUrl &documentUrl, const QUrl &trashUrl) {
+    if (!trashUrl.isLocalFile()) return tr("Document restore failed: trash path is unavailable.");
+    if (QFileInfo::exists(documentUrl.toLocalFile())) return tr("Document restore failed: path already exists.");
+
+    QFile document(trashUrl.toLocalFile());
+    if (!document.rename(documentUrl.toLocalFile())) return tr("Document restore failed: %1").arg(document.errorString());
+
+    didCreateFilesNotification(documentUrl);
+    emit appendLog(LogLevel::Info, "document restored to", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
+    return {};
+}
+
 void DocumentModule::documentFocus(DocumentPage *documentPage, const bool status) {
     if (const auto *codePage = qobject_cast<CodePage *>(documentPage)) {
         if (status) {

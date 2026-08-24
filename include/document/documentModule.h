@@ -200,6 +200,22 @@ signals:
     void requestSpellSuggest(const QUrl &documentUrl, const QString &word);
 
 private:
+    QString _directoryCreate(const QUrl &directoryUrl);
+
+    QString _directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl);
+
+    QString _directoryDelete(const QUrl &directoryUrl, QUrl &trashUrl);
+
+    QString _directoryRestore(const QUrl &directoryUrl, const QUrl &trashUrl);
+
+    QString _documentCreate(const QUrl &documentUrl);
+
+    QString _documentRename(const QUrl &sourceUrl, const QUrl &targetUrl);
+
+    QString _documentDelete(const QUrl &documentUrl, QUrl &trashUrl);
+
+    QString _documentRestore(const QUrl &documentUrl, const QUrl &trashUrl);
+
     void documentFocus(DocumentPage *documentPage, bool status);
 
     void documentClose(const QUrl &documentUrl);
