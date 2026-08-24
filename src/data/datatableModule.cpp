@@ -5,7 +5,6 @@
 #include <QQuickItem>
 #include <QQuickWidget>
 #include <QSaveFile>
-#include <QTransposeProxyModel>
 
 #include "globals.h"
 #include "core/globalManager.h"
@@ -20,8 +19,13 @@ DatatableModule::DatatableModule()
     setWidget(m_widget);
     g_datatableHeaderItemModel = new QStandardItemModel(this);
     g_datatableStandardItemModel = new QStandardItemModel(this);
-    m_transposeProxyModel = new QTransposeProxyModel(this);
+    m_transposeProxyModel = new DatatableHeaderModel(this);
     m_transposeProxyModel->setSourceModel(g_datatableHeaderItemModel);
+    for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
+        const auto key = value.toString().trimmed();
+        if (key.isEmpty() || m_datatableHash.contains(key)) continue;
+        _datatableInsert(g_datatableHeaderItemModel->rowCount(), key);
+    }
 }
 
 DatatableModule::~DatatableModule() {
@@ -31,11 +35,6 @@ DatatableModule::~DatatableModule() {
 
 void DatatableModule::propertySet(const QVariantHash &objects) {
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
-    for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
-        const auto key = value.toString().trimmed();
-        if (key.isEmpty() || m_datatableHash.contains(key)) continue;
-        _datatableInsert(g_datatableHeaderItemModel->rowCount(), key);
-    }
 
     m_widget->rootContext()->setContextProperty("datatableModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
@@ -246,4 +245,12 @@ void DatatableModule::datatableCache() {
         const QString key = g_datatableHeaderItemModel->item(i, 0)->text();
         m_datatableHash.insert(key, i);
     }
+}
+
+// public
+DatatableHeaderModel::DatatableHeaderModel(QObject *parent)
+    : QTransposeProxyModel(parent) {
+    connect(this, &QAbstractItemModel::columnsInserted, this, &DatatableHeaderModel::emptyChanged);
+    connect(this, &QAbstractItemModel::columnsRemoved, this, &DatatableHeaderModel::emptyChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &DatatableHeaderModel::emptyChanged);
 }

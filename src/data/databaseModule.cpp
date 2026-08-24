@@ -15,7 +15,12 @@ DatabaseModule::DatabaseModule()
     : DockWidget("Database"),
       m_widget(new QQuickWidget()) {
     setWidget(m_widget);
-    g_databaseStandardItemModel = new DatabaseModel();
+    g_databaseStandardItemModel = new DatabaseModel(this);
+    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
+        const auto key = value.toString().trimmed();
+        if (key.isEmpty() || m_databaseHash.contains(key)) continue;
+        _databaseInsert(g_databaseStandardItemModel->rowCount(), key);
+    }
 }
 
 DatabaseModule::~DatabaseModule() {
@@ -25,11 +30,6 @@ DatabaseModule::~DatabaseModule() {
 
 void DatabaseModule::propertySet(const QVariantHash &objects) {
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
-    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
-        const auto key = value.toString().trimmed();
-        if (key.isEmpty() || m_databaseHash.contains(key)) continue;
-        _databaseInsert(g_databaseStandardItemModel->rowCount(), key);
-    }
 
     m_widget->rootContext()->setContextProperty("databaseModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
@@ -159,7 +159,6 @@ bool DatabaseModule::databaseWrite(const QString &key, const QString &value) {
 // private
 void DatabaseModule::_databaseInsert(const int index, const QString &key) {
     auto *keyItem = new QStandardItem(key); // NOLINT
-    keyItem->setData(key, DatabaseModel::KeyRole);
     auto *valueItem = new QStandardItem(); // NOLINT
     g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
     databaseCache();
@@ -175,7 +174,6 @@ void DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKe
     const auto iterator = m_databaseHash.constFind(oldKey);
     auto *item = g_databaseStandardItemModel->item(iterator.value(), 0);
     item->setText(newKey);
-    item->setData(newKey, DatabaseModel::KeyRole);
     databaseCache();
 }
 
@@ -199,17 +197,4 @@ DatabaseModel::DatabaseModel(QObject *parent)
     connect(this, &QAbstractItemModel::rowsInserted, this, &DatabaseModel::emptyChanged);
     connect(this, &QAbstractItemModel::rowsRemoved, this, &DatabaseModel::emptyChanged);
     connect(this, &QAbstractItemModel::modelReset, this, &DatabaseModel::emptyChanged);
-}
-
-QHash<int, QByteArray> DatabaseModel::roleNames() const {
-    auto roles = QStandardItemModel::roleNames();
-    roles[KeyRole] = "key";
-    return roles;
-}
-
-QVariant DatabaseModel::data(const QModelIndex &index, const int role) const {
-    if (role == KeyRole) {
-        return QStandardItemModel::data(this->index(index.row(), 0), role);
-    }
-    return QStandardItemModel::data(index, role);
 }

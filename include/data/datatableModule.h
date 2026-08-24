@@ -2,14 +2,29 @@
 #define UNICOMM_DATATABLE_H
 
 #include <QJsonArray>
+#include <QTransposeProxyModel>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QQuickWidget;
 class QStandardItemModel;
 class QTableWidget;
-class QTransposeProxyModel;
 
 class ToastModule;
+
+class DatatableHeaderModel final : public QTransposeProxyModel {
+    Q_OBJECT
+    Q_PROPERTY(bool empty READ emptyGet NOTIFY emptyChanged)
+
+public:
+    explicit DatatableHeaderModel(QObject *parent = nullptr);
+
+    [[nodiscard]] bool emptyGet() const {
+        return columnCount() == 0;
+    }
+
+signals:
+    void emptyChanged();
+};
 
 class DatatableModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -70,7 +85,7 @@ private:
     ToastModule *m_toast{};
     QHash<QString, int> m_datatableHash{};
     QHash<QString, DatatableState> m_datatableStates{};
-    QTransposeProxyModel *m_transposeProxyModel{};
+    DatatableHeaderModel *m_transposeProxyModel{};
 };
 
 #endif //UNICOMM_DATATABLE_H
