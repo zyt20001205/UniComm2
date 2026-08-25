@@ -423,9 +423,9 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     });
 }
 
-void AgentModule::diffUpdate(const QString &transactionId, const QVariantMap &fileDiffs) const {
+void AgentModule::diffUpdate(const QString &transactionId, const QVariantMap &fileDiffs, const int additions, const int deletions) const {
     if (transactionId != m_transactionId) return;
-    QMetaObject::invokeMethod(m_root, "diffUpdate", Q_ARG(QVariant, fileDiffs));
+    QMetaObject::invokeMethod(m_root, "diffUpdate", Q_ARG(QVariant, fileDiffs), Q_ARG(int, additions), Q_ARG(int, deletions));
 }
 
 void AgentModule::modelUpdate(const QString &provider, const QString &model) const {

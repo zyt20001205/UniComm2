@@ -990,24 +990,10 @@ Item {
             Layout.preferredHeight: visible ? diffLayout.implicitHeight + 20 : 0
             property var fileDiffs: ({})
             property bool minimized: true
+            property int additions
+            property int deletions
             readonly property var urls: Object.keys(fileDiffs)
             readonly property int fileCount: urls.length
-            readonly property int additions: {
-                let count = 0
-                for (let index = 0; index < urls.length; ++index) {
-                    const fileDiff = fileDiffs[urls[index]]
-                    count += fileDiff && fileDiff.additions ? fileDiff.additions : 0
-                }
-                return count
-            }
-            readonly property int deletions: {
-                let count = 0
-                for (let index = 0; index < urls.length; ++index) {
-                    const fileDiff = fileDiffs[urls[index]]
-                    count += fileDiff && fileDiff.deletions ? fileDiff.deletions : 0
-                }
-                return count
-            }
 
             Rectangle {
                 anchors.fill: parent
@@ -1707,6 +1693,8 @@ Item {
         planCard.steps = []
         planCard.minimized = true
         diffCard.fileDiffs = ({})
+        diffCard.additions = 0
+        diffCard.deletions = 0
         diffCard.minimized = true
         const obj = turnComponent.createObject(chatColumn, {
             turnId: turnId,
@@ -1727,6 +1715,8 @@ Item {
         planCard.steps = []
         planCard.minimized = true
         diffCard.fileDiffs = ({})
+        diffCard.additions = 0
+        diffCard.deletions = 0
         diffCard.minimized = true
         requestsClear()
         compactStatusTimer.stop()
@@ -1835,8 +1825,10 @@ Item {
         planCard.steps = plan.plan ? plan.plan : []
     }
 
-    function diffUpdate(fileDiffs): void {
+    function diffUpdate(fileDiffs, additions: int, deletions: int): void {
         diffCard.fileDiffs = fileDiffs ? fileDiffs : ({})
+        diffCard.additions = additions
+        diffCard.deletions = deletions
     }
 
     function compactFinish(): void {

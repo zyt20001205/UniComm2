@@ -586,14 +586,18 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
     state->deletions += deletions;
 
     QVariantMap fileDiffs{};
+    int totalAdditions{};
+    int totalDeletions{};
     for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
         fileDiffs.insert(document.key().toString(), QVariantHash{
                              {"path", QDir(g_workspaceUrl.toLocalFile()).relativeFilePath(document.key().toLocalFile())},
                              {"additions", document->additions},
                              {"deletions", document->deletions}
                          });
+        totalAdditions += document->additions;
+        totalDeletions += document->deletions;
     }
-    emit updateDiff(transactionId, fileDiffs);
+    emit updateDiff(transactionId, fileDiffs, totalAdditions, totalDeletions);
     return {};
 }
 
