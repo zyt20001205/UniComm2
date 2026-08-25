@@ -312,11 +312,12 @@ Item {
 
         Item {
             id: planCard
-            visible: steps.length > 0
+            visible: steps.length > 0 && !minimized
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? planLayout.implicitHeight + 20 : 0
             property string explanation
             property var steps: []
+            property bool minimized: true
             readonly property int completedCount: {
                 let count = 0
                 for (let i = 0; i < steps.length; ++i) {
@@ -907,8 +908,67 @@ Item {
         }
 
         Item {
+            id: overviewCard
+            visible: planCard.steps.length > 0
+            Layout.preferredWidth: visible ? overviewLayout.implicitWidth + 12 : 0
+            Layout.preferredHeight: visible ? overviewLayout.implicitHeight + 12 : 0
+            Layout.alignment: Qt.AlignHCenter
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.backSelected
+                border.color: global.stroke
+                border.width: 1
+                radius: 6
+            }
+
+            RowLayout {
+                id: overviewLayout
+                anchors.fill: parent
+                anchors.margins: 6
+
+                Button {
+                    id: planButton
+                    leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
+                    Layout.preferredHeight: 24
+
+                    contentItem: RowLayout {
+                        spacing: 8
+
+                        IconImage {
+                            color: global.fore
+                            source: "qrc:/icon/taskList.svg"
+                            sourceSize.width: 16; sourceSize.height: 16
+                            Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                        }
+
+                        Label {
+                            text: planCard.completedCount + " / " + planCard.steps.length
+                            Layout.preferredWidth: implicitWidth
+                        }
+                    }
+
+                    onClicked: planCard.minimized = !planCard.minimized
+                }
+            }
+        }
+
+        Item {
             clip: true
-            Layout.fillWidth: true; Layout.preferredHeight: 118
+            Layout.fillWidth: true
+            Layout.minimumHeight: 84
+            Layout.maximumHeight: 220
+            Layout.preferredHeight: Math.max(Layout.minimumHeight, Math.min(Layout.maximumHeight,
+                textArea.contentHeight + textArea.topPadding + textArea.bottomPadding + 42))
+
+            Behavior on Layout.preferredHeight {
+                NumberAnimation {
+                    duration: 120
+                    easing.type: Easing.OutCubic
+                }
+            }
 
             Rectangle {
                 anchors.fill: parent
@@ -1497,6 +1557,7 @@ Item {
     function turnCreate(turnId: string, startedAt: double): void {
         planCard.explanation = ""
         planCard.steps = []
+        planCard.minimized = true
         const obj = turnComponent.createObject(chatColumn, {
             turnId: turnId,
             startedAt: startedAt,
@@ -1514,6 +1575,7 @@ Item {
         chatView.followTail = true
         planCard.explanation = ""
         planCard.steps = []
+        planCard.minimized = true
         requestsClear()
         compactStatusTimer.stop()
         compactCard.completed = false
