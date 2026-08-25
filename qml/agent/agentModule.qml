@@ -77,7 +77,7 @@ Item {
             property: "angle"
             from: 0
             to: -180
-            duration: 200
+            duration: 300
             easing.type: Easing.InOutCubic
 
             onFinished: {
@@ -984,35 +984,109 @@ Item {
         }
 
         Item {
-            id: changeCard
+            id: diffCard
             visible: fileCount > 0 && !minimized
             Layout.fillWidth: true
-            Layout.preferredHeight: 0
-            property var changes: ({})
+            Layout.preferredHeight: visible ? diffLayout.implicitHeight + 20 : 0
+            property var fileDiffs: ({})
             property bool minimized: true
-            readonly property var files: Object.keys(changes)
-            readonly property int fileCount: files.length
+            readonly property var urls: Object.keys(fileDiffs)
+            readonly property int fileCount: urls.length
             readonly property int additions: {
                 let count = 0
-                for (let index = 0; index < files.length; ++index) {
-                    const change = changes[files[index]]
-                    count += change && change.additions ? change.additions : 0
+                for (let index = 0; index < urls.length; ++index) {
+                    const fileDiff = fileDiffs[urls[index]]
+                    count += fileDiff && fileDiff.additions ? fileDiff.additions : 0
                 }
                 return count
             }
             readonly property int deletions: {
                 let count = 0
-                for (let index = 0; index < files.length; ++index) {
-                    const change = changes[files[index]]
-                    count += change && change.deletions ? change.deletions : 0
+                for (let index = 0; index < urls.length; ++index) {
+                    const fileDiff = fileDiffs[urls[index]]
+                    count += fileDiff && fileDiff.deletions ? fileDiff.deletions : 0
                 }
                 return count
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.backSelected
+                border.color: global.stroke
+                border.width: 1
+                radius: 6
+            }
+
+            ColumnLayout {
+                id: diffLayout
+                anchors.fill: parent
+                anchors.margins: 10
+                spacing: 6
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    IconImage {
+                        color: global.fore
+                        source: "qrc:/icon/edit.svg"
+                        sourceSize.width: 16; sourceSize.height: 16
+                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    }
+
+                    Label {
+                        text: qsTr("Changes")
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+
+                    Button {
+                        leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
+                        flat: true
+                        text: qsTr("Undo")
+                        icon.source: "qrc:/icon/undo.svg"
+                        icon.width: 16; icon.height: 16
+                        Layout.preferredHeight: 24
+                    }
+                }
+
+                Repeater {
+                    model: diffCard.urls
+
+                    delegate: RowLayout {
+                        required property var modelData
+                        readonly property var fileDiff: diffCard.fileDiffs[modelData]
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Item {
+                            Layout.preferredWidth: 16
+                        }
+
+                        Label {
+                            text: fileDiff.path
+                            color: global.fore
+                            elide: Text.ElideMiddle
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: "+" + fileDiff.additions
+                            color: global.successFore3
+                        }
+
+                        Label {
+                            text: "-" + fileDiff.deletions
+                            color: global.dangerFore3
+                        }
+                    }
+                }
             }
         }
 
         Item {
             id: overviewCard
-            visible: planCard.steps.length > 0 || changeCard.fileCount > 0
+            visible: planCard.steps.length > 0 || diffCard.fileCount > 0
             Layout.preferredWidth: visible ? overviewLayout.implicitWidth + 12 : 0
             Layout.preferredHeight: visible ? overviewLayout.implicitHeight + 12 : 0
             Layout.alignment: Qt.AlignHCenter
@@ -1058,8 +1132,8 @@ Item {
                 }
 
                 Button {
-                    id: changeButton
-                    visible: changeCard.fileCount > 0
+                    id: diffButton
+                    visible: diffCard.fileCount > 0
                     leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
                     flat: true
                     implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
@@ -1076,17 +1150,19 @@ Item {
                         }
 
                         FlipLabel {
-                            text: "+" + changeCard.additions
+                            text: "+" + diffCard.additions
                             color: global.successFore3
+                            Layout.preferredHeight: 24
                         }
 
                         FlipLabel {
-                            text: "-" + changeCard.deletions
+                            text: "-" + diffCard.deletions
                             color: global.dangerFore3
+                            Layout.preferredHeight: 24
                         }
                     }
 
-                    onClicked: changeCard.minimized = !changeCard.minimized
+                    onClicked: diffCard.minimized = !diffCard.minimized
                 }
             }
         }
@@ -1630,8 +1706,8 @@ Item {
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true
-        changeCard.changes = ({})
-        changeCard.minimized = true
+        diffCard.fileDiffs = ({})
+        diffCard.minimized = true
         const obj = turnComponent.createObject(chatColumn, {
             turnId: turnId,
             startedAt: startedAt,
@@ -1650,8 +1726,8 @@ Item {
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true
-        changeCard.changes = ({})
-        changeCard.minimized = true
+        diffCard.fileDiffs = ({})
+        diffCard.minimized = true
         requestsClear()
         compactStatusTimer.stop()
         compactCard.completed = false
@@ -1759,8 +1835,8 @@ Item {
         planCard.steps = plan.plan ? plan.plan : []
     }
 
-    function changesUpdate(changes): void {
-        changeCard.changes = changes ? changes : ({})
+    function diffUpdate(fileDiffs): void {
+        diffCard.fileDiffs = fileDiffs ? fileDiffs : ({})
     }
 
     function compactFinish(): void {

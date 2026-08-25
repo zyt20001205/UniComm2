@@ -183,7 +183,7 @@ public:
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
-    void updateChanges(const QString &transactionId, const QVariantHash &changes);
+    void updateDiff(const QString &transactionId, const QVariantMap &fileDiffs);
 
     void openWorkspace();
 

@@ -585,14 +585,15 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
     state->additions += additions;
     state->deletions += deletions;
 
-    QVariantHash changes{};
+    QVariantMap fileDiffs{};
     for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
-        changes.insert(document.key().toString(), QVariantHash{
-                           {"additions", document->additions},
-                           {"deletions", document->deletions}
-                       });
+        fileDiffs.insert(document.key().toString(), QVariantHash{
+                             {"path", QDir(g_workspaceUrl.toLocalFile()).relativeFilePath(document.key().toLocalFile())},
+                             {"additions", document->additions},
+                             {"deletions", document->deletions}
+                         });
     }
-    emit updateChanges(transactionId, changes);
+    emit updateDiff(transactionId, fileDiffs);
     return {};
 }
 

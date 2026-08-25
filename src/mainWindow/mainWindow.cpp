@@ -501,7 +501,7 @@ void MainWindow::moduleInit() {
     connect(m_documentModule, &DocumentModule::notificationJson, m_lspManager, &LSPManager::jsonNotification);
     connect(m_documentModule, &DocumentModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
     connect(m_documentModule, &DocumentModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_documentModule, &DocumentModule::updateChanges, m_agentModule, &AgentModule::changesUpdate);
+    connect(m_documentModule, &DocumentModule::updateDiff, m_agentModule, &AgentModule::diffUpdate);
     connect(m_documentModule, &DocumentModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_documentModule, &DocumentModule::startThread, m_threadpoolModule,
             qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));

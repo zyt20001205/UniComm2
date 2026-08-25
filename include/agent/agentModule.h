@@ -94,7 +94,7 @@ public:
 
     void planUpdate(const QString &runtimeId, const QJsonObject &plan) const;
 
-    void changesUpdate(const QString &transactionId, const QVariantHash &changes) const;
+    void diffUpdate(const QString &transactionId, const QVariantMap &fileDiffs) const;
 
     [[nodiscard]] RuntimeModule *subagentDispatch(const QString &role, const QString &task);
 
