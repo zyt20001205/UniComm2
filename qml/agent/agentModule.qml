@@ -11,6 +11,82 @@ Item {
     property var chatMap: ({})
     property var subagentMap: ({})
 
+    component FlipLabel: Flipable {
+        id: flipLabel
+        property string text
+        property color color: global.stroke
+        property string frontText
+        property string backText
+        Layout.preferredWidth: Math.max(frontLabel.implicitWidth, backLabel.implicitWidth)
+        Layout.preferredHeight: 28
+
+        function updateText(value: string): void {
+            if (flipAnimation.running) flipAnimation.complete()
+            if (value.length === 0) {
+                flipRotation.angle = 0
+                frontText = ""
+                backText = ""
+            } else if (frontText.length === 0) {
+                frontText = value
+                backText = value
+            } else if (frontText !== value) {
+                backText = value
+                flipAnimation.restart()
+            }
+        }
+
+        onTextChanged: updateText(text)
+        Component.onCompleted: updateText(text)
+
+        front: Label {
+            id: frontLabel
+            anchors.fill: parent
+            text: flipLabel.frontText
+            color: flipLabel.color
+            horizontalAlignment: Text.AlignRight
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        back: Label {
+            id: backLabel
+            anchors.fill: parent
+            text: flipLabel.backText
+            color: flipLabel.color
+            horizontalAlignment: Text.AlignRight
+            verticalAlignment: Text.AlignVCenter
+
+            transform: Rotation {
+                origin.x: backLabel.width / 2
+                origin.y: backLabel.height / 2
+                axis.x: 1; axis.y: 0; axis.z: 0
+                angle: 180
+            }
+        }
+
+        transform: Rotation {
+            id: flipRotation
+            origin.x: flipLabel.width / 2
+            origin.y: flipLabel.height / 2
+            axis.x: 1; axis.y: 0; axis.z: 0
+            angle: 0
+        }
+
+        NumberAnimation {
+            id: flipAnimation
+            target: flipRotation
+            property: "angle"
+            from: 0
+            to: -180
+            duration: 200
+            easing.type: Easing.InOutCubic
+
+            onFinished: {
+                flipLabel.frontText = flipLabel.backText
+                flipRotation.angle = 0
+            }
+        }
+    }
+
     ListModel {
         id: permissionModel
     }
@@ -908,8 +984,35 @@ Item {
         }
 
         Item {
+            id: changeCard
+            visible: fileCount > 0 && !minimized
+            Layout.fillWidth: true
+            Layout.preferredHeight: 0
+            property var changes: ({})
+            property bool minimized: true
+            readonly property var files: Object.keys(changes)
+            readonly property int fileCount: files.length
+            readonly property int additions: {
+                let count = 0
+                for (let index = 0; index < files.length; ++index) {
+                    const change = changes[files[index]]
+                    count += change && change.additions ? change.additions : 0
+                }
+                return count
+            }
+            readonly property int deletions: {
+                let count = 0
+                for (let index = 0; index < files.length; ++index) {
+                    const change = changes[files[index]]
+                    count += change && change.deletions ? change.deletions : 0
+                }
+                return count
+            }
+        }
+
+        Item {
             id: overviewCard
-            visible: planCard.steps.length > 0
+            visible: planCard.steps.length > 0 || changeCard.fileCount > 0
             Layout.preferredWidth: visible ? overviewLayout.implicitWidth + 12 : 0
             Layout.preferredHeight: visible ? overviewLayout.implicitHeight + 12 : 0
             Layout.alignment: Qt.AlignHCenter
@@ -929,6 +1032,7 @@ Item {
 
                 Button {
                     id: planButton
+                    visible: planCard.steps.length > 0
                     leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
                     flat: true
                     implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
@@ -951,6 +1055,38 @@ Item {
                     }
 
                     onClicked: planCard.minimized = !planCard.minimized
+                }
+
+                Button {
+                    id: changeButton
+                    visible: changeCard.fileCount > 0
+                    leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
+                    Layout.preferredHeight: 24
+
+                    contentItem: RowLayout {
+                        spacing: 8
+
+                        IconImage {
+                            color: global.fore
+                            source: "qrc:/icon/edit.svg"
+                            sourceSize.width: 16; sourceSize.height: 16
+                            Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                        }
+
+                        FlipLabel {
+                            text: "+" + changeCard.additions
+                            color: global.successFore3
+                        }
+
+                        FlipLabel {
+                            text: "-" + changeCard.deletions
+                            color: global.dangerFore3
+                        }
+                    }
+
+                    onClicked: changeCard.minimized = !changeCard.minimized
                 }
             }
         }
@@ -1118,75 +1254,11 @@ Item {
                             anchors.centerIn: parent
                             spacing: 4
 
-                            Flipable {
+                            FlipLabel {
                                 id: contextLabel
-                                property string frontText
-                                property string backText
-                                Layout.preferredWidth: Math.max(contextFrontLabel.implicitWidth, contextBackLabel.implicitWidth)
-                                Layout.preferredHeight: 28
-
-                                function updateText(text: string): void {
-                                    if (contextFlipAnimation.running) contextFlipAnimation.complete()
-                                    if (text.length === 0) {
-                                        contextRotation.angle = 0
-                                        frontText = ""
-                                        backText = ""
-                                    } else if (frontText.length === 0) {
-                                        frontText = text
-                                        backText = text
-                                    } else if (frontText !== text) {
-                                        backText = text
-                                        contextFlipAnimation.restart()
-                                    }
-                                }
-
-                                front: Label {
-                                    id: contextFrontLabel
-                                    anchors.fill: parent
-                                    text: contextLabel.frontText
-                                    color: global.stroke
-                                    horizontalAlignment: Text.AlignRight
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-
-                                back: Label {
-                                    id: contextBackLabel
-                                    anchors.fill: parent
-                                    text: contextLabel.backText
-                                    color: global.stroke
-                                    horizontalAlignment: Text.AlignRight
-                                    verticalAlignment: Text.AlignVCenter
-
-                                    transform: Rotation {
-                                        origin.x: contextBackLabel.width / 2
-                                        origin.y: contextBackLabel.height / 2
-                                        axis.x: 1; axis.y: 0; axis.z: 0
-                                        angle: 180
-                                    }
-                                }
-
-                                transform: Rotation {
-                                    id: contextRotation
-                                    origin.x: contextLabel.width / 2
-                                    origin.y: contextLabel.height / 2
-                                    axis.x: 1; axis.y: 0; axis.z: 0
-                                    angle: 0
-                                }
-
-                                NumberAnimation {
-                                    id: contextFlipAnimation
-                                    target: contextRotation
-                                    property: "angle"
-                                    from: 0
-                                    to: -180
-                                    duration: 200
-                                    easing.type: Easing.InOutCubic
-
-                                    onFinished: {
-                                        contextLabel.frontText = contextLabel.backText
-                                        contextRotation.angle = 0
-                                    }
-                                }
+                                text: usageLayout.currentUsage > 0
+                                    ? usageLayout.formatTokens(usageLayout.currentUsage)
+                                    : "-"
                             }
 
                             Label {
@@ -1558,6 +1630,8 @@ Item {
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true
+        changeCard.changes = ({})
+        changeCard.minimized = true
         const obj = turnComponent.createObject(chatColumn, {
             turnId: turnId,
             startedAt: startedAt,
@@ -1576,6 +1650,8 @@ Item {
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true
+        changeCard.changes = ({})
+        changeCard.minimized = true
         requestsClear()
         compactStatusTimer.stop()
         compactCard.completed = false
@@ -1683,15 +1759,17 @@ Item {
         planCard.steps = plan.plan ? plan.plan : []
     }
 
+    function changesUpdate(changes): void {
+        changeCard.changes = changes ? changes : ({})
+    }
+
     function compactFinish(): void {
         compactCard.completed = true
         compactStatusTimer.restart()
     }
 
     function usageUpdate(totalTokens: double): void {
-        const usage = totalTokens || 0
-        contextLabel.updateText(usage > 0 ? usageLayout.formatTokens(usage) : "-")
-        usageLayout.currentUsage = usage
+        usageLayout.currentUsage = totalTokens || 0
     }
 
     function modelUpdate(contextWindow: double): void {

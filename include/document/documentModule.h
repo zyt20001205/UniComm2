@@ -183,6 +183,8 @@ public:
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
+    void updateChanges(const QString &transactionId, const QVariantHash &changes);
+
     void openWorkspace();
 
     void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
@@ -210,6 +212,8 @@ private:
         QString before{};
         QString after{};
         bool dirty{};
+        int additions{};
+        int deletions{};
     };
 
     struct DocumentTransaction {

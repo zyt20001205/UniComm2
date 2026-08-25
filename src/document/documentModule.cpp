@@ -564,10 +564,35 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
                                                   .dirty = handler->modifyGet()
                                               });
     }
+
+    const auto lineCount = [](QString text) {
+        text.replace("\r\n", "\n");
+        text.replace('\r', '\n');
+        if (text.isEmpty()) return 0;
+        return static_cast<int>(text.count('\n')) + (text.endsWith('\n') ? 0 : 1);
+    };
+    int additions{};
+    int deletions{};
+    for (qsizetype index = 0; index < texts.size(); ++index) {
+        additions += lineCount(texts.at(index));
+        deletions += lineCount(handler->linesGet(startLines.at(index), lineCounts.at(index)));
+    }
+
     const auto error = _linesSet(documentUrl, texts, startLines, lineCounts);
     if (!error.isEmpty()) return error;
 
     state->after = handler->textGet();
+    state->additions += additions;
+    state->deletions += deletions;
+
+    QVariantHash changes{};
+    for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
+        changes.insert(document.key().toString(), QVariantHash{
+                           {"additions", document->additions},
+                           {"deletions", document->deletions}
+                       });
+    }
+    emit updateChanges(transactionId, changes);
     return {};
 }
 

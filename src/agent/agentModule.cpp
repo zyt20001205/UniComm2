@@ -423,6 +423,11 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     });
 }
 
+void AgentModule::changesUpdate(const QString &transactionId, const QVariantHash &changes) const {
+    if (transactionId != m_transactionId) return;
+    QMetaObject::invokeMethod(m_root, "changesUpdate", Q_ARG(QVariant, changes));
+}
+
 void AgentModule::modelUpdate(const QString &provider, const QString &model) const {
     if (provider.isEmpty() || model.isEmpty()) {
         m_modelButton->setProperty("text", tr("Select model"));
