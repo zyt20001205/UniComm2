@@ -127,6 +127,10 @@ int AgentModule::stateGet() const {
     return m_runtimes.value(m_primary)->stateGet();
 }
 
+QString AgentModule::transactionIdGet() const {
+    return m_transactionId;
+}
+
 void AgentModule::apikeySet(const QString &provider, const QString &apikey) const {
     m_providerModule->apikeySet(provider, apikey);
 }
@@ -386,11 +390,16 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     });
     connect(runtime, &RuntimeModule::createTurn, this, [this, runtime](const QString &turnId, const qint64 startedAt) {
         if (runtime != m_runtimes.value(m_primary)) return;
+        m_transactionId = g_document->transactionBegin();
         turnCreate(turnId, startedAt);
         QMetaObject::invokeMethod(m_textArea, "clear");
     });
     connect(runtime, &RuntimeModule::finishTurn, this, [this, runtime](const QString &turnId, const qint64 finishedAt) {
-        if (runtime == m_runtimes.value(m_primary)) turnFinish(turnId, finishedAt);
+        if (runtime != m_runtimes.value(m_primary)) return;
+        const auto error = g_document->transactionCommit(m_transactionId, tr("Agent Change"));
+        m_transactionId.clear();
+        if (!error.isEmpty()) m_toast->show(ToastLevel::Error, tr("Agent"), error);
+        turnFinish(turnId, finishedAt);
     });
     connect(runtime, &RuntimeModule::createChat, this, [this, runtime](const QString &turnId, const QString &messageId, const QString &role) {
         if (runtime == m_runtimes.value(m_primary)) chatCreate(turnId, messageId, role);

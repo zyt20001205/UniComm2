@@ -2,6 +2,7 @@
 #define UNICOMM_DOCUMENTMODULE_H
 
 #include <QJsonObject>
+#include <QSharedPointer>
 #include <QStringList>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
@@ -17,6 +18,7 @@ class DocumentPage;
 class CodeAssistant;
 class CodePage;
 class EditorWidget;
+class ScintillaWidget;
 class SignatureWidget;
 class ToastModule;
 
@@ -40,7 +42,7 @@ public:
 
     void scriptFontSave(const QJsonObject &fontConfigScript);
 
-    [[nodiscard]] DocumentPage* documentConstruct(const QUrl &documentUrl);
+    [[nodiscard]] DocumentPage *documentConstruct(const QUrl &documentUrl);
 
     Q_INVOKABLE void documentOpen(const QUrl &documentUrl);
 
@@ -94,9 +96,13 @@ public:
 
     void indexGet() const;
 
+    [[nodiscard]] QString transactionBegin();
+
+    [[nodiscard]] QString transactionCommit(const QString &transactionId, const QString &text);
+
     [[nodiscard]] QString linesGet(const QUrl &documentUrl, int startLine, int lineCount) const;
 
-    void linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts);
+    [[nodiscard]] QString linesSet(const QString &transactionId, const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts);
 
     [[nodiscard]] QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
@@ -200,6 +206,16 @@ signals:
     void requestSpellSuggest(const QUrl &documentUrl, const QString &word);
 
 private:
+    struct DocumentTextState {
+        QString before{};
+        QString after{};
+        bool dirty{};
+    };
+
+    struct DocumentTransaction {
+        QHash<QUrl, DocumentTextState> documents{};
+    };
+
     QString _directoryCreate(const QUrl &directoryUrl);
 
     QString _directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl);
@@ -215,6 +231,14 @@ private:
     QString _documentDelete(const QUrl &documentUrl, QUrl &trashUrl);
 
     QString _documentRestore(const QUrl &documentUrl, const QUrl &trashUrl);
+
+    [[nodiscard]] ScintillaWidget *_textHandler(const QUrl &documentUrl) const;
+
+    QString _linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) const;
+
+    QString _transactionRedo(const QSharedPointer<const DocumentTransaction> &transaction);
+
+    QString _transactionUndo(const QSharedPointer<const DocumentTransaction> &transaction);
 
     void documentFocus(DocumentPage *documentPage, bool status);
 
@@ -247,6 +271,7 @@ private:
     WelcomePage *m_welcomePage{}; // TODO: inherits base page later
     CodeAssistant *m_codeAssistant{};
     QHash<QUrl, DocumentPage *> m_pageHash{};
+    QHash<QString, QSharedPointer<DocumentTransaction> > m_transactions{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QHash<QUrl, QJsonArray> m_symbolHash{};
     QVariantHash m_navigationHistory{};

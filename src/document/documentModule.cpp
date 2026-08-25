@@ -9,6 +9,7 @@
 #include <QSharedPointer>
 #include <QTextBrowser>
 #include <QTimer>
+#include <QUuid>
 
 #include "globals.h"
 #include "core/fileModule.h"
@@ -512,6 +513,32 @@ void DocumentModule::indexGet() const {
     };
 }
 
+QString DocumentModule::transactionBegin() {
+    QString transactionId{};
+    do transactionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    while (m_transactions.contains(transactionId));
+    m_transactions.insert(transactionId, QSharedPointer<DocumentTransaction>::create());
+    return transactionId;
+}
+
+QString DocumentModule::transactionCommit(const QString &transactionId, const QString &text) {
+    const auto transaction = m_transactions.take(transactionId);
+    if (transaction.isNull()) return tr("Document transaction commit failed: transaction does not exist.");
+
+    for (auto document = transaction->documents.begin(); document != transaction->documents.end();) {
+        if (document->before == document->after) document = transaction->documents.erase(document);
+        else ++document;
+    }
+    if (transaction->documents.isEmpty()) return {};
+
+    const QSharedPointer<const DocumentTransaction> frozen = transaction;
+    return g_undo->push(
+        text,
+        [this, frozen] { return _transactionRedo(frozen); },
+        [this, frozen] { return _transactionUndo(frozen); },
+        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
+}
+
 QString DocumentModule::linesGet(const QUrl &documentUrl, const int startLine, const int lineCount) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler()->linesGet(startLine, lineCount);
     if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler()->linesGet(startLine, lineCount);
@@ -520,19 +547,37 @@ QString DocumentModule::linesGet(const QUrl &documentUrl, const int startLine, c
     return FileModule::linesGet(documentUrl, startLine, lineCount);
 }
 
-void DocumentModule::linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) {
+QString DocumentModule::linesSet(const QString &transactionId, const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) {
+    const auto transaction = m_transactions.value(transactionId);
+    if (transaction.isNull()) return tr("Line set failed: transaction does not exist.");
+    if (texts.size() != startLines.size() || texts.size() != lineCounts.size()) return tr("Line set failed: edit lists have different sizes.");
+    if (texts.isEmpty()) return {};
+
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->linesSet(texts, startLines, lineCounts);
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->linesSet(texts, startLines, lineCounts);
-    else if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) markdownPage->handler()->linesSet(texts, startLines, lineCounts);
-    else if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) conflictPage->handler()->linesSet(texts, startLines, lineCounts);
+    auto *handler = _textHandler(documentUrl);
+    if (handler == nullptr) return tr("Line set failed: document is not editable text.");
+
+    auto state = transaction->documents.find(documentUrl);
+    if (state == transaction->documents.end()) {
+        state = transaction->documents.insert(documentUrl, DocumentTextState{
+                                                  .before = handler->textGet(),
+                                                  .dirty = handler->modifyGet()
+                                              });
+    }
+    const auto error = _linesSet(documentUrl, texts, startLines, lineCounts);
+    if (!error.isEmpty()) return error;
+
+    state->after = handler->textGet();
+    return {};
 }
 
 QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
     if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
-    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
-    if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
+    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler()->textGet(
+        startLine, startCharacter, endLine, endCharacter);
+    if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler()->textGet(
+        startLine, startCharacter, endLine, endCharacter);
     if (const auto *pdfPage = qobject_cast<PdfPage *>(m_pageHash.value(documentUrl))) return pdfPage->textGet(startLine);
     return FileModule::textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
 }
@@ -541,8 +586,10 @@ void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
     else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
-    else if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) markdownPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
-    else if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) conflictPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    else if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) markdownPage->handler()->textSet(
+        text, startLine, startCharacter, endLine, endCharacter);
+    else if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) conflictPage->handler()->textSet(
+        text, startLine, startCharacter, endLine, endCharacter);
 }
 
 void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
@@ -1148,6 +1195,72 @@ QString DocumentModule::_documentRestore(const QUrl &documentUrl, const QUrl &tr
 
     didCreateFilesNotification(documentUrl);
     emit appendLog(LogLevel::Info, "document restored to", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
+    return {};
+}
+
+ScintillaWidget *DocumentModule::_textHandler(const QUrl &documentUrl) const {
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler();
+    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler();
+    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler();
+    if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler();
+    return nullptr;
+}
+
+QString DocumentModule::_linesSet(const QUrl &documentUrl,
+                                  const QStringList &texts,
+                                  const QList<int> &startLines,
+                                  const QList<int> &lineCounts) const {
+    auto *handler = _textHandler(documentUrl);
+    if (handler == nullptr) return tr("Line set failed: document is not editable text.");
+    handler->linesSet(texts, startLines, lineCounts);
+    return {};
+}
+
+QString DocumentModule::_transactionRedo(const QSharedPointer<const DocumentTransaction> &transaction) {
+    QHash<QUrl, ScintillaWidget *> handlers{};
+    bool atBefore = true;
+    bool atAfter = true;
+    for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
+        if (!m_pageHash.contains(document.key())) documentOpen(document.key());
+        auto *handler = _textHandler(document.key());
+        if (handler == nullptr) return tr("Document redo failed: document is not editable text.");
+
+        handlers.insert(document.key(), handler);
+        const auto current = handler->textGet();
+        atBefore = atBefore && current == document->before;
+        atAfter = atAfter && current == document->after;
+    }
+    if (atAfter) return {};
+    if (!atBefore) return tr("Document redo failed: document content has changed.");
+
+    for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
+        handlers.value(document.key())->textSet(document->after);
+    }
+    return {};
+}
+
+QString DocumentModule::_transactionUndo(const QSharedPointer<const DocumentTransaction> &transaction) {
+    QHash<QUrl, ScintillaWidget *> handlers{};
+    bool atBefore = true;
+    bool atAfter = true;
+    for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
+        if (!m_pageHash.contains(document.key())) documentOpen(document.key());
+        auto *handler = _textHandler(document.key());
+        if (handler == nullptr) return tr("Document undo failed: document is not editable text.");
+
+        handlers.insert(document.key(), handler);
+        const auto current = handler->textGet();
+        atBefore = atBefore && current == document->before;
+        atAfter = atAfter && current == document->after;
+    }
+    if (atBefore) return {};
+    if (!atAfter) return tr("Document undo failed: document content has changed.");
+
+    for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
+        auto *handler = handlers.value(document.key());
+        handler->textSet(document->before);
+        if (!document->dirty) handler->savepointSet();
+    }
     return {};
 }
 

@@ -50,6 +50,8 @@ public:
 
     [[nodiscard]] int stateGet() const;
 
+    [[nodiscard]] QString transactionIdGet() const;
+
     Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
 
     Q_INVOKABLE QString mcpInsert(const QUrl &url);
@@ -138,6 +140,7 @@ private:
     QString m_general{};
     QString m_primary{};
     QString m_supervisor{};
+    QString m_transactionId{};
     QHash<QString, RuntimeModule *> m_runtimes{};
 };
 

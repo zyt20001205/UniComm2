@@ -1149,7 +1149,10 @@ QString ToolsModule::toolExecuteSync(const QString &runtimeId, const QString &na
             startLines.append(edit.value("start_line").toInt());
             lineCounts.append(edit.value("line_count").toInt());
         }
-        if (!texts.isEmpty()) g_document->linesSet(documentUrl, texts, startLines, lineCounts);
+        if (!texts.isEmpty()) {
+            const auto error = g_document->linesSet(g_agent->transactionIdGet(), documentUrl, texts, startLines, lineCounts);
+            if (!error.isEmpty()) return error;
+        }
         return QString::fromUtf8(QJsonDocument(QJsonObject{{"applied", applied}, {"rejected", rejected}}).toJson(QJsonDocument::Compact));
     }
     if (name == "memory_search") {
