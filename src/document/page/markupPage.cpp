@@ -1,6 +1,6 @@
-#include "document/page/markdownPage.h"
+#include "document/page/markupPage.h"
 
-#include <QShortcut>
+#include <QFileInfo>
 #include <QSplitter>
 
 #include "document/module/editorWidget.h"
@@ -9,7 +9,7 @@
 #include "util/uniCast.h"
 
 // public
-MarkdownPage::MarkdownPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
+MarkupPage::MarkupPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : DocumentPage(documentUrl),
       m_editorWidget(new EditorWidget(documentConfig, documentUrl)),
       m_webviewWidget(new WebviewWidget()) {
@@ -20,16 +20,14 @@ MarkdownPage::MarkdownPage(const QJsonObject &documentConfig, const QUrl &docume
     splitter->setStretchFactor(1, 1);
     splitter->setSizes({600, 600});
     setWidget(splitter);
-    m_webviewWidget->setHtml(uni_cast<QFullHtmlString>(this->handler()->textGet()));
-    connect(m_editorWidget, &EditorWidget::appendLog, this, &MarkdownPage::appendLog);
-    connect(m_editorWidget, &EditorWidget::changeSavepoint, this, &MarkdownPage::savepointChange);
-    connect(m_editorWidget, &EditorWidget::changeSelection, this, &MarkdownPage::changeSelection);
-    connect(m_editorWidget, &EditorWidget::changeContent, this, [this] {
-        m_webviewWidget->setHtml(uni_cast<QFullHtmlString>(this->handler()->textGet()));
-    });
+    previewUpdate();
+    connect(m_editorWidget, &EditorWidget::appendLog, this, &MarkupPage::appendLog);
+    connect(m_editorWidget, &EditorWidget::changeSavepoint, this, &MarkupPage::savepointChange);
+    connect(m_editorWidget, &EditorWidget::changeSelection, this, &MarkupPage::changeSelection);
+    connect(m_editorWidget, &EditorWidget::changeContent, this, &MarkupPage::previewUpdate);
 }
 
-void MarkdownPage::propertySet(const QVariantHash &objects) {
+void MarkupPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
@@ -40,11 +38,11 @@ void MarkdownPage::propertySet(const QVariantHash &objects) {
     });
 }
 
-void MarkdownPage::documentSave() {
+void MarkupPage::documentSave() {
     m_editorWidget->documentSave();
 }
 
-bool MarkdownPage::documentClose(const bool force) {
+bool MarkupPage::documentClose(const bool force) {
     if (force) {
         emit closeDocument(m_documentUrl);
         deleteLater();
@@ -66,7 +64,16 @@ bool MarkdownPage::documentClose(const bool force) {
 }
 
 // private
-void MarkdownPage::savepointChange(const bool status) {
+void MarkupPage::previewUpdate() {
+    const auto text = handler()->textGet();
+    if (QFileInfo(m_documentUrl.toLocalFile()).suffix().toLower() == "md") {
+        m_webviewWidget->setHtml(uni_cast<QFullHtmlString>(text));
+    } else {
+        m_webviewWidget->setHtml(text);
+    }
+}
+
+void MarkupPage::savepointChange(const bool status) {
     const QString pageName = title();
     if (status) {
         setTitle(pageName + "*");

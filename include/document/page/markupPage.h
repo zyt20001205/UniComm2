@@ -1,18 +1,18 @@
-#ifndef UNICOMM_MARKDOWNPAGE_H
-#define UNICOMM_MARKDOWNPAGE_H
+#ifndef UNICOMM_MARKUPPAGE_H
+#define UNICOMM_MARKUPPAGE_H
 
 #include "documentPage.h"
 #include "document/module/editorWidget.h"
 
 class WebviewWidget;
 
-class MarkdownPage final : public DocumentPage {
+class MarkupPage final : public DocumentPage {
     Q_OBJECT
 
 public:
-    explicit MarkdownPage(const QJsonObject &documentConfig = QJsonObject(), const QUrl &documentUrl = QUrl());
+    explicit MarkupPage(const QJsonObject &documentConfig = QJsonObject(), const QUrl &documentUrl = QUrl());
 
-    ~MarkdownPage() override = default;
+    ~MarkupPage() override = default;
 
     void propertySet(const QVariantHash &objects);
 
@@ -26,6 +26,8 @@ signals:
     void changeSelection(const QHash<QString, int> &selection);
 
 private:
+    void previewUpdate();
+
     void savepointChange(bool status);
 
     EditorWidget *m_editorWidget{};
@@ -33,4 +35,4 @@ private:
     QObject *m_saveDialog{};
 };
 
-#endif //UNICOMM_MARKDOWNPAGE_H
+#endif //UNICOMM_MARKUPPAGE_H

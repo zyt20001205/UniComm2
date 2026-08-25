@@ -49,6 +49,44 @@
       "fore": "#000000"
     }
   },
+  "html": {
+    "tag": {
+      "fore": "#000000"
+    },
+    "tagUnknown": {
+      "fore": "#0033b3"
+    },
+    "attribute": {
+      "fore": "#174ad4"
+    },
+    "attributeUnknown": {
+      "fore": "#174ad4"
+    },
+    "number": {
+      "fore": "#067d17"
+    },
+    "doubleString": {
+      "fore": "#067d17"
+    },
+    "singleString": {
+      "fore": "#067d17"
+    },
+    "other": {
+      "fore": "#067d17"
+    },
+    "comment": {
+      "fore": "#8c8c8c"
+    },
+    "entity": {
+      "fore": "#174be6"
+    },
+    "tagEnd": {
+      "fore": "#000000"
+    },
+    "value": {
+      "fore": "#067d17"
+    }
+  },
   "json": {
     "number": {
       "fore": "#1750eb"

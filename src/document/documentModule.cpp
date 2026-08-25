@@ -23,7 +23,7 @@
 #include "document/page/pdfPage.h"
 #include "document/page/textPage.h"
 #include "document/page/conflictPage.h"
-#include "document/page/markdownPage.h"
+#include "document/page/markupPage.h"
 #include "document/page/welcomePage.h"
 #include "mainWindow/toastModule.h"
 
@@ -316,11 +316,11 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
             connect(codePage, &CodePage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
             codePage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
         }
-        // markdown page
-        else if (suffix == "md") {
-            documentPage = new MarkdownPage(m_config, documentUrl);
-            auto *markdownPage = qobject_cast<MarkdownPage *>(documentPage);
-            markdownPage->propertySet(QVariantHash{
+        // markup page
+        else if (suffix == "md" || suffix == "html") {
+            documentPage = new MarkupPage(m_config, documentUrl);
+            auto *markupPage = qobject_cast<MarkupPage *>(documentPage);
+            markupPage->propertySet(QVariantHash{
                 {"theme", m_theme},
                 {"mainWindowToast", QVariant::fromValue(m_toast)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
@@ -328,8 +328,8 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
                 {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
                 {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)}
             });
-            connect(markdownPage, &MarkdownPage::isFocusedChanged, this, [this, markdownPage](const bool status) { documentFocus(markdownPage, status); });
-            connect(markdownPage, &MarkdownPage::changeSelection, this, &DocumentModule::changeSelection);
+            connect(markupPage, &MarkupPage::isFocusedChanged, this, [this, markupPage](const bool status) { documentFocus(markupPage, status); });
+            connect(markupPage, &MarkupPage::changeSelection, this, &DocumentModule::changeSelection);
         }
         // pdf page
         else if (suffix == "pdf") {
@@ -1262,7 +1262,7 @@ QString DocumentModule::_transactionUndo(const QSharedPointer<const DocumentTran
 ScintillaWidget *DocumentModule::handlerGet(const QUrl &documentUrl) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler();
     if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler();
-    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler();
+    if (const auto *markupPage = qobject_cast<MarkupPage *>(m_pageHash.value(documentUrl))) return markupPage->handler();
     if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler();
     return nullptr;
 }

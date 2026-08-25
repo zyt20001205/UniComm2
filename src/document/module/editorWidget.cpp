@@ -362,8 +362,76 @@ void EditorWidget::lexerInit() const {
     const QFileInfo documentInfo(m_documentUrl.toLocalFile());
     const auto suffix = documentInfo.suffix().toLower();
     const auto fileName = documentInfo.fileName().toLower();
+    // html
+    if (suffix == "html") {
+        const auto htmlTheme = m_theme["html"].toObject();
+        m_scintillaWidget->lexerSet("hypertext");
+        m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.html.allow.php"), reinterpret_cast<sptr_t>("0"));
+        m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.html.allow.asp"), reinterpret_cast<sptr_t>("0"));
+        m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold.html"), reinterpret_cast<sptr_t>("1"));
+        m_scintillaWidget->styleDefine(
+            SCE_H_TAG,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["tag"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_TAGUNKNOWN,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["tagUnknown"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_ATTRIBUTE,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["attribute"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_ATTRIBUTEUNKNOWN,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["attributeUnknown"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_NUMBER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["number"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_DOUBLESTRING,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["doubleString"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_SINGLESTRING,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["singleString"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_OTHER,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["other"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_COMMENT,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["comment"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_ENTITY,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["entity"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_TAGEND,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["tagEnd"].toObject()["fore"].toString())}
+            });
+        m_scintillaWidget->styleDefine(
+            SCE_H_VALUE,
+            QVariantHash{
+                {"fore", ScintillaWidget::colorGet(htmlTheme["value"].toObject()["fore"].toString())}
+            });
+    }
     // json
-    if (suffix == "json") {
+    else if (suffix == "json") {
         const auto jsonTheme = m_theme["json"].toObject();
         m_scintillaWidget->lexerSet("json");
         m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("lexer.json.escape.sequence"), reinterpret_cast<sptr_t>("1"));
