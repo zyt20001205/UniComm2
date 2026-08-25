@@ -65,10 +65,6 @@ bool MarkdownPage::documentClose(const bool force) {
     return status;
 }
 
-void MarkdownPage::documentGoto() const {
-    m_editorWidget->documentGoto();
-}
-
 // private
 void MarkdownPage::savepointChange(const bool status) {
     const QString pageName = title();

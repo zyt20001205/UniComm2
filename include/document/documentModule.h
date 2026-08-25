@@ -236,13 +236,13 @@ private:
 
     QString _documentRestore(const QUrl &documentUrl, const QUrl &trashUrl);
 
-    [[nodiscard]] ScintillaWidget *_textHandler(const QUrl &documentUrl) const;
-
     QString _linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) const;
 
     QString _transactionRedo(const QSharedPointer<const DocumentTransaction> &transaction);
 
     QString _transactionUndo(const QSharedPointer<const DocumentTransaction> &transaction);
+
+    [[nodiscard]] ScintillaWidget *handlerGet(const QUrl &documentUrl) const;
 
     void documentFocus(DocumentPage *documentPage, bool status);
 

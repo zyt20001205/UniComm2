@@ -68,10 +68,6 @@ bool ConflictPage::documentClose(const bool force) {
     return status;
 }
 
-void ConflictPage::documentGoto() const {
-    m_conflictWidget->documentGoto();
-}
-
 // private
 void ConflictPage::savepointChange(const bool status) {
     const QString pageName = title();

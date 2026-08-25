@@ -36,7 +36,7 @@ private:
         static_assert(std::is_void_v<Result> || std::is_convertible_v<Result, QString>);
 
         if constexpr (std::is_void_v<Result>) {
-            return [action = std::move(action)]() mutable {
+            return [action = std::move(action)]() mutable -> QString {
                 std::invoke(action);
                 return QString{};
             };

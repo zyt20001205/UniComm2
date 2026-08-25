@@ -391,8 +391,13 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
 }
 
 void DocumentModule::documentGoto(const QUrl &documentUrl) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->documentGoto();
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->documentGoto();
+    const auto *handler = handlerGet(documentUrl);
+    if (handler == nullptr) return;
+    const auto index = handler->cast<ScintillaWidget::Utf16Index>(handler->positionGet());
+    m_gotoDialog->setProperty("documentUrl", documentUrl);
+    m_gotoDialog->setProperty("line", index.line);
+    m_gotoDialog->setProperty("character", index.character);
+    QMetaObject::invokeMethod(m_gotoDialog, "open");
 }
 
 void DocumentModule::documentSave(const QUrl &documentUrl) const {
@@ -435,41 +440,37 @@ void DocumentModule::menuCall(const QString &name) const {
 }
 
 int DocumentModule::eolModeGet(const QUrl &documentUrl) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler()->eolModeGet();
-    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler()->eolModeGet();
+    if (const auto *handler = handlerGet(documentUrl)) return handler->eolModeGet();
     return {};
 }
 
 void DocumentModule::eolModeSet(const QUrl &documentUrl, const int eolMode) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->eolModeSet(eolMode);
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->eolModeSet(eolMode);
+    if (const auto *handler = handlerGet(documentUrl)) handler->eolModeSet(eolMode);
 }
 
 bool DocumentModule::eolViewGet(const QUrl &documentUrl) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler()->eolViewGet();
-    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler()->eolViewGet();
+    if (const auto *handler = handlerGet(documentUrl)) return handler->eolViewGet();
     return {};
 }
 
 void DocumentModule::eolViewSet(const QUrl &documentUrl, const bool status) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->eolViewSet(status);
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->eolViewSet(status);
+    if (const auto *handler = handlerGet(documentUrl)) handler->eolViewSet(status);
 }
 
 // public: document
 void DocumentModule::foldContractTop(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->foldContractTop();
+    if (const auto *handler = handlerGet(documentUrl)) handler->foldContractTop();
 }
 
 void DocumentModule::foldContractRecursively(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->foldContractRecursively();
+    if (const auto *handler = handlerGet(documentUrl)) handler->foldContractRecursively();
 }
 
 void DocumentModule::foldExpandRecursively(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->foldExpandRecursively();
+    if (const auto *handler = handlerGet(documentUrl)) handler->foldExpandRecursively();
 }
 
 void DocumentModule::navigationPrev() {
@@ -490,22 +491,18 @@ void DocumentModule::navigationNext() {
 
 void DocumentModule::focusSet(const QUrl &documentUrl, const bool status) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->focusSet(status);
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->focusSet(status);
+    if (const auto *handler = handlerGet(documentUrl)) handler->focusSet(status);
 }
 
 void DocumentModule::indexSet(const QUrl &documentUrl, const int line, const int character) {
     if (documentUrl != m_focusedUrl) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->indexSet(line, character);
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->indexSet(line, character);
+    if (const auto *handler = handlerGet(documentUrl)) handler->indexSet(line, character);
 }
 
 void DocumentModule::indexGet() const {
-    const ScintillaWidget *scintilla{};
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(m_focusedUrl))) scintilla = codePage->handler();
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(m_focusedUrl))) scintilla = textPage->handler();
-    if (!scintilla) return;
-    const auto index = scintilla->cast<ScintillaWidget::Utf16Index>(scintilla->positionGet());
+    const auto *handler = handlerGet(m_focusedUrl);
+    if (handler == nullptr) return;
+    const auto index = handler->cast<ScintillaWidget::Utf16Index>(handler->positionGet());
     g_cursorPosition = {
         {"url", m_focusedUrl},
         {"line", index.line},
@@ -540,10 +537,7 @@ QString DocumentModule::transactionCommit(const QString &transactionId, const QS
 }
 
 QString DocumentModule::linesGet(const QUrl &documentUrl, const int startLine, const int lineCount) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler()->linesGet(startLine, lineCount);
-    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler()->linesGet(startLine, lineCount);
-    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler()->linesGet(startLine, lineCount);
-    if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler()->linesGet(startLine, lineCount);
+    if (const auto *handler = handlerGet(documentUrl)) return handler->linesGet(startLine, lineCount);
     return FileModule::linesGet(documentUrl, startLine, lineCount);
 }
 
@@ -554,7 +548,7 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
     if (texts.isEmpty()) return {};
 
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    auto *handler = _textHandler(documentUrl);
+    auto *handler = handlerGet(documentUrl);
     if (handler == nullptr) return tr("Line set failed: document is not editable text.");
 
     auto state = transaction->documents.find(documentUrl);
@@ -602,47 +596,35 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
 }
 
 QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
-    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
-    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler()->textGet(
-        startLine, startCharacter, endLine, endCharacter);
-    if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler()->textGet(
-        startLine, startCharacter, endLine, endCharacter);
+    if (const auto *handler = handlerGet(documentUrl)) return handler->textGet(startLine, startCharacter, endLine, endCharacter);
     if (const auto *pdfPage = qobject_cast<PdfPage *>(m_pageHash.value(documentUrl))) return pdfPage->textGet(startLine);
     return FileModule::textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
 }
 
 void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
-    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
-    else if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) markdownPage->handler()->textSet(
-        text, startLine, startCharacter, endLine, endCharacter);
-    else if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) conflictPage->handler()->textSet(
-        text, startLine, startCharacter, endLine, endCharacter);
+    if (const auto *handler = handlerGet(documentUrl)) handler->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
 void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
                                    const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl)))
-        codePage->handler()->indicatorFill(
-            type, startLine, startCharacter, endLine, endCharacter, time);
+    if (const auto *handler = handlerGet(documentUrl)) handler->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
 }
 
 void DocumentModule::indicatorClear(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     if (!m_pageHash.contains(documentUrl)) return;
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
+    if (const auto *handler = handlerGet(documentUrl)) handler->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
 }
 
 void DocumentModule::markerAdd(const QUrl &documentUrl, const int type, const int line, const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->markerAdd(type, line, time);
+    if (const auto *handler = handlerGet(documentUrl)) handler->markerAdd(type, line, time);
 }
 
 void DocumentModule::markerDelete(const QUrl &documentUrl, const int type, const int line) const {
     if (!m_pageHash.contains(documentUrl)) return;
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->handler()->markerDelete(type, line);
+    if (const auto *handler = handlerGet(documentUrl)) handler->markerDelete(type, line);
 }
 
 QJsonArray DocumentModule::diagnosticsGet(const QUrl &documentUrl) const {
@@ -719,8 +701,7 @@ void DocumentModule::completionRequest(const QUrl &documentUrl, int line, int ch
 }
 
 void DocumentModule::completionResponse(const QUrl &documentUrl, const QJsonArray &items) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        const auto *scintilla = codePage->handler();
+    if (const auto *scintilla = handlerGet(documentUrl)) {
         const auto wordRange = scintilla->wordIndexGet();
         const auto startLine = wordRange.start.line;
         const auto startCharacter = wordRange.start.character;
@@ -764,8 +745,7 @@ void DocumentModule::definitionRequest(const QUrl &documentUrl, const int line, 
 }
 
 void DocumentModule::definitionResponse(const QUrl &documentUrl, const QJsonArray &definitions) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        const auto *scintilla = codePage->handler();
+    if (const auto *scintilla = handlerGet(documentUrl)) {
         const auto wordRange = scintilla->wordIndexGet();
         const auto startLine = wordRange.start.line;
         const auto startCharacter = wordRange.start.character;
@@ -912,8 +892,7 @@ void DocumentModule::implementationRequest(const QUrl &documentUrl, const int li
 }
 
 void DocumentModule::implementationResponse(const QUrl &documentUrl, const QJsonArray &implementations) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        const auto *scintilla = codePage->handler();
+    if (const auto *scintilla = handlerGet(documentUrl)) {
         const auto wordRange = scintilla->wordIndexGet();
         const auto startLine = wordRange.start.line;
         const auto startCharacter = wordRange.start.character;
@@ -1031,8 +1010,7 @@ void DocumentModule::referencesRequest(const QUrl &documentUrl, int line, int ch
 }
 
 void DocumentModule::referencesResponse(const QUrl &documentUrl, const QJsonArray &references) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        const auto *scintilla = codePage->handler();
+    if (const auto *scintilla = handlerGet(documentUrl)) {
         const auto wordRange = scintilla->wordIndexGet();
         const auto startLine = wordRange.start.line;
         const auto startCharacter = wordRange.start.character;
@@ -1086,8 +1064,7 @@ void DocumentModule::signatureHelpRequest(const QUrl &documentUrl, int line, int
 }
 
 void DocumentModule::signatureHelpResponse(const QUrl &documentUrl, const QJsonArray &signatures) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        const auto *scintilla = codePage->handler();
+    if (const auto *scintilla = handlerGet(documentUrl)) {
         const auto wordRange = scintilla->wordIndexGet();
         const auto startLine = wordRange.start.line;
         const auto startCharacter = wordRange.start.character;
@@ -1120,8 +1097,7 @@ void DocumentModule::typeDefinitionRequest(const QUrl &documentUrl, const int li
 }
 
 void DocumentModule::typeDefinitionResponse(const QUrl &documentUrl, const QJsonArray &typeDefinitions) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        const auto *scintilla = codePage->handler();
+    if (const auto *scintilla = handlerGet(documentUrl)) {
         const auto wordRange = scintilla->wordIndexGet();
         const auto startLine = wordRange.start.line;
         const auto startCharacter = wordRange.start.character;
@@ -1228,19 +1204,8 @@ QString DocumentModule::_documentRestore(const QUrl &documentUrl, const QUrl &tr
     return {};
 }
 
-ScintillaWidget *DocumentModule::_textHandler(const QUrl &documentUrl) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler();
-    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler();
-    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler();
-    if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler();
-    return nullptr;
-}
-
-QString DocumentModule::_linesSet(const QUrl &documentUrl,
-                                  const QStringList &texts,
-                                  const QList<int> &startLines,
-                                  const QList<int> &lineCounts) const {
-    auto *handler = _textHandler(documentUrl);
+QString DocumentModule::_linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) const {
+    auto *handler = handlerGet(documentUrl);
     if (handler == nullptr) return tr("Line set failed: document is not editable text.");
     handler->linesSet(texts, startLines, lineCounts);
     return {};
@@ -1252,7 +1217,7 @@ QString DocumentModule::_transactionRedo(const QSharedPointer<const DocumentTran
     bool atAfter = true;
     for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
         if (!m_pageHash.contains(document.key())) documentOpen(document.key());
-        auto *handler = _textHandler(document.key());
+        auto *handler = handlerGet(document.key());
         if (handler == nullptr) return tr("Document redo failed: document is not editable text.");
 
         handlers.insert(document.key(), handler);
@@ -1275,7 +1240,7 @@ QString DocumentModule::_transactionUndo(const QSharedPointer<const DocumentTran
     bool atAfter = true;
     for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
         if (!m_pageHash.contains(document.key())) documentOpen(document.key());
-        auto *handler = _textHandler(document.key());
+        auto *handler = handlerGet(document.key());
         if (handler == nullptr) return tr("Document undo failed: document is not editable text.");
 
         handlers.insert(document.key(), handler);
@@ -1294,41 +1259,29 @@ QString DocumentModule::_transactionUndo(const QSharedPointer<const DocumentTran
     return {};
 }
 
+ScintillaWidget *DocumentModule::handlerGet(const QUrl &documentUrl) const {
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) return codePage->handler();
+    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler();
+    if (const auto *markdownPage = qobject_cast<MarkdownPage *>(m_pageHash.value(documentUrl))) return markdownPage->handler();
+    if (const auto *conflictPage = qobject_cast<ConflictPage *>(m_pageHash.value(documentUrl))) return conflictPage->handler();
+    return nullptr;
+}
+
 void DocumentModule::documentFocus(DocumentPage *documentPage, const bool status) {
-    if (const auto *codePage = qobject_cast<CodePage *>(documentPage)) {
-        if (status) {
-            codePage->handler()->focusSet(true);
-            m_focusedUrl = documentPage->documentUrl();
-            const QVariantHash session = {
-                {"codePage", codePage->handler()->codePageGet()},
-                {"eolMode", codePage->handler()->eolModeGet()}
-            };
-            emit focusDocument(m_focusedUrl, session);
-        } else {
-            codePage->handler()->indicatorClear(ScintillaIndicator::Highlight);
-            codePage->handler()->indicatorClear(ScintillaIndicator::Read);
-            codePage->handler()->indicatorClear(ScintillaIndicator::Write);
-        }
-    } else if (const auto *markdown = qobject_cast<MarkdownPage *>(documentPage)) {
-        if (status) {
-            markdown->handler()->focusSet(true);
-            m_focusedUrl = documentPage->documentUrl();
-            const QVariantHash session = {
-                {"codePage", markdown->handler()->codePageGet()},
-                {"eolMode", markdown->handler()->eolModeGet()}
-            };
-            emit focusDocument(m_focusedUrl, session);
-        }
-    } else if (const auto *textPage = qobject_cast<TextPage *>(documentPage)) {
-        if (status) {
-            textPage->handler()->focusSet(true);
-            m_focusedUrl = documentPage->documentUrl();
-            const QVariantHash session = {
-                {"codePage", textPage->handler()->codePageGet()},
-                {"eolMode", textPage->handler()->eolModeGet()}
-            };
-            emit focusDocument(m_focusedUrl, session);
-        }
+    auto *handler = handlerGet(documentPage->documentUrl());
+    if (handler == nullptr) return;
+    if (status) {
+        handler->focusSet(true);
+        m_focusedUrl = documentPage->documentUrl();
+        const QVariantHash session = {
+            {"codePage", handler->codePageGet()},
+            {"eolMode", handler->eolModeGet()}
+        };
+        emit focusDocument(m_focusedUrl, session);
+    } else if (qobject_cast<CodePage *>(documentPage)) {
+        handler->indicatorClear(ScintillaIndicator::Highlight);
+        handler->indicatorClear(ScintillaIndicator::Read);
+        handler->indicatorClear(ScintillaIndicator::Write);
     }
 }
 
@@ -1347,16 +1300,12 @@ void DocumentModule::documentClose(const QUrl &documentUrl) {
 }
 
 void DocumentModule::charAdd(const QUrl &documentUrl, const QChar character) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        emit codePage->handler()->charAdded(character.toLatin1());
-    }
+    if (auto *handler = handlerGet(documentUrl)) emit handler->charAdded(character.toLatin1());
 }
 
 void DocumentModule::textSetSelected(const QUrl &documentUrl, const QString &text) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        codePage->handler()->textSetSelected(text);
-    }
+    if (const auto *handler = handlerGet(documentUrl)) handler->textSetSelected(text);
 }
 
 void DocumentModule::navigationRecord(const QUrl &documentUrl, const int line, const int character) {
