@@ -185,6 +185,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
         {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]},
+        {"documentModuleRenameDialog", objects["documentModuleRenameDialog"]},
         {"documentModuleSaveDialog", objects["documentModuleSaveDialog"]},
         {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]},
         {"documentModuleCompletionToolTip", objects["documentModuleCompletionToolTip"]},
@@ -474,8 +475,10 @@ void MainWindow::moduleInit() {
     connect(m_lspManager, &LSPManager::responseHover, m_documentModule, &DocumentModule::hoverResponse);
     connect(m_lspManager, &LSPManager::responseImplementation, m_documentModule, &DocumentModule::implementationResponse);
     connect(m_lspManager, &LSPManager::responseOnTypeFormatting, m_documentModule, &DocumentModule::onTypeFormattingResponse);
+    connect(m_lspManager, &LSPManager::responsePrepareRename, m_documentModule, &DocumentModule::prepareRenameResponse);
     connect(m_lspManager, &LSPManager::responseRangeFormatting, m_documentModule, &DocumentModule::rangeFormattingResponse);
     connect(m_lspManager, &LSPManager::responseReferences, m_documentModule, &DocumentModule::referencesResponse);
+    connect(m_lspManager, &LSPManager::responseRename, m_documentModule, &DocumentModule::renameResponse);
     connect(m_lspManager, &LSPManager::responseSemanticTokens, m_documentModule, &DocumentModule::semanticTokensResponse);
     connect(m_lspManager, &LSPManager::responseSignatureHelp, m_documentModule, &DocumentModule::signatureHelpResponse);
     connect(m_lspManager, &LSPManager::responseTypeDefinition, m_documentModule, &DocumentModule::typeDefinitionResponse);

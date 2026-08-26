@@ -68,8 +68,10 @@ void LSPManager::serverAdd(const QString &suffix, const QString &process, const 
     connect(server, &LanguageServer::responseHover, this, &LSPManager::responseHover);
     connect(server, &LanguageServer::responseImplementation, this, &LSPManager::responseImplementation);
     connect(server, &LanguageServer::responseOnTypeFormatting, this, &LSPManager::responseOnTypeFormatting);
+    connect(server, &LanguageServer::responsePrepareRename, this, &LSPManager::responsePrepareRename);
     connect(server, &LanguageServer::responseRangeFormatting, this, &LSPManager::responseRangeFormatting);
     connect(server, &LanguageServer::responseReferences, this, &LSPManager::responseReferences);
+    connect(server, &LanguageServer::responseRename, this, &LSPManager::responseRename);
     connect(server, &LanguageServer::responseSemanticTokens, this, &LSPManager::responseSemanticTokens);
     connect(server, &LanguageServer::responseSignatureHelp, this, &LSPManager::responseSignatureHelp);
     connect(server, &LanguageServer::responseTypeDefinition, this, &LSPManager::responseTypeDefinition);

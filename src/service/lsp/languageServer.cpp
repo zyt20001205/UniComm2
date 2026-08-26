@@ -220,6 +220,11 @@ void LanguageServer::parser() {
                 const auto result = json["result"].toArray();
                 const auto newText = result[0].toObject();
                 emit responseOnTypeFormatting(documentUrl, newText);
+            } else if (method == "textDocument/prepareRename") {
+                if (!json["result"].isObject()) return; // null result
+                const auto result = json["result"].toObject();
+                const auto oldName = result["placeholder"].toString();
+                emit responsePrepareRename(documentUrl, oldName);
             } else if (method == "textDocument/rangeFormatting") {
                 // range formatting response
                 if (!json["result"].isArray()) return; // null result
@@ -231,6 +236,8 @@ void LanguageServer::parser() {
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
                 emit responseReferences(documentUrl, result);
+            } else if (method == "textDocument/rename") {
+                emit responseRename(documentUrl, json);
             } else if (method == "textDocument/semanticTokens/full") {
                 // semanticTokens response
                 if (!json["result"].isObject()) return; // null result

@@ -1024,6 +1024,46 @@ Item {
     }
 
     Dialog {
+        id: documentModuleRenameDialog
+        parent: Overlay.overlay
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
+        width: 600
+        modal: true
+        title: qsTr("Rename Symbol")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string documentUrl
+        property int line
+        property int character
+        property string oldName
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            documentModuleRenameTextField.text = documentModuleRenameDialog.oldName
+            documentModuleRenameTextField.forceActiveFocus()
+            documentModuleRenameTextField.selectAll()
+        }
+        onAccepted: {
+            const newName = documentModuleRenameTextField.text
+            if (newName !== "" && newName !== documentModuleRenameDialog.oldName) {
+                documentModule.renameRequest(documentModuleRenameDialog.documentUrl, documentModuleRenameDialog.line, documentModuleRenameDialog.character, newName)
+            }
+        }
+
+        TextField {
+            id: documentModuleRenameTextField
+            width: parent.width
+
+            onAccepted: documentModuleRenameDialog.accept()
+            Keys.onEscapePressed: documentModuleRenameDialog.reject()
+        }
+    }
+
+    Dialog {
         id: documentModuleSaveDialog
         parent: Overlay.overlay
         x: mainScreenItem.x + (mainScreenItem.width - width) / 2
@@ -1137,6 +1177,14 @@ Item {
                     documentModule.formattingRequest(documentModuleEditorMenu.menuSession.documentUrl)
                 }
             }
+        }
+
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: documentModule.prepareRenameRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
         }
 
         Menu {
@@ -4741,6 +4789,7 @@ Item {
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 
             "documentModuleGotoDialog": documentModuleGotoDialog,
+            "documentModuleRenameDialog": documentModuleRenameDialog,
             "documentModuleSaveDialog": documentModuleSaveDialog,
             "documentModuleEditorMenu": documentModuleEditorMenu,
             "documentModuleCompletionToolTip": documentModuleCompletionToolTip,

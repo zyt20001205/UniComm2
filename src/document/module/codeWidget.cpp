@@ -349,6 +349,9 @@ void CodeWidget::shortcutInit() {
     auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
     connect(shortcutComment, &QShortcut::activated, this, &CodeWidget::commentToggle);
     shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
+    auto shortcutRename = new QShortcut(QKeySequence(Qt::Key_F2), this); // NOLINT
+    connect(shortcutRename, &QShortcut::activated, this, &CodeWidget::prepareRenameRequest);
+    shortcutRename->setContext(Qt::WidgetWithChildrenShortcut);
 }
 
 void CodeWidget::selectionChange() {
@@ -930,6 +933,10 @@ void CodeWidget::hoverRequest() {
 void CodeWidget::implementationRequest() {
     // implementation request to script module
     emit requestImplementation(m_documentUrl, m_selection["line"], m_selection["character"]);
+}
+
+void CodeWidget::prepareRenameRequest() {
+    emit requestPrepareRename(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void CodeWidget::referencesRequest() {

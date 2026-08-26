@@ -6,6 +6,7 @@
 #include <QFileSystemWatcher>
 #include <QImageReader>
 #include <QProcess>
+#include <QSet>
 #include <QSharedPointer>
 #include <QTextBrowser>
 #include <QTimer>
@@ -25,6 +26,7 @@
 #include "document/page/markupPage.h"
 #include "document/page/welcomePage.h"
 #include "mainWindow/toastModule.h"
+#include "util/uniCast.h"
 
 // public
 DocumentModule::DocumentModule(QWidget *parent)
@@ -77,6 +79,7 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_gotoDialog = qvariant_cast<QObject *>(objects["documentModuleGotoDialog"]);
+    m_renameDialog = qvariant_cast<QObject *>(objects["documentModuleRenameDialog"]);
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
 
@@ -331,6 +334,7 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
             connect(codePage, &CodePage::requestHover, this, &DocumentModule::hoverRequest);
             connect(codePage, &CodePage::requestImplementation, this, &DocumentModule::implementationRequest);
             connect(codePage, &CodePage::requestOnTypeFormatting, this, &DocumentModule::onTypeFormattingRequest);
+            connect(codePage, &CodePage::requestPrepareRename, this, &DocumentModule::prepareRenameRequest);
             connect(codePage, &CodePage::requestReferences, this, &DocumentModule::referencesRequest);
             connect(codePage, &CodePage::requestSemanticTokens, this, &DocumentModule::semanticTokensRequest);
             connect(codePage, &CodePage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
@@ -984,6 +988,32 @@ void DocumentModule::onTypeFormattingResponse(const QUrl &documentUrl, const QJs
     }
 }
 
+void DocumentModule::prepareRenameRequest(const QUrl &documentUrl, const int line, const int character) {
+    m_renameDialog->setProperty("documentUrl", documentUrl);
+    m_renameDialog->setProperty("line", line);
+    m_renameDialog->setProperty("character", character);
+
+    const QJsonObject prepareRenameParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", documentUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/prepareRename", prepareRenameParams);
+}
+
+void DocumentModule::prepareRenameResponse(const QUrl &, const QString &oldName) const {
+    m_renameDialog->setProperty("oldName", oldName);
+    QMetaObject::invokeMethod(m_renameDialog, "open");
+}
+
 void DocumentModule::rangeFormattingRequest(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     // rangeFormatting request to lua language server
     const QJsonObject rangeFormattingParams{
@@ -1066,6 +1096,61 @@ void DocumentModule::referencesResponse(const QUrl &documentUrl, const QJsonArra
             {"position", position}
         };
         m_codeAssistant->navigationShow(navigationSession, references);
+    }
+}
+
+void DocumentModule::renameRequest(const QUrl &documentUrl, const int line, const int character, const QString &newName) {
+    const QJsonObject renameParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", documentUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        },
+        {"newName", newName}
+    };
+    emit requestJson("textDocument/rename", renameParams);
+}
+
+void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &response) const {
+    if (response.contains("error")) {
+        qDebug() << "lsp rename error:" << response["error"].toObject()["message"].toString();
+        return;
+    }
+
+    if (!response["result"].isObject()) {
+        qDebug() << "lsp rename: no changes";
+        return;
+    }
+
+    const auto workspaceEdit = response["result"].toObject();
+    QSet<QUrl> documentUrls{};
+    const auto changes = workspaceEdit["changes"].toObject();
+    for (auto change = changes.constBegin(); change != changes.constEnd(); ++change) {
+        documentUrls.insert(uni_cast<QUrl>(LUrl(change.key())));
+    }
+
+    for (const auto &value: workspaceEdit["documentChanges"].toArray()) {
+        const auto change = value.toObject();
+        if (change.contains("kind")) {
+            qDebug() << "lsp rename: unsupported file operation";
+            return;
+        }
+        const auto uri = change["textDocument"].toObject()["uri"].toString();
+        if (!uri.isEmpty()) documentUrls.insert(uni_cast<QUrl>(LUrl(uri)));
+    }
+
+    if (documentUrls.isEmpty()) {
+        qDebug() << "lsp rename: no changes";
+    } else if (documentUrls.size() == 1 && documentUrls.contains(documentUrl)) {
+        qDebug() << "lsp rename: current document";
+    } else {
+        qDebug() << "lsp rename: workspace";
     }
 }
 

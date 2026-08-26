@@ -50,9 +50,13 @@ signals:
 
     void responseOnTypeFormatting(const QUrl &documentUrl, const QJsonObject &newText);
 
+    void responsePrepareRename(const QUrl &documentUrl, const QString &oldName);
+
     void responseRangeFormatting(const QUrl &documentUrl, const QString &newText);
 
     void responseReferences(const QUrl &documentUrl, const QJsonArray &ranges);
+
+    void responseRename(const QUrl &documentUrl, const QJsonObject &response);
 
     void responseSemanticTokens(const QUrl &documentUrl, const QJsonArray &data);
 

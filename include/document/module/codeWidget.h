@@ -71,6 +71,8 @@ signals:
 
     void requestOnTypeFormatting(const QUrl &documentUrl, int line, int character);
 
+    void requestPrepareRename(const QUrl &documentUrl, int line, int character);
+
     void requestReferences(const QUrl &documentUrl, int line, int character);
 
     void requestSemanticTokens(const QUrl &documentUrl);
@@ -140,6 +142,8 @@ private:
     void hoverRequest();
 
     void implementationRequest();
+
+    void prepareRenameRequest();
 
     void referencesRequest();
 

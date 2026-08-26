@@ -34,6 +34,7 @@ CodePage::CodePage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     connect(m_codeWidget, &CodeWidget::requestHover, this, &CodePage::requestHover);
     connect(m_codeWidget, &CodeWidget::requestImplementation, this, &CodePage::requestImplementation);
     connect(m_codeWidget, &CodeWidget::requestOnTypeFormatting, this, &CodePage::requestOnTypeFormatting);
+    connect(m_codeWidget, &CodeWidget::requestPrepareRename, this, &CodePage::requestPrepareRename);
     connect(m_codeWidget, &CodeWidget::requestReferences, this, &CodePage::requestReferences);
     connect(m_codeWidget, &CodeWidget::requestSemanticTokens, this, &CodePage::requestSemanticTokens);
     connect(m_codeWidget, &CodeWidget::requestSignatureHelp, this, &CodePage::requestSignatureHelp);

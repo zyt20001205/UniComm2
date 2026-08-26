@@ -159,6 +159,10 @@ public:
 
     void onTypeFormattingResponse(const QUrl &documentUrl, const QJsonObject &newText) const;
 
+    Q_INVOKABLE void prepareRenameRequest(const QUrl &documentUrl, int line, int character);
+
+    void prepareRenameResponse(const QUrl &documentUrl, const QString &oldName) const;
+
     Q_INVOKABLE void rangeFormattingRequest(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void rangeFormattingResponse(const QUrl &documentUrl, const QString &newText) const;
@@ -166,6 +170,10 @@ public:
     Q_INVOKABLE void referencesRequest(const QUrl &documentUrl, int line, int character);
 
     void referencesResponse(const QUrl &documentUrl, const QJsonArray &references) const;
+
+    Q_INVOKABLE void renameRequest(const QUrl &documentUrl, int line, int character, const QString &newName);
+
+    void renameResponse(const QUrl &documentUrl, const QJsonObject &response) const;
 
     void semanticTokensRequest(const QUrl &documentUrl);
 
@@ -278,6 +286,7 @@ private:
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};
     QObject *m_gotoDialog{};
+    QObject *m_renameDialog{};
     QObject *m_saveDialog{};
     QObject *m_editorMenu{};
     QUrl m_focusedUrl{};
