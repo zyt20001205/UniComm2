@@ -1110,7 +1110,7 @@ void DocumentModule::renameRequest(const QUrl &documentUrl, const int line, cons
     emit requestJson("textDocument/rename", renameParams);
 }
 
-void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &workspaceEdit) const {
+void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &workspaceEdit) {
     // TODO: document changes not supported yet
     for (const auto &value: workspaceEdit["documentChanges"].toArray()) {
         const auto change = value.toObject();
@@ -1131,7 +1131,28 @@ void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &
     } else if (documentUrls.size() == 1) {
         if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->renameResponse(changes.constBegin().value().toArray());
     } else {
-        qDebug() << "lsp rename: workspace";
+        const auto undoGroupId = g_undo->undoGroupBegin();
+        for (auto change = changes.constBegin(); change != changes.constEnd(); ++change) {
+            documentOpen(uni_cast<QUrl>(LUrl(change.key())));
+        }
+        transactionBegin(undoGroupId);
+
+        const auto transaction = m_transactions.value(undoGroupId);
+        for (auto change = changes.constBegin(); change != changes.constEnd(); ++change) {
+            const auto targetUrl = uni_cast<QUrl>(LUrl(change.key()));
+            const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(targetUrl));
+            codePage->renameResponse(change.value().toArray());
+            transaction->documents[targetUrl].after = handlerGet(targetUrl)->textGet();
+        }
+
+        const auto transactionError = transactionCommit(undoGroupId);
+        if (!transactionError.isEmpty()) m_toast->show(ToastLevel::Error, tr("Rename"), transactionError);
+        const auto commitError = g_undo->undoGroupCommit(
+            undoGroupId,
+            tr("LSP Rename"),
+            [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Rename"), error); });
+        if (!commitError.isEmpty()) m_toast->show(ToastLevel::Error, tr("Rename"), commitError);
+        g_undo->undoGroupRelease(undoGroupId);
     }
 }
 

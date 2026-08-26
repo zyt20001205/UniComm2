@@ -173,7 +173,7 @@ public:
 
     Q_INVOKABLE void renameRequest(const QUrl &documentUrl, int line, int character, const QString &newName);
 
-    void renameResponse(const QUrl &documentUrl, const QJsonObject &workspaceEdit) const;
+    void renameResponse(const QUrl &documentUrl, const QJsonObject &workspaceEdit);
 
     void semanticTokensRequest(const QUrl &documentUrl);
 
