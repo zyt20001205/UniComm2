@@ -1111,18 +1111,19 @@ void DocumentModule::renameRequest(const QUrl &documentUrl, const int line, cons
 }
 
 void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &workspaceEdit) const {
-    QSet<QUrl> documentUrls{};
-    const auto changes = workspaceEdit["changes"].toObject();
-    for (auto change = changes.constBegin(); change != changes.constEnd(); ++change) {
-        documentUrls.insert(uni_cast<QUrl>(LUrl(change.key())));
-    }
-
+    // TODO: document changes not supported yet
     for (const auto &value: workspaceEdit["documentChanges"].toArray()) {
         const auto change = value.toObject();
         if (change.contains("kind")) {
             qDebug() << "lsp rename: unsupported file operation";
             return;
         }
+    }
+
+    QSet<QUrl> documentUrls{};
+    const auto changes = workspaceEdit["changes"].toObject();
+    for (auto change = changes.constBegin(); change != changes.constEnd(); ++change) {
+        documentUrls.insert(uni_cast<QUrl>(LUrl(change.key())));
     }
 
     if (documentUrls.isEmpty()) {
