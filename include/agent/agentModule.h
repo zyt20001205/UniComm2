@@ -50,7 +50,7 @@ public:
 
     [[nodiscard]] int stateGet() const;
 
-    [[nodiscard]] QString transactionIdGet() const;
+    [[nodiscard]] QString undoGroupIdGet() const;
 
     Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
 
@@ -78,6 +78,8 @@ public:
 
     Q_INVOKABLE void conversationRollback();
 
+    Q_INVOKABLE void diffRevert() const;
+
     Q_INVOKABLE void abort() const;
 
     Q_INVOKABLE void pre();
@@ -94,7 +96,7 @@ public:
 
     void planUpdate(const QString &runtimeId, const QJsonObject &plan) const;
 
-    void diffUpdate(const QString &transactionId, const QVariantMap &fileDiffs, int additions, int deletions) const;
+    void diffUpdate(const QString &undoGroupId, const QVariantMap &fileDiffs, int additions, int deletions) const;
 
     [[nodiscard]] RuntimeModule *subagentDispatch(const QString &role, const QString &task);
 
@@ -142,7 +144,7 @@ private:
     QString m_general{};
     QString m_primary{};
     QString m_supervisor{};
-    QString m_transactionId{};
+    QString m_undoGroupId{};
     QHash<QString, RuntimeModule *> m_runtimes{};
 };
 

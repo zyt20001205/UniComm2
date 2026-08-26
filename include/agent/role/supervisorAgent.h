@@ -7,6 +7,8 @@ class SupervisorAgent final : public BaseAgent {
 public:
     explicit SupervisorAgent(QObject *parent = nullptr);
 
+    [[nodiscard]] QString systemGet() const override;
+
     [[nodiscard]] bool planRequired(qsizetype toolCount) const override;
 };
 

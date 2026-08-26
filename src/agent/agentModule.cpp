@@ -13,11 +13,13 @@
 #include "agent/module/toolsModule.h"
 #include "agent/provider/baseProvider.h"
 #include "agent/provider/providerModule.h"
+#include "agent/role/dataAgent.h"
 #include "agent/role/generalAgent.h"
 #include "agent/role/hardwareAgent.h"
 #include "agent/role/softwareAgent.h"
 #include "agent/role/supervisorAgent.h"
 #include "core/globalManager.h"
+#include "core/undoModule.h"
 #include "document/documentModule.h"
 #include "mainWindow/toastModule.h"
 
@@ -127,8 +129,8 @@ int AgentModule::stateGet() const {
     return m_runtimes.value(m_primary)->stateGet();
 }
 
-QString AgentModule::transactionIdGet() const {
-    return m_transactionId;
+QString AgentModule::undoGroupIdGet() const {
+    return m_undoGroupId;
 }
 
 void AgentModule::apikeySet(const QString &provider, const QString &apikey) const {
@@ -306,6 +308,11 @@ void AgentModule::conversationRollback() {
     conversationGet(m_conversationId);
 }
 
+void AgentModule::diffRevert() const {
+    const auto error = g_undo->undoGroupRevert(m_undoGroupId);
+    if (!error.isEmpty()) m_toast->show(ToastLevel::Error, tr("Agent"), error);
+}
+
 // public: state transition
 void AgentModule::abort() const {
     auto *primary = m_runtimes.value(m_primary);
@@ -354,6 +361,7 @@ void AgentModule::planUpdate(const QString &runtimeId, const QJsonObject &plan) 
 
 RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString &task) {
     BaseAgent *agent{};
+    if (role == "data") agent = new DataAgent();
     if (role == "hardware") agent = new HardwareAgent();
     if (role == "software") agent = new SoftwareAgent();
     if (agent == nullptr) return nullptr;
@@ -390,15 +398,21 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     });
     connect(runtime, &RuntimeModule::createTurn, this, [this, runtime](const QString &turnId, const qint64 startedAt) {
         if (runtime != m_runtimes.value(m_primary)) return;
-        m_transactionId = g_document->transactionBegin();
+        if (!m_undoGroupId.isEmpty()) g_undo->undoGroupRelease(m_undoGroupId);
+        m_undoGroupId = g_undo->undoGroupBegin();
+        g_document->transactionBegin(m_undoGroupId);
         turnCreate(turnId, startedAt);
         QMetaObject::invokeMethod(m_textArea, "clear");
     });
     connect(runtime, &RuntimeModule::finishTurn, this, [this, runtime](const QString &turnId, const qint64 finishedAt) {
         if (runtime != m_runtimes.value(m_primary)) return;
-        const auto error = g_document->transactionCommit(m_transactionId, tr("Agent Change"));
-        m_transactionId.clear();
-        if (!error.isEmpty()) m_toast->show(ToastLevel::Error, tr("Agent"), error);
+        const auto documentError = g_document->transactionCommit(m_undoGroupId);
+        if (!documentError.isEmpty()) m_toast->show(ToastLevel::Error, tr("Agent"), documentError);
+        const auto commitError = g_undo->undoGroupCommit(
+            m_undoGroupId,
+            tr("Agent Change"),
+            [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Agent"), error); });
+        if (!commitError.isEmpty()) m_toast->show(ToastLevel::Error, tr("Agent"), commitError);
         turnFinish(turnId, finishedAt);
     });
     connect(runtime, &RuntimeModule::createChat, this, [this, runtime](const QString &turnId, const QString &messageId, const QString &role) {
@@ -423,8 +437,8 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     });
 }
 
-void AgentModule::diffUpdate(const QString &transactionId, const QVariantMap &fileDiffs, const int additions, const int deletions) const {
-    if (transactionId != m_transactionId) return;
+void AgentModule::diffUpdate(const QString &undoGroupId, const QVariantMap &fileDiffs, const int additions, const int deletions) const {
+    if (undoGroupId != m_undoGroupId) return;
     QMetaObject::invokeMethod(m_root, "diffUpdate", Q_ARG(QVariant, fileDiffs), Q_ARG(int, additions), Q_ARG(int, deletions));
 }
 

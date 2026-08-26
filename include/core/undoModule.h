@@ -5,8 +5,13 @@
 #include <type_traits>
 #include <utility>
 
+#include <QHash>
+#include <QSharedPointer>
 #include <QUndoStack>
 #include <QVariantList>
+#include <QVector>
+
+class UndoGroupData;
 
 class UndoModule final : public QUndoStack {
     Q_OBJECT
@@ -17,9 +22,27 @@ public:
     ~UndoModule() override = default;
 
     template<typename Redo, typename Undo>
-    QString push(const QString &text, Redo redo, Undo undo, std::function<void(const QString &)> failed = {}) {
+    QString push(const QString &text, Redo redo, Undo undo, const QString &undoGroupId = {}) {
+        auto redoAction = _action(std::move(redo));
+        auto undoAction = _action(std::move(undo));
+        if (undoGroupId.isEmpty()) return _push(text, std::move(redoAction), std::move(undoAction), std::function<void(const QString &)>{});
+        return _push(text, std::move(redoAction), std::move(undoAction), undoGroupId);
+    }
+
+    template<typename Redo, typename Undo>
+    QString push(const QString &text, Redo redo, Undo undo, std::function<void(const QString &)> failed) {
         return _push(text, _action(std::move(redo)), _action(std::move(undo)), std::move(failed));
     }
+
+    [[nodiscard]] QString undoGroupBegin();
+
+    [[nodiscard]] QString undoGroupCommit(const QString &undoGroupId, const QString &text, std::function<void(const QString &)> failed = {});
+
+    [[nodiscard]] QString undoGroupRevert(const QString &undoGroupId);
+
+    void undoGroupRelease(const QString &undoGroupId);
+
+    void undoGroupInvalidate(const QString &undoGroupId, const QString &error);
 
     Q_INVOKABLE [[nodiscard]] QVariantList undoHistory() const;
 
@@ -48,6 +71,33 @@ private:
     }
 
     QString _push(const QString &text, std::function<QString()> redo, std::function<QString()> undo, std::function<void(const QString &)> failed);
+
+    QString _push(const QString &text, std::function<QString()> redo, std::function<QString()> undo, const QString &undoGroupId);
+
+    QHash<QString, QSharedPointer<UndoGroupData>> m_undoGroups{};
+};
+
+class UndoGroupData final {
+public:
+    struct Step {
+        QString text{};
+        std::function<QString()> redo{};
+        std::function<QString()> undo{};
+    };
+
+    [[nodiscard]] QString redo();
+
+    [[nodiscard]] QString undo();
+
+    QString text{};
+    QString error{};
+    QVector<Step> steps{};
+    std::function<void(const QString &)> failed{};
+    bool committed{};
+    bool applied{true};
+
+private:
+    [[nodiscard]] QString execute(bool redo);
 };
 
 class UndoCommand final : public QUndoCommand {

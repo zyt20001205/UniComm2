@@ -633,7 +633,7 @@ void PortSetting::portSettingExport() {
         default: break;
     }
     if (m_oldPortName.isEmpty()) {
-        emit insertPort(-1, portConfig);
+        emit insertPort(-1, portConfig, {});
     } else {
         emit editPort(m_oldPortName, portConfig);
     }

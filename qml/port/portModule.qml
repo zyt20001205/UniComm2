@@ -320,6 +320,7 @@ Item {
 
                     onSingleTapped: {
                         tableMenu.portIndex = model.row
+                        tableMenu.portName = model.display
                         tableMenu.popup()
                     }
                 }

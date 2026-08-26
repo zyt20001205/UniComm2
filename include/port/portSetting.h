@@ -63,7 +63,7 @@ public:
     Q_INVOKABLE void pipelineSwap(int src, int dst) const;
 
 signals:
-    void insertPort(int index, const QJsonObject &portConfig);
+    void insertPort(int index, const QJsonObject &portConfig, const QString &undoGroupId);
 
     void editPort(const QString &oldPortName, const QJsonObject &portConfig);
 

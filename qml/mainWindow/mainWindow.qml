@@ -747,7 +747,7 @@ Item {
     // database module
     Menu {
         id: databaseModuleTableMenu
-        property int databaseIndex
+        property string databaseKey
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -760,7 +760,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: databaseModule.databaseInsert(databaseModuleTableMenu.databaseIndex)
+            onTriggered: databaseModule.databaseInsert("", databaseModuleTableMenu.databaseKey)
         }
 
         MenuItem {
@@ -768,7 +768,7 @@ Item {
             icon.source: "qrc:/icon/eraser.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: databaseModule.databaseClear(databaseModuleTableMenu.databaseIndex)
+            onTriggered: databaseModule.databaseClear(databaseModuleTableMenu.databaseKey)
         }
 
         MenuItem {
@@ -776,7 +776,7 @@ Item {
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: databaseModule.databaseRemove(databaseModuleTableMenu.databaseIndex)
+            onTriggered: databaseModule.databaseRemove(databaseModuleTableMenu.databaseKey)
         }
     }
 
@@ -794,7 +794,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: databaseModule.databaseInsert(-1)
+            onTriggered: databaseModule.databaseInsert()
         }
 
         Menu {
@@ -807,7 +807,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    databaseModule.databaseClear(-1)
+                    databaseModule.databaseClear()
                     progress = 0
                     databaseModuleRootMenu.close()
                 }
@@ -818,7 +818,7 @@ Item {
     // datatable module
     Menu {
         id: datatableModuleTableMenu
-        property int datatableIndex
+        property string datatableKey
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -831,7 +831,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: datatableModule.datatableInsert(datatableModuleTableMenu.datatableIndex)
+            onTriggered: datatableModule.datatableInsert("", datatableModuleTableMenu.datatableKey)
         }
 
         MenuItem {
@@ -839,7 +839,7 @@ Item {
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: datatableModule.datatableRemove(datatableModuleTableMenu.datatableIndex)
+            onTriggered: datatableModule.datatableRemove(datatableModuleTableMenu.datatableKey)
         }
     }
 
@@ -857,7 +857,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: datatableModule.datatableInsert(-1)
+            onTriggered: datatableModule.datatableInsert()
         }
 
         MenuItem {
@@ -4163,6 +4163,7 @@ Item {
     Menu {
         id: portModuleTableMenu
         property int portIndex
+        property string portName
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -4196,7 +4197,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    portModule.portRemove(portModuleTableMenu.portIndex)
+                    portModule.portRemove(portModuleTableMenu.portName)
                     progress = 0
                     portModuleTableMenu.close()
                 }

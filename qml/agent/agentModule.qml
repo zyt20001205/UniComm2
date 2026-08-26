@@ -711,7 +711,8 @@ Item {
                                     }
 
                                     Label {
-                                        text: permissionPage.role === "hardware" ? qsTr("Hardware") :
+                                        text: permissionPage.role === "data" ? qsTr("Data") :
+                                              permissionPage.role === "hardware" ? qsTr("Hardware") :
                                               permissionPage.role === "software" ? qsTr("Software") :
                                               permissionPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
                                         color: global.stroke
@@ -877,7 +878,8 @@ Item {
                                     }
 
                                     Label {
-                                        text: userInputPage.role === "hardware" ? qsTr("Hardware") :
+                                        text: userInputPage.role === "data" ? qsTr("Data") :
+                                              userInputPage.role === "hardware" ? qsTr("Hardware") :
                                               userInputPage.role === "software" ? qsTr("Software") :
                                               userInputPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
                                         color: global.stroke
@@ -1540,7 +1542,8 @@ Item {
 
             IconImage {
                 color: global.fore
-                source: role === "hardware" ? "qrc:/icon/hardware.svg" : "qrc:/icon/software.svg"
+                source: role === "data" ? "qrc:/icon/database.svg" :
+                        role === "hardware" ? "qrc:/icon/hardware.svg" : "qrc:/icon/software.svg"
                 sourceSize.width: 24; sourceSize.height: 24
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 Layout.alignment: Qt.AlignTop

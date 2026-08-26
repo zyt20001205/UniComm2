@@ -25,7 +25,7 @@ Item {
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignVCenter
 
-                onClicked: databaseModule.databaseInsert(-1)
+                onClicked: databaseModule.databaseInsert()
             }
 
             IconImage {
@@ -92,7 +92,9 @@ Item {
                         }
                     }
                     let move = verticalHeaderView.moves[index]
-                    databaseModule.databaseMove(move.oldVisualIndex, move.newVisualIndex)
+                    const key = standardItemModel.data(standardItemModel.index(move.oldVisualIndex, 0))
+                    const targetKey = standardItemModel.data(standardItemModel.index(move.newVisualIndex, 0))
+                    databaseModule.databaseMove(key, targetKey)
                     verticalHeaderView.clearRowReordering()
                     tableView.clearRowReordering()
                     verticalHeaderView.moves = []
@@ -218,7 +220,7 @@ Item {
                     gesturePolicy: TapHandler.DragWithinBounds
 
                     onSingleTapped: {
-                        tableMenu.databaseIndex = model.row
+                        tableMenu.databaseKey = standardItemModel.data(standardItemModel.index(model.row, 0))
                         tableMenu.popup()
                     }
                 }
@@ -230,12 +232,14 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                     text: display || ""
                     selectByMouse: true
+                    property string oldKey
                     background: Rectangle {
                         color: global.backSelected
                         radius: 6
                     }
 
                     Component.onCompleted: {
+                        oldKey = display || ""
                         forceActiveFocus()
                         selectAll()
                     }
@@ -243,7 +247,7 @@ Item {
                     TableView.onCommit: {
                         const view = tableView
                         const index = view.index(row, column)
-                        if (!databaseModule.databaseRename(row, text)) {
+                        if (databaseModule.databaseRename(oldKey, text) !== "") {
                             Qt.callLater(() => view.edit(index))
                         }
                     }

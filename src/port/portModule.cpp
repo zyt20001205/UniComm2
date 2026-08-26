@@ -211,7 +211,7 @@ void PortModule::portSetting(const int index) const {
     }
 }
 
-QString PortModule::portInsert(int index, QJsonObject portConfig) {
+QString PortModule::portInsert(int index, QJsonObject portConfig, const QString &undoGroupId) {
     portDefaults(portConfig);
 
     const auto exception = portCheck(portConfig);
@@ -228,34 +228,54 @@ QString PortModule::portInsert(int index, QJsonObject portConfig) {
         return error;
     }
 
-    g_undo->push(
+    const auto portIndex = QSharedPointer<int>::create(index);
+    const auto error = g_undo->push(
         tr("Port Insert (%1)").arg(portName),
-        [this, index, portConfig] { _portInsert(index, portConfig); },
-        [this, portName] { _portRemove(portName); });
+        [this, portIndex, portConfig] {
+            if (const auto error = portCheck(portConfig); !error.isEmpty()) return error;
+            if (*portIndex < 0 || *portIndex > g_portModel->rowCount()) return QString("Port insert failed: invalid index %1.").arg(*portIndex);
+            _portInsert(*portIndex, portConfig);
+            return QString{};
+        },
+        [this, portIndex, portName, portConfig] {
+            const auto port = m_portHash.value(portName);
+            if (port == nullptr) return QString("Port insert undo failed: '%1' does not exist.").arg(portName);
+            if (port->config() != portConfig) return QString("Port insert undo failed: '%1' configuration has changed.").arg(portName);
+            *portIndex = g_portModel->findItems(portName).constFirst()->row();
+            _portRemove(portName);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty()) return error;
     return QString("Port '%1' inserted.").arg(portName);
 }
 
-void PortModule::portRemove(const int index) {
-    if (index < 0 || index >= g_portModel->rowCount()) {
-        emit appendLog(LogLevel::Error, "[Port]", QString("Port remove failed: invalid index %1.").arg(index));
-        return;
-    }
-
-    const auto portName = g_portModel->item(index, 0)->text();
-    const auto portConfig = m_portHash[portName]->config();
-    g_undo->push(
-        tr("Port Remove (%1)").arg(portName),
-        [this, portName] { _portRemove(portName); },
-        [this, index, portConfig] { _portInsert(index, portConfig); });
-}
-
-QString PortModule::portRemove(const QString &portName) {
+QString PortModule::portRemove(const QString &portName, const QString &undoGroupId) {
     const auto name = portName.trimmed();
     const auto items = g_portModel->findItems(name);
     if (items.isEmpty()) return QString("Port remove failed: '%1' does not exist.").arg(name);
 
-    portRemove(items.constFirst()->row());
-    return QString("Port '%1' removed.").arg(name);
+    const auto portIndex = QSharedPointer<int>::create(items.constFirst()->row());
+    const auto portConfig = m_portHash.value(name)->config();
+    const auto error = g_undo->push(
+        tr("Port Remove (%1)").arg(name),
+        [this, portIndex, name, portConfig] {
+            const auto port = m_portHash.value(name);
+            if (port == nullptr) return QString("Port remove failed: '%1' does not exist.").arg(name);
+            if (port->config() != portConfig) return QString("Port remove failed: '%1' configuration has changed.").arg(name);
+            *portIndex = g_portModel->findItems(name).constFirst()->row();
+            _portRemove(name);
+            return QString{};
+        },
+        [this, portIndex, name, portConfig] {
+            if (m_portHash.contains(name)) return QString("Port remove undo failed: '%1' already exists.").arg(name);
+            if (const auto exception = portCheck(portConfig); !exception.isEmpty()) return exception;
+            if (*portIndex < 0 || *portIndex > g_portModel->rowCount()) return QString("Port remove undo failed: invalid index %1.").arg(*portIndex);
+            _portInsert(*portIndex, portConfig);
+            return QString{};
+        },
+        undoGroupId);
+    return error.isEmpty() ? QString("Port '%1' removed.").arg(name) : error;
 }
 
 void PortModule::portMove(const int src, const int dst) {

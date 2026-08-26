@@ -21,7 +21,7 @@ sol::table Data::databaseList(const sol::this_state ts) {
 
 void Data::databaseClear() {
     QMetaObject::invokeMethod(g_database, [] {
-        g_database->databaseClear(-1);
+        g_database->databaseClear();
     }, Qt::BlockingQueuedConnection);
 }
 

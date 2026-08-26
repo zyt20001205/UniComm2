@@ -16,7 +16,7 @@ public:
 
     [[nodiscard]] virtual QString roleGet() const;
 
-    [[nodiscard]] virtual QString systemGet() const;
+    [[nodiscard]] virtual QString systemGet() const = 0;
 
     [[nodiscard]] virtual QJsonArray toolsGet(const ToolsModule &toolsModule) const;
 
@@ -27,7 +27,6 @@ protected:
 
 private:
     QString m_role{};
-    QHash<QString, QString> m_systems{};
     QHash<QString, QSet<QString>> m_tools{};
 };
 

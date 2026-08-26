@@ -6,6 +6,8 @@
 class SoftwareAgent final : public BaseAgent {
 public:
     explicit SoftwareAgent(QObject *parent = nullptr);
+
+    [[nodiscard]] QString systemGet() const override;
 };
 
 #endif //UNICOMM_SOFTWAREAGENT_H

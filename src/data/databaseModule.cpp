@@ -59,13 +59,7 @@ QSet<QString> DatabaseModule::databaseList() const {
     return keys;
 }
 
-int DatabaseModule::databaseInsert(int index, const QString &key) {
-    if (index == -1) index = g_databaseStandardItemModel->rowCount();
-    if (index < 0 || index > g_databaseStandardItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
-        return -1;
-    }
-
+QString DatabaseModule::databaseInsert(const QString &key, const QString &targetKey, const QString &undoGroupId) {
     auto _key = key.trimmed();
     if (_key.isEmpty()) {
         int suffix{};
@@ -75,83 +69,163 @@ int DatabaseModule::databaseInsert(int index, const QString &key) {
         } while (m_databaseHash.contains(_key));
     }
     if (m_databaseHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key));
-        return -1;
+        const auto error = tr("Database insert failed: key \"%1\" already exists.").arg(_key);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+        return error;
     }
 
-    g_undo->push(
+    int targetIndex = g_databaseStandardItemModel->rowCount();
+    const auto _targetKey = targetKey.trimmed();
+    if (!_targetKey.isEmpty()) {
+        targetIndex = databaseIndex(_targetKey);
+        if (targetIndex == -1) {
+            const auto error = tr("Database insert failed: target key \"%1\" does not exist.").arg(_targetKey);
+            if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+            return error;
+        }
+    }
+
+    const auto index = QSharedPointer<int>::create(targetIndex);
+    const auto error = g_undo->push(
         tr("Database Insert (%1)").arg(_key),
-        [this, index, _key] { _databaseInsert(index, _key); },
-        [this, _key] { _databaseRemove(_key); });
-    return index;
+        [this, index, _key] {
+            if (m_databaseHash.contains(_key)) return tr("Database insert failed: key \"%1\" already exists.").arg(_key);
+            if (*index < 0 || *index > g_databaseStandardItemModel->rowCount()) return tr("Database insert failed: invalid index.");
+            _databaseInsert(*index, _key);
+            return QString{};
+        },
+        [this, index, _key] {
+            *index = databaseIndex(_key);
+            if (*index == -1) return tr("Database insert undo failed: key \"%1\" does not exist.").arg(_key);
+            _databaseRemove(_key);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+    return error;
 }
 
-void DatabaseModule::databaseRemove(const int index) {
-    if (index < 0 || index >= g_databaseStandardItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
-        return;
+QString DatabaseModule::databaseRemove(const QString &key, const QString &undoGroupId) {
+    const auto _key = key.trimmed();
+    const auto currentIndex = databaseIndex(_key);
+    if (currentIndex == -1) {
+        const auto error = tr("Database remove failed: key \"%1\" does not exist.").arg(_key);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+        return error;
     }
 
-    const auto key = g_databaseStandardItemModel->item(index, 0)->text();
-    g_undo->push(
-        tr("Database Remove (%1)").arg(key),
-        [this, key] { _databaseRemove(key); },
-        [this, index, key] { _databaseInsert(index, key); });
+    const auto index = QSharedPointer<int>::create(currentIndex);
+    const auto error = g_undo->push(
+        tr("Database Remove (%1)").arg(_key),
+        [this, index, _key] {
+            *index = databaseIndex(_key);
+            if (*index == -1) return tr("Database remove failed: key \"%1\" does not exist.").arg(_key);
+            _databaseRemove(_key);
+            return QString{};
+        },
+        [this, index, _key] {
+            if (m_databaseHash.contains(_key)) return tr("Database remove undo failed: key \"%1\" already exists.").arg(_key);
+            if (*index < 0 || *index > g_databaseStandardItemModel->rowCount()) return tr("Database remove undo failed: invalid index.");
+            _databaseInsert(*index, _key);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+    return error;
 }
 
-bool DatabaseModule::databaseRename(const int index, const QString &key) {
-    if (index < 0 || index >= g_databaseStandardItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
-        return false;
+QString DatabaseModule::databaseRename(const QString &key, const QString &newKey, const QString &undoGroupId) {
+    const auto oldKey = key.trimmed();
+    const auto _key = newKey.trimmed();
+    if (!m_databaseHash.contains(oldKey)) {
+        const auto error = tr("Database rename failed: key \"%1\" does not exist.").arg(oldKey);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+        return error;
+    }
+    if (_key.isEmpty()) {
+        const auto error = tr("Database rename failed: key cannot be empty.");
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+        return error;
+    }
+    if (_key == oldKey) return {};
+    if (m_databaseHash.contains(_key)) {
+        const auto error = tr("Database rename failed: key \"%1\" already exists.").arg(_key);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+        return error;
     }
 
+    const auto error = g_undo->push(
+        tr("Database Rename (%1->%2)").arg(oldKey, _key),
+        [this, oldKey, newKey = _key] {
+            if (!m_databaseHash.contains(oldKey)) return tr("Database rename failed: key \"%1\" does not exist.").arg(oldKey);
+            if (m_databaseHash.contains(newKey)) return tr("Database rename failed: key \"%1\" already exists.").arg(newKey);
+            _databaseRename(oldKey, newKey);
+            return QString{};
+        },
+        [this, oldKey, newKey = _key] {
+            if (!m_databaseHash.contains(newKey)) return tr("Database rename undo failed: key \"%1\" does not exist.").arg(newKey);
+            if (m_databaseHash.contains(oldKey)) return tr("Database rename undo failed: key \"%1\" already exists.").arg(oldKey);
+            _databaseRename(newKey, oldKey);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+    return error;
+}
+
+QString DatabaseModule::databaseMove(const QString &key, const QString &targetKey, const QString &undoGroupId) {
+    const auto _key = key.trimmed();
+    const auto _targetKey = targetKey.trimmed();
+    const auto src = databaseIndex(_key);
+    const auto dst = databaseIndex(_targetKey);
+    if (src == -1 || dst == -1) {
+        const auto error = tr("Database move failed: key does not exist.");
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+        return error;
+    }
+    if (src == dst) return {};
+
+    const auto error = g_undo->push(
+        tr("Database Move (%1: %2->%3)").arg(_key).arg(src + 1).arg(dst + 1),
+        [this, _key, _targetKey] {
+            const auto currentIndex = databaseIndex(_key);
+            const auto targetIndex = databaseIndex(_targetKey);
+            if (currentIndex == -1 || targetIndex == -1) return tr("Database move failed: key does not exist.");
+            _databaseMove(currentIndex, targetIndex);
+            return QString{};
+        },
+        [this, src, _key] {
+            const auto currentIndex = databaseIndex(_key);
+            if (currentIndex == -1) return tr("Database move undo failed: key \"%1\" does not exist.").arg(_key);
+            if (src < 0 || src >= g_databaseStandardItemModel->rowCount()) return tr("Database move undo failed: invalid target index.");
+            _databaseMove(currentIndex, src);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Database"), error);
+    return error;
+}
+
+void DatabaseModule::databaseClear(const QString &key) {
     const auto _key = key.trimmed();
     if (_key.isEmpty()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key cannot be empty."));
-        return false;
-    }
-
-    const auto oldKey = g_databaseStandardItemModel->item(index, 0)->text();
-    if (_key == oldKey) return true;
-    if (m_databaseHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Key \"%1\" already exists.").arg(_key));
-        return false;
-    }
-
-    g_undo->push(
-        tr("Database Rename (%1->%2)").arg(oldKey, _key),
-        [this, oldKey, newKey = _key] { _databaseRename(oldKey, newKey); },
-        [this, oldKey, newKey = _key] { _databaseRename(newKey, oldKey); });
-    return true;
-}
-
-void DatabaseModule::databaseMove(const int src, const int dst) {
-    if (src < 0 || src >= g_databaseStandardItemModel->rowCount() || dst < 0 || dst >= g_databaseStandardItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Invalid database index."));
-        return;
-    }
-    if (src == dst) return;
-
-    const auto key = g_databaseStandardItemModel->item(src, 0)->text();
-    g_undo->push(
-        tr("Database Move (%1: %2->%3)").arg(key).arg(src + 1).arg(dst + 1),
-        [this, src, dst] { _databaseMove(src, dst); },
-        [this, src, dst] { _databaseMove(dst, src); });
-}
-
-void DatabaseModule::databaseClear(const int index) {
-    if (index == -1) {
         for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {
             g_databaseStandardItemModel->item(i, 1)->setText("");
         }
-    } else {
-        g_databaseStandardItemModel->item(index, 1)->setText("");
+        return;
     }
+
+    const auto index = databaseIndex(_key);
+    if (index == -1) {
+        m_toast->show(ToastLevel::Warning, tr("Database"), tr("Database clear failed: key \"%1\" does not exist.").arg(_key));
+        return;
+    }
+    g_databaseStandardItemModel->item(index, 1)->setText("");
 }
 
 bool DatabaseModule::databaseWrite(const QString &key, const QString &value) {
-    if (!m_databaseHash.contains(key)) return false;
-    const auto index = m_databaseHash[key];
+    const auto index = databaseIndex(key);
+    if (index == -1) return false;
     g_databaseStandardItemModel->item(index, 1)->setText(value);
     return true;
 }
@@ -165,14 +239,12 @@ void DatabaseModule::_databaseInsert(const int index, const QString &key) {
 }
 
 void DatabaseModule::_databaseRemove(const QString &key) {
-    const auto iterator = m_databaseHash.constFind(key);
-    g_databaseStandardItemModel->removeRow(iterator.value());
+    g_databaseStandardItemModel->removeRow(databaseIndex(key));
     databaseCache();
 }
 
 void DatabaseModule::_databaseRename(const QString &oldKey, const QString &newKey) {
-    const auto iterator = m_databaseHash.constFind(oldKey);
-    auto *item = g_databaseStandardItemModel->item(iterator.value(), 0);
+    auto *item = g_databaseStandardItemModel->item(databaseIndex(oldKey), 0);
     item->setText(newKey);
     databaseCache();
 }
@@ -181,6 +253,10 @@ void DatabaseModule::_databaseMove(const int src, const int dst) {
     const auto row = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, row);
     databaseCache();
+}
+
+int DatabaseModule::databaseIndex(const QString &key) const {
+    return m_databaseHash.value(key, -1);
 }
 
 void DatabaseModule::databaseCache() {

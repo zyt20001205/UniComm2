@@ -25,7 +25,7 @@ Item {
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignVCenter
 
-                onClicked: datatableModule.datatableInsert(-1)
+                onClicked: datatableModule.datatableInsert()
             }
 
             IconImage {
@@ -83,7 +83,7 @@ Item {
                     gesturePolicy: TapHandler.DragWithinBounds
 
                     onSingleTapped: {
-                        tableMenu.datatableIndex = model.column
+                        tableMenu.datatableKey = model.display
                         tableMenu.popup()
                     }
                 }
@@ -96,11 +96,13 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                     text: display || ""
                     selectByMouse: true
+                    property string oldKey
                     background: Rectangle {
                         color: global.backSelected
                     }
 
                     Component.onCompleted: {
+                        oldKey = display || ""
                         forceActiveFocus()
                         selectAll()
                     }
@@ -108,7 +110,7 @@ Item {
                     TableView.onCommit: {
                         const view = horizontalHeaderView
                         const index = view.index(row, column)
-                        if (!datatableModule.datatableRename(column, text)) {
+                        if (datatableModule.datatableRename(oldKey, text) !== "") {
                             Qt.callLater(() => view.edit(index))
                         }
                     }
@@ -137,7 +139,9 @@ Item {
                         }
                     }
                     let move = horizontalHeaderView.moves[index]
-                    datatableModule.datatableMove(move.oldVisualIndex, move.newVisualIndex)
+                    const key = headerItemModel.data(headerItemModel.index(0, move.oldVisualIndex))
+                    const targetKey = headerItemModel.data(headerItemModel.index(0, move.newVisualIndex))
+                    datatableModule.datatableMove(key, targetKey)
                     horizontalHeaderView.clearColumnReordering()
                     tableView.clearColumnReordering()
                     horizontalHeaderView.moves = []

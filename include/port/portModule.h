@@ -34,11 +34,9 @@ public:
 
     Q_INVOKABLE void portSetting(int index = -1) const;
 
-    [[nodiscard]] QString portInsert(int index, QJsonObject portConfig);
+    [[nodiscard]] QString portInsert(int index, QJsonObject portConfig, const QString &undoGroupId = {});
 
-    Q_INVOKABLE void portRemove(int index);
-
-    [[nodiscard]] QString portRemove(const QString &portName);
+    Q_INVOKABLE [[nodiscard]] QString portRemove(const QString &portName, const QString &undoGroupId = {});
 
     Q_INVOKABLE void portMove(int src, int dst);
 

@@ -40,13 +40,13 @@ public:
 
     [[nodiscard]] QSet<QString> datatableList() const;
 
-    Q_INVOKABLE int datatableInsert(int index, const QString &key = QString());
+    Q_INVOKABLE [[nodiscard]] QString datatableInsert(const QString &key = {}, const QString &targetKey = {}, const QString &undoGroupId = {});
 
-    Q_INVOKABLE void datatableRemove(int index);
+    Q_INVOKABLE [[nodiscard]] QString datatableRemove(const QString &key, const QString &undoGroupId = {});
 
-    Q_INVOKABLE [[nodiscard]] bool datatableRename(int index, const QString &key);
+    Q_INVOKABLE [[nodiscard]] QString datatableRename(const QString &key, const QString &newKey, const QString &undoGroupId = {});
 
-    Q_INVOKABLE void datatableMove(int src, int dst);
+    Q_INVOKABLE [[nodiscard]] QString datatableMove(const QString &key, const QString &targetKey, const QString &undoGroupId = {});
 
     Q_INVOKABLE void datatableClear();
 
@@ -77,6 +77,8 @@ private:
     void _datatableRename(const QString &oldKey, const QString &newKey);
 
     void _datatableMove(int src, int dst);
+
+    int datatableIndex(const QString &key) const;
 
     void datatableCache();
 

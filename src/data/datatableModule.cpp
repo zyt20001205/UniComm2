@@ -65,13 +65,7 @@ QSet<QString> DatatableModule::datatableList() const {
     return keys;
 }
 
-int DatatableModule::datatableInsert(int index, const QString &key) {
-    if (index == -1) index = g_datatableHeaderItemModel->rowCount();
-    if (index < 0 || index > g_datatableHeaderItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."));
-        return -1;
-    }
-
+QString DatatableModule::datatableInsert(const QString &key, const QString &targetKey, const QString &undoGroupId) {
     auto _key = key.trimmed();
     if (_key.isEmpty()) {
         int suffix{};
@@ -81,68 +75,141 @@ int DatatableModule::datatableInsert(int index, const QString &key) {
         } while (m_datatableHash.contains(_key));
     }
     if (m_datatableHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key));
-        return -1;
+        const auto error = tr("Data table insert failed: key \"%1\" already exists.").arg(_key);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+        return error;
     }
 
-    g_undo->push(
+    int targetIndex = g_datatableHeaderItemModel->rowCount();
+    const auto _targetKey = targetKey.trimmed();
+    if (!_targetKey.isEmpty()) {
+        targetIndex = datatableIndex(_targetKey);
+        if (targetIndex == -1) {
+            const auto error = tr("Data table insert failed: target key \"%1\" does not exist.").arg(_targetKey);
+            if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+            return error;
+        }
+    }
+
+    const auto index = QSharedPointer<int>::create(targetIndex);
+    const auto error = g_undo->push(
         tr("Data Table Insert (%1)").arg(_key),
-        [this, index, _key] { _datatableInsert(index, _key); },
-        [this, _key] { _datatableRemove(_key); });
-    return index;
+        [this, index, _key] {
+            if (m_datatableHash.contains(_key)) return tr("Data table insert failed: key \"%1\" already exists.").arg(_key);
+            if (*index < 0 || *index > g_datatableHeaderItemModel->rowCount()) return tr("Data table insert failed: invalid index.");
+            _datatableInsert(*index, _key);
+            return QString{};
+        },
+        [this, index, _key] {
+            *index = datatableIndex(_key);
+            if (*index == -1) return tr("Data table insert undo failed: key \"%1\" does not exist.").arg(_key);
+            _datatableRemove(_key);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+    return error;
 }
 
-void DatatableModule::datatableRemove(const int index) {
-    if (index < 0 || index >= g_datatableHeaderItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."));
-        return;
-    }
-
-    const auto key = g_datatableHeaderItemModel->item(index, 0)->text();
-    g_undo->push(
-        tr("Data Table Remove (%1)").arg(key),
-        [this, key] { _datatableRemove(key); },
-        [this, index, key] { _datatableInsert(index, key); });
-}
-
-bool DatatableModule::datatableRename(const int index, const QString &key) {
-    if (index < 0 || index >= g_datatableHeaderItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."));
-        return false;
-    }
-
+QString DatatableModule::datatableRemove(const QString &key, const QString &undoGroupId) {
     const auto _key = key.trimmed();
-    if (_key.isEmpty()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key cannot be empty."));
-        return false;
+    const auto currentIndex = datatableIndex(_key);
+    if (currentIndex == -1) {
+        const auto error = tr("Data table remove failed: key \"%1\" does not exist.").arg(_key);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+        return error;
     }
 
-    const auto oldKey = g_datatableHeaderItemModel->item(index, 0)->text();
-    if (_key == oldKey) return true;
-    if (m_datatableHash.contains(_key)) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Key \"%1\" already exists.").arg(_key));
-        return false;
-    }
-
-    g_undo->push(
-        tr("Data Table Rename (%1->%2)").arg(oldKey, _key),
-        [this, oldKey, newKey = _key] { _datatableRename(oldKey, newKey); },
-        [this, oldKey, newKey = _key] { _datatableRename(newKey, oldKey); });
-    return true;
+    const auto index = QSharedPointer<int>::create(currentIndex);
+    const auto error = g_undo->push(
+        tr("Data Table Remove (%1)").arg(_key),
+        [this, index, _key] {
+            *index = datatableIndex(_key);
+            if (*index == -1) return tr("Data table remove failed: key \"%1\" does not exist.").arg(_key);
+            _datatableRemove(_key);
+            return QString{};
+        },
+        [this, index, _key] {
+            if (m_datatableHash.contains(_key)) return tr("Data table remove undo failed: key \"%1\" already exists.").arg(_key);
+            if (*index < 0 || *index > g_datatableHeaderItemModel->rowCount()) return tr("Data table remove undo failed: invalid index.");
+            _datatableInsert(*index, _key);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+    return error;
 }
 
-void DatatableModule::datatableMove(const int src, const int dst) {
-    if (src < 0 || src >= g_datatableHeaderItemModel->rowCount() || dst < 0 || dst >= g_datatableHeaderItemModel->rowCount()) {
-        m_toast->show(ToastLevel::Warning, tr("Data Table"), tr("Invalid data table index."));
-        return;
+QString DatatableModule::datatableRename(const QString &key, const QString &newKey, const QString &undoGroupId) {
+    const auto oldKey = key.trimmed();
+    const auto _key = newKey.trimmed();
+    if (!m_datatableHash.contains(oldKey)) {
+        const auto error = tr("Data table rename failed: key \"%1\" does not exist.").arg(oldKey);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+        return error;
     }
-    if (src == dst) return;
+    if (_key.isEmpty()) {
+        const auto error = tr("Data table rename failed: key cannot be empty.");
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+        return error;
+    }
+    if (_key == oldKey) return {};
+    if (m_datatableHash.contains(_key)) {
+        const auto error = tr("Data table rename failed: key \"%1\" already exists.").arg(_key);
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+        return error;
+    }
 
-    const auto key = g_datatableHeaderItemModel->item(src, 0)->text();
-    g_undo->push(
-        tr("Data Table Move (%1: %2->%3)").arg(key).arg(src + 1).arg(dst + 1),
-        [this, src, dst] { _datatableMove(src, dst); },
-        [this, src, dst] { _datatableMove(dst, src); });
+    const auto error = g_undo->push(
+        tr("Data Table Rename (%1->%2)").arg(oldKey, _key),
+        [this, oldKey, newKey = _key] {
+            if (!m_datatableHash.contains(oldKey)) return tr("Data table rename failed: key \"%1\" does not exist.").arg(oldKey);
+            if (m_datatableHash.contains(newKey)) return tr("Data table rename failed: key \"%1\" already exists.").arg(newKey);
+            _datatableRename(oldKey, newKey);
+            return QString{};
+        },
+        [this, oldKey, newKey = _key] {
+            if (!m_datatableHash.contains(newKey)) return tr("Data table rename undo failed: key \"%1\" does not exist.").arg(newKey);
+            if (m_datatableHash.contains(oldKey)) return tr("Data table rename undo failed: key \"%1\" already exists.").arg(oldKey);
+            _datatableRename(newKey, oldKey);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+    return error;
+}
+
+QString DatatableModule::datatableMove(const QString &key, const QString &targetKey, const QString &undoGroupId) {
+    const auto _key = key.trimmed();
+    const auto _targetKey = targetKey.trimmed();
+    const auto src = datatableIndex(_key);
+    const auto dst = datatableIndex(_targetKey);
+    if (src == -1 || dst == -1) {
+        const auto error = tr("Data table move failed: key does not exist.");
+        if (undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+        return error;
+    }
+    if (src == dst) return {};
+
+    const auto error = g_undo->push(
+        tr("Data Table Move (%1: %2->%3)").arg(_key).arg(src + 1).arg(dst + 1),
+        [this, _key, _targetKey] {
+            const auto currentIndex = datatableIndex(_key);
+            const auto targetIndex = datatableIndex(_targetKey);
+            if (currentIndex == -1 || targetIndex == -1) return tr("Data table move failed: key does not exist.");
+            _datatableMove(currentIndex, targetIndex);
+            return QString{};
+        },
+        [this, src, _key] {
+            const auto currentIndex = datatableIndex(_key);
+            if (currentIndex == -1) return tr("Data table move undo failed: key \"%1\" does not exist.").arg(_key);
+            if (src < 0 || src >= g_datatableHeaderItemModel->rowCount()) return tr("Data table move undo failed: invalid target index.");
+            _datatableMove(currentIndex, src);
+            return QString{};
+        },
+        undoGroupId);
+    if (!error.isEmpty() && undoGroupId.isEmpty()) m_toast->show(ToastLevel::Warning, tr("Data Table"), error);
+    return error;
 }
 
 void DatatableModule::datatableClear() {
@@ -196,8 +263,8 @@ void DatatableModule::datatableExport(const QString &path) {
 }
 
 bool DatatableModule::datatableWrite(const QString &key, const QString &value) {
-    if (!m_datatableHash.contains(key)) return false;
-    const auto col = m_datatableHash[key];
+    const auto col = datatableIndex(key);
+    if (col == -1) return false;
     auto &state = m_datatableStates[key];
     auto *item = new QStandardItem(value); // NOLINT
     g_datatableStandardItemModel->setItem(state.length, col, item);
@@ -217,17 +284,17 @@ void DatatableModule::_datatableInsert(const int index, const QString &key) {
 }
 
 void DatatableModule::_datatableRemove(const QString &key) {
-    const auto iterator = m_datatableHash.constFind(key);
+    const auto index = datatableIndex(key);
     m_datatableStates.remove(key);
-    g_datatableHeaderItemModel->removeRow(iterator.value());
-    g_datatableStandardItemModel->removeColumn(iterator.value());
+    g_datatableHeaderItemModel->removeRow(index);
+    g_datatableStandardItemModel->removeColumn(index);
     datatableCache();
 }
 
 void DatatableModule::_datatableRename(const QString &oldKey, const QString &newKey) {
-    const auto iterator = m_datatableHash.constFind(oldKey);
+    const auto index = datatableIndex(oldKey);
     m_datatableStates.insert(newKey, m_datatableStates.take(oldKey));
-    g_datatableHeaderItemModel->item(iterator.value(), 0)->setText(newKey);
+    g_datatableHeaderItemModel->item(index, 0)->setText(newKey);
     datatableCache();
 }
 
@@ -237,6 +304,10 @@ void DatatableModule::_datatableMove(const int src, const int dst) {
     items = g_datatableStandardItemModel->takeColumn(src);
     g_datatableStandardItemModel->insertColumn(dst, items);
     datatableCache();
+}
+
+int DatatableModule::datatableIndex(const QString &key) const {
+    return m_datatableHash.value(key, -1);
 }
 
 void DatatableModule::datatableCache() {

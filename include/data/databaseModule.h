@@ -24,15 +24,15 @@ public:
 
     [[nodiscard]] QSet<QString> databaseList() const;
 
-    Q_INVOKABLE int databaseInsert(int index, const QString &key = QString());
+    Q_INVOKABLE [[nodiscard]] QString databaseInsert(const QString &key = {}, const QString &targetKey = {}, const QString &undoGroupId = {});
 
-    Q_INVOKABLE void databaseRemove(int index);
+    Q_INVOKABLE [[nodiscard]] QString databaseRemove(const QString &key, const QString &undoGroupId = {});
 
-    Q_INVOKABLE [[nodiscard]] bool databaseRename(int index, const QString &key);
+    Q_INVOKABLE [[nodiscard]] QString databaseRename(const QString &key, const QString &newKey, const QString &undoGroupId = {});
 
-    Q_INVOKABLE void databaseMove(int src, int dst);
+    Q_INVOKABLE [[nodiscard]] QString databaseMove(const QString &key, const QString &targetKey, const QString &undoGroupId = {});
 
-    Q_INVOKABLE static void databaseClear(int index);
+    Q_INVOKABLE void databaseClear(const QString &key = {});
 
     [[nodiscard]] bool databaseWrite(const QString &key, const QString &value);
 
@@ -47,6 +47,8 @@ private:
     void _databaseRename(const QString &oldKey, const QString &newKey);
 
     void _databaseMove(int src, int dst);
+
+    int databaseIndex(const QString &key) const;
 
     void databaseCache();
 
