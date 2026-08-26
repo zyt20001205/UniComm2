@@ -1117,18 +1117,7 @@ void DocumentModule::renameRequest(const QUrl &documentUrl, const int line, cons
     emit requestJson("textDocument/rename", renameParams);
 }
 
-void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &response) const {
-    if (response.contains("error")) {
-        qDebug() << "lsp rename error:" << response["error"].toObject()["message"].toString();
-        return;
-    }
-
-    if (!response["result"].isObject()) {
-        qDebug() << "lsp rename: no changes";
-        return;
-    }
-
-    const auto workspaceEdit = response["result"].toObject();
+void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &workspaceEdit) const {
     QSet<QUrl> documentUrls{};
     const auto changes = workspaceEdit["changes"].toObject();
     for (auto change = changes.constBegin(); change != changes.constEnd(); ++change) {

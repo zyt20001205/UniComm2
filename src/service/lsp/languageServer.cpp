@@ -26,9 +26,9 @@ void LanguageServer::initialize() {
     }
     const QString rootUriStr = g_workspaceUrl.toString();
     const QJsonObject initializeParams{
-            {"processId", QCoreApplication::applicationPid()},
-            {"rootUri", rootUriStr},
-            {"capabilities", QJsonObject{}}
+        {"processId", QCoreApplication::applicationPid()},
+        {"rootUri", rootUriStr},
+        {"capabilities", QJsonObject{}}
     };
     jsonRequest("initialize", initializeParams);
     // wait for lsp initialized notification
@@ -85,6 +85,35 @@ void LanguageServer::jsonNotification(const QString &method, const QJsonObject &
 }
 
 // private
+void LanguageServer::jsonResponse(const QJsonValue &id, const QJsonValue &result) const {
+    const QJsonObject msg = {
+        {"jsonrpc", "2.0"},
+        {"id", id},
+        {"result", result}
+    };
+    const QByteArray data = QJsonDocument(msg).toJson(QJsonDocument::Compact);
+    const QByteArray header = "Content-Length: " + QByteArray::number(data.size()) + "\r\n\r\n";
+    m_process->write(header);
+    m_process->write(data);
+}
+
+void LanguageServer::jsonError(const QJsonValue &id, const int code, const QString &message) const {
+    const QJsonObject msg = {
+        {"jsonrpc", "2.0"},
+        {"id", id},
+        {
+            "error", QJsonObject{
+                {"code", code},
+                {"message", message}
+            }
+        }
+    };
+    const QByteArray data = QJsonDocument(msg).toJson(QJsonDocument::Compact);
+    const QByteArray header = "Content-Length: " + QByteArray::number(data.size()) + "\r\n\r\n";
+    m_process->write(header);
+    m_process->write(data);
+}
+
 void LanguageServer::parser() {
     // append to buffer
     m_buffer.append(m_process->readAllStandardOutput());
@@ -101,47 +130,53 @@ void LanguageServer::parser() {
         // qDebug() << json;
         m_buffer.remove(0, headerEndIndex + 4 + length);
         if (json.contains("method")) {
-            // lsp notification
             const auto method = json["method"].toString();
-            if (method == "textDocument/publishDiagnostics") {
-                // publish diagnostics notification
-                const auto params = json["params"].toObject();
-                const auto diagnostics = params["diagnostics"].toArray();
-                const LUrl uri = params["uri"].toString();
-                const auto documentUrl = uni_cast<QUrl>(uri);
-                emit notificationDiagnostics(documentUrl, diagnostics);
-            } else if (method == "$/hello") {
-                // hello notification
-                // qDebug() << json;
-            } else if (method == "$/progress") {
-                // progress notification
-                // qDebug() << json;
-                // const auto params = json["params"].toObject();
-                // const auto token = params["token"].toInt();
-                // const auto value = params["value"].toObject();
-                // if (token == 2) {
-                //     const int percentage = value["percentage"].toInt(100);
-                //     m_progressDialog->setProperty("create2", percentage / 100.0);
-                // } else if (token == 3) {
-                //     const int percentage = value["percentage"].toInt(100);
-                //     m_progressDialog->setProperty("create3", percentage / 100.0);
-                // }
-            } else if (method == "window/logMessage") {
-                // log message notification
-                // qDebug() << json;
-            } else if (method == "window/workDoneProgress/create") {
-                // work done progress notification
-                // qDebug() << json;
-                // const auto params = json["params"].toObject();
-                // const auto token = params["token"].toInt();
-                // if (token == 2) {
-                //     m_progressDialog->setProperty("done2", true);
-                // } else if (token == 3) {
-                //     m_progressDialog->setProperty("done3", true);
-                // }
-            } else {
-                qDebug() << "unknown lsp pack";
-                qDebug() << json;
+            const auto params = json["params"].toObject();
+            // lsp request
+            if (json.contains("id")) {
+                const auto id = json["id"];
+                if (method == "workspace/applyEdit") {
+                    jsonResponse(id, QJsonObject{
+                                     {"applied", false},
+                                     {"failureReason", "Workspace edits are not supported."}
+                                 });
+                } else if (method == "window/workDoneProgress/create") {
+                    jsonResponse(id, QJsonValue(QJsonValue::Null));
+                } else {
+                    jsonError(id, -32601, "Method not found");
+                }
+            }
+            // lsp notification
+            else {
+                if (method == "textDocument/publishDiagnostics") {
+                    // publish diagnostics notification
+                    const auto diagnostics = params["diagnostics"].toArray();
+                    const LUrl uri = params["uri"].toString();
+                    const auto documentUrl = uni_cast<QUrl>(uri);
+                    emit notificationDiagnostics(documentUrl, diagnostics);
+                } else if (method == "$/hello") {
+                    // hello notification
+                    // qDebug() << json;
+                } else if (method == "$/progress") {
+                    // progress notification
+                    // qDebug() << json;
+                    // const auto params = json["params"].toObject();
+                    // const auto token = params["token"].toInt();
+                    // const auto value = params["value"].toObject();
+                    // if (token == 2) {
+                    //     const int percentage = value["percentage"].toInt(100);
+                    //     m_progressDialog->setProperty("create2", percentage / 100.0);
+                    // } else if (token == 3) {
+                    //     const int percentage = value["percentage"].toInt(100);
+                    //     m_progressDialog->setProperty("create3", percentage / 100.0);
+                    // }
+                } else if (method == "window/logMessage") {
+                    // log message notification
+                    // qDebug() << json;
+                } else {
+                    qDebug() << "unknown lsp pack";
+                    qDebug() << json;
+                }
             }
         } else if (json.contains("id")) {
             // lsp response
@@ -237,7 +272,10 @@ void LanguageServer::parser() {
                 const auto result = json["result"].toArray();
                 emit responseReferences(documentUrl, result);
             } else if (method == "textDocument/rename") {
-                emit responseRename(documentUrl, json);
+                // rename response
+                if (!json["result"].isObject()) return; // null result
+                const auto workspaceEdit = json["result"].toObject();
+                emit responseRename(documentUrl, workspaceEdit);
             } else if (method == "textDocument/semanticTokens/full") {
                 // semanticTokens response
                 if (!json["result"].isObject()) return; // null result

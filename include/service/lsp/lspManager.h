@@ -48,7 +48,7 @@ signals:
 
     void responseReferences(const QUrl &documentUrl, const QJsonArray &ranges);
 
-    void responseRename(const QUrl &documentUrl, const QJsonObject &response);
+    void responseRename(const QUrl &documentUrl, const QJsonObject &workspaceEdit);
 
     void responseSemanticTokens(const QUrl &documentUrl, const QJsonArray &data);
 

@@ -2,6 +2,7 @@
 #define UNICOMM_LANGUAGESERVER_H
 
 #include <QJsonObject>
+#include <QJsonValue>
 #include <QObject>
 #include <QUrl>
 
@@ -56,7 +57,7 @@ signals:
 
     void responseReferences(const QUrl &documentUrl, const QJsonArray &ranges);
 
-    void responseRename(const QUrl &documentUrl, const QJsonObject &response);
+    void responseRename(const QUrl &documentUrl, const QJsonObject &workspaceEdit);
 
     void responseSemanticTokens(const QUrl &documentUrl, const QJsonArray &data);
 
@@ -65,6 +66,10 @@ signals:
     void responseTypeDefinition(const QUrl &documentUrl, const QJsonArray &ranges);
 
 private:
+    void jsonResponse(const QJsonValue &id, const QJsonValue &result) const;
+
+    void jsonError(const QJsonValue &id, int code, const QString &message) const;
+
     void parser();
 
     QProcess *m_process{};
