@@ -1098,6 +1098,7 @@ Item {
     Menu {
         id: documentModuleEditorMenu
         focus: false
+        implicitWidth: 300
         property var menuSession
 
         onOpened: {
@@ -1111,9 +1112,29 @@ Item {
         }
 
         MenuItem {
-            text: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text ? qsTr("Run Selected") : qsTr("Run") : false
-            icon.source: "qrc:/icon/play.svg"
-            icon.width: 16; icon.height: 16
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                IconImage {
+                    source: "qrc:/icon/play.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    color: global.successFore3
+                }
+
+                Label {
+                    text: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text ? qsTr("Run Selected") : qsTr("Run") : false
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Shift+F10"
+                }
+            }
 
             onTriggered: {
                 if (documentModuleEditorMenu.menuSession.text) {
@@ -1125,9 +1146,29 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Debug")
-            icon.source: "qrc:/icon/bug.svg"
-            icon.width: 16; icon.height: 16
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                IconImage {
+                    source: "qrc:/icon/bug.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    color: global.successFore3
+                }
+
+                Label {
+                    text: qsTr("Debug")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Shift+F9"
+                }
+            }
 
             onTriggered: threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.documentUrl, 1)
         }
@@ -1166,9 +1207,29 @@ Item {
         }
 
         MenuItem {
-            text: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text ? qsTr("Reformat Selected") : qsTr("Reformat") : false
-            icon.source: "qrc:/icon/brush.svg"
-            icon.width: 16; icon.height: 16
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                IconImage {
+                    source: "qrc:/icon/brush.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    color: global.fore
+                }
+
+                Label {
+                    text: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text ? qsTr("Reformat Selected") : qsTr("Reformat") : false
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+Alt+L"
+                }
+            }
 
             onTriggered: {
                 if (documentModuleEditorMenu.menuSession.text) {
