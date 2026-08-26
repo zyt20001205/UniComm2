@@ -843,7 +843,7 @@ void DocumentModule::documentHighlightRequest(const QUrl &documentUrl, const int
     emit requestJson("textDocument/documentHighlight", documentHighlightParams);
 }
 
-void DocumentModule::documentHighlightResponse(const QUrl &documentUrl, const QJsonArray &result) {
+void DocumentModule::documentHighlightResponse(const QUrl &documentUrl, const QJsonArray &result) const {
     if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->documentHighlightResponse(result);
 }
 
@@ -860,9 +860,7 @@ void DocumentModule::foldingRangeRequest(const QUrl &documentUrl) {
 }
 
 void DocumentModule::foldingRangeResponse(const QUrl &documentUrl, const QJsonArray &result) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        codePage->foldingRangeResponse(result);
-    }
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->foldingRangeResponse(result);
 }
 
 void DocumentModule::formattingRequest(const QUrl &documentUrl) {
@@ -886,11 +884,8 @@ void DocumentModule::formattingRequest(const QUrl &documentUrl) {
 }
 
 void DocumentModule::formattingResponse(const QUrl &documentUrl, const QString &newText) const {
-    if (newText.isEmpty()) {
-        m_toast->show(ToastLevel::Info, tr("Format"), tr("File is already formatted."));
-    } else if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        codePage->formattingResponse(newText);
-    }
+    if (newText.isEmpty()) m_toast->show(ToastLevel::Info, tr("Format"), tr("File is already formatted."));
+    else if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->formattingResponse(newText);
 }
 
 void DocumentModule::hoverRequest(const QUrl &documentUrl, int line, int character) {
@@ -983,9 +978,7 @@ void DocumentModule::onTypeFormattingRequest(const QUrl &documentUrl, int line, 
 }
 
 void DocumentModule::onTypeFormattingResponse(const QUrl &documentUrl, const QJsonObject &newText) const {
-    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        codePage->onTypeFormattingResponse(newText);
-    }
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->onTypeFormattingResponse(newText);
 }
 
 void DocumentModule::prepareRenameRequest(const QUrl &documentUrl, const int line, const int character) {
@@ -1009,7 +1002,7 @@ void DocumentModule::prepareRenameRequest(const QUrl &documentUrl, const int lin
     emit requestJson("textDocument/prepareRename", prepareRenameParams);
 }
 
-void DocumentModule::prepareRenameResponse(const QUrl &, const QString &oldName) const {
+void DocumentModule::prepareRenameResponse(const QUrl &documentUrl, const QString &oldName) const {
     m_renameDialog->setProperty("oldName", oldName);
     QMetaObject::invokeMethod(m_renameDialog, "open");
 }
@@ -1130,14 +1123,12 @@ void DocumentModule::renameResponse(const QUrl &documentUrl, const QJsonObject &
             qDebug() << "lsp rename: unsupported file operation";
             return;
         }
-        const auto uri = change["textDocument"].toObject()["uri"].toString();
-        if (!uri.isEmpty()) documentUrls.insert(uni_cast<QUrl>(LUrl(uri)));
     }
 
     if (documentUrls.isEmpty()) {
         qDebug() << "lsp rename: no changes";
-    } else if (documentUrls.size() == 1 && documentUrls.contains(documentUrl)) {
-        qDebug() << "lsp rename: current document";
+    } else if (documentUrls.size() == 1) {
+        if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->renameResponse(changes.constBegin().value().toArray());
     } else {
         qDebug() << "lsp rename: workspace";
     }
@@ -1156,9 +1147,7 @@ void DocumentModule::semanticTokensRequest(const QUrl &documentUrl) {
 }
 
 void DocumentModule::semanticTokensResponse(const QUrl &documentUrl, const QJsonArray &data) const {
-    if (auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        codePage->semanticTokensResponse(data);
-    }
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->semanticTokensResponse(data);
 }
 
 void DocumentModule::signatureHelpRequest(const QUrl &documentUrl, int line, int character) {
@@ -1233,9 +1222,7 @@ void DocumentModule::typeDefinitionResponse(const QUrl &documentUrl, const QJson
 // public: typo
 void DocumentModule::spellCheckResponse(const QUrl &documentUrl, const QVariantList &typos) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) {
-        codePage->spellCheckResponse(typos);
-    }
+    if (const auto *codePage = qobject_cast<CodePage *>(m_pageHash.value(documentUrl))) codePage->spellCheckResponse(typos);
 }
 
 // private
@@ -1454,7 +1441,8 @@ void DocumentModule::_transactionRename(const QString &undoGroupId, const QUrl &
 
         const auto relativePath = QDir(sourceUrl.toLocalFile()).relativeFilePath(url.toLocalFile());
         if (relativePath == QStringLiteral("..") || relativePath.startsWith(QStringLiteral("../")) || relativePath.startsWith(QStringLiteral("..\\")) ||
-            QDir::isAbsolutePath(relativePath)) return QUrl{};
+            QDir::isAbsolutePath(relativePath))
+            return QUrl{};
         return QUrl::fromLocalFile(QDir(targetUrl.toLocalFile()).filePath(relativePath));
     };
 

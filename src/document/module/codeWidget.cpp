@@ -212,6 +212,24 @@ void CodeWidget::rangeFormattingResponse(const QString &newText) const {
     m_scintillaWidget->textSetSelected(newText);
 }
 
+void CodeWidget::renameResponse(const QJsonArray &changes) const {
+    m_scintillaWidget->undoBegin();
+    for (int index = static_cast<int>(changes.size()) - 1; index >= 0; --index) {
+        const auto edit = changes[index].toObject();
+        const auto range = edit["range"].toObject();
+        const auto start = range["start"].toObject();
+        const auto end = range["end"].toObject();
+        m_scintillaWidget->textSet(
+            edit["newText"].toString(),
+            start["line"].toInt(),
+            start["character"].toInt(),
+            end["line"].toInt(),
+            end["character"].toInt()
+        );
+    }
+    m_scintillaWidget->undoEnd();
+}
+
 void CodeWidget::semanticTokensResponse(const QJsonArray &data) {
     // clear
     m_scintillaWidget->styleSet(ScintillaStyle::Unused);

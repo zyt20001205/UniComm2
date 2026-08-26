@@ -126,6 +126,10 @@ void CodePage::rangeFormattingResponse(const QString &newText) const {
     m_codeWidget->rangeFormattingResponse(newText);
 }
 
+void CodePage::renameResponse(const QJsonArray &changes) const {
+    m_codeWidget->renameResponse(changes);
+}
+
 void CodePage::semanticTokensResponse(const QJsonArray &data) const {
     m_codeWidget->semanticTokensResponse(data);
 }

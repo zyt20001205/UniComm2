@@ -41,6 +41,8 @@ public:
 
     void rangeFormattingResponse(const QString &newText) const;
 
+    void renameResponse(const QJsonArray &changes) const;
+
     void semanticTokensResponse(const QJsonArray &data) const;
 
     // public: typo

@@ -137,7 +137,7 @@ public:
 
     void documentHighlightRequest(const QUrl &documentUrl, int line, int character);
 
-    void documentHighlightResponse(const QUrl &documentUrl, const QJsonArray &result);
+    void documentHighlightResponse(const QUrl &documentUrl, const QJsonArray &result) const;
 
     void foldingRangeRequest(const QUrl &documentUrl);
 
