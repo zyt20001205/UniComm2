@@ -1352,6 +1352,7 @@ Item {
                 Button {
                     id: modeButton
                     property int mode: 0
+                    leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0 && mode >= 0
                     flat: true
                     text: mode === 0 ? qsTr("Chat") :
@@ -1365,6 +1366,7 @@ Item {
                     icon.color: mode === 3 ? global.warningFore3 : global.fore
                     icon.width: 16; icon.height: 16
                     palette.buttonText: mode === 3 ? global.warningFore3 : global.fore
+                    implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
                     Layout.preferredHeight: 28
 
                     onClicked: {
@@ -1374,11 +1376,17 @@ Item {
                     }
                 }
 
+                Item {
+                    Layout.fillWidth: true
+                }
+
                 Button {
                     id: modelButton
+                    leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state === 0
                     flat: true
                     text: qsTr("Select model")
+                    implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
                     Layout.preferredHeight: 28
 
                     onClicked: {
@@ -1386,10 +1394,6 @@ Item {
                         const localPos = modelMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
                         modelMenu.popup(localPos.x, localPos.y)
                     }
-                }
-
-                Item {
-                    Layout.fillWidth: true
                 }
 
                 Flipable {
