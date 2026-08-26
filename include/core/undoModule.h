@@ -9,6 +9,7 @@
 #include <QSharedPointer>
 #include <QUndoStack>
 #include <QVariantList>
+#include <QVariantMap>
 #include <QVector>
 
 class UndoGroupData;
@@ -44,6 +45,8 @@ public:
 
     void undoGroupInvalidate(const QString &undoGroupId, const QString &error);
 
+    [[nodiscard]] QVariantMap undoGroupGet(const QString &undoGroupId) const;
+
     Q_INVOKABLE [[nodiscard]] QVariantList undoHistory() const;
 
     Q_INVOKABLE [[nodiscard]] QVariantList redoHistory() const;
@@ -51,6 +54,9 @@ public:
     Q_INVOKABLE void undoTo(int targetIndex);
 
     Q_INVOKABLE void redoTo(int targetIndex);
+
+signals:
+    void updateChange(const QString &undoGroupId);
 
 private:
     template<typename Action>

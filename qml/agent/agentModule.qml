@@ -986,16 +986,23 @@ Item {
         }
 
         Item {
-            id: diffCard
-            visible: fileCount > 0 && !minimized
+            id: changeCard
+            visible: hasChanges && !minimized
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? diffLayout.implicitHeight + 20 : 0
-            property var fileDiffs: ({})
+            Layout.preferredHeight: visible ? changeLayout.implicitHeight + 20 : 0
+            property var changes: ({})
             property bool minimized: true
-            property int additions
-            property int deletions
+            readonly property var steps: changes.steps ? changes.steps : []
+            readonly property var fileDiffs: changes.fileDiffs ? changes.fileDiffs : ({})
+            readonly property int additions: changes.additions ? changes.additions : 0
+            readonly property int deletions: changes.deletions ? changes.deletions : 0
+            readonly property bool committed: changes.committed === true
+            readonly property bool applied: changes.applied === true
+            readonly property string error: changes.error ? changes.error : ""
             readonly property var urls: Object.keys(fileDiffs)
             readonly property int fileCount: urls.length
+            readonly property int changeCount: Math.max(steps.length, fileCount > 0 ? 1 : 0)
+            readonly property bool hasChanges: changeCount > 0
 
             Rectangle {
                 anchors.fill: parent
@@ -1006,7 +1013,7 @@ Item {
             }
 
             ColumnLayout {
-                id: diffLayout
+                id: changeLayout
                 anchors.fill: parent
                 anchors.margins: 10
                 spacing: 6
@@ -1029,43 +1036,124 @@ Item {
                     }
 
                     Button {
+                        id: changeUndoButton
+                        checkable: true
+                        enabled: agentModule.state === 0 && changeCard.committed && changeCard.applied && changeCard.error.length === 0
                         leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
                         flat: true
-                        text: qsTr("Undo")
-                        icon.source: "qrc:/icon/undo.svg"
+                        text: {
+                            if (changeCard.error.length > 0) return qsTr("Unavailable")
+                            if (changeCard.committed && !changeCard.applied) return qsTr("Undone")
+                            return checked ? qsTr("Confirm") : qsTr("Undo")
+                        }
+                        icon.source: checked || changeCard.committed && !changeCard.applied ? "qrc:/icon/checkmark.svg" : "qrc:/icon/undo.svg"
                         icon.width: 16; icon.height: 16
+                        implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
                         Layout.preferredHeight: 24
+
+                        onToggled: {
+                            if (!checked) agentModule.changeRevert()
+                        }
+
+                        onEnabledChanged: {
+                            if (!enabled) checked = false
+                        }
+
+                        Timer {
+                            interval: 1000
+                            running: parent.checked
+                            onTriggered: parent.checked = false
+                        }
                     }
                 }
 
-                Repeater {
-                    model: diffCard.urls
+                ScrollView {
+                    id: changeScrollView
+                    clip: true
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Math.min(changeContent.implicitHeight, 240)
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-                    delegate: RowLayout {
-                        required property var modelData
-                        readonly property var fileDiff: diffCard.fileDiffs[modelData]
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Item {
-                            Layout.preferredWidth: 16
-                        }
+                    ColumnLayout {
+                        id: changeContent
+                        width: changeScrollView.availableWidth
+                        spacing: 6
 
                         Label {
-                            text: fileDiff.path
-                            color: global.fore
-                            elide: Text.ElideMiddle
+                            visible: changeCard.error.length > 0
+                            text: changeCard.error
+                            color: global.dangerFore3
+                            wrapMode: Text.Wrap
                             Layout.fillWidth: true
                         }
 
                         Label {
-                            text: "+" + fileDiff.additions
-                            color: global.successFore3
+                            visible: changeCard.fileCount > 0
+                            text: qsTr("Files")
+                            color: global.fore
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        Repeater {
+                            model: changeCard.urls
+
+                            delegate: RowLayout {
+                                required property var modelData
+                                readonly property var fileDiff: changeCard.fileDiffs[modelData]
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                Item {
+                                    Layout.preferredWidth: 16
+                                }
+
+                                Label {
+                                    text: fileDiff.path
+                                    color: global.fore
+                                    elide: Text.ElideMiddle
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    text: "+" + fileDiff.additions
+                                    color: global.successFore3
+                                }
+
+                                Label {
+                                    text: "-" + fileDiff.deletions
+                                    color: global.dangerFore3
+                                }
+                            }
                         }
 
                         Label {
-                            text: "-" + fileDiff.deletions
-                            color: global.dangerFore3
+                            visible: changeCard.steps.length > 0
+                            text: qsTr("Operations")
+                            color: global.fore
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        Repeater {
+                            model: changeCard.steps
+
+                            delegate: RowLayout {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                Item {
+                                    Layout.preferredWidth: 16
+                                }
+
+                                Label {
+                                    text: modelData
+                                    color: global.fore
+                                    elide: Text.ElideMiddle
+                                    Layout.fillWidth: true
+                                }
+                            }
                         }
                     }
                 }
@@ -1074,7 +1162,7 @@ Item {
 
         Item {
             id: overviewCard
-            visible: planCard.steps.length > 0 || diffCard.fileCount > 0
+            visible: planCard.steps.length > 0 || changeCard.hasChanges
             Layout.preferredWidth: visible ? overviewLayout.implicitWidth + 12 : 0
             Layout.preferredHeight: visible ? overviewLayout.implicitHeight + 12 : 0
             Layout.alignment: Qt.AlignHCenter
@@ -1120,8 +1208,8 @@ Item {
                 }
 
                 Button {
-                    id: diffButton
-                    visible: diffCard.fileCount > 0
+                    id: changeButton
+                    visible: changeCard.hasChanges
                     leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
                     flat: true
                     implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
@@ -1138,19 +1226,33 @@ Item {
                         }
 
                         FlipLabel {
-                            text: "+" + diffCard.additions
+                            text: changeCard.changeCount.toString()
+                            color: global.fore
+                            Layout.preferredHeight: 24
+                        }
+
+                        Label {
+                            text: qsTr("changes")
+                            color: global.fore
+                            Layout.preferredWidth: implicitWidth
+                        }
+
+                        FlipLabel {
+                            visible: changeCard.fileCount > 0
+                            text: "+" + changeCard.additions
                             color: global.successFore3
                             Layout.preferredHeight: 24
                         }
 
                         FlipLabel {
-                            text: "-" + diffCard.deletions
+                            visible: changeCard.fileCount > 0
+                            text: "-" + changeCard.deletions
                             color: global.dangerFore3
                             Layout.preferredHeight: 24
                         }
                     }
 
-                    onClicked: diffCard.minimized = !diffCard.minimized
+                    onClicked: changeCard.minimized = !changeCard.minimized
                 }
             }
         }
@@ -1695,10 +1797,8 @@ Item {
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true
-        diffCard.fileDiffs = ({})
-        diffCard.additions = 0
-        diffCard.deletions = 0
-        diffCard.minimized = true
+        changeCard.changes = ({})
+        changeCard.minimized = true
         const obj = turnComponent.createObject(chatColumn, {
             turnId: turnId,
             startedAt: startedAt,
@@ -1717,10 +1817,8 @@ Item {
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true
-        diffCard.fileDiffs = ({})
-        diffCard.additions = 0
-        diffCard.deletions = 0
-        diffCard.minimized = true
+        changeCard.changes = ({})
+        changeCard.minimized = true
         requestsClear()
         compactStatusTimer.stop()
         compactCard.completed = false
@@ -1828,10 +1926,8 @@ Item {
         planCard.steps = plan.plan ? plan.plan : []
     }
 
-    function diffUpdate(fileDiffs, additions: int, deletions: int): void {
-        diffCard.fileDiffs = fileDiffs ? fileDiffs : ({})
-        diffCard.additions = additions
-        diffCard.deletions = deletions
+    function changeUpdate(changes): void {
+        changeCard.changes = changes ? changes : ({})
     }
 
     function compactFinish(): void {

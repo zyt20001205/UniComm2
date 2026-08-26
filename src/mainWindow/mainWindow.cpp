@@ -554,6 +554,8 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::openTerminal, m_terminalModule, &TerminalModule::terminalOpen);
     connect(m_threadpoolModule, &ThreadpoolModule::writeTerminal, m_terminalModule, &TerminalModule::terminalWrite);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
+
+    connect(m_undoModule, &UndoModule::updateChange, m_agentModule, &AgentModule::changeUpdate);
 }
 
 void MainWindow::shortcutInit() {

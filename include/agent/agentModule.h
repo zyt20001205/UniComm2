@@ -78,7 +78,7 @@ public:
 
     Q_INVOKABLE void conversationRollback();
 
-    Q_INVOKABLE void diffRevert() const;
+    Q_INVOKABLE void changeRevert() const;
 
     Q_INVOKABLE void abort() const;
 
@@ -96,7 +96,9 @@ public:
 
     void planUpdate(const QString &runtimeId, const QJsonObject &plan) const;
 
-    void diffUpdate(const QString &undoGroupId, const QVariantMap &fileDiffs, int additions, int deletions) const;
+    void changeUpdate(const QString &undoGroupId) const;
+
+    void diffUpdate(const QString &undoGroupId, const QVariantMap &fileDiffs, int additions, int deletions);
 
     [[nodiscard]] RuntimeModule *subagentDispatch(const QString &role, const QString &task);
 
@@ -145,6 +147,9 @@ private:
     QString m_primary{};
     QString m_supervisor{};
     QString m_undoGroupId{};
+    QVariantMap m_fileDiffs{};
+    int m_additions{};
+    int m_deletions{};
     QHash<QString, RuntimeModule *> m_runtimes{};
 };
 

@@ -15,6 +15,7 @@ QString UndoModule::undoGroupBegin() {
     do undoGroupId = QUuid::createUuid().toString(QUuid::WithoutBraces);
     while (m_undoGroups.contains(undoGroupId));
     m_undoGroups.insert(undoGroupId, QSharedPointer<UndoGroupData>::create());
+    emit updateChange(undoGroupId);
     return undoGroupId;
 }
 
@@ -28,20 +29,28 @@ QString UndoModule::undoGroupCommit(const QString &undoGroupId, const QString &t
     undoGroup->failed = std::move(failed);
     if (undoGroup->steps.isEmpty() && undoGroup->error.isEmpty()) {
         m_undoGroups.remove(undoGroupId);
+        emit updateChange(undoGroupId);
         return {};
     }
 
     const auto initial = QSharedPointer<bool>::create(true);
     return _push(
         text,
-        [undoGroup, initial] {
+        [this, undoGroupId, undoGroup, initial] {
             if (*initial) {
                 *initial = false;
+                emit updateChange(undoGroupId);
                 return QString{};
             }
-            return undoGroup->redo();
+            const auto error = undoGroup->redo();
+            emit updateChange(undoGroupId);
+            return error;
         },
-        [undoGroup] { return undoGroup->undo(); },
+        [this, undoGroupId, undoGroup] {
+            const auto error = undoGroup->undo();
+            emit updateChange(undoGroupId);
+            return error;
+        },
         undoGroup->failed);
 }
 
@@ -54,19 +63,45 @@ QString UndoModule::undoGroupRevert(const QString &undoGroupId) {
 
     return _push(
         tr("Revert %1").arg(undoGroup->text),
-        [undoGroup] { return undoGroup->undo(); },
-        [undoGroup] { return undoGroup->redo(); },
+        [this, undoGroupId, undoGroup] {
+            const auto error = undoGroup->undo();
+            emit updateChange(undoGroupId);
+            return error;
+        },
+        [this, undoGroupId, undoGroup] {
+            const auto error = undoGroup->redo();
+            emit updateChange(undoGroupId);
+            return error;
+        },
         undoGroup->failed);
 }
 
 void UndoModule::undoGroupRelease(const QString &undoGroupId) {
     m_undoGroups.remove(undoGroupId);
+    emit updateChange(undoGroupId);
 }
 
 void UndoModule::undoGroupInvalidate(const QString &undoGroupId, const QString &error) {
     if (error.isEmpty()) return;
     const auto undoGroup = m_undoGroups.value(undoGroupId);
-    if (!undoGroup.isNull() && undoGroup->error.isEmpty()) undoGroup->error = error;
+    if (undoGroup.isNull() || !undoGroup->error.isEmpty()) return;
+    undoGroup->error = error;
+    emit updateChange(undoGroupId);
+}
+
+QVariantMap UndoModule::undoGroupGet(const QString &undoGroupId) const {
+    const auto undoGroup = m_undoGroups.value(undoGroupId);
+    if (undoGroup.isNull()) return {};
+
+    QVariantList steps{};
+    steps.reserve(undoGroup->steps.size());
+    for (const auto &step: undoGroup->steps) steps.append(step.text);
+    return {
+        {"steps", steps},
+        {"committed", undoGroup->committed},
+        {"applied", undoGroup->applied},
+        {"error", undoGroup->error}
+    };
 }
 
 QVariantList UndoModule::undoHistory() const {
@@ -125,6 +160,7 @@ QString UndoModule::_push(const QString &text, std::function<QString()> redo, st
     const auto error = redo();
     if (!error.isEmpty()) return error;
     undoGroup->steps.append({text, std::move(redo), std::move(undo)});
+    emit updateChange(undoGroupId);
     return {};
 }
 
