@@ -50,17 +50,17 @@ public:
 
     [[nodiscard]] QJsonArray directoryList(const QUrl &directoryUrl) const;
 
-    Q_INVOKABLE [[nodiscard]] QString directoryCreate(const QUrl &directoryUrl);
+    Q_INVOKABLE [[nodiscard]] QString directoryCreate(const QUrl &directoryUrl, const QString &undoGroupId = {});
 
-    Q_INVOKABLE [[nodiscard]] QString directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl);
+    Q_INVOKABLE [[nodiscard]] QString directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl, const QString &undoGroupId = {});
 
-    Q_INVOKABLE [[nodiscard]] QString directoryDelete(const QUrl &directoryUrl);
+    Q_INVOKABLE [[nodiscard]] QString directoryDelete(const QUrl &directoryUrl, const QString &undoGroupId = {});
 
-    Q_INVOKABLE [[nodiscard]] QString documentCreate(const QUrl &documentUrl);
+    Q_INVOKABLE [[nodiscard]] QString documentCreate(const QUrl &documentUrl, const QString &undoGroupId = {});
 
-    Q_INVOKABLE [[nodiscard]] QString documentRename(const QUrl &sourceUrl, const QUrl &targetUrl);
+    Q_INVOKABLE [[nodiscard]] QString documentRename(const QUrl &sourceUrl, const QUrl &targetUrl, const QString &undoGroupId = {});
 
-    Q_INVOKABLE [[nodiscard]] QString documentDelete(const QUrl &documentUrl);
+    Q_INVOKABLE [[nodiscard]] QString documentDelete(const QUrl &documentUrl, const QString &undoGroupId = {});
 
     Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
 
@@ -96,13 +96,14 @@ public:
 
     void indexGet() const;
 
-    [[nodiscard]] QString transactionBegin();
+    void transactionBegin(const QString &undoGroupId);
 
-    [[nodiscard]] QString transactionCommit(const QString &transactionId, const QString &text);
+    [[nodiscard]] QString transactionCommit(const QString &undoGroupId);
 
     [[nodiscard]] QString linesGet(const QUrl &documentUrl, int startLine, int lineCount) const;
 
-    [[nodiscard]] QString linesSet(const QString &transactionId, const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts);
+    [[nodiscard]] QString linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts,
+                                   const QString &undoGroupId = {});
 
     [[nodiscard]] QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
@@ -183,7 +184,7 @@ public:
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
-    void updateDiff(const QString &transactionId, const QVariantMap &fileDiffs, int additions, int deletions);
+    void updateDiff(const QString &undoGroupId, const QVariantMap &fileDiffs, int additions, int deletions);
 
     void openWorkspace();
 
@@ -212,12 +213,16 @@ private:
         QString before{};
         QString after{};
         bool dirty{};
+    };
+
+    struct DocumentDiffState {
         int additions{};
         int deletions{};
     };
 
     struct DocumentTransaction {
         QHash<QUrl, DocumentTextState> documents{};
+        QHash<QUrl, DocumentDiffState> diffs{};
     };
 
     QString _directoryCreate(const QUrl &directoryUrl);
@@ -241,6 +246,12 @@ private:
     QString _transactionRedo(const QSharedPointer<const DocumentTransaction> &transaction);
 
     QString _transactionUndo(const QSharedPointer<const DocumentTransaction> &transaction);
+
+    QString _transactionFlush(const QString &undoGroupId, const QUrl &documentUrl = {}, bool recursive = false);
+
+    QString _transactionCheck(const QString &undoGroupId, const QUrl &documentUrl, bool recursive);
+
+    void _transactionRename(const QString &undoGroupId, const QUrl &sourceUrl, const QUrl &targetUrl, bool recursive);
 
     [[nodiscard]] ScintillaWidget *handlerGet(const QUrl &documentUrl) const;
 

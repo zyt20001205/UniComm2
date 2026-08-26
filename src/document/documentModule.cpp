@@ -9,7 +9,6 @@
 #include <QSharedPointer>
 #include <QTextBrowser>
 #include <QTimer>
-#include <QUuid>
 
 #include "globals.h"
 #include "core/fileModule.h"
@@ -136,24 +135,24 @@ QJsonArray DocumentModule::directoryList(const QUrl &directoryUrl) const {
     return entries;
 }
 
-QString DocumentModule::directoryCreate(const QUrl &directoryUrl) {
+QString DocumentModule::directoryCreate(const QUrl &directoryUrl, const QString &undoGroupId) {
     if (!directoryUrl.isLocalFile()) return tr("Directory create failed: URL is not local.");
 
     const QString directoryPath = directoryUrl.toLocalFile();
     if (QFileInfo::exists(directoryPath)) return tr("Directory create failed: path already exists.");
 
     const auto trashUrl = QSharedPointer<QUrl>::create();
-    return g_undo->push(
-        tr("Directory Create (%1)").arg(QFileInfo(directoryPath).fileName()),
-        [this, directoryUrl, trashUrl] {
-            if (trashUrl->isEmpty()) return _directoryCreate(directoryUrl);
-            return _directoryRestore(directoryUrl, *trashUrl);
-        },
-        [this, directoryUrl, trashUrl] { return _directoryDelete(directoryUrl, *trashUrl); },
-        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
+    const auto text = tr("Directory Create (%1)").arg(QFileInfo(directoryPath).fileName());
+    const auto redo = [this, directoryUrl, trashUrl] {
+        if (trashUrl->isEmpty()) return _directoryCreate(directoryUrl);
+        return _directoryRestore(directoryUrl, *trashUrl);
+    };
+    const auto undo = [this, directoryUrl, trashUrl] { return _directoryDelete(directoryUrl, *trashUrl); };
+    if (!undoGroupId.isEmpty()) return g_undo->push(text, redo, undo, undoGroupId);
+    return g_undo->push(text, redo, undo, [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
 }
 
-QString DocumentModule::directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
+QString DocumentModule::directoryRename(const QUrl &sourceUrl, const QUrl &targetUrl, const QString &undoGroupId) {
     if (!sourceUrl.isLocalFile() || !targetUrl.isLocalFile()) return tr("Directory rename failed: URL is not local.");
 
     const QString sourcePath = sourceUrl.toLocalFile();
@@ -161,50 +160,62 @@ QString DocumentModule::directoryRename(const QUrl &sourceUrl, const QUrl &targe
     const QFileInfo directoryInfo(sourcePath);
     if (!directoryInfo.isDir()) return tr("Directory rename failed: directory does not exist.");
     if (sourcePath == targetPath) return {};
+    if (!undoGroupId.isEmpty()) {
+        const auto error = _transactionCheck(undoGroupId, sourceUrl, true);
+        if (!error.isEmpty()) return error;
+    }
 
-    return g_undo->push(
-        tr("Directory Rename (%1->%2)").arg(QFileInfo(sourcePath).fileName(), QFileInfo(targetPath).fileName()),
-        [this, sourceUrl, targetUrl] { return _directoryRename(sourceUrl, targetUrl); },
-        [this, sourceUrl, targetUrl] { return _directoryRename(targetUrl, sourceUrl); },
-        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
+    const auto text = tr("Directory Rename (%1->%2)").arg(QFileInfo(sourcePath).fileName(), QFileInfo(targetPath).fileName());
+    const auto redo = [this, sourceUrl, targetUrl] { return _directoryRename(sourceUrl, targetUrl); };
+    const auto undo = [this, sourceUrl, targetUrl] { return _directoryRename(targetUrl, sourceUrl); };
+    const auto error = undoGroupId.isEmpty()
+                           ? g_undo->push(text, redo, undo, [this](const QString &message) { m_toast->show(ToastLevel::Error, tr("Directory"), message); })
+                           : g_undo->push(text, redo, undo, undoGroupId);
+    if (error.isEmpty() && !undoGroupId.isEmpty()) _transactionRename(undoGroupId, sourceUrl, targetUrl, true);
+    return error;
 }
 
-QString DocumentModule::directoryDelete(const QUrl &directoryUrl) {
+QString DocumentModule::directoryDelete(const QUrl &directoryUrl, const QString &undoGroupId) {
     if (!directoryUrl.isLocalFile()) return tr("Directory delete failed: URL is not local.");
 
     const QString directoryPath = directoryUrl.toLocalFile();
     if (!QFileInfo(directoryPath).isDir()) return tr("Directory delete failed: directory does not exist.");
 
+    if (!undoGroupId.isEmpty()) {
+        const auto error = _transactionFlush(undoGroupId, directoryUrl, true);
+        if (!error.isEmpty()) return error;
+    }
+
     const auto trashUrl = QSharedPointer<QUrl>::create();
-    return g_undo->push(
-        tr("Directory Delete (%1)").arg(QFileInfo(directoryPath).fileName()),
-        [this, directoryUrl, trashUrl] { return _directoryDelete(directoryUrl, *trashUrl); },
-        [this, directoryUrl, trashUrl] { return _directoryRestore(directoryUrl, *trashUrl); },
-        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
+    const auto text = tr("Directory Delete (%1)").arg(QFileInfo(directoryPath).fileName());
+    const auto redo = [this, directoryUrl, trashUrl] { return _directoryDelete(directoryUrl, *trashUrl); };
+    const auto undo = [this, directoryUrl, trashUrl] { return _directoryRestore(directoryUrl, *trashUrl); };
+    if (!undoGroupId.isEmpty()) return g_undo->push(text, redo, undo, undoGroupId);
+    return g_undo->push(text, redo, undo, [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Directory"), error); });
 }
 
 // public: document
-QString DocumentModule::documentCreate(const QUrl &documentUrl) {
+QString DocumentModule::documentCreate(const QUrl &documentUrl, const QString &undoGroupId) {
     if (!documentUrl.isLocalFile()) return tr("Document create failed: URL is not a local file.");
 
     const QString documentPath = documentUrl.toLocalFile();
     if (QFileInfo::exists(documentPath)) return tr("Document create failed: path already exists.");
 
     const auto trashUrl = QSharedPointer<QUrl>::create();
-    return g_undo->push(
-        tr("Document Create (%1)").arg(documentUrl.fileName()),
-        [this, documentUrl, trashUrl] {
-            if (trashUrl->isEmpty()) return _documentCreate(documentUrl);
+    const auto text = tr("Document Create (%1)").arg(documentUrl.fileName());
+    const auto redo = [this, documentUrl, trashUrl] {
+        if (trashUrl->isEmpty()) return _documentCreate(documentUrl);
 
-            const auto error = _documentRestore(documentUrl, *trashUrl);
-            if (error.isEmpty()) documentOpen(documentUrl);
-            return error;
-        },
-        [this, documentUrl, trashUrl] { return _documentDelete(documentUrl, *trashUrl); },
-        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
+        const auto error = _documentRestore(documentUrl, *trashUrl);
+        if (error.isEmpty()) documentOpen(documentUrl);
+        return error;
+    };
+    const auto undo = [this, documentUrl, trashUrl] { return _documentDelete(documentUrl, *trashUrl); };
+    if (!undoGroupId.isEmpty()) return g_undo->push(text, redo, undo, undoGroupId);
+    return g_undo->push(text, redo, undo, [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
 }
 
-QString DocumentModule::documentRename(const QUrl &sourceUrl, const QUrl &targetUrl) {
+QString DocumentModule::documentRename(const QUrl &sourceUrl, const QUrl &targetUrl, const QString &undoGroupId) {
     if (!sourceUrl.isLocalFile() || !targetUrl.isLocalFile()) return tr("Document rename failed: URL is not a local file.");
 
     const QString sourcePath = sourceUrl.toLocalFile();
@@ -212,26 +223,38 @@ QString DocumentModule::documentRename(const QUrl &sourceUrl, const QUrl &target
     const QFileInfo documentInfo(sourcePath);
     if (!documentInfo.isFile()) return tr("Document rename failed: document does not exist.");
     if (sourcePath == targetPath) return {};
+    if (!undoGroupId.isEmpty()) {
+        const auto error = _transactionCheck(undoGroupId, sourceUrl, false);
+        if (!error.isEmpty()) return error;
+    }
 
-    return g_undo->push(
-        tr("Document Rename (%1->%2)").arg(sourceUrl.fileName(), targetUrl.fileName()),
-        [this, sourceUrl, targetUrl] { return _documentRename(sourceUrl, targetUrl); },
-        [this, sourceUrl, targetUrl] { return _documentRename(targetUrl, sourceUrl); },
-        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
+    const auto text = tr("Document Rename (%1->%2)").arg(sourceUrl.fileName(), targetUrl.fileName());
+    const auto redo = [this, sourceUrl, targetUrl] { return _documentRename(sourceUrl, targetUrl); };
+    const auto undo = [this, sourceUrl, targetUrl] { return _documentRename(targetUrl, sourceUrl); };
+    const auto error = undoGroupId.isEmpty()
+                           ? g_undo->push(text, redo, undo, [this](const QString &message) { m_toast->show(ToastLevel::Error, tr("Document"), message); })
+                           : g_undo->push(text, redo, undo, undoGroupId);
+    if (error.isEmpty() && !undoGroupId.isEmpty()) _transactionRename(undoGroupId, sourceUrl, targetUrl, false);
+    return error;
 }
 
-QString DocumentModule::documentDelete(const QUrl &documentUrl) {
+QString DocumentModule::documentDelete(const QUrl &documentUrl, const QString &undoGroupId) {
     if (!documentUrl.isLocalFile()) return tr("Document delete failed: URL is not a local file.");
 
     const QString documentPath = documentUrl.toLocalFile();
     if (!QFileInfo(documentPath).isFile()) return tr("Document delete failed: document does not exist.");
 
+    if (!undoGroupId.isEmpty()) {
+        const auto error = _transactionFlush(undoGroupId, documentUrl);
+        if (!error.isEmpty()) return error;
+    }
+
     const auto trashUrl = QSharedPointer<QUrl>::create();
-    return g_undo->push(
-        tr("Document Delete (%1)").arg(documentUrl.fileName()),
-        [this, documentUrl, trashUrl] { return _documentDelete(documentUrl, *trashUrl); },
-        [this, documentUrl, trashUrl] { return _documentRestore(documentUrl, *trashUrl); },
-        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
+    const auto text = tr("Document Delete (%1)").arg(documentUrl.fileName());
+    const auto redo = [this, documentUrl, trashUrl] { return _documentDelete(documentUrl, *trashUrl); };
+    const auto undo = [this, documentUrl, trashUrl] { return _documentRestore(documentUrl, *trashUrl); };
+    if (!undoGroupId.isEmpty()) return g_undo->push(text, redo, undo, undoGroupId);
+    return g_undo->push(text, redo, undo, [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
 }
 
 DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
@@ -385,6 +408,19 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             m_pageHash[m_focusedUrl]->addDockWidgetAsTab(documentPage);
         }
         emit appendLog(LogLevel::Info, "document opened", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
+
+        if (auto *handler = handlerGet(documentUrl)) {
+            const auto text = handler->textGet();
+            for (const auto &transaction: m_transactions) {
+                if (!transaction->documents.contains(documentUrl)) {
+                    transaction->documents.insert(documentUrl, DocumentTextState{
+                                                      .before = text,
+                                                      .after = text,
+                                                      .dirty = handler->modifyGet()
+                                                  });
+                }
+            }
+        }
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
@@ -510,30 +546,25 @@ void DocumentModule::indexGet() const {
     };
 }
 
-QString DocumentModule::transactionBegin() {
-    QString transactionId{};
-    do transactionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    while (m_transactions.contains(transactionId));
-    m_transactions.insert(transactionId, QSharedPointer<DocumentTransaction>::create());
-    return transactionId;
+void DocumentModule::transactionBegin(const QString &undoGroupId) {
+    auto transaction = QSharedPointer<DocumentTransaction>::create();
+    for (auto page = m_pageHash.cbegin(); page != m_pageHash.cend(); ++page) {
+        auto *handler = handlerGet(page.key());
+        if (handler == nullptr) continue;
+        const auto text = handler->textGet();
+        transaction->documents.insert(page.key(), DocumentTextState{
+                                          .before = text,
+                                          .after = text,
+                                          .dirty = handler->modifyGet()
+                                      });
+    }
+    m_transactions.insert(undoGroupId, transaction);
 }
 
-QString DocumentModule::transactionCommit(const QString &transactionId, const QString &text) {
-    const auto transaction = m_transactions.take(transactionId);
-    if (transaction.isNull()) return tr("Document transaction commit failed: transaction does not exist.");
-
-    for (auto document = transaction->documents.begin(); document != transaction->documents.end();) {
-        if (document->before == document->after) document = transaction->documents.erase(document);
-        else ++document;
-    }
-    if (transaction->documents.isEmpty()) return {};
-
-    const QSharedPointer<const DocumentTransaction> frozen = transaction;
-    return g_undo->push(
-        text,
-        [this, frozen] { return _transactionRedo(frozen); },
-        [this, frozen] { return _transactionUndo(frozen); },
-        [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Document"), error); });
+QString DocumentModule::transactionCommit(const QString &undoGroupId) {
+    const auto error = _transactionFlush(undoGroupId);
+    m_transactions.remove(undoGroupId);
+    return error;
 }
 
 QString DocumentModule::linesGet(const QUrl &documentUrl, const int startLine, const int lineCount) const {
@@ -541,9 +572,8 @@ QString DocumentModule::linesGet(const QUrl &documentUrl, const int startLine, c
     return FileModule::linesGet(documentUrl, startLine, lineCount);
 }
 
-QString DocumentModule::linesSet(const QString &transactionId, const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts) {
-    const auto transaction = m_transactions.value(transactionId);
-    if (transaction.isNull()) return tr("Line set failed: transaction does not exist.");
+QString DocumentModule::linesSet(const QUrl &documentUrl, const QStringList &texts, const QList<int> &startLines, const QList<int> &lineCounts,
+                                 const QString &undoGroupId) {
     if (texts.size() != startLines.size() || texts.size() != lineCounts.size()) return tr("Line set failed: edit lists have different sizes.");
     if (texts.isEmpty()) return {};
 
@@ -551,12 +581,23 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
     auto *handler = handlerGet(documentUrl);
     if (handler == nullptr) return tr("Line set failed: document is not editable text.");
 
+    auto transaction = m_transactions.value(undoGroupId);
+    if (transaction.isNull()) {
+        transaction = QSharedPointer<DocumentTransaction>::create();
+        m_transactions.insert(undoGroupId, transaction);
+    }
+
     auto state = transaction->documents.find(documentUrl);
     if (state == transaction->documents.end()) {
         state = transaction->documents.insert(documentUrl, DocumentTextState{
                                                   .before = handler->textGet(),
+                                                  .after = handler->textGet(),
                                                   .dirty = handler->modifyGet()
                                               });
+    } else if (handler->textGet() != state->after) {
+        const auto error = tr("Line set failed: document content has changed outside the undo group.");
+        g_undo->undoGroupInvalidate(undoGroupId, error);
+        return error;
     }
 
     const auto lineCount = [](QString text) {
@@ -576,13 +617,14 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
     if (!error.isEmpty()) return error;
 
     state->after = handler->textGet();
-    state->additions += additions;
-    state->deletions += deletions;
+    auto &diff = transaction->diffs[documentUrl];
+    diff.additions += additions;
+    diff.deletions += deletions;
 
     QVariantMap fileDiffs{};
     int totalAdditions{};
     int totalDeletions{};
-    for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
+    for (auto document = transaction->diffs.cbegin(); document != transaction->diffs.cend(); ++document) {
         fileDiffs.insert(document.key().toString(), QVariantHash{
                              {"path", QDir(g_workspaceUrl.toLocalFile()).relativeFilePath(document.key().toLocalFile())},
                              {"additions", document->additions},
@@ -591,7 +633,7 @@ QString DocumentModule::linesSet(const QString &transactionId, const QUrl &docum
         totalAdditions += document->additions;
         totalDeletions += document->deletions;
     }
-    emit updateDiff(transactionId, fileDiffs, totalAdditions, totalDeletions);
+    emit updateDiff(undoGroupId, fileDiffs, totalAdditions, totalDeletions);
     return {};
 }
 
@@ -1257,6 +1299,134 @@ QString DocumentModule::_transactionUndo(const QSharedPointer<const DocumentTran
         if (!document->dirty) handler->savepointSet();
     }
     return {};
+}
+
+QString DocumentModule::_transactionFlush(const QString &undoGroupId, const QUrl &documentUrl, const bool recursive) {
+    const auto transaction = m_transactions.value(undoGroupId);
+    if (transaction.isNull()) return {};
+
+    if (!documentUrl.isEmpty()) {
+        const auto error = _transactionCheck(undoGroupId, documentUrl, recursive);
+        if (!error.isEmpty()) return error;
+    }
+
+    const auto matches = [&documentUrl, recursive](const QUrl &url) {
+        if (documentUrl.isEmpty()) return true;
+        if (url == documentUrl) return true;
+        if (!recursive) return false;
+
+        const auto relativePath = QDir(documentUrl.toLocalFile()).relativeFilePath(url.toLocalFile());
+        return relativePath != QStringLiteral("..") && !relativePath.startsWith(QStringLiteral("../")) && !relativePath.startsWith(QStringLiteral("..\\")) &&
+               !QDir::isAbsolutePath(relativePath);
+    };
+
+    auto frozen = QSharedPointer<DocumentTransaction>::create();
+    for (auto document = transaction->documents.begin(); document != transaction->documents.end();) {
+        if (!matches(document.key())) {
+            ++document;
+            continue;
+        }
+        if (document->before != document->after) frozen->documents.insert(document.key(), document.value());
+        document = transaction->documents.erase(document);
+    }
+    if (frozen->documents.isEmpty()) return {};
+
+    const QSharedPointer<const DocumentTransaction> transactionData = frozen;
+    const auto error = g_undo->push(
+        tr("Document Edit"),
+        [this, transactionData] { return _transactionRedo(transactionData); },
+        [this, transactionData] { return _transactionUndo(transactionData); },
+        undoGroupId);
+    if (error.isEmpty()) return {};
+
+    for (auto document = frozen->documents.cbegin(); document != frozen->documents.cend(); ++document) {
+        transaction->documents.insert(document.key(), document.value());
+    }
+    g_undo->undoGroupInvalidate(undoGroupId, error);
+    return error;
+}
+
+QString DocumentModule::_transactionCheck(const QString &undoGroupId, const QUrl &documentUrl, const bool recursive) {
+    const auto transaction = m_transactions.value(undoGroupId);
+    if (transaction.isNull()) return {};
+
+    const auto matches = [&documentUrl, recursive](const QUrl &url) {
+        if (url == documentUrl) return true;
+        if (!recursive) return false;
+
+        const auto relativePath = QDir(documentUrl.toLocalFile()).relativeFilePath(url.toLocalFile());
+        return relativePath != QStringLiteral("..") && !relativePath.startsWith(QStringLiteral("../")) && !relativePath.startsWith(QStringLiteral("..\\")) &&
+               !QDir::isAbsolutePath(relativePath);
+    };
+    for (auto document = transaction->documents.cbegin(); document != transaction->documents.cend(); ++document) {
+        if (!matches(document.key())) continue;
+        const auto *handler = handlerGet(document.key());
+        if (handler != nullptr && handler->textGet() == document->after) continue;
+
+        const auto error = tr("Document operation failed: document content has changed outside the undo group.");
+        g_undo->undoGroupInvalidate(undoGroupId, error);
+        return error;
+    }
+    return {};
+}
+
+void DocumentModule::_transactionRename(const QString &undoGroupId, const QUrl &sourceUrl, const QUrl &targetUrl, const bool recursive) {
+    const auto transaction = m_transactions.value(undoGroupId);
+    if (transaction.isNull()) return;
+
+    const auto target = [&sourceUrl, &targetUrl, recursive](const QUrl &url) {
+        if (url == sourceUrl) return targetUrl;
+        if (!recursive) return QUrl{};
+
+        const auto relativePath = QDir(sourceUrl.toLocalFile()).relativeFilePath(url.toLocalFile());
+        if (relativePath == QStringLiteral("..") || relativePath.startsWith(QStringLiteral("../")) || relativePath.startsWith(QStringLiteral("..\\")) ||
+            QDir::isAbsolutePath(relativePath)) return QUrl{};
+        return QUrl::fromLocalFile(QDir(targetUrl.toLocalFile()).filePath(relativePath));
+    };
+
+    QHash<QUrl, DocumentTextState> renamedDocuments{};
+    for (auto document = transaction->documents.begin(); document != transaction->documents.end();) {
+        const auto targetUrl = target(document.key());
+        if (targetUrl.isEmpty()) {
+            ++document;
+            continue;
+        }
+        renamedDocuments.insert(targetUrl, document.value());
+        document = transaction->documents.erase(document);
+    }
+    for (auto document = renamedDocuments.cbegin(); document != renamedDocuments.cend(); ++document) {
+        transaction->documents.insert(document.key(), document.value());
+    }
+
+    QHash<QUrl, DocumentDiffState> renamedDiffs{};
+    for (auto diff = transaction->diffs.begin(); diff != transaction->diffs.end();) {
+        const auto targetUrl = target(diff.key());
+        if (targetUrl.isEmpty()) {
+            ++diff;
+            continue;
+        }
+        renamedDiffs.insert(targetUrl, diff.value());
+        diff = transaction->diffs.erase(diff);
+    }
+    for (auto diff = renamedDiffs.cbegin(); diff != renamedDiffs.cend(); ++diff) {
+        auto &targetDiff = transaction->diffs[diff.key()];
+        targetDiff.additions += diff->additions;
+        targetDiff.deletions += diff->deletions;
+    }
+
+    QVariantMap fileDiffs{};
+    int totalAdditions{};
+    int totalDeletions{};
+    for (auto diff = transaction->diffs.cbegin(); diff != transaction->diffs.cend(); ++diff) {
+        fileDiffs.insert(diff.key().toString(), QVariantHash{
+                             {"path", QDir(g_workspaceUrl.toLocalFile()).relativeFilePath(diff.key().toLocalFile())},
+                             {"additions", diff->additions},
+                             {"deletions", diff->deletions}
+                         });
+        totalAdditions += diff->additions;
+        totalDeletions += diff->deletions;
+    }
+    emit updateDiff(undoGroupId, fileDiffs, totalAdditions, totalDeletions);
 }
 
 ScintillaWidget *DocumentModule::handlerGet(const QUrl &documentUrl) const {

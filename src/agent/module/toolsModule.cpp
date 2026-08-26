@@ -1189,34 +1189,34 @@ QString ToolsModule::toolExecuteSync(const QString &runtimeId, const QString &na
     }
     if (name == "directory_create") {
         const auto directoryUrl = QUrl(object.value("directory_url").toString());
-        const auto error = g_document->directoryCreate(g_agent->undoGroupIdGet(), directoryUrl);
+        const auto error = g_document->directoryCreate(directoryUrl, g_agent->undoGroupIdGet());
         return error.isEmpty() ? QString("Directory created: %1").arg(directoryUrl.toString()) : error;
     }
     if (name == "directory_delete") {
         const auto directoryUrl = QUrl(object.value("directory_url").toString());
-        const auto error = g_document->directoryDelete(g_agent->undoGroupIdGet(), directoryUrl);
+        const auto error = g_document->directoryDelete(directoryUrl, g_agent->undoGroupIdGet());
         return error.isEmpty() ? QString("Directory deleted: %1").arg(directoryUrl.toString()) : error;
     }
     if (name == "directory_rename") {
         const auto sourceUrl = QUrl(object.value("source_url").toString());
         const auto targetUrl = QUrl(object.value("target_url").toString());
-        const auto error = g_document->directoryRename(g_agent->undoGroupIdGet(), sourceUrl, targetUrl);
+        const auto error = g_document->directoryRename(sourceUrl, targetUrl, g_agent->undoGroupIdGet());
         return error.isEmpty() ? QString("Directory renamed: %1").arg(targetUrl.toString()) : error;
     }
     if (name == "document_create") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto error = g_document->documentCreate(g_agent->undoGroupIdGet(), documentUrl);
+        const auto error = g_document->documentCreate(documentUrl, g_agent->undoGroupIdGet());
         return error.isEmpty() ? QString("Document created: %1").arg(documentUrl.toString()) : error;
     }
     if (name == "document_delete") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto error = g_document->documentDelete(g_agent->undoGroupIdGet(), documentUrl);
+        const auto error = g_document->documentDelete(documentUrl, g_agent->undoGroupIdGet());
         return error.isEmpty() ? QString("Document deleted: %1").arg(documentUrl.toString()) : error;
     }
     if (name == "document_rename") {
         const auto sourceUrl = QUrl(object.value("source_url").toString());
         const auto targetUrl = QUrl(object.value("target_url").toString());
-        const auto error = g_document->documentRename(g_agent->undoGroupIdGet(), sourceUrl, targetUrl);
+        const auto error = g_document->documentRename(sourceUrl, targetUrl, g_agent->undoGroupIdGet());
         return error.isEmpty() ? QString("Document renamed: %1").arg(targetUrl.toString()) : error;
     }
     if (name == "grep_search") {
@@ -1276,7 +1276,7 @@ QString ToolsModule::toolExecuteSync(const QString &runtimeId, const QString &na
             lineCounts.append(edit.value("line_count").toInt());
         }
         if (!texts.isEmpty()) {
-            const auto error = g_document->linesSet(g_agent->undoGroupIdGet(), documentUrl, texts, startLines, lineCounts);
+            const auto error = g_document->linesSet(documentUrl, texts, startLines, lineCounts, g_agent->undoGroupIdGet());
             if (!error.isEmpty()) return error;
         }
         return QString::fromUtf8(QJsonDocument(QJsonObject{{"applied", applied}, {"rejected", rejected}}).toJson(QJsonDocument::Compact));
