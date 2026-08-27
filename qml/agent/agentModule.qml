@@ -2,6 +2,7 @@ import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.impl
+import QtQuick.Dialogs
 import QtQuick.Layouts
 
 Item {
@@ -10,6 +11,22 @@ Item {
     property var turnMap: ({})
     property var chatMap: ({})
     property var subagentMap: ({})
+
+    ListModel {
+        id: attachmentModel
+    }
+
+    FileDialog {
+        id: attachmentDialog
+        fileMode: FileDialog.OpenFiles
+        nameFilters: [qsTr("All files (*)")]
+
+        onAccepted: {
+            for (let index = 0; index < selectedFiles.length; ++index) {
+                agentModule.attachmentAdd(selectedFiles[index])
+            }
+        }
+    }
 
     component FlipLabel: Flipable {
         id: flipLabel
@@ -1263,7 +1280,8 @@ Item {
             Layout.minimumHeight: 84
             Layout.maximumHeight: 220
             Layout.preferredHeight: Math.max(Layout.minimumHeight, Math.min(Layout.maximumHeight,
-                textArea.contentHeight + textArea.topPadding + textArea.bottomPadding + 42))
+                textArea.contentHeight + textArea.topPadding + textArea.bottomPadding + 42
+                + attachmentFlow.height + (attachmentFlow.visible ? 12 : 0)))
 
             Behavior on Layout.preferredHeight {
                 NumberAnimation {
@@ -1280,8 +1298,92 @@ Item {
                 radius: 6
             }
 
+            Flow {
+                id: attachmentFlow
+                visible: attachmentModel.count > 0
+                anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
+                anchors.leftMargin: 10; anchors.rightMargin: 10; anchors.topMargin: 8
+                spacing: 4
+                height: visible ? implicitHeight : 0
+
+                add: Transition {
+                    ParallelAnimation {
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 0; to: 1
+                            duration: 160
+                            easing.type: Easing.OutCubic
+                        }
+                        NumberAnimation {
+                            property: "scale"
+                            from: 0.92; to: 1
+                            duration: 160
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+
+                move: Transition {
+                    NumberAnimation {
+                        properties: "x,y"
+                        duration: 180
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                Repeater {
+                    model: attachmentModel
+
+                    delegate: Rectangle {
+                        id: attachmentChip
+                        required property int index
+                        required property string attachmentUrl
+                        required property string fileName
+                        required property var iconSource
+                        implicitWidth: Math.min(attachmentContent.implicitWidth + 10, 220)
+                        implicitHeight: 28
+                        color: global.backSelected
+                        border.color: global.stroke
+                        border.width: 1
+                        radius: 4
+
+                        RowLayout {
+                            id: attachmentContent
+                            anchors.fill: parent
+                            anchors.leftMargin: 6; anchors.rightMargin: 4
+                            spacing: 4
+
+                            Image {
+                                source: attachmentChip.iconSource
+                                sourceSize.width: 16; sourceSize.height: 16
+                                Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                            }
+
+                            Label {
+                                text: attachmentChip.fileName
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                                Layout.maximumWidth: 160
+                            }
+
+                            Button {
+                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                flat: true
+                                icon.source: "qrc:/icon/dismiss.svg"
+                                icon.width: 12; icon.height: 12
+                                Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                onClicked: attachmentModel.remove(attachmentChip.index)
+                            }
+                        }
+                    }
+                }
+            }
+
             ScrollView {
-                anchors.fill: parent
+                anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+                anchors.top: attachmentFlow.bottom
+                anchors.topMargin: attachmentFlow.visible ? 4 : 0
                 bottomPadding: 42
 
                 ScrollBar.vertical: ScrollBar {
@@ -1321,6 +1423,16 @@ Item {
                 anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
                 anchors.leftMargin: 7; anchors.rightMargin: 7; anchors.bottomMargin: 7
                 spacing: 4
+
+                Button {
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    icon.source: "qrc:/icon/add.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 28; Layout.preferredHeight: 28
+
+                    onClicked: attachmentDialog.open()
+                }
 
                 Button {
                     id: strategyButton
@@ -1771,6 +1883,18 @@ Item {
         }
     }
 
+    function attachmentAdd(documentUrl: url, fileName: string, iconSource: url): void {
+        const attachmentUrl = documentUrl.toString()
+        for (let index = 0; index < attachmentModel.count; ++index) {
+            if (attachmentModel.get(index).attachmentUrl === attachmentUrl) return
+        }
+        attachmentModel.append({
+            "attachmentUrl": attachmentUrl,
+            "fileName": fileName,
+            "iconSource": iconSource
+        })
+    }
+
     function followToTail(): void {
         if (!chatView.followTail) return
         const flickable = chatView.contentItem
@@ -1818,6 +1942,7 @@ Item {
     function chatClear(): void {
         scrollStop()
         chatView.followTail = true
+        attachmentModel.clear()
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true

@@ -70,6 +70,8 @@ public:
 
     Q_INVOKABLE void conversationDelete();
 
+    Q_INVOKABLE void attachmentAdd(const QUrl &documentUrl) const;
+
     Q_INVOKABLE void conversationStrategySet(int strategy);
 
     Q_INVOKABLE void conversationModeSet(int mode);

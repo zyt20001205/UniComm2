@@ -1,6 +1,7 @@
 #include "agent/agentModule.h"
 
 #include <QDateTime>
+#include <QFileInfo>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
@@ -22,6 +23,7 @@
 #include "core/undoModule.h"
 #include "document/documentModule.h"
 #include "mainWindow/toastModule.h"
+#include "util/uniCast.h"
 
 // public
 AgentModule::AgentModule()
@@ -274,6 +276,16 @@ void AgentModule::conversationRename(const QString &title) {
 void AgentModule::conversationDelete() {
     m_sqlModule->conversationDelete(m_conversationId);
     conversationsGet();
+}
+
+void AgentModule::attachmentAdd(const QUrl &documentUrl) const {
+    QMetaObject::invokeMethod(
+        m_root,
+        "attachmentAdd",
+        Q_ARG(QUrl, documentUrl),
+        Q_ARG(QString, QFileInfo(documentUrl.toLocalFile()).fileName()),
+        Q_ARG(QUrl, uni_cast<QFileIcon>(documentUrl).value)
+    );
 }
 
 void AgentModule::conversationStrategySet(const int strategy) {
