@@ -1,7 +1,9 @@
 #include "agent/module/contextModule.h"
 
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMimeDatabase>
 
 #include "globals.h"
 #include "document/documentModule.h"
@@ -12,7 +14,8 @@ ContextModule::ContextModule(QObject *parent)
     : QObject(parent) {
 }
 
-QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::Conversation &conversation, const QList<SqlModule::Message> &history, const QList<SqlModule::Message> &turn, const QList<QUrl> &attachments) const {
+QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::Conversation &conversation, const QList<SqlModule::Message> &history,
+                                       const QList<SqlModule::Message> &turn, const QList<QUrl> &attachments) const {
     QJsonArray context{
         QJsonObject{
             {"role", "system"},
@@ -26,16 +29,42 @@ QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::C
         while (start < history.size() && history.at(start).turnId == conversation.compactedTurnId) ++start;
     }
     for (auto i = start; i < history.size(); ++i) context.append(messageBuild(history.at(i)));
-    QString attachmentText{};
-    for (const auto &url: attachments) {
-        attachmentText.append("\n\n<attachment url=\"").append(url.toString()).append("\">\n");
-        attachmentText.append(g_document->textGet(url));
-        attachmentText.append("\n</attachment>");
-    }
     for (qsizetype i = 0; i < turn.size(); ++i) {
         auto message = messageBuild(turn.at(i));
-        if (i == 0 && !attachmentText.isEmpty()) {
-            message["content"] = message.value("content").toString() + "\n\nAttached files:" + attachmentText;
+        if (i == 0 && !attachments.isEmpty()) {
+            QJsonArray content{
+                QJsonObject{
+                    {"type", "text"},
+                    {"text", message.value("content").toString()}
+                }
+            };
+            for (const auto &url: attachments) {
+                const QFileInfo fileInfo(url.toLocalFile());
+                const auto mimeType = QMimeDatabase().mimeTypeForFile(fileInfo).name();
+                if (mimeType.startsWith("image/")) {
+                    QFile file(fileInfo.filePath());
+                    file.open(QIODevice::ReadOnly);
+                    content.append(QJsonObject{
+                        {"type", "image_url"},
+                        {
+                            "image_url", QJsonObject{
+                                {"url", "data:" + mimeType + ";base64," + QString::fromLatin1(file.readAll().toBase64())}
+                            }
+                        }
+                    });
+                    continue;
+                }
+                content.append(QJsonObject{
+                    {"type", "file"},
+                    {
+                        "file", QJsonObject{
+                            {"filename", fileInfo.fileName()},
+                            {"file_data", QString::fromLatin1(g_document->textGet(url).toUtf8().toBase64())}
+                        }
+                    }
+                });
+            }
+            message["content"] = content;
         }
         context.append(message);
     }
@@ -123,8 +152,8 @@ QString ContextModule::systemBuild(const QString &system, const int mode, const 
 
 QJsonObject ContextModule::messageBuild(const SqlModule::Message &message) {
     QJsonObject object{
-            {"role", message.role},
-            {"content", message.content}
+        {"role", message.role},
+        {"content", message.content}
     };
     if (!message.reasoningContent.isEmpty()) object["reasoning_content"] = message.reasoningContent;
     if (!message.toolCallId.isEmpty()) object["tool_call_id"] = message.toolCallId;
