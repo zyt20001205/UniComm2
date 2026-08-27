@@ -638,7 +638,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: visible && permissionSwipeView.currentItem
                 ? permissionSwipeView.currentItem.cardImplicitHeight
-                    + (permissionSwipeView.count > 1 ? permissionIndicator.implicitHeight : 0)
+                + (permissionSwipeView.count > 1 ? permissionIndicator.implicitHeight : 0)
                 : 0
 
             Rectangle {
@@ -729,9 +729,9 @@ Item {
 
                                     Label {
                                         text: permissionPage.role === "data" ? qsTr("Data") :
-                                              permissionPage.role === "hardware" ? qsTr("Hardware") :
-                                              permissionPage.role === "software" ? qsTr("Software") :
-                                              permissionPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
+                                                permissionPage.role === "hardware" ? qsTr("Hardware") :
+                                                    permissionPage.role === "software" ? qsTr("Software") :
+                                                        permissionPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
                                         color: global.stroke
                                     }
 
@@ -799,7 +799,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: visible && userInputSwipeView.currentItem
                 ? userInputSwipeView.currentItem.cardImplicitHeight
-                    + (userInputSwipeView.count > 1 ? userInputIndicator.implicitHeight : 0)
+                + (userInputSwipeView.count > 1 ? userInputIndicator.implicitHeight : 0)
                 : 0
 
             Rectangle {
@@ -896,9 +896,9 @@ Item {
 
                                     Label {
                                         text: userInputPage.role === "data" ? qsTr("Data") :
-                                              userInputPage.role === "hardware" ? qsTr("Hardware") :
-                                              userInputPage.role === "software" ? qsTr("Software") :
-                                              userInputPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
+                                                userInputPage.role === "hardware" ? qsTr("Hardware") :
+                                                    userInputPage.role === "software" ? qsTr("Software") :
+                                                        userInputPage.role === "supervisor" ? qsTr("Supervisor") : qsTr("Agent")
                                         color: global.stroke
                                     }
                                 }
@@ -1283,7 +1283,9 @@ Item {
                 textArea.contentHeight + textArea.topPadding + textArea.bottomPadding + 42
                 + attachmentFlow.height + (attachmentFlow.visible ? 12 : 0)))
 
-            Behavior on Layout.preferredHeight {
+            Behavior on Layout
+            .
+            preferredHeight {
                 NumberAnimation {
                     duration: 120
                     easing.type: Easing.OutCubic
@@ -1310,13 +1312,15 @@ Item {
                     ParallelAnimation {
                         NumberAnimation {
                             property: "opacity"
-                            from: 0; to: 1
+                            from: 0;
+                            to: 1
                             duration: 160
                             easing.type: Easing.OutCubic
                         }
                         NumberAnimation {
                             property: "scale"
-                            from: 0.92; to: 1
+                            from: 0.92;
+                            to: 1
                             duration: 160
                             easing.type: Easing.OutCubic
                         }
@@ -1340,8 +1344,8 @@ Item {
                         required property url attachmentUrl
                         required property string fileName
                         required property var iconSource
-                        implicitWidth: Math.min(attachmentContent.implicitWidth + 10, 220)
-                        implicitHeight: 28
+                        implicitWidth: Math.min(attachmentContent.implicitWidth, 220)
+                        implicitHeight: 24
                         color: global.backSelected
                         border.color: global.stroke
                         border.width: 1
@@ -1350,28 +1354,42 @@ Item {
                         RowLayout {
                             id: attachmentContent
                             anchors.fill: parent
-                            anchors.leftMargin: 6; anchors.rightMargin: 4
-                            spacing: 4
+                            spacing: 0
 
-                            Image {
-                                source: attachmentChip.iconSource
-                                sourceSize.width: 16; sourceSize.height: 16
-                                Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                            }
+                            Button {
+                                id: attachmentButton
+                                leftPadding: 4; rightPadding: 4; topPadding: 0; bottomPadding: 0
+                                implicitWidth: attachmentButtonContent.implicitWidth + leftPadding + rightPadding
+                                implicitHeight: attachmentButtonContent.implicitHeight
+                                flat: true
+                                Layout.fillWidth: true; Layout.fillHeight: true
 
-                            Label {
-                                text: attachmentChip.fileName
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                                Layout.maximumWidth: 160
+                                contentItem: RowLayout {
+                                    id: attachmentButtonContent
+                                    spacing: 4
+
+                                    Image {
+                                        source: attachmentChip.iconSource
+                                        sourceSize.width: 16; sourceSize.height: 16
+                                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                                    }
+
+                                    Label {
+                                        text: attachmentChip.fileName
+                                        elide: Text.ElideRight
+                                        Layout.maximumWidth: 160
+                                    }
+                                }
+
+                                onClicked: documentModule.documentOpen(attachmentChip.attachmentUrl)
                             }
 
                             Button {
-                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                leftPadding: 0; rightPadding: 4; topPadding: 0; bottomPadding: 0
                                 flat: true
                                 icon.source: "qrc:/icon/dismiss.svg"
                                 icon.width: 12; icon.height: 12
-                                Layout.preferredWidth: 20; Layout.preferredHeight: 20
+                                Layout.preferredWidth: 24; Layout.fillHeight: true
 
                                 onClicked: agentModule.attachmentRemove(attachmentChip.attachmentUrl)
                             }
@@ -1468,13 +1486,13 @@ Item {
                     enabled: agentModule.state === 0 && mode >= 0
                     flat: true
                     text: mode === 0 ? qsTr("Chat") :
-                          mode === 1 ? qsTr("Read") :
-                          mode === 2 ? qsTr("Write") :
-                          mode === 3 ? qsTr("Full access") : ""
+                            mode === 1 ? qsTr("Read") :
+                                mode === 2 ? qsTr("Write") :
+                                    mode === 3 ? qsTr("Full access") : ""
                     icon.source: mode === 0 ? "qrc:/icon/chat.svg" :
-                                 mode === 1 ? "qrc:/icon/eye.svg" :
-                                 mode === 2 ? "qrc:/icon/edit.svg" :
-                                 mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
+                            mode === 1 ? "qrc:/icon/eye.svg" :
+                                mode === 2 ? "qrc:/icon/edit.svg" :
+                                    mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
                     icon.color: mode === 3 ? global.warningFore3 : global.fore
                     icon.width: 16; icon.height: 16
                     palette.buttonText: mode === 3 ? global.warningFore3 : global.fore
