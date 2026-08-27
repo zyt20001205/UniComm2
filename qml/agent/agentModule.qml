@@ -1337,7 +1337,7 @@ Item {
                     delegate: Rectangle {
                         id: attachmentChip
                         required property int index
-                        required property string attachmentUrl
+                        required property url attachmentUrl
                         required property string fileName
                         required property var iconSource
                         implicitWidth: Math.min(attachmentContent.implicitWidth + 10, 220)
@@ -1373,7 +1373,7 @@ Item {
                                 icon.width: 12; icon.height: 12
                                 Layout.preferredWidth: 20; Layout.preferredHeight: 20
 
-                                onClicked: attachmentModel.remove(attachmentChip.index)
+                                onClicked: agentModule.attachmentRemove(attachmentChip.attachmentUrl)
                             }
                         }
                     }
@@ -1884,15 +1884,19 @@ Item {
     }
 
     function attachmentAdd(documentUrl: url, fileName: string, iconSource: url): void {
-        const attachmentUrl = documentUrl.toString()
-        for (let index = 0; index < attachmentModel.count; ++index) {
-            if (attachmentModel.get(index).attachmentUrl === attachmentUrl) return
-        }
         attachmentModel.append({
-            "attachmentUrl": attachmentUrl,
+            "attachmentUrl": documentUrl,
             "fileName": fileName,
             "iconSource": iconSource
         })
+    }
+
+    function attachmentRemove(index: int): void {
+        attachmentModel.remove(index)
+    }
+
+    function attachmentsClear(): void {
+        attachmentModel.clear()
     }
 
     function followToTail(): void {
@@ -1942,7 +1946,6 @@ Item {
     function chatClear(): void {
         scrollStop()
         chatView.followTail = true
-        attachmentModel.clear()
         planCard.explanation = ""
         planCard.steps = []
         planCard.minimized = true

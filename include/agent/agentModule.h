@@ -70,7 +70,9 @@ public:
 
     Q_INVOKABLE void conversationDelete();
 
-    Q_INVOKABLE void attachmentAdd(const QUrl &documentUrl) const;
+    Q_INVOKABLE void attachmentAdd(const QUrl &documentUrl);
+
+    Q_INVOKABLE void attachmentRemove(const QUrl &documentUrl);
 
     Q_INVOKABLE void conversationStrategySet(int strategy);
 
@@ -148,6 +150,7 @@ private:
     QString m_general{};
     QString m_primary{};
     QString m_supervisor{};
+    QList<QUrl> m_attachments{};
     QString m_undoGroupId{};
     QVariantMap m_fileDiffs{};
     int m_additions{};

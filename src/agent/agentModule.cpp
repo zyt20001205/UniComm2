@@ -278,7 +278,9 @@ void AgentModule::conversationDelete() {
     conversationsGet();
 }
 
-void AgentModule::attachmentAdd(const QUrl &documentUrl) const {
+void AgentModule::attachmentAdd(const QUrl &documentUrl) {
+    if (m_attachments.contains(documentUrl)) return;
+    m_attachments.append(documentUrl);
     QMetaObject::invokeMethod(
         m_root,
         "attachmentAdd",
@@ -286,6 +288,12 @@ void AgentModule::attachmentAdd(const QUrl &documentUrl) const {
         Q_ARG(QString, QFileInfo(documentUrl.toLocalFile()).fileName()),
         Q_ARG(QUrl, uni_cast<QFileIcon>(documentUrl).value)
     );
+}
+
+void AgentModule::attachmentRemove(const QUrl &documentUrl) {
+    const auto index = m_attachments.indexOf(documentUrl);
+    m_attachments.removeAt(index);
+    QMetaObject::invokeMethod(m_root, "attachmentRemove", Q_ARG(int, index));
 }
 
 void AgentModule::conversationStrategySet(const int strategy) {
@@ -339,7 +347,7 @@ void AgentModule::abort() const {
 
 void AgentModule::pre() {
     if (m_conversationComboBox->property("currentValue").toString().isEmpty()) conversationInsert();
-    m_runtimes.value(m_primary)->pre(m_conversationId, m_textArea->property("text").toString());
+    m_runtimes.value(m_primary)->pre(m_conversationId, m_textArea->property("text").toString(), m_attachments);
 }
 
 void AgentModule::compact() const {
@@ -417,6 +425,8 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
         m_undoGroupId = g_undo->undoGroupBegin();
         g_document->transactionBegin(m_undoGroupId);
         turnCreate(turnId, startedAt);
+        m_attachments.clear();
+        QMetaObject::invokeMethod(m_root, "attachmentsClear");
         QMetaObject::invokeMethod(m_textArea, "clear");
     });
     connect(runtime, &RuntimeModule::finishTurn, this, [this, runtime](const QString &turnId, const qint64 finishedAt) {

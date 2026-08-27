@@ -1,6 +1,8 @@
 #ifndef UNICOMM_RUNTIMEMODULE_H
 #define UNICOMM_RUNTIMEMODULE_H
 
+#include <QUrl>
+
 #include "agent/module/sqlModule.h"
 
 class BaseAgent;
@@ -63,7 +65,7 @@ public:
 
     void abort();
 
-    void pre(const QString &conversationId, const QString &text);
+    void pre(const QString &conversationId, const QString &text, const QList<QUrl> &attachments);
 
     void compact(const QString &conversationId);
 
@@ -119,6 +121,7 @@ private:
         QString model{};
         QString compactedTurnId{};
         int mode{AgentMode::Chat};
+        QList<QUrl> attachments{};
         QList<SqlModule::Message> messages{};
         TokenUsage usage{};
         qint64 currentUsage{};

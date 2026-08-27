@@ -3,6 +3,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "globals.h"
+#include "document/documentModule.h"
 #include "agent/runtime/runtimeModule.h"
 
 // public
@@ -10,7 +12,7 @@ ContextModule::ContextModule(QObject *parent)
     : QObject(parent) {
 }
 
-QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::Conversation &conversation, const QList<SqlModule::Message> &history, const QList<SqlModule::Message> &turn) const {
+QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::Conversation &conversation, const QList<SqlModule::Message> &history, const QList<SqlModule::Message> &turn, const QList<QUrl> &attachments) const {
     QJsonArray context{
         QJsonObject{
             {"role", "system"},
@@ -24,7 +26,19 @@ QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::C
         while (start < history.size() && history.at(start).turnId == conversation.compactedTurnId) ++start;
     }
     for (auto i = start; i < history.size(); ++i) context.append(messageBuild(history.at(i)));
-    for (const auto &message: turn) context.append(messageBuild(message));
+    QString attachmentText{};
+    for (const auto &url: attachments) {
+        attachmentText.append("\n\n<attachment url=\"").append(url.toString()).append("\">\n");
+        attachmentText.append(g_document->textGet(url));
+        attachmentText.append("\n</attachment>");
+    }
+    for (qsizetype i = 0; i < turn.size(); ++i) {
+        auto message = messageBuild(turn.at(i));
+        if (i == 0 && !attachmentText.isEmpty()) {
+            message["content"] = message.value("content").toString() + "\n\nAttached files:" + attachmentText;
+        }
+        context.append(message);
+    }
     return context;
 }
 

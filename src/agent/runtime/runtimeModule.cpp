@@ -47,8 +47,9 @@ void RuntimeModule::abort() {
     stateSet(AgentState::Abort);
 }
 
-void RuntimeModule::pre(const QString &conversationId, const QString &text) {
+void RuntimeModule::pre(const QString &conversationId, const QString &text, const QList<QUrl> &attachments) {
     m_turn.conversationId = conversationId;
+    m_turn.attachments = attachments;
     stateSet(AgentState::Pre, text);
 }
 
@@ -127,6 +128,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         break;
         case AgentState::Pre: {
             const auto conversationId = m_turn.conversationId;
+            const auto attachments = m_turn.attachments;
             const auto conversation = m_sqlModule->conversationGet(conversationId).first;
             if (conversation.provider.isEmpty() || conversation.model.isEmpty()) {
                 stateSet(AgentState::Error, tr("Please select a model first."));
@@ -136,7 +138,8 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             m_turn = {
                 .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
                 .conversationId = conversationId,
-                .mode = conversation.mode
+                .mode = conversation.mode,
+                .attachments = attachments
             };
             const auto messageIndex = conversationAppend("user");
             auto &message = m_turn.messages[messageIndex];
@@ -171,7 +174,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                 const auto [conversation, messages] = m_sqlModule->conversationGet(m_turn.conversationId);
                 providerId = conversation.provider;
                 modelId = conversation.model;
-                context = m_contextModule->contextBuild(m_agent->systemGet(), conversation, messages, m_turn.messages);
+                context = m_contextModule->contextBuild(m_agent->systemGet(), conversation, messages, m_turn.messages, m_turn.attachments);
             }
             const auto tools = m_turn.mode == AgentMode::Chat ? QJsonArray{} : m_agent->toolsGet(*m_toolsModule);
             auto *provider = m_providerModule->providerGet(providerId);
