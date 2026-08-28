@@ -91,7 +91,9 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
 
     QSqlQuery messageQuery(database);
     messageQuery.prepare(R"(
-        SELECT id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved, created_at
+        SELECT id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved,
+               strategy, provider, model, status, error, created_at, started_at, first_output_at, finished_at,
+               prompt_tokens, completion_tokens, cache_hit_tokens, reasoning_tokens
         FROM messages
         WHERE conversation_id = :conversationId
         ORDER BY sequence
@@ -103,23 +105,29 @@ QPair<SqlModule::Conversation, QList<SqlModule::Message>> SqlModule::conversatio
     }
 
     QList<Message> messages{};
-    while (messageQuery.next()) {
-        const auto toolCallsDocument = QJsonDocument::fromJson(messageQuery.value(8).toString().toUtf8());
-        messages.append(Message{
-            .id = messageQuery.value(0).toString(),
-            .conversationId = messageQuery.value(1).toString(),
-            .turnId = messageQuery.value(2).toString(),
-            .sequence = messageQuery.value(3).toLongLong(),
-            .role = messageQuery.value(4).toString(),
-            .content = messageQuery.value(5).toString(),
-            .reasoningContent = messageQuery.value(6).toString(),
-            .toolCallId = messageQuery.value(7).toString(),
-            .toolCalls = toolCallsDocument.isArray() ? toolCallsDocument.array() : QJsonArray{},
-            .approved = messageQuery.value(9).toBool(),
-            .createdAt = messageQuery.value(10).toLongLong()
-        });
-    }
+    while (messageQuery.next()) messages.append(messageBuild(messageQuery));
     return {conversation, messages};
+}
+
+QList<SqlModule::Message> SqlModule::turnGet(const QString &id) const {
+    const auto database = QSqlDatabase::database(m_connectionName, false);
+    if (!database.isOpen()) return {};
+
+    QSqlQuery query(database);
+    query.prepare(R"(
+        SELECT id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved,
+               strategy, provider, model, status, error, created_at, started_at, first_output_at, finished_at,
+               prompt_tokens, completion_tokens, cache_hit_tokens, reasoning_tokens
+        FROM messages
+        WHERE turn_id = :id
+        ORDER BY sequence
+    )");
+    query.bindValue(":id", id);
+    if (!query.exec()) return {};
+
+    QList<Message> messages{};
+    while (query.next()) messages.append(messageBuild(query));
+    return messages;
 }
 
 QList<SqlModule::SearchResult> SqlModule::conversationsSearch(const QString &text, const int limit) const {
@@ -146,7 +154,9 @@ QList<SqlModule::SearchResult> SqlModule::conversationsSearch(const QString &tex
 
     QSqlQuery messageQuery(database);
     messageQuery.prepare(R"(
-        SELECT id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved, created_at
+        SELECT id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved,
+               strategy, provider, model, status, error, created_at, started_at, first_output_at, finished_at,
+               prompt_tokens, completion_tokens, cache_hit_tokens, reasoning_tokens
         FROM messages
         WHERE conversation_id = :conversationId AND turn_id = :turnId
         ORDER BY sequence
@@ -169,27 +179,12 @@ QList<SqlModule::SearchResult> SqlModule::conversationsSearch(const QString &tex
         }
 
         QList<Message> messages{};
-        while (messageQuery.next()) {
-            const auto toolCallsDocument = QJsonDocument::fromJson(messageQuery.value(8).toString().toUtf8());
-            messages.append(Message{
-                .id = messageQuery.value(0).toString(),
-                .conversationId = messageQuery.value(1).toString(),
-                .turnId = messageQuery.value(2).toString(),
-                .sequence = messageQuery.value(3).toLongLong(),
-                .role = messageQuery.value(4).toString(),
-                .content = messageQuery.value(5).toString(),
-                .reasoningContent = messageQuery.value(6).toString(),
-                .toolCallId = messageQuery.value(7).toString(),
-                .toolCalls = toolCallsDocument.isArray() ? toolCallsDocument.array() : QJsonArray{},
-                .approved = messageQuery.value(9).toBool(),
-                .createdAt = messageQuery.value(10).toLongLong()
-            });
-        }
+        while (messageQuery.next()) messages.append(messageBuild(messageQuery));
         results.append(SearchResult{
             .conversationId = conversationId,
             .conversationTitle = query.value(1).toString(),
             .turnId = turnId,
-            .createdAt = messages.first().createdAt,
+            .createdAt = messages.first().timing.createdAt,
             .rank = query.value(4).toDouble(),
             .messages = messages
         });
@@ -340,10 +335,14 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
     QSqlQuery query(database);
     query.prepare(R"(
         INSERT INTO messages (
-            id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved, created_at
+            id, conversation_id, turn_id, sequence, role, content, reasoning_content, tool_call_id, tool_calls, approved,
+            strategy, provider, model, status, error, created_at, started_at, first_output_at, finished_at,
+            prompt_tokens, completion_tokens, cache_hit_tokens, reasoning_tokens
         )
         VALUES (
-            :id, :conversationId, :turnId, :sequence, :role, :content, :reasoningContent, :toolCallId, :toolCalls, :approved, :createdAt
+            :id, :conversationId, :turnId, :sequence, :role, :content, :reasoningContent, :toolCallId, :toolCalls, :approved,
+            :strategy, :provider, :model, :status, :error, :createdAt, :startedAt, :firstOutputAt, :finishedAt,
+            :promptTokens, :completionTokens, :cacheHitTokens, :reasoningTokens
         )
     )");
     for (const auto &message: messages) {
@@ -357,7 +356,19 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
         query.bindValue(":toolCallId", message.toolCallId);
         query.bindValue(":toolCalls", QString::fromUtf8(QJsonDocument(message.toolCalls).toJson(QJsonDocument::Compact)));
         query.bindValue(":approved", message.approved);
-        query.bindValue(":createdAt", message.createdAt);
+        query.bindValue(":strategy", message.strategy);
+        query.bindValue(":provider", message.provider);
+        query.bindValue(":model", message.model);
+        query.bindValue(":status", message.status);
+        query.bindValue(":error", message.error);
+        query.bindValue(":createdAt", message.timing.createdAt);
+        query.bindValue(":startedAt", message.timing.startedAt);
+        query.bindValue(":firstOutputAt", message.timing.firstOutputAt);
+        query.bindValue(":finishedAt", message.timing.finishedAt);
+        query.bindValue(":promptTokens", message.usage.promptTokens);
+        query.bindValue(":completionTokens", message.usage.completionTokens);
+        query.bindValue(":cacheHitTokens", message.usage.cacheHitTokens);
+        query.bindValue(":reasoningTokens", message.usage.reasoningTokens);
         if (query.exec()) continue;
 
         qDebug() << "agent database message insert failed:" << query.lastError().text();
@@ -372,7 +383,7 @@ void SqlModule::conversationAppend(const QString &conversationId, const QList<Me
     )");
     query.bindValue(":conversationId", conversationId);
     query.bindValue(":contextTokens", contextTokens);
-    query.bindValue(":updatedAt", messages.constLast().createdAt);
+    query.bindValue(":updatedAt", messages.constLast().timing.finishedAt);
     if (!query.exec()) {
         qDebug() << "agent database conversation update failed:" << query.lastError().text();
         database.rollback();
@@ -398,6 +409,39 @@ void SqlModule::conversationRollback(const QString &conversationId, const QStrin
 }
 
 // private
+SqlModule::Message SqlModule::messageBuild(const QSqlQuery &query) {
+    const auto toolCalls = QJsonDocument::fromJson(query.value(8).toString().toUtf8());
+    return {
+        .id = query.value(0).toString(),
+        .conversationId = query.value(1).toString(),
+        .turnId = query.value(2).toString(),
+        .sequence = query.value(3).toLongLong(),
+        .role = query.value(4).toString(),
+        .content = query.value(5).toString(),
+        .reasoningContent = query.value(6).toString(),
+        .toolCallId = query.value(7).toString(),
+        .toolCalls = toolCalls.isArray() ? toolCalls.array() : QJsonArray{},
+        .approved = query.value(9).toBool(),
+        .strategy = query.value(10).toInt(),
+        .provider = query.value(11).toString(),
+        .model = query.value(12).toString(),
+        .status = query.value(13).toInt(),
+        .error = query.value(14).toString(),
+        .timing = {
+            .createdAt = query.value(15).toLongLong(),
+            .startedAt = query.value(16).toLongLong(),
+            .firstOutputAt = query.value(17).toLongLong(),
+            .finishedAt = query.value(18).toLongLong()
+        },
+        .usage = {
+            .promptTokens = query.value(19).toLongLong(),
+            .completionTokens = query.value(20).toLongLong(),
+            .cacheHitTokens = query.value(21).toLongLong(),
+            .reasoningTokens = query.value(22).toLongLong()
+        }
+    };
+}
+
 bool SqlModule::initialize() const {
     auto database = QSqlDatabase::database(m_connectionName, false);
     if (!database.isOpen()) return false;
@@ -450,7 +494,19 @@ bool SqlModule::initialize() const {
                 tool_call_id TEXT,
                 tool_calls TEXT,
                 approved INTEGER NOT NULL DEFAULT 0,
+                strategy INTEGER NOT NULL DEFAULT 0,
+                provider TEXT NOT NULL DEFAULT '',
+                model TEXT NOT NULL DEFAULT '',
+                status INTEGER NOT NULL DEFAULT 0,
+                error TEXT NOT NULL DEFAULT '',
                 created_at INTEGER NOT NULL,
+                started_at INTEGER NOT NULL DEFAULT 0,
+                first_output_at INTEGER NOT NULL DEFAULT 0,
+                finished_at INTEGER NOT NULL DEFAULT 0,
+                prompt_tokens INTEGER NOT NULL DEFAULT 0,
+                completion_tokens INTEGER NOT NULL DEFAULT 0,
+                cache_hit_tokens INTEGER NOT NULL DEFAULT 0,
+                reasoning_tokens INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
                 UNIQUE (conversation_id, sequence)
             )
@@ -484,8 +540,9 @@ bool SqlModule::initialize() const {
             END
         )",
         "CREATE INDEX IF NOT EXISTS conversations_updated_at ON conversations(updated_at DESC)",
-        "CREATE INDEX IF NOT EXISTS messages_turn_id ON messages(conversation_id, turn_id, sequence)",
-        "PRAGMA user_version = 6"
+        "CREATE INDEX IF NOT EXISTS messages_turn_id ON messages(turn_id, sequence)",
+        "CREATE INDEX IF NOT EXISTS messages_conversation_id ON messages(conversation_id, sequence)",
+        "PRAGMA user_version = 7"
     };
     for (const auto &statement: schema) {
         QSqlQuery query(database);

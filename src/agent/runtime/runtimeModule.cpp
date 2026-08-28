@@ -68,7 +68,10 @@ void RuntimeModule::request(const QString &provider, const QString &model, const
     const auto messageIndex = conversationAppend("user");
     auto &message = m_turn.messages[messageIndex];
     message.content = task;
-    message.createdAt = QDateTime::currentMSecsSinceEpoch();
+    message.provider = provider;
+    message.model = model;
+    message.status = SqlModule::TurnStatus::Running;
+    message.timing.startedAt = message.timing.createdAt;
     stateSet(AgentState::Request);
 }
 
@@ -110,8 +113,13 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             }
             if (!m_turn.id.isEmpty()) {
                 const auto finishedAt = QDateTime::currentMSecsSinceEpoch();
+                const auto error = payload.toString();
+                auto &user = m_turn.messages.first();
+                user.status = error.isEmpty() ? SqlModule::TurnStatus::Aborted : SqlModule::TurnStatus::Error;
+                user.error = error;
+                user.timing.finishedAt = finishedAt;
                 for (auto &message: m_turn.messages) {
-                    if (message.createdAt == 0) message.createdAt = finishedAt;
+                    if (message.timing.finishedAt == 0) message.timing.finishedAt = finishedAt;
                     if (message.role == "assistant") emit finishChat(message.id);
                 }
                 m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
@@ -138,14 +146,20 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             m_turn = {
                 .id = QUuid::createUuid().toString(QUuid::WithoutBraces),
                 .conversationId = conversationId,
+                .provider = conversation.provider,
+                .model = conversation.model,
                 .mode = conversation.mode,
                 .attachments = attachments
             };
             const auto messageIndex = conversationAppend("user");
             auto &message = m_turn.messages[messageIndex];
             message.content = payload.toString();
-            message.createdAt = QDateTime::currentMSecsSinceEpoch();
-            emit createTurn(m_turn.id, message.createdAt);
+            message.strategy = conversation.strategy;
+            message.provider = conversation.provider;
+            message.model = conversation.model;
+            message.status = SqlModule::TurnStatus::Running;
+            message.timing.startedAt = message.timing.createdAt;
+            emit createTurn(m_turn.id, message.timing.createdAt);
             emit createChat(m_turn.id, message.id, message.role);
             emit appendChat(message.id, message.content);
 
@@ -239,6 +253,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
 
             if (m_turn.conversationId.isEmpty()) g_agent->subagentUpdate(m_id, m_toolsModule->toolTextGet(toolCall.name, toolCall.arguments));
             const auto turnId = m_turn.id;
+            m_turn.messages[toolCall.messageIndex].timing.startedAt = QDateTime::currentMSecsSinceEpoch();
             auto future = m_toolsModule->toolExecute(m_id, toolCall.name, toolCall.arguments);
             future.then(this, [this, turnId, toolCall](const QString &result) {
                 if (m_state != AgentState::ToolExec || m_turn.id != turnId) return;
@@ -255,6 +270,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
 }
 
 void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &body) {
+    const auto startedAt = QDateTime::currentMSecsSinceEpoch();
     auto *reply = g_networkAccessManager->post(provider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     if (!body.value("stream").toBool()) {
@@ -283,7 +299,12 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
     }
 
     const auto messageIndex = conversationAppend("assistant");
-    const auto messageId = m_turn.messages.at(messageIndex).id;
+    auto &message = m_turn.messages[messageIndex];
+    message.provider = m_turn.provider;
+    message.model = body.value("model").toString();
+    message.timing.createdAt = startedAt;
+    message.timing.startedAt = startedAt;
+    const auto messageId = message.id;
     emit createChat(m_turn.id, messageId, "assistant");
     auto toolCalls = QSharedPointer<QMap<int, ToolCall> >::create();
 
@@ -303,16 +324,13 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
             const auto object = doc.object();
             const auto usage = object.value("usage").toObject();
             if (!usage.isEmpty()) {
-                const auto promptTokens = usage.value("prompt_tokens").toInt();
-                const auto completionTokens = usage.value("completion_tokens").toInt();
-                const auto cacheHitTokens = usage.value("prompt_cache_hit_tokens").toInt();
-                const auto reasoningTokens = usage.value("completion_tokens_details").toObject().value("reasoning_tokens").toInt();
-
                 m_turn.currentUsage = usage.value("total_tokens").toInt();
-                m_turn.usage.promptTokens += promptTokens;
-                m_turn.usage.completionTokens += completionTokens;
-                m_turn.usage.cacheHitTokens += cacheHitTokens;
-                m_turn.usage.reasoningTokens += reasoningTokens;
+                m_turn.messages[messageIndex].usage = {
+                    .promptTokens = usage.value("prompt_tokens").toInt(),
+                    .completionTokens = usage.value("completion_tokens").toInt(),
+                    .cacheHitTokens = usage.value("prompt_cache_hit_tokens").toInt(),
+                    .reasoningTokens = usage.value("completion_tokens_details").toObject().value("reasoning_tokens").toInt()
+                };
                 emit updateUsage(m_turn.currentUsage);
             }
 
@@ -321,6 +339,11 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
 
             const auto delta = choices.at(0).toObject().value("delta").toObject();
             const auto reasoning = delta.value("reasoning_content").toString();
+            const auto content = delta.value("content").toString();
+            const auto deltaToolCalls = delta.value("tool_calls").toArray();
+            if ((!reasoning.isEmpty() || !content.isEmpty() || !deltaToolCalls.isEmpty()) && m_turn.messages[messageIndex].timing.firstOutputAt == 0) {
+                m_turn.messages[messageIndex].timing.firstOutputAt = QDateTime::currentMSecsSinceEpoch();
+            }
             if (!reasoning.isEmpty()) {
                 auto &message = m_turn.messages[messageIndex];
                 if (message.reasoningContent.isEmpty()) stateSet(AgentState::Think);
@@ -328,7 +351,6 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                 emit appendChatReasoning(messageId, reasoning);
             }
 
-            const auto content = delta.value("content").toString();
             if (!content.isEmpty()) {
                 auto &message = m_turn.messages[messageIndex];
                 if (message.content.isEmpty()) stateSet(AgentState::Response);
@@ -336,7 +358,6 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                 emit appendChat(messageId, content);
             }
 
-            const auto deltaToolCalls = delta.value("tool_calls").toArray();
             for (const auto &value: deltaToolCalls) {
                 const auto object = value.toObject();
                 if (!object.contains("index")) continue;
@@ -355,7 +376,7 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             stateSet(AgentState::Abort);
         } else if (reply->error() == QNetworkReply::NoError) {
-            m_turn.messages[messageIndex].createdAt = QDateTime::currentMSecsSinceEpoch();
+            m_turn.messages[messageIndex].timing.finishedAt = QDateTime::currentMSecsSinceEpoch();
             emit finishChat(messageId);
             if (!toolCalls->isEmpty()) {
                 QJsonArray _toolCalls{};
@@ -385,7 +406,10 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                 stateSet(AgentState::Ready);
                 emit finishRun(result);
             } else {
-                const auto finishedAt = m_turn.messages.at(messageIndex).createdAt;
+                const auto finishedAt = m_turn.messages.at(messageIndex).timing.finishedAt;
+                auto &user = m_turn.messages.first();
+                user.status = SqlModule::TurnStatus::Completed;
+                user.timing.finishedAt = finishedAt;
                 m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
                 emit finishTurn(m_turn.id, finishedAt);
                 m_turn = {};
@@ -408,7 +432,8 @@ qsizetype RuntimeModule::conversationAppend(const QString &role, const QString &
         .conversationId = m_turn.conversationId,
         .turnId = m_turn.id,
         .role = role,
-        .toolCallId = toolCallId
+        .toolCallId = toolCallId,
+        .timing = {.createdAt = QDateTime::currentMSecsSinceEpoch()}
     });
     return index;
 }
@@ -418,7 +443,7 @@ void RuntimeModule::toolResultSet(const QString &result) {
     auto &message = m_turn.messages[toolCall.messageIndex];
     message.content = result;
     message.approved = toolCall.approved;
-    message.createdAt = QDateTime::currentMSecsSinceEpoch();
+    message.timing.finishedAt = QDateTime::currentMSecsSinceEpoch();
     ++m_turn.currentTool;
     stateSet(m_turn.currentTool < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
 }

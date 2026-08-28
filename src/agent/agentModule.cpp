@@ -9,6 +9,7 @@
 
 #include "globals.h"
 #include "agent/module/contextModule.h"
+#include "agent/module/evalModule.h"
 #include "agent/module/mcpModule.h"
 #include "agent/module/sqlModule.h"
 #include "agent/module/toolsModule.h"
@@ -37,6 +38,7 @@ AgentModule::AgentModule()
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_providerModule(new ProviderModule(m_config["providers"].toArray(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
+      m_evalModule(new EvalModule(m_sqlModule, this)),
       m_toolsModule(new ToolsModule(m_mcpModule, m_sqlModule, this)) {
     connect(m_mcpModule, &McpModule::registerTools, m_toolsModule, &ToolsModule::toolsRegister);
     auto *general = new RuntimeModule(new GeneralAgent(), runtimeServicesGet(), this); // NOLINT
@@ -121,6 +123,40 @@ void AgentModule::agentConfigSave() {
 void AgentModule::agentManage() const {
     m_manageWindow->resize(1080, 720);
     m_manageWindow->show();
+}
+
+QJsonArray AgentModule::tracesGet() const {
+    QJsonArray result{};
+    for (const auto &trace: m_evalModule->tracesGet(m_conversationId)) {
+        result.append(QJsonObject{
+            {"turn_id", trace.turnId},
+            {"conversation_id", trace.conversationId},
+            {"strategy", trace.strategy},
+            {"provider", trace.provider},
+            {"model", trace.model},
+            {"status", trace.status},
+            {"error", trace.error},
+            {"created_at", trace.timing.createdAt},
+            {"started_at", trace.timing.startedAt},
+            {"first_output_at", trace.timing.firstOutputAt},
+            {"finished_at", trace.timing.finishedAt},
+            {"duration_ms", trace.timing.finishedAt - trace.timing.startedAt},
+            {
+                "ttft_ms",
+                trace.timing.firstOutputAt == 0
+                    ? QJsonValue{}
+                    : QJsonValue(trace.timing.firstOutputAt - trace.timing.startedAt)
+            },
+            {"tool_duration_ms", trace.toolDuration},
+            {"model_calls", trace.modelCalls},
+            {"tool_calls", trace.toolCalls},
+            {"prompt_tokens", trace.usage.promptTokens},
+            {"completion_tokens", trace.usage.completionTokens},
+            {"cache_hit_tokens", trace.usage.cacheHitTokens},
+            {"reasoning_tokens", trace.usage.reasoningTokens}
+        });
+    }
+    return result;
 }
 
 RuntimeServices AgentModule::runtimeServicesGet() const {
@@ -220,9 +256,9 @@ void AgentModule::conversationGet(const QString &id) {
         if (message.turnId != turnId) {
             if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
             turnId = message.turnId;
-            turnCreate(turnId, message.createdAt);
+            turnCreate(turnId, message.timing.createdAt);
         }
-        finishedAt = message.createdAt;
+        finishedAt = message.timing.finishedAt;
         for (const auto &value: message.toolCalls) {
             const auto object = value.toObject();
             const auto function = object.value("function").toObject();

@@ -7,10 +7,22 @@
 #include <QObject>
 #include <QString>
 
+class QSqlQuery;
+
 class SqlModule final : public QObject {
     Q_OBJECT
 
 public:
+    struct TurnStatus {
+        enum {
+            None,
+            Running,
+            Completed,
+            Aborted,
+            Error
+        };
+    };
+
     struct Conversation {
         QString id{};
         QString title{};
@@ -25,6 +37,20 @@ public:
         qint64 updatedAt{};
     };
 
+    struct Usage {
+        qint64 promptTokens{};
+        qint64 completionTokens{};
+        qint64 cacheHitTokens{};
+        qint64 reasoningTokens{};
+    };
+
+    struct Timing {
+        qint64 createdAt{};
+        qint64 startedAt{};
+        qint64 firstOutputAt{};
+        qint64 finishedAt{};
+    };
+
     struct Message {
         QString id{};
         QString conversationId{};
@@ -36,7 +62,13 @@ public:
         QString toolCallId{};
         QJsonArray toolCalls{};
         bool approved{false};
-        qint64 createdAt{};
+        int strategy{};
+        QString provider{};
+        QString model{};
+        int status{TurnStatus::None};
+        QString error{};
+        Timing timing{};
+        Usage usage{};
     };
 
     struct SearchResult {
@@ -55,6 +87,8 @@ public:
     [[nodiscard]] QList<Conversation> conversationsGet() const;
 
     [[nodiscard]] QPair<Conversation, QList<Message>> conversationGet(const QString &id) const;
+
+    [[nodiscard]] QList<Message> turnGet(const QString &id) const;
 
     [[nodiscard]] QList<SearchResult> conversationsSearch(const QString &text, int limit) const;
 
@@ -77,6 +111,8 @@ public:
     void conversationRollback(const QString &conversationId, const QString &turnId) const;
 
 private:
+    [[nodiscard]] static Message messageBuild(const QSqlQuery &query);
+
     [[nodiscard]] bool initialize() const;
 
     QJsonObject m_config{};

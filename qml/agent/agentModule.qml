@@ -264,6 +264,17 @@ Item {
 
                 onClicked: agentModule.agentManage()
             }
+
+            Button {
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: conversationComboBox.currentIndex >= 0
+                flat: true
+                icon.source: "qrc:/icon/dataPie.svg"
+                icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                onClicked: console.log(JSON.stringify(agentModule.tracesGet(), null, 2))
+            }
         }
 
         RowLayout {

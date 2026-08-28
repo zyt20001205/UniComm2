@@ -107,13 +107,6 @@ private:
         bool approved{false};
     };
 
-    struct TokenUsage {
-        qint64 promptTokens{};
-        qint64 completionTokens{};
-        qint64 cacheHitTokens{};
-        qint64 reasoningTokens{};
-    };
-
     struct TurnContext {
         QString id{};
         QString conversationId{};
@@ -123,7 +116,6 @@ private:
         int mode{AgentMode::Chat};
         QList<QUrl> attachments{};
         QList<SqlModule::Message> messages{};
-        TokenUsage usage{};
         qint64 currentUsage{};
         bool planned{false};
         bool questionsAllowed{true};

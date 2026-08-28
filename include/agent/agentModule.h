@@ -3,6 +3,7 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QHash>
+#include <QJsonArray>
 #include <QStandardItemModel>
 #include <QUrl>
 
@@ -13,6 +14,7 @@ class QQuickWidget;
 
 class ConversationModel;
 class ContextModule;
+class EvalModule;
 class McpModule;
 class ProviderModule;
 class SqlModule;
@@ -45,6 +47,8 @@ public:
     void agentConfigSave();
 
     Q_INVOKABLE void agentManage() const;
+
+    Q_INVOKABLE QJsonArray tracesGet() const;
 
     [[nodiscard]] RuntimeServices runtimeServicesGet() const;
 
@@ -146,6 +150,7 @@ private:
     McpModule *m_mcpModule{};
     ProviderModule *m_providerModule{};
     SqlModule *m_sqlModule{};
+    EvalModule *m_evalModule{};
     ToolsModule *m_toolsModule{};
     QString m_general{};
     QString m_primary{};
