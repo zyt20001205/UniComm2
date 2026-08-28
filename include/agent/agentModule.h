@@ -3,7 +3,6 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QHash>
-#include <QJsonArray>
 #include <QStandardItemModel>
 #include <QUrl>
 
