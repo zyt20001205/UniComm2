@@ -159,7 +159,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             m_turn.compactedTurnId = turnId;
             auto *provider = m_providerModule->providerGet(conversation.provider);
             const auto body = provider->requestBuild(conversation.model, messages, {}, false);
-            conversationSend(provider, body);
+            _request(provider, body);
         }
         break;
         case AgentState::Request: {
@@ -179,7 +179,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             const auto tools = m_turn.mode == AgentMode::Chat ? QJsonArray{} : m_agent->toolsGet(*m_toolsModule);
             auto *provider = m_providerModule->providerGet(providerId);
             const auto body = provider->requestBuild(modelId, context, tools, true);
-            conversationSend(provider, body);
+            _request(provider, body);
         }
         break;
         case AgentState::ToolCall: {
@@ -254,7 +254,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
     }
 }
 
-void RuntimeModule::conversationSend(const BaseProvider *provider, const QJsonObject &body) {
+void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &body) {
     auto *reply = g_networkAccessManager->post(provider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     if (!body.value("stream").toBool()) {
