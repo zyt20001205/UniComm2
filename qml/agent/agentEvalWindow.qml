@@ -475,11 +475,11 @@ Item {
                                     Item {
                                         Layout.preferredWidth: 24; Layout.fillHeight: true
 
-                                        Label {
-                                            anchors.fill: parent
-                                            text: turnDelegate.expanded ? "−" : "+"
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
+                                        IconImage {
+                                            anchors.centerIn: parent
+                                            width: 16; height: 16
+                                            source: turnDelegate.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                            color: global.fore
                                             visible: turnDelegate.isTreeNode && turnDelegate.hasChildren
                                         }
 
