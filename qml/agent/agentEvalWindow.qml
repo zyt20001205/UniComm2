@@ -20,10 +20,14 @@ Item {
 
     function statusColor(status: int): color {
         switch (status) {
-            case 2: return global.successBack3
-            case 3: return global.warningBack3
-            case 4: return global.dangerBack3
-            default: return global.brandBack
+            case 2:
+                return global.successBack3
+            case 3:
+                return global.warningBack3
+            case 4:
+                return global.dangerBack3
+            default:
+                return global.brandBack
         }
     }
 
@@ -365,323 +369,331 @@ Item {
                         }
                     }
 
-                TreeView {
-                    id: turnHistory
-                    clip: true
-                    model: evalModel
-                    reuseItems: false
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    property string selectedNodeId: ""
-                    property string selectedConversationId: ""
-                    property string hoveredNodeId: ""
-                    property string selectedTitle: ""
-                    property string selectedDurationText: ""
-                    property real selectedDuration: 0
-                    property real selectedToolDuration: 0
+                    TreeView {
+                        id: turnHistory
+                        clip: true
+                        model: evalModel
+                        reuseItems: false
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        property string selectedNodeId: ""
+                        property string selectedConversationId: ""
+                        property string hoveredNodeId: ""
+                        property string selectedTitle: ""
+                        property string selectedDurationText: ""
+                        property real selectedDuration: 0
+                        property real selectedToolDuration: 0
 
-                    function clearSelection(): void {
-                        selectedNodeId = ""
-                        selectedTitle = ""
-                        selectedDurationText = ""
-                        selectedDuration = 0
-                        selectedToolDuration = 0
-                    }
-
-                    function selectNode(nodeId: string, title: string, durationText: string, duration: real, toolDuration: real, toggle: bool): void {
-                        if (toggle && selectedNodeId === nodeId) {
-                            clearSelection()
-                            return
+                        function clearSelection(): void {
+                            selectedNodeId = ""
+                            selectedTitle = ""
+                            selectedDurationText = ""
+                            selectedDuration = 0
+                            selectedToolDuration = 0
                         }
-                        selectedNodeId = nodeId
-                        selectedTitle = title
-                        selectedDurationText = durationText
-                        selectedDuration = duration
-                        selectedToolDuration = toolDuration
-                    }
 
-                    columnWidthProvider: function (column: int): real {
-                        return column === 0 ? width * 0.4 : width * 0.2
-                    }
-
-                    Component.onCompleted: selectedConversationId = rootItem.summary.conversationId
-
-                    ScrollBar.vertical: ScrollBar {
-                        policy: ScrollBar.AsNeeded
-                        palette {
-                            mid: global.stroke
-                            dark: global.strokePressed
+                        function selectNode(nodeId: string, title: string, durationText: string, duration: real, toolDuration: real, toggle: bool): void {
+                            if (toggle && selectedNodeId === nodeId) {
+                                clearSelection()
+                                return
+                            }
+                            selectedNodeId = nodeId
+                            selectedTitle = title
+                            selectedDurationText = durationText
+                            selectedDuration = duration
+                            selectedToolDuration = toolDuration
                         }
-                    }
 
-                    delegate: DelegateChooser {
-                        role: "messageRole"
+                        columnWidthProvider: function (column: int): real {
+                            return column === 0 ? width * 0.4 : width * 0.2
+                        }
 
-                        DelegateChoice {
-                            column: 0
-                            roleValue: "turn"
-                            delegate: Item {
-                                id: turnDelegate
-                                required property bool isTreeNode
-                                required property bool expanded
-                                required property bool hasChildren
-                                required property int depth
-                                required property int row
-                                required property string display
-                                required property string nodeId
-                                required property int status
-                                required property real durationValue
-                                required property real toolDurationValue
-                                implicitWidth: turnHistory.width * 0.4
-                                implicitHeight: 24
+                        Component.onCompleted: selectedConversationId = rootItem.summary.conversationId
 
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 6
-                                    color: global.backHover
-                                    opacity: turnHistory.hoveredNodeId === turnDelegate.nodeId ? 1 : 0
+                        ScrollBar.vertical: ScrollBar {
+                            policy: ScrollBar.AsNeeded
+                            palette {
+                                mid: global.stroke
+                                dark: global.strokePressed
+                            }
+                        }
 
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 150
-                                        }
-                                    }
-                                }
+                        delegate: DelegateChooser {
+                            role: "messageRole"
 
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 6
-                                    color: turnHistory.selectedNodeId === turnDelegate.nodeId ? global.backSelected : "transparent"
-                                }
+                            DelegateChoice {
+                                column: 0
+                                roleValue: "turn"
+                                delegate: Item {
+                                    id: turnDelegate
+                                    required property bool isTreeNode
+                                    required property bool expanded
+                                    required property bool hasChildren
+                                    required property int depth
+                                    required property int row
+                                    required property string display
+                                    required property string nodeId
+                                    required property int status
+                                    required property real durationValue
+                                    required property real toolDurationValue
+                                    implicitWidth: turnHistory.width * 0.4
+                                    implicitHeight: 24
 
-                                RowLayout {
-                                    anchors.fill: parent
-                                    spacing: 0
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 6
+                                        color: global.backHover
+                                        opacity: turnHistory.hoveredNodeId === turnDelegate.nodeId ? 1 : 0
 
-                                    Item {
-                                        Layout.preferredWidth: 12; Layout.fillHeight: true
-
-                                        Rectangle {
-                                            anchors.centerIn: parent
-                                            width: 3; height: 14
-                                            radius: 1.5
-                                            color: rootItem.statusColor(turnDelegate.status)
-                                        }
-                                    }
-
-                                    Item {
-                                        Layout.preferredWidth: turnDelegate.depth * 24; Layout.fillHeight: true
-                                    }
-
-                                    Item {
-                                        Layout.preferredWidth: 24; Layout.fillHeight: true
-
-                                        IconImage {
-                                            anchors.centerIn: parent
-                                            width: 16; height: 16
-                                            source: turnDelegate.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
-                                            color: global.fore
-                                            visible: turnDelegate.isTreeNode && turnDelegate.hasChildren
-                                        }
-
-                                        TapHandler {
-                                            acceptedButtons: Qt.LeftButton
-                                            gesturePolicy: TapHandler.DragWithinBounds
-
-                                            onTapped: {
-                                                turnHistory.selectNode(
-                                                    turnDelegate.nodeId,
-                                                    turnDelegate.display,
-                                                    evalModel.data(turnHistory.index(turnDelegate.row, 1)),
-                                                    turnDelegate.durationValue,
-                                                    turnDelegate.toolDurationValue,
-                                                    false
-                                                )
-                                                turnHistory.toggleExpanded(turnDelegate.row)
+                                        Behavior on opacity {
+                                            NumberAnimation {
+                                                duration: 150
                                             }
                                         }
                                     }
 
-                                    Label {
-                                        text: turnDelegate.display
-                                        leftPadding: 2
-                                        verticalAlignment: Text.AlignVCenter
-                                        elide: Text.ElideRight
-                                        Layout.fillWidth: true; Layout.fillHeight: true
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 6
+                                        color: turnHistory.selectedNodeId === turnDelegate.nodeId ? global.backSelected : "transparent"
                                     }
-                                }
 
-                                HoverHandler {
-                                    onHoveredChanged: {
-                                        if (hovered) turnHistory.hoveredNodeId = turnDelegate.nodeId
-                                        else if (turnHistory.hoveredNodeId === turnDelegate.nodeId) turnHistory.hoveredNodeId = ""
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        spacing: 0
+
+                                        Item {
+                                            Layout.preferredWidth: 12; Layout.fillHeight: true
+
+                                            Rectangle {
+                                                anchors.centerIn: parent
+                                                width: 3; height: 14
+                                                radius: 1.5
+                                                color: rootItem.statusColor(turnDelegate.status)
+                                            }
+                                        }
+
+                                        Item {
+                                            Layout.preferredWidth: turnDelegate.depth * 24; Layout.fillHeight: true
+                                        }
+
+                                        Item {
+                                            Layout.preferredWidth: 24; Layout.fillHeight: true
+
+                                            IconImage {
+                                                anchors.centerIn: parent
+                                                width: 16; height: 16
+                                                source: turnDelegate.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                                color: global.fore
+                                                visible: turnDelegate.isTreeNode && turnDelegate.hasChildren
+                                            }
+
+                                            TapHandler {
+                                                acceptedButtons: Qt.LeftButton
+                                                gesturePolicy: TapHandler.DragWithinBounds
+
+                                                onTapped: {
+                                                    turnHistory.selectNode(
+                                                        turnDelegate.nodeId,
+                                                        turnDelegate.display,
+                                                        evalModel.data(turnHistory.index(turnDelegate.row, 1)),
+                                                        turnDelegate.durationValue,
+                                                        turnDelegate.toolDurationValue,
+                                                        false
+                                                    )
+                                                    turnHistory.toggleExpanded(turnDelegate.row)
+                                                }
+                                            }
+                                        }
+
+                                        Label {
+                                            text: turnDelegate.display
+                                            leftPadding: 2
+                                            verticalAlignment: Text.AlignVCenter
+                                            elide: Text.ElideRight
+                                            Layout.fillWidth: true; Layout.fillHeight: true
+                                        }
                                     }
-                                }
 
-                                TapHandler {
-                                    acceptedButtons: Qt.LeftButton
-                                    gesturePolicy: TapHandler.DragWithinBounds
+                                    HoverHandler {
+                                        onHoveredChanged: {
+                                            if (hovered) turnHistory.hoveredNodeId = turnDelegate.nodeId
+                                            else if (turnHistory.hoveredNodeId === turnDelegate.nodeId) turnHistory.hoveredNodeId = ""
+                                        }
+                                    }
 
-                                    onTapped: turnHistory.selectNode(
-                                        turnDelegate.nodeId,
-                                        turnDelegate.display,
-                                        evalModel.data(turnHistory.index(turnDelegate.row, 1)),
-                                        turnDelegate.durationValue,
-                                        turnDelegate.toolDurationValue,
-                                        true
-                                    )
-                                }
+                                    TapHandler {
+                                        acceptedButtons: Qt.LeftButton
+                                        gesturePolicy: TapHandler.DragWithinBounds
 
-                                Component.onCompleted: {
-                                    if (turnHistory.selectedNodeId === nodeId) {
-                                        turnHistory.selectNode(
-                                            nodeId,
-                                            display,
-                                            evalModel.data(turnHistory.index(row, 1)),
-                                            durationValue,
-                                            toolDurationValue,
-                                            false
+                                        onTapped: turnHistory.selectNode(
+                                            turnDelegate.nodeId,
+                                            turnDelegate.display,
+                                            evalModel.data(turnHistory.index(turnDelegate.row, 1)),
+                                            turnDelegate.durationValue,
+                                            turnDelegate.toolDurationValue,
+                                            true
                                         )
                                     }
-                                }
-                            }
-                        }
 
-                        DelegateChoice {
-                            column: 0
-                            delegate: Item {
-                                id: messageDelegate
-                                required property int depth
-                                required property int row
-                                required property string display
-                                required property string nodeId
-                                required property real durationValue
-                                required property real toolDurationValue
-                                implicitWidth: turnHistory.width * 0.4
-                                implicitHeight: 24
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 6
-                                    color: global.backHover
-                                    opacity: turnHistory.hoveredNodeId === messageDelegate.nodeId ? 1 : 0
-
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 150
+                                    Component.onCompleted: {
+                                        if (turnHistory.selectedNodeId === nodeId) {
+                                            turnHistory.selectNode(
+                                                nodeId,
+                                                display,
+                                                evalModel.data(turnHistory.index(row, 1)),
+                                                durationValue,
+                                                toolDurationValue,
+                                                false
+                                            )
                                         }
                                     }
                                 }
+                            }
 
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 6
-                                    color: turnHistory.selectedNodeId === messageDelegate.nodeId ? global.backSelected : "transparent"
-                                }
+                            DelegateChoice {
+                                column: 0
+                                delegate: Item {
+                                    id: messageDelegate
+                                    required property int depth
+                                    required property int row
+                                    required property string display
+                                    required property url decoration
+                                    required property string nodeId
+                                    required property real durationValue
+                                    required property real toolDurationValue
+                                    implicitWidth: turnHistory.width * 0.4
+                                    implicitHeight: 24
 
-                                RowLayout {
-                                    anchors.fill: parent
-                                    spacing: 0
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 6
+                                        color: global.backHover
+                                        opacity: turnHistory.hoveredNodeId === messageDelegate.nodeId ? 1 : 0
 
-                                    Item {
-                                        Layout.preferredWidth: 12; Layout.fillHeight: true
+                                        Behavior on opacity {
+                                            NumberAnimation {
+                                                duration: 150
+                                            }
+                                        }
                                     }
 
-                                    Item {
-                                        Layout.preferredWidth: messageDelegate.depth * 24; Layout.fillHeight: true
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 6
+                                        color: turnHistory.selectedNodeId === messageDelegate.nodeId ? global.backSelected : "transparent"
                                     }
 
-                                    Item {
-                                        Layout.preferredWidth: 24; Layout.fillHeight: true
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        spacing: 0
+
+                                        Item {
+                                            Layout.preferredWidth: 12; Layout.fillHeight: true
+                                        }
+
+                                        Item {
+                                            Layout.preferredWidth: messageDelegate.depth * 24; Layout.fillHeight: true
+                                        }
+
+                                        Item {
+                                            Layout.preferredWidth: 24; Layout.fillHeight: true
+
+                                            IconImage {
+                                                anchors.centerIn: parent
+                                                width: 16; height: 16
+                                                source: messageDelegate.decoration
+                                                color: global.fore
+                                            }
+                                        }
+
+                                        Label {
+                                            text: messageDelegate.display
+                                            leftPadding: 2
+                                            verticalAlignment: Text.AlignVCenter
+                                            elide: Text.ElideRight
+                                            Layout.fillWidth: true; Layout.fillHeight: true
+                                        }
                                     }
 
-                                    Label {
-                                        text: messageDelegate.display
-                                        leftPadding: 2
-                                        verticalAlignment: Text.AlignVCenter
-                                        elide: Text.ElideRight
-                                        Layout.fillWidth: true; Layout.fillHeight: true
+                                    HoverHandler {
+                                        onHoveredChanged: {
+                                            if (hovered) turnHistory.hoveredNodeId = messageDelegate.nodeId
+                                            else if (turnHistory.hoveredNodeId === messageDelegate.nodeId) turnHistory.hoveredNodeId = ""
+                                        }
                                     }
-                                }
 
-                                HoverHandler {
-                                    onHoveredChanged: {
-                                        if (hovered) turnHistory.hoveredNodeId = messageDelegate.nodeId
-                                        else if (turnHistory.hoveredNodeId === messageDelegate.nodeId) turnHistory.hoveredNodeId = ""
-                                    }
-                                }
+                                    TapHandler {
+                                        acceptedButtons: Qt.LeftButton
+                                        gesturePolicy: TapHandler.DragWithinBounds
 
-                                TapHandler {
-                                    acceptedButtons: Qt.LeftButton
-                                    gesturePolicy: TapHandler.DragWithinBounds
-
-                                    onTapped: turnHistory.selectNode(
-                                        messageDelegate.nodeId,
-                                        messageDelegate.display,
-                                        evalModel.data(turnHistory.index(messageDelegate.row, 1)),
-                                        messageDelegate.durationValue,
-                                        messageDelegate.toolDurationValue,
-                                        true
-                                    )
-                                }
-
-                                Component.onCompleted: {
-                                    if (turnHistory.selectedNodeId === nodeId) {
-                                        turnHistory.selectNode(
-                                            nodeId,
-                                            display,
-                                            evalModel.data(turnHistory.index(row, 1)),
-                                            durationValue,
-                                            toolDurationValue,
-                                            false
+                                        onTapped: turnHistory.selectNode(
+                                            messageDelegate.nodeId,
+                                            messageDelegate.display,
+                                            evalModel.data(turnHistory.index(messageDelegate.row, 1)),
+                                            messageDelegate.durationValue,
+                                            messageDelegate.toolDurationValue,
+                                            true
                                         )
                                     }
-                                }
-                            }
-                        }
 
-                        DelegateChoice {
-                            delegate: Item {
-                                id: valueDelegate
-                                required property string display
-                                required property string nodeId
-                                implicitWidth: turnHistory.width * 0.2
-                                implicitHeight: 24
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    color: global.backHover
-                                    opacity: turnHistory.hoveredNodeId === valueDelegate.nodeId ? 1 : 0
-
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 150
+                                    Component.onCompleted: {
+                                        if (turnHistory.selectedNodeId === nodeId) {
+                                            turnHistory.selectNode(
+                                                nodeId,
+                                                display,
+                                                evalModel.data(turnHistory.index(row, 1)),
+                                                durationValue,
+                                                toolDurationValue,
+                                                false
+                                            )
                                         }
                                     }
                                 }
+                            }
 
-                                Rectangle {
-                                    anchors.fill: parent
-                                    color: turnHistory.selectedNodeId === valueDelegate.nodeId ? global.backSelected : "transparent"
-                                }
+                            DelegateChoice {
+                                delegate: Item {
+                                    id: valueDelegate
+                                    required property string display
+                                    required property string nodeId
+                                    implicitWidth: turnHistory.width * 0.2
+                                    implicitHeight: 24
 
-                                Label {
-                                    anchors.fill: parent
-                                    text: valueDelegate.display
-                                    leftPadding: 6
-                                    verticalAlignment: Text.AlignVCenter
-                                    elide: Text.ElideRight
-                                }
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        color: global.backHover
+                                        opacity: turnHistory.hoveredNodeId === valueDelegate.nodeId ? 1 : 0
 
-                                HoverHandler {
-                                    onHoveredChanged: {
-                                        if (hovered) turnHistory.hoveredNodeId = valueDelegate.nodeId
-                                        else if (turnHistory.hoveredNodeId === valueDelegate.nodeId) turnHistory.hoveredNodeId = ""
+                                        Behavior on opacity {
+                                            NumberAnimation {
+                                                duration: 150
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        color: turnHistory.selectedNodeId === valueDelegate.nodeId ? global.backSelected : "transparent"
+                                    }
+
+                                    Label {
+                                        anchors.fill: parent
+                                        text: valueDelegate.display
+                                        leftPadding: 6
+                                        verticalAlignment: Text.AlignVCenter
+                                        elide: Text.ElideRight
+                                    }
+
+                                    HoverHandler {
+                                        onHoveredChanged: {
+                                            if (hovered) turnHistory.hoveredNodeId = valueDelegate.nodeId
+                                            else if (turnHistory.hoveredNodeId === valueDelegate.nodeId) turnHistory.hoveredNodeId = ""
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
                 }
             }
         }

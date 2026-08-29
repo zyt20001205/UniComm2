@@ -2,7 +2,9 @@
   "agentConfig": {
     "id": "",
     "mcp": {},
-    "providers": ["deepseek"]
+    "providers": {
+      "deepseek": {}
+    }
   },
   "breakpointConfig": {
   },

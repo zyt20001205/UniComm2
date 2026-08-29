@@ -2,7 +2,7 @@
 #define UNICOMM_PROVIDERMODULE_H
 
 #include <QHash>
-#include <QJsonArray>
+#include <QJsonObject>
 #include <QObject>
 #include <QStandardItemModel>
 
@@ -13,7 +13,7 @@ class ProviderModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit ProviderModule(const QJsonArray &providers, QObject *parent = nullptr);
+    explicit ProviderModule(const QJsonObject &providers, QObject *parent = nullptr);
 
     ~ProviderModule() override = default;
 
@@ -34,7 +34,7 @@ signals:
 
 private:
     QObject *m_modelMenu{};
-    QJsonArray m_providerIds{};
+    QJsonObject m_providerConfigs{};
     ProviderModel *m_providerModel{};
     QHash<QString, BaseProvider *> m_providers{};
 };

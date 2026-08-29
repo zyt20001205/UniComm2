@@ -37,7 +37,7 @@ AgentModule::AgentModule()
       m_conversationModel(new ConversationModel(this)),
       m_contextModule(new ContextModule(this)),
       m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
-      m_providerModule(new ProviderModule(m_config["providers"].toArray(), this)),
+      m_providerModule(new ProviderModule(m_config["providers"].toObject(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
       m_evalModule(new EvalModule(m_sqlModule, this)),
       m_toolsModule(new ToolsModule(m_mcpModule, m_sqlModule, this)) {

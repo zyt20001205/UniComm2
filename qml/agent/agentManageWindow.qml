@@ -240,6 +240,7 @@ Item {
                     id: providerCard
                     property string providerId: model.id
                     property string providerName: model.display
+                    property url providerIcon: model.decoration
                     property string providerApikey: model.apikey
                     property url providerApi: model.api
                     property var providerModels: model.models
@@ -267,7 +268,7 @@ Item {
                                 anchors.centerIn: parent
                                 width: 24
                                 height: 24
-                                source: "qrc:/icon/" + providerCard.providerId + ".svg"
+                                source: providerCard.providerIcon
                             }
                         }
 

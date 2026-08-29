@@ -7,9 +7,9 @@
 #include "agent/provider/baseProvider.h"
 #include "agent/provider/openAIProvider.h"
 
-ProviderModule::ProviderModule(const QJsonArray &providers, QObject *parent)
+ProviderModule::ProviderModule(const QJsonObject &providers, QObject *parent)
     : QObject(parent),
-      m_providerIds(providers),
+      m_providerConfigs(providers),
       m_providerModel(new ProviderModel(this)) {
 }
 
@@ -22,12 +22,17 @@ void ProviderModule::initialize() {
     QFile file(":/config/api.json");
     if (!file.open(QIODevice::ReadOnly)) return;
     const auto catalog = QJsonDocument::fromJson(file.readAll()).object();
-    for (const auto &value: m_providerIds) {
-        const auto id = value.toString();
-        auto *provider = new OpenAIProvider(id, catalog.value(id).toObject(), this); // NOLINT
+    for (auto iterator = m_providerConfigs.constBegin(); iterator != m_providerConfigs.constEnd(); ++iterator) {
+        const auto id = iterator.key();
+        auto config = catalog.value(id).toObject();
+        const auto overrides = iterator.value().toObject();
+        for (auto override = overrides.constBegin(); override != overrides.constEnd(); ++override) config[override.key()] = override.value();
+        auto *provider = new OpenAIProvider(id, config, this); // NOLINT
         m_providers[id] = provider;
 
         auto *item = new QStandardItem(provider->nameGet()); // NOLINT
+        const auto icon = QFile::exists(":/icon/" + id + ".svg") ? "qrc:/icon/" + id + ".svg" : "qrc:/icon/model.svg";
+        item->setData(QUrl(icon), Qt::DecorationRole);
         item->setData(id, ProviderModel::IdRole);
         item->setData("", ProviderModel::ApikeyRole);
         item->setData(provider->apiGet(), ProviderModel::ApiRole);

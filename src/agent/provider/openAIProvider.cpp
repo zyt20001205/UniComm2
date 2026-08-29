@@ -1,5 +1,6 @@
 #include "agent/provider/openAIProvider.h"
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QNetworkReply>
 #include <qt6keychain/keychain.h>
@@ -48,9 +49,9 @@ void OpenAIProvider::apikeyGet() {
         if (j->error() == QKeychain::NoError) {
             const auto *readJob = static_cast<QKeychain::ReadPasswordJob *>(j);
             apikey = readJob->textData();
-            m_request.setRawHeader("Authorization", "Bearer " + apikey.toUtf8());
-            modelsGet();
+            if (!apikey.isEmpty()) m_request.setRawHeader("Authorization", "Bearer " + apikey.toUtf8());
         }
+        modelsGet();
         emit apikeyChanged(apikey);
     });
     job->start();
@@ -72,6 +73,19 @@ void OpenAIProvider::apikeySet(const QString &apikey) {
 
 void OpenAIProvider::modelsGet() {
     m_modelList->clear();
+    if (!m_models.isEmpty()) {
+        for (const auto &model: m_models) {
+            auto *item = new QStandardItem(model.name); // NOLINT
+            item->setData(model.id, ProviderModelModel::IdRole);
+            item->setData(model.id, ProviderModelModel::ModelIdRole);
+            item->setData(model.contextWindow, ProviderModelModel::ContextWindowRole);
+            item->setData(model.maxOutputTokens, ProviderModelModel::MaxOutputTokensRole);
+            m_modelList->appendRow(item);
+        }
+        emit modelsChanged();
+        return;
+    }
+
     auto request = m_request;
     request.setUrl(QUrl(m_api.toString() + "/models"));
     auto *reply = g_networkAccessManager->get(request);
