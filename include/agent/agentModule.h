@@ -47,7 +47,7 @@ public:
 
     Q_INVOKABLE void agentManage() const;
 
-    Q_INVOKABLE QJsonArray tracesGet() const;
+    Q_INVOKABLE void evalOpen() const;
 
     [[nodiscard]] RuntimeServices runtimeServicesGet() const;
 
@@ -133,6 +133,7 @@ private:
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
+    QQuickView *m_evalWindow{};
     QQuickView *m_manageWindow{};
     QObject *m_root{};
     ToastModule *m_toast{};

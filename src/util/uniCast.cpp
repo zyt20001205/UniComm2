@@ -480,6 +480,22 @@ QLifetime uni_cast<QLifetime, qint64>(const qint64 &s, const int depth) {
         .arg(time.toString(QStringLiteral("hh'h' mm'm' ss's'")));
 }
 
+template<>
+QDuration uni_cast<QDuration, qint64>(const qint64 &s, const int depth) {
+    Q_UNUSED(depth);
+    if (s >= 60000) return QStringLiteral("%1m %2s").arg(s / 60000).arg(s % 60000 / 1000);
+    if (s >= 1000) return QStringLiteral("%1s").arg(static_cast<double>(s) / 1000, 0, 'f', 1);
+    return QStringLiteral("%1ms").arg(s);
+}
+
+template<>
+QCompactNumber uni_cast<QCompactNumber, qint64>(const qint64 &s, const int depth) {
+    Q_UNUSED(depth);
+    if (s >= 1000000) return QStringLiteral("%1m").arg(static_cast<double>(s) / 1000000, 0, 'f', 1);
+    if (s >= 1000) return QStringLiteral("%1k").arg(static_cast<double>(s) / 1000, 0, 'f', 1);
+    return QString::number(s);
+}
+
 // qt -> suffix
 template<>
 ModbusCRC uni_cast<ModbusCRC, QByteArray>(const QByteArray &s, const int depth) {

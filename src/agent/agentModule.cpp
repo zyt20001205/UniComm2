@@ -31,6 +31,7 @@ AgentModule::AgentModule()
     : DockWidget("Agent"),
       m_config(g_workspaceConfig["agentConfig"].toObject()),
       m_widget(new QQuickWidget()),
+      m_evalWindow(new QQuickView()),
       m_manageWindow(new QQuickView()),
       m_conversationId(m_config["id"].toString()),
       m_conversationModel(new ConversationModel(this)),
@@ -54,6 +55,7 @@ AgentModule::AgentModule()
 }
 
 AgentModule::~AgentModule() {
+    delete m_evalWindow;
     delete m_manageWindow;
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
@@ -62,6 +64,13 @@ AgentModule::~AgentModule() {
 void AgentModule::propertySet(const QVariantHash &objects) {
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
     m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
+
+    m_evalWindow->setTitle(tr("Agent Evaluation"));
+    m_evalWindow->setTransientParent(g_mainWindow->windowHandle());
+    m_evalWindow->rootContext()->setContextProperty("evalModel", m_evalModule->modelGet());
+    m_evalWindow->rootContext()->setContextProperty("global", g_globalManager);
+    m_evalWindow->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_evalWindow->setSource(QUrl("qrc:/qml/agent/agentEvalWindow.qml"));
 
     m_manageWindow->setTitle(tr("Agent Settings"));
     m_manageWindow->setTransientParent(g_mainWindow->windowHandle());
@@ -125,38 +134,9 @@ void AgentModule::agentManage() const {
     m_manageWindow->show();
 }
 
-QJsonArray AgentModule::tracesGet() const {
-    QJsonArray result{};
-    for (const auto &trace: m_evalModule->tracesGet(m_conversationId)) {
-        result.append(QJsonObject{
-            {"turn_id", trace.turnId},
-            {"conversation_id", trace.conversationId},
-            {"strategy", trace.strategy},
-            {"provider", trace.provider},
-            {"model", trace.model},
-            {"status", trace.status},
-            {"error", trace.error},
-            {"created_at", trace.timing.createdAt},
-            {"started_at", trace.timing.startedAt},
-            {"first_output_at", trace.timing.firstOutputAt},
-            {"finished_at", trace.timing.finishedAt},
-            {"duration_ms", trace.timing.finishedAt - trace.timing.startedAt},
-            {
-                "ttft_ms",
-                trace.timing.firstOutputAt == 0
-                    ? QJsonValue{}
-                    : QJsonValue(trace.timing.firstOutputAt - trace.timing.startedAt)
-            },
-            {"tool_duration_ms", trace.toolDuration},
-            {"model_calls", trace.modelCalls},
-            {"tool_calls", trace.toolCalls},
-            {"prompt_tokens", trace.usage.promptTokens},
-            {"completion_tokens", trace.usage.completionTokens},
-            {"cache_hit_tokens", trace.usage.cacheHitTokens},
-            {"reasoning_tokens", trace.usage.reasoningTokens}
-        });
-    }
-    return result;
+void AgentModule::evalOpen() const {
+    m_evalWindow->resize(1080, 720);
+    m_evalWindow->show();
 }
 
 RuntimeServices AgentModule::runtimeServicesGet() const {
@@ -221,6 +201,7 @@ void AgentModule::conversationsGet() {
     }
 
     m_conversationId = currentConversation.id;
+    m_evalModule->update(m_conversationId);
     const auto strategy = currentConversation.id.isEmpty() ? AgentStrategy::Solo : currentConversation.strategy;
     m_primary = strategy == AgentStrategy::Solo ? m_general : m_supervisor;
 
@@ -238,6 +219,7 @@ void AgentModule::conversationGet(const QString &id) {
     const auto [conversation, messages] = m_sqlModule->conversationGet(id);
     if (conversation.id.isEmpty()) {
         m_conversationId.clear();
+        m_evalModule->update({});
         m_primary = m_general;
         m_strategyButton->setProperty("strategy", AgentStrategy::Solo);
         m_modeButton->setProperty("mode", AgentMode::Chat);
@@ -247,6 +229,7 @@ void AgentModule::conversationGet(const QString &id) {
     }
 
     m_conversationId = id;
+    m_evalModule->update(m_conversationId);
     m_primary = conversation.strategy == AgentStrategy::Solo ? m_general : m_supervisor;
     QString turnId{};
     qint64 finishedAt{};
@@ -475,6 +458,7 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
             [this](const QString &error) { m_toast->show(ToastLevel::Error, tr("Agent"), error); });
         if (!commitError.isEmpty()) m_toast->show(ToastLevel::Error, tr("Agent"), commitError);
         turnFinish(turnId, finishedAt);
+        m_evalModule->update(m_conversationId);
     });
     connect(runtime, &RuntimeModule::createChat, this, [this, runtime](const QString &turnId, const QString &messageId, const QString &role) {
         if (runtime == m_runtimes.value(m_primary)) chatCreate(turnId, messageId, role);

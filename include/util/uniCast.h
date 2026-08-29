@@ -92,6 +92,18 @@ struct QLifetime {
     operator QString() const { return value; }
 };
 
+struct QDuration {
+    QString value;
+    QDuration(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
+struct QCompactNumber {
+    QString value;
+    QCompactNumber(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
 template<>
 [[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);
 
@@ -106,6 +118,12 @@ template<>
 
 template<>
 [[nodiscard]] QLifetime uni_cast<QLifetime, qint64>(const qint64 &s, int depth);
+
+template<>
+[[nodiscard]] QDuration uni_cast<QDuration, qint64>(const qint64 &s, int depth);
+
+template<>
+[[nodiscard]] QCompactNumber uni_cast<QCompactNumber, qint64>(const qint64 &s, int depth);
 
 // qt -> suffix
 struct ModbusCRC {

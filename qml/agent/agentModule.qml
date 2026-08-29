@@ -273,7 +273,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: console.log(JSON.stringify(agentModule.tracesGet(), null, 2))
+                onClicked: agentModule.evalOpen()
             }
         }
 
