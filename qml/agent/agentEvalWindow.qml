@@ -175,11 +175,13 @@ Item {
                                 holeSize: 0.72
 
                                 PieSlice {
+                                    id: toolSlice
                                     value: rootItem.selectedToolDuration
                                     color: graphsTheme.seriesColors[0]
                                 }
 
                                 PieSlice {
+                                    id: nonToolSlice
                                     value: Math.max(0, rootItem.selectedDuration - rootItem.selectedToolDuration)
                                     color: graphsTheme.seriesColors[1]
                                 }
@@ -203,16 +205,12 @@ Item {
 
                             LegendItem {
                                 markerColor: graphsTheme.seriesColors[0]
-                                text: qsTr("Tool %1").arg(rootItem.selectedDuration === 0
-                                    ? "0%"
-                                    : (rootItem.selectedToolDuration * 100 / rootItem.selectedDuration).toFixed(0) + "%")
+                                text: qsTr("Tool %1%").arg((toolSlice.percentage * 100).toFixed(0))
                             }
 
                             LegendItem {
                                 markerColor: graphsTheme.seriesColors[1]
-                                text: qsTr("Non-tool %1").arg(rootItem.selectedDuration === 0
-                                    ? "0%"
-                                    : (100 - rootItem.selectedToolDuration * 100 / rootItem.selectedDuration).toFixed(0) + "%")
+                                text: qsTr("Non-tool %1%").arg((nonToolSlice.percentage * 100).toFixed(0))
                             }
                         }
                     }
@@ -493,7 +491,7 @@ Item {
                                                 turnHistory.selectNode(
                                                     turnDelegate.nodeId,
                                                     turnDelegate.display,
-                                                    evalModel.data(turnHistory.modelIndex(turnDelegate.row, 1)),
+                                                    evalModel.data(turnHistory.index(turnDelegate.row, 1)),
                                                     turnDelegate.durationValue,
                                                     turnDelegate.toolDurationValue,
                                                     false
@@ -526,7 +524,7 @@ Item {
                                     onTapped: turnHistory.selectNode(
                                         turnDelegate.nodeId,
                                         turnDelegate.display,
-                                        evalModel.data(turnHistory.modelIndex(turnDelegate.row, 1)),
+                                        evalModel.data(turnHistory.index(turnDelegate.row, 1)),
                                         turnDelegate.durationValue,
                                         turnDelegate.toolDurationValue,
                                         true
@@ -538,7 +536,7 @@ Item {
                                         turnHistory.selectNode(
                                             nodeId,
                                             display,
-                                            evalModel.data(turnHistory.modelIndex(row, 1)),
+                                            evalModel.data(turnHistory.index(row, 1)),
                                             durationValue,
                                             toolDurationValue,
                                             false
@@ -619,7 +617,7 @@ Item {
                                     onTapped: turnHistory.selectNode(
                                         messageDelegate.nodeId,
                                         messageDelegate.display,
-                                        evalModel.data(turnHistory.modelIndex(messageDelegate.row, 1)),
+                                        evalModel.data(turnHistory.index(messageDelegate.row, 1)),
                                         messageDelegate.durationValue,
                                         messageDelegate.toolDurationValue,
                                         true
@@ -631,7 +629,7 @@ Item {
                                         turnHistory.selectNode(
                                             nodeId,
                                             display,
-                                            evalModel.data(turnHistory.modelIndex(row, 1)),
+                                            evalModel.data(turnHistory.index(row, 1)),
                                             durationValue,
                                             toolDurationValue,
                                             false

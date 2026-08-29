@@ -198,7 +198,8 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         break;
         case AgentState::ToolCall: {
             auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
-            const auto &message = m_turn.messages.at(toolCall.messageIndex);
+            auto &message = m_turn.messages[toolCall.messageIndex];
+            message.timing.startedAt = QDateTime::currentMSecsSinceEpoch();
             const auto [approved, text] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
             toolCall.approved = approved;
             if (toolCall.name == "plan_update") {
