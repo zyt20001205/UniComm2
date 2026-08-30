@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.31)
 project(UniComm)
 
+set(CMAKE_INSTALL_PREFIX "D:/Workspace/CLionProjects/UniComm-dist" CACHE PATH "UniComm install directory" FORCE)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -82,6 +84,7 @@ qt_add_resources(UniComm "config_resources"
 )
 
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
+set(THEME_DIR "${CMAKE_SOURCE_DIR}/resources/theme")
 
 set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt")
 set(QT_BIN "${QT_DIR}/bin")
@@ -269,6 +272,77 @@ if(MINGW)
     set_source_files_properties(src/runtime/luaInterpreter.cpp PROPERTIES COMPILE_OPTIONS "-Wa,-mbig-obj")
 endif()
 
+# Keep the install layout aligned with the current POST_BUILD deployment.
+install(TARGETS UniComm
+        RUNTIME DESTINATION "."
+)
+
+install(DIRECTORY "${THEME_DIR}/"
+        DESTINATION "theme"
+)
+install(DIRECTORY "${HIGHLIGHT_DIR}/"
+        DESTINATION "javascript"
+)
+install(DIRECTORY "${MERMAID_DIR}/"
+        DESTINATION "javascript"
+)
+
+install(DIRECTORY "${LUALS_DIR}/"
+        DESTINATION "lua-language-server"
+)
+install(CODE [[
+    file(REMOVE_RECURSE
+        "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lua-language-server/meta/3rd/UniComm"
+    )
+]])
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/resources/meta/"
+        DESTINATION "lua-language-server/meta"
+)
+
+install(DIRECTORY "${NUSPELL_DICT}/"
+        DESTINATION "dict"
+)
+install(DIRECTORY "${RIPGREP_DIR}/"
+        DESTINATION "ripgrep"
+)
+install(DIRECTORY "${TESSERACT_LANG}/"
+        DESTINATION "."
+)
+install(DIRECTORY "${WHISPER_MODEL}/"
+        DESTINATION "whisper/model"
+)
+
+set(UNICOMM_RUNTIME_BIN_DIRS
+        "${QT_BIN}"
+        "${MISC_BIN}"
+        "${CMARK_BIN}"
+        "${DRMINGW_BIN}"
+        "${ICU_BIN}"
+        "${KDDW_BIN}"
+        "${LEPTONICA_BIN}"
+        "${LEXILLA_BIN}"
+        "${LUA_BIN}"
+        "${NUSPELL_BIN}"
+        "${OPENCV_BIN}"
+        "${QTKEYCHAIN_BIN}"
+        "${SCINTILLA_BIN}"
+        "${SIMPLEBLE_BIN}"
+        "${TESSERACT_BIN}"
+        "${VISA_BIN}"
+        "${WHISPER_BIN}"
+        "${WEBVIEW2_BIN}"
+)
+
+foreach (RUNTIME_BIN_DIR IN LISTS UNICOMM_RUNTIME_BIN_DIRS)
+    install(DIRECTORY "${RUNTIME_BIN_DIR}/"
+            DESTINATION "."
+    )
+endforeach ()
+
+install(DIRECTORY "${QT_SHARE}/"
+        DESTINATION "share"
+)
+
 if(FALSE)
     #auto deploy(do not use)
     add_custom_command(TARGET UniComm POST_BUILD
@@ -277,7 +351,6 @@ if(FALSE)
             "$<TARGET_FILE:UniComm>")
 else ()
     #theme
-    set(THEME_DIR "${CMAKE_SOURCE_DIR}/resources/theme")
     add_custom_command(TARGET UniComm POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${THEME_DIR}"
