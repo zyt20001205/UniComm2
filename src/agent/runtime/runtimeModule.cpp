@@ -292,7 +292,9 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                     stateSet(m_turn.id.isEmpty() ? AgentState::Ready : AgentState::Request);
                 }
             } else {
-                stateSet(AgentState::Error, reply->errorString());
+                const auto data = reply->readAll();
+                const auto message = QJsonDocument::fromJson(data).object().value("error").toObject().value("message").toString();
+                stateSet(AgentState::Error, message.isEmpty() ? reply->errorString() : message);
             }
             reply->deleteLater();
         });
