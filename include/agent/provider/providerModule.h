@@ -48,7 +48,10 @@ public:
     enum Role {
         IdRole = Qt::UserRole + 1,
         ApikeyRole,
-        ApiRole,
+        BaseUrlRole,
+        CustomRole,
+        ChatEndpointRole,
+        ModelEndpointRole,
         ModelsRole
     };
 

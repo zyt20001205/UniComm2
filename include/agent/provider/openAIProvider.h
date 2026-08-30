@@ -25,8 +25,16 @@ public:
         return m_name;
     }
 
-    [[nodiscard]] QUrl apiGet() const {
-        return m_api;
+    [[nodiscard]] QUrl baseUrlGet() const {
+        return m_baseUrl;
+    }
+
+    [[nodiscard]] QString chatEndpointGet() const {
+        return m_chatEndpoint;
+    }
+
+    [[nodiscard]] QString modelEndpointGet() const {
+        return m_modelEndpoint;
     }
 
     [[nodiscard]] ProviderModelModel *modelListGet() const {
@@ -50,7 +58,9 @@ public:
 private:
     QString m_id{};
     QString m_name{};
-    QUrl m_api{};
+    QUrl m_baseUrl{};
+    QString m_chatEndpoint{};
+    QString m_modelEndpoint{};
     bool m_modelFetch{};
     QList<Model> m_models{};
     QNetworkRequest m_request{};

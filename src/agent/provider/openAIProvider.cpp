@@ -12,10 +12,12 @@ OpenAIProvider::OpenAIProvider(const QString &id, const QJsonObject &provider, Q
     : BaseProvider(parent),
       m_id(id),
       m_name(provider.value("name").toString()),
-      m_api(provider.value("api").toString()),
+      m_baseUrl(provider.value("api").toString()),
+      m_chatEndpoint(provider.value("chatEndpoint").toString("/chat/completions")),
+      m_modelEndpoint(provider.value("modelsEndpoint").toString("/models")),
       m_modelFetch(provider.contains("models")),
       m_modelList(new ProviderModelModel(this)) {
-    m_request.setUrl(QUrl(m_api.toString() + "/chat/completions"));
+    m_request.setUrl(QUrl(m_baseUrl.toString() + m_chatEndpoint));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     const auto models = provider.value("models").toObject();
@@ -89,7 +91,7 @@ void OpenAIProvider::modelsGet() {
     // request from /models
     else {
         auto request = m_request;
-        request.setUrl(QUrl(m_api.toString() + "/models"));
+        request.setUrl(QUrl(m_baseUrl.toString() + m_modelEndpoint));
         auto *reply = g_networkAccessManager->get(request);
 
         connect(reply, &QNetworkReply::finished, [this, reply] {

@@ -24,6 +24,7 @@ void ProviderModule::initialize() {
     const auto catalog = QJsonDocument::fromJson(file.readAll()).object();
     for (auto iterator = m_providerConfigs.constBegin(); iterator != m_providerConfigs.constEnd(); ++iterator) {
         const auto id = iterator.key();
+        const auto custom = !catalog.contains(id);
         auto config = catalog.value(id).toObject();
         const auto overrides = iterator.value().toObject();
         for (auto override = overrides.constBegin(); override != overrides.constEnd(); ++override) config[override.key()] = override.value();
@@ -35,7 +36,10 @@ void ProviderModule::initialize() {
         item->setData(QUrl(icon), Qt::DecorationRole);
         item->setData(id, ProviderModel::IdRole);
         item->setData("", ProviderModel::ApikeyRole);
-        item->setData(provider->apiGet(), ProviderModel::ApiRole);
+        item->setData(provider->baseUrlGet(), ProviderModel::BaseUrlRole);
+        item->setData(custom, ProviderModel::CustomRole);
+        item->setData(provider->chatEndpointGet(), ProviderModel::ChatEndpointRole);
+        item->setData(provider->modelEndpointGet(), ProviderModel::ModelEndpointRole);
         item->setData(QVariant::fromValue(provider->modelListGet()), ProviderModel::ModelsRole);
         m_providerModel->appendRow(item);
 
@@ -59,7 +63,10 @@ QHash<int, QByteArray> ProviderModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[IdRole] = "id";
     roles[ApikeyRole] = "apikey";
-    roles[ApiRole] = "api";
+    roles[BaseUrlRole] = "baseUrl";
+    roles[CustomRole] = "custom";
+    roles[ChatEndpointRole] = "chatEndpoint";
+    roles[ModelEndpointRole] = "modelEndpoint";
     roles[ModelsRole] = "models";
     return roles;
 }

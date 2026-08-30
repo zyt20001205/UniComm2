@@ -80,7 +80,10 @@ Item {
                         property string providerName: model.display
                         property url providerIcon: model.decoration
                         property string providerApikey: model.apikey
-                        property url providerApi: model.api
+                        property url providerBaseUrl: model.baseUrl
+                        property bool providerCustom: model.custom
+                        property string providerChatEndpoint: model.chatEndpoint
+                        property string providerModelEndpoint: model.modelEndpoint
                         property var providerModels: model.models
 
                         radius: 6
@@ -123,21 +126,69 @@ Item {
                                         font.bold: true
                                     }
 
-                                    Label {
-                                        text: providerCard.providerId
-                                        color: global.stroke
-                                    }
-
                                     Item {
                                         Layout.fillWidth: true
                                     }
                                 }
 
-                                Label {
-                                    text: providerCard.providerApi.toString()
-                                    color: global.stroke
-                                    elide: Text.ElideRight
+                                RowLayout {
                                     Layout.fillWidth: true
+
+                                    Label {
+                                        text: qsTr("Base URL: %1").arg(providerCard.providerBaseUrl.toString())
+                                        color: global.stroke
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Button {
+                                        visible: providerCard.providerCustom
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        flat: true
+                                        icon.source: "qrc:/icon/edit.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                    }
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+
+                                    Label {
+                                        text: qsTr("Chat endpoint: %1").arg(providerCard.providerChatEndpoint)
+                                        color: global.stroke
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Button {
+                                        visible: providerCard.providerCustom
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        flat: true
+                                        icon.source: "qrc:/icon/edit.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                    }
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+
+                                    Label {
+                                        text: qsTr("Model endpoint: %1").arg(providerCard.providerModelEndpoint)
+                                        color: global.stroke
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Button {
+                                        visible: providerCard.providerCustom
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        flat: true
+                                        icon.source: "qrc:/icon/edit.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                    }
                                 }
 
                                 Rectangle {
