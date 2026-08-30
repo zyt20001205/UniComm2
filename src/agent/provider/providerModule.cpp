@@ -77,6 +77,10 @@ void ProviderModule::providerEdit(const QString &id, const QJsonObject &config) 
     provider->modelsGet();
 }
 
+void ProviderModule::providerModelsGet(const QString &id) const {
+    m_providers.value(id)->modelsGet();
+}
+
 void ProviderModule::providerRemove(const QString &id) {
     const auto indexes = m_providerModel->match(m_providerModel->index(0, 0), ProviderModel::IdRole, id, 1, Qt::MatchExactly);
     if (indexes.isEmpty()) return;

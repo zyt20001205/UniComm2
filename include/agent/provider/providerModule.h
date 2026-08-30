@@ -27,6 +27,8 @@ public:
 
     void providerEdit(const QString &id, const QJsonObject &config);
 
+    void providerModelsGet(const QString &id) const;
+
     void providerRemove(const QString &id);
 
     [[nodiscard]] BaseProvider *providerGet(const QString &id) const;

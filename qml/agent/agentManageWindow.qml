@@ -91,15 +91,32 @@ Item {
                         property var providerConfig: model.config
                         property var providerModels: model.models
 
+                        function configGet(): var {
+                            const config = {}
+                            for (const key in providerConfig) config[key] = providerConfig[key]
+                            return config
+                        }
+
                         function edit(key: string, label: string, value: string, allowEmpty: bool): void {
                             providerEditDialog.openEdit(
                                 providerId,
                                 key,
                                 label,
                                 value,
-                                providerConfig,
+                                configGet(),
                                 allowEmpty
                             )
+                        }
+
+                        function modelRemove(modelId: string): void {
+                            const config = configGet()
+                            const models = {}
+                            const currentModels = config.models || {}
+                            for (const id in currentModels) {
+                                if (id !== modelId) models[id] = currentModels[id]
+                            }
+                            config.models = models
+                            agentModule.providerEdit(providerId, config)
                         }
 
                         radius: 6
@@ -311,9 +328,43 @@ Item {
                                     Layout.preferredHeight: 1
                                 }
 
-                                Label {
-                                    text: qsTr("Available Models")
-                                    font.bold: true
+                                RowLayout {
+                                    Layout.fillWidth: true
+
+                                    Label {
+                                        text: qsTr("Available Models")
+                                        font.bold: true
+                                    }
+
+                                    Item {
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Button {
+                                        visible: providerCard.providerModelEndpoint.length > 0
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        flat: true
+                                        icon.source: "qrc:/icon/arrowRepeat.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                        onClicked: agentModule.providerModelsGet(providerCard.providerId)
+                                    }
+
+                                    Button {
+                                        visible: providerCard.providerCustom
+                                                 && providerCard.providerModelEndpoint.length === 0
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        flat: true
+                                        icon.source: "qrc:/icon/add.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                        onClicked: providerModelInsertDialog.openInsert(
+                                            providerCard.providerId,
+                                            providerCard.configGet()
+                                        )
+                                    }
                                 }
 
                                 Repeater {
@@ -364,6 +415,27 @@ Item {
                                             Label {
                                                 text: qsTr("Output %1").arg(maxOutputTokens.toLocaleString(Qt.locale(), "f", 0))
                                                 color: global.stroke
+                                            }
+
+                                            Button {
+                                                visible: providerCard.providerCustom
+                                                         && providerCard.providerModelEndpoint.length === 0
+                                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                                checkable: true
+                                                flat: true
+                                                icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
+                                                icon.width: 16; icon.height: 16
+                                                Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                                onClicked: {
+                                                    if (!checked) providerCard.modelRemove(modelId)
+                                                }
+
+                                                Timer {
+                                                    interval: 1000
+                                                    running: parent.checked
+                                                    onTriggered: parent.checked = false
+                                                }
                                             }
                                         }
                                     }
@@ -711,6 +783,102 @@ Item {
                     enabled: providerEditDialog.allowEmpty || providerEditTextField.text.trim().length > 0
 
                     onClicked: providerEditDialog.submit()
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: providerModelInsertDialog
+        width: 480
+        x: (rootItem.width - width) / 2
+        y: (rootItem.height - height) / 2
+        modal: true
+        title: qsTr("Add Model")
+        property string providerId
+        property var providerConfig
+
+        function openInsert(id: string, config: var): void {
+            providerId = id
+            providerConfig = config
+            providerModelIdTextField.clear()
+            providerModelNameTextField.clear()
+            providerModelContextTextField.clear()
+            providerModelOutputTextField.clear()
+            open()
+        }
+
+        function submit(): void {
+            const models = {}
+            const currentModels = providerConfig.models || {}
+            for (const id in currentModels) models[id] = currentModels[id]
+            const modelId = providerModelIdTextField.text.trim()
+            models[modelId] = {
+                "name": providerModelNameTextField.text.trim(),
+                "limit": {
+                    "context": Number(providerModelContextTextField.text),
+                    "output": Number(providerModelOutputTextField.text)
+                }
+            }
+            providerConfig.models = models
+            agentModule.providerEdit(providerId, providerConfig)
+            close()
+        }
+
+        onOpened: providerModelIdTextField.forceActiveFocus()
+
+        contentItem: ColumnLayout {
+            spacing: 12
+
+            TextField {
+                id: providerModelIdTextField
+                placeholderText: qsTr("Model ID")
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: providerModelNameTextField
+                placeholderText: qsTr("Display name")
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: providerModelContextTextField
+                placeholderText: qsTr("Context window")
+                validator: IntValidator { bottom: 1 }
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: providerModelOutputTextField
+                placeholderText: qsTr("Maximum output tokens")
+                validator: IntValidator { bottom: 1 }
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                spacing: 8
+                Layout.fillWidth: true
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    text: qsTr("Cancel")
+
+                    onClicked: providerModelInsertDialog.close()
+                }
+
+                Button {
+                    text: qsTr("Add")
+                    highlighted: true
+                    enabled: providerModelIdTextField.text.trim().length > 0
+                             && providerModelNameTextField.text.trim().length > 0
+                             && providerModelContextTextField.acceptableInput
+                             && providerModelOutputTextField.acceptableInput
+
+                    onClicked: providerModelInsertDialog.submit()
                 }
             }
         }

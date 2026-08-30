@@ -61,6 +61,8 @@ public:
 
     Q_INVOKABLE void providerEdit(const QString &id, const QJsonObject &config);
 
+    Q_INVOKABLE void providerModelsGet(const QString &id) const;
+
     Q_INVOKABLE void providerRemove(const QString &id);
 
     Q_INVOKABLE [[nodiscard]] bool providerExists(const QString &id) const;

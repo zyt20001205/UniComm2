@@ -172,6 +172,10 @@ void AgentModule::providerEdit(const QString &id, const QJsonObject &config) {
     agentConfigSave();
 }
 
+void AgentModule::providerModelsGet(const QString &id) const {
+    m_providerModule->providerModelsGet(id);
+}
+
 void AgentModule::providerRemove(const QString &id) {
     auto providers = m_config["providers"].toObject();
     providers.remove(id);
