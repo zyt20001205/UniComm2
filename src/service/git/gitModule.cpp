@@ -567,14 +567,14 @@ void GitModule::processFinished(const int exitcode) {
                     const auto hash = QString::fromUtf8(param[2]);
                     const auto commit = QString::fromUtf8(param[3]);
                     auto *item = new QStandardItem(name); // NOLINT
-                    item->setData(type, Qt::UserRole + 1);
-                    item->setData(hash, Qt::UserRole + 2);
-                    item->setData(commit, Qt::UserRole + 3);
+                    item->setData(type, BranchModel::TypeRole);
+                    item->setData(hash, BranchModel::HashRole);
+                    item->setData(commit, BranchModel::CommitRole);
                     // local
                     if (type == "current" || type == "local") {
                         if (localItem == nullptr) {
                             localItem = new QStandardItem(tr("Local")); // NOLINT
-                            localItem->setData("localRep", Qt::UserRole + 1);
+                            localItem->setData("localRep", BranchModel::TypeRole);
                             m_branchModel->appendRow(localItem);
                         }
                         if (name == "master") localItem->insertRow(0, item);
@@ -582,7 +582,7 @@ void GitModule::processFinished(const int exitcode) {
                     } else {
                         if (remoteItem == nullptr) {
                             remoteItem = new QStandardItem(tr("Remote")); // NOLINT
-                            remoteItem->setData("remoteRep", Qt::UserRole + 1);
+                            remoteItem->setData("remoteRep", BranchModel::TypeRole);
                             m_branchModel->appendRow(remoteItem);
                         }
                         remoteItem->appendRow(item);
@@ -627,9 +627,9 @@ void GitModule::processFinished(const int exitcode) {
                     const auto &nodeItem = new QStandardItem(); // NOLINT
                     const QList items{new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), nodeItem};
                     for (auto *item: items) {
-                        item->setData(hash, Qt::UserRole + 1);
+                        item->setData(hash, LogModel::HashRole);
                     }
-                    nodeItem->setData(nodePos, Qt::UserRole + 2);
+                    nodeItem->setData(nodePos, LogModel::PositionRole);
                     m_logModel->appendRow(items);
                 }
 
@@ -639,7 +639,7 @@ void GitModule::processFinished(const int exitcode) {
                         const auto parent = nodeHash.constFind(parentHash);
                         if (parent != nodeHash.cend()) parentPositions.append(parent.value());
                     }
-                    m_logModel->item(row, 3)->setData(parentPositions, Qt::UserRole + 3);
+                    m_logModel->item(row, 3)->setData(parentPositions, LogModel::ParentRole);
                 }
                 m_canvas->setProperty("laneCount", qMax(laneCount, 1));
             }
@@ -703,8 +703,8 @@ void GitModule::processFinished(const int exitcode) {
 
                     auto *item = new QStandardItem(display); // NOLINT
                     item->setData(source.value, Qt::DecorationRole);
-                    item->setData(documentUrl, Qt::UserRole + 1);
-                    item->setData(status, Qt::UserRole + 2);
+                    item->setData(documentUrl, ShowModel::DocumentUrlRole);
+                    item->setData(status, ShowModel::StatusRole);
                     if (rootItem) rootItem->appendRow(item);
                     else m_showModel->appendRow(item);
                 }
@@ -774,7 +774,7 @@ void GitModule::processFinished(const int exitcode) {
                             if (!_rootItem) {
                                 _rootItem = new QStandardItem(pathList[i]); // NOLINT
                                 _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
-                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_gitRootPath).filePath(rootPath)), Qt::UserRole + 1);
+                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_gitRootPath).filePath(rootPath)), StatusModel::DocumentUrlRole);
 
                                 if (rootItem) rootItem->appendRow(_rootItem);
                                 else m_workingTreeModel->appendRow(_rootItem);
@@ -785,8 +785,8 @@ void GitModule::processFinished(const int exitcode) {
 
                         auto *item = new QStandardItem(display); // NOLINT
                         item->setData(source.value, Qt::DecorationRole);
-                        item->setData(documentUrl, Qt::UserRole + 1);
-                        item->setData(workingTreeStatus, Qt::UserRole + 2);
+                        item->setData(documentUrl, StatusModel::DocumentUrlRole);
+                        item->setData(workingTreeStatus, StatusModel::StatusRole);
                         if (rootItem) rootItem->appendRow(item);
                         else m_workingTreeModel->appendRow(item);
 
@@ -806,7 +806,7 @@ void GitModule::processFinished(const int exitcode) {
                             if (!_rootItem) {
                                 _rootItem = new QStandardItem(pathList[i]); // NOLINT
                                 _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
-                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_gitRootPath).filePath(rootPath)), Qt::UserRole + 1);
+                                _rootItem->setData(QUrl::fromLocalFile(QDir(g_gitRootPath).filePath(rootPath)), StatusModel::DocumentUrlRole);
 
                                 if (rootItem) rootItem->appendRow(_rootItem);
                                 else m_indexModel->appendRow(_rootItem);
@@ -817,8 +817,8 @@ void GitModule::processFinished(const int exitcode) {
 
                         auto *item = new QStandardItem(display); // NOLINT
                         item->setData(source.value, Qt::DecorationRole);
-                        item->setData(documentUrl, Qt::UserRole + 1);
-                        item->setData(indexStatus, Qt::UserRole + 2);
+                        item->setData(documentUrl, StatusModel::DocumentUrlRole);
+                        item->setData(indexStatus, StatusModel::StatusRole);
                         if (rootItem) rootItem->appendRow(item);
                         else m_indexModel->appendRow(item);
                     }
@@ -837,7 +837,7 @@ void GitModule::processFinished(const int exitcode) {
                     const auto &hash = param[0];
                     const auto &subject = param[1];
                     auto *item = new QStandardItem(subject); // NOLINT
-                    item->setData(hash, Qt::UserRole + 1);
+                    item->setData(hash, CommitModel::HashRole);
                     root->appendRow(item);
                 }
             }
@@ -892,8 +892,8 @@ void GitModule::processFinished(const int exitcode) {
 
                     auto *item = new QStandardItem(display); // NOLINT
                     item->setData(source.value, Qt::DecorationRole);
-                    item->setData(documentUrl, Qt::UserRole + 1);
-                    item->setData(status, Qt::UserRole + 2);
+                    item->setData(documentUrl, ShowModel::DocumentUrlRole);
+                    item->setData(status, ShowModel::StatusRole);
                     if (rootItem) rootItem->appendRow(item);
                     else m_showModel_->appendRow(item);
                 }
@@ -955,8 +955,8 @@ void GitModule::processFinished(const int exitcode) {
 
                     auto *item = new QStandardItem(display); // NOLINT
                     item->setData(source.value, Qt::DecorationRole);
-                    item->setData(documentUrl, Qt::UserRole + 1);
-                    item->setData(status, Qt::UserRole + 2);
+                    item->setData(documentUrl, ShowModel::DocumentUrlRole);
+                    item->setData(status, ShowModel::StatusRole);
                     if (rootItem) rootItem->appendRow(item);
                     else m_showModel_->appendRow(item);
                 }
@@ -1024,7 +1024,7 @@ void GitModule::processFinished(const int exitcode) {
                 break;
             case GitCommand::Log: {
                 if (m_logModel->rowCount() > 0) {
-                    const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
+                    const auto hash = m_logModel->item(0, 0)->data(LogModel::HashRole).toString();
                     gitShowCommit(hash);
                 }
             }
@@ -1102,26 +1102,26 @@ BranchModel::BranchModel(QObject *parent)
 
 QHash<int, QByteArray> BranchModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "type";
-    roles[Qt::UserRole + 2] = "hash";
-    roles[Qt::UserRole + 3] = "commit";
+    roles[TypeRole] = "type";
+    roles[HashRole] = "hash";
+    roles[CommitRole] = "commit";
     return roles;
 }
 
 // public
 QHash<int, QByteArray> LogModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "hash";
-    roles[Qt::UserRole + 2] = "pos";
-    roles[Qt::UserRole + 3] = "parent";
+    roles[HashRole] = "hash";
+    roles[PositionRole] = "pos";
+    roles[ParentRole] = "parent";
     return roles;
 }
 
 // public
 QHash<int, QByteArray> ShowModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "documentUrl";
-    roles[Qt::UserRole + 2] = "status";
+    roles[DocumentUrlRole] = "documentUrl";
+    roles[StatusRole] = "status";
     return roles;
 }
 
@@ -1135,8 +1135,8 @@ StatusModel::StatusModel(QObject *parent)
 
 QHash<int, QByteArray> StatusModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "documentUrl";
-    roles[Qt::UserRole + 2] = "status";
+    roles[DocumentUrlRole] = "documentUrl";
+    roles[StatusRole] = "status";
     return roles;
 }
 
@@ -1150,6 +1150,6 @@ CommitModel::CommitModel(QObject *parent)
 
 QHash<int, QByteArray> CommitModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "hash";
+    roles[HashRole] = "hash";
     return roles;
 }

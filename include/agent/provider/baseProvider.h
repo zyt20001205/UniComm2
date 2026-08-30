@@ -29,6 +29,8 @@ public:
 
     virtual void apikeySet(const QString &apikey) = 0;
 
+    virtual void apikeyRemove() = 0;
+
     virtual void modelsGet() = 0;
 
     [[nodiscard]] virtual Model modelGet(const QString &id) const = 0;

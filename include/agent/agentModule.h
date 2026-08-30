@@ -57,6 +57,8 @@ public:
 
     Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
 
+    Q_INVOKABLE void providerRemove(const QString &id);
+
     Q_INVOKABLE QString mcpInsert(const QUrl &url);
 
     Q_INVOKABLE void mcpRemove(const QUrl &url);

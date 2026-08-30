@@ -129,6 +129,25 @@ Item {
                                     Item {
                                         Layout.fillWidth: true
                                     }
+
+                                    Button {
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        checkable: true
+                                        flat: true
+                                        icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                        onToggled: {
+                                            if (!checked) agentModule.providerRemove(providerCard.providerId)
+                                        }
+
+                                        Timer {
+                                            interval: 1000
+                                            running: parent.checked
+                                            onTriggered: parent.checked = false
+                                        }
+                                    }
                                 }
 
                                 RowLayout {

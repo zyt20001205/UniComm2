@@ -107,12 +107,12 @@ void SearchWindow::searchRequest() const {
         auto *lineItem = new QStandardItem(QString::number(_line)); // NOLINT
         auto *textItem = new QStandardItem(richText); // NOLINT
         const auto documentUrl = QUrl::fromLocalFile(path).toString();
-        pathItem->setData(documentUrl, Qt::UserRole + 1);
-        lineItem->setData(documentUrl, Qt::UserRole + 1);
-        textItem->setData(documentUrl, Qt::UserRole + 1);
-        pathItem->setData(_line - 1, Qt::UserRole + 2);
-        lineItem->setData(_line - 1, Qt::UserRole + 2);
-        textItem->setData(_line - 1, Qt::UserRole + 2);
+        pathItem->setData(documentUrl, SearchModel::DocumentUrlRole);
+        lineItem->setData(documentUrl, SearchModel::DocumentUrlRole);
+        textItem->setData(documentUrl, SearchModel::DocumentUrlRole);
+        pathItem->setData(_line - 1, SearchModel::LineRole);
+        lineItem->setData(_line - 1, SearchModel::LineRole);
+        textItem->setData(_line - 1, SearchModel::LineRole);
 
         m_searchModel->appendRow({pathItem, lineItem, textItem});
         ++matchCount;
@@ -142,7 +142,7 @@ SearchModel::SearchModel(QObject *parent)
 
 QHash<int, QByteArray> SearchModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "documentUrl";
-    roles[Qt::UserRole + 2] = "line";
+    roles[DocumentUrlRole] = "documentUrl";
+    roles[LineRole] = "line";
     return roles;
 }

@@ -45,7 +45,7 @@ void StatusModule::backgroundAppend(int &taskId, const std::function<void()> &ab
     taskId = m_taskId++;
     if (abort || info) {
         auto *item = new QStandardItem(); // NOLINT
-        item->setData(taskId, Qt::UserRole + 1);
+        item->setData(taskId, BackgroundModel::TaskIdRole);
         m_backgroundModel->appendRow(item);
         backgroundUpdate();
         if (abort) m_abortCallbacks.insert(taskId, abort);
@@ -54,26 +54,19 @@ void StatusModule::backgroundAppend(int &taskId, const std::function<void()> &ab
 }
 
 void StatusModule::backgroundRemove(const int taskId) {
-    for (int i = 0; i < m_backgroundModel->rowCount(); ++i) {
-        if (m_backgroundModel->item(i, 0)->data(Qt::UserRole + 1).toInt() == taskId) {
-            m_backgroundModel->removeRow(i);
-            m_abortCallbacks.remove(taskId);
-            m_infoCallbacks.remove(taskId);
-            backgroundUpdate();
-            break;
-        }
-    }
+    const auto indexes = m_backgroundModel->match(m_backgroundModel->index(0, 0), BackgroundModel::TaskIdRole, taskId, 1, Qt::MatchExactly);
+    if (indexes.isEmpty()) return;
+    m_backgroundModel->removeRow(indexes.constFirst().row());
+    m_abortCallbacks.remove(taskId);
+    m_infoCallbacks.remove(taskId);
+    backgroundUpdate();
 }
 
 void StatusModule::backgroundRefresh(const int taskId, const QString &message) const {
-    for (int i = 0; i < m_backgroundModel->rowCount(); ++i) {
-        auto item = m_backgroundModel->item(i, 0);
-        if (item->data(Qt::UserRole + 1).toInt() == taskId) {
-            item->setText(message);
-            backgroundUpdate();
-            break;
-        }
-    }
+    const auto indexes = m_backgroundModel->match(m_backgroundModel->index(0, 0), BackgroundModel::TaskIdRole, taskId, 1, Qt::MatchExactly);
+    if (indexes.isEmpty()) return;
+    m_backgroundModel->itemFromIndex(indexes.constFirst())->setText(message);
+    backgroundUpdate();
 }
 
 void StatusModule::backgroundAbort(const int taskId) {
@@ -148,7 +141,7 @@ void StatusModule::backgroundUpdate() const {
     if (taskCount == 1) {
         const auto item = m_backgroundModel->item(0, 0);
         m_backgroundModel->titleSet(item->text());
-        m_backgroundModel->taskIdSet(item->data(Qt::UserRole + 1).toInt());
+        m_backgroundModel->taskIdSet(item->data(BackgroundModel::TaskIdRole).toInt());
     } else {
         m_backgroundModel->titleSet(tr("%1 tasks running.").arg(QString::number(taskCount)));
         m_backgroundModel->taskIdSet(-1);
@@ -165,6 +158,6 @@ BackgroundModel::BackgroundModel(QObject *parent)
 
 QHash<int, QByteArray> BackgroundModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "taskId";
+    roles[TaskIdRole] = "taskId";
     return roles;
 }

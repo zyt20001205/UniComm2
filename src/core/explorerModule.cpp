@@ -105,10 +105,10 @@ SortFilterProxyModel::SortFilterProxyModel(const QHash<QUrl, QVariant> *document
 
 QHash<int, QByteArray> SortFilterProxyModel::roleNames() const {
     auto roles = QSortFilterProxyModel::roleNames();
-    roles[Qt::UserRole + 4] = "source";
-    roles[Qt::UserRole + 5] = "isDir";
-    roles[Qt::UserRole + 6] = "documentUrl";
-    roles[Qt::UserRole + 7] = "git";
+    roles[SourceRole] = "source";
+    roles[IsDirRole] = "isDir";
+    roles[DocumentUrlRole] = "documentUrl";
+    roles[GitRole] = "git";
     return roles;
 }
 
@@ -117,17 +117,17 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
     const auto *fileModel = qobject_cast<QFileSystemModel *>(sourceModel());
     const auto fileInfo = fileModel->fileInfo(sourceIndex);
     const auto documentUrl = QUrl::fromLocalFile(fileInfo.filePath());
-    if (role == Qt::UserRole + 4) {
+    if (role == SourceRole) {
         const auto &source = uni_cast<QFileIcon>(documentUrl);
         return source.value;
     }
-    if (role == Qt::UserRole + 5) {
+    if (role == IsDirRole) {
         return fileInfo.isDir();
     }
-    if (role == Qt::UserRole + 6) {
+    if (role == DocumentUrlRole) {
         return documentUrl;
     }
-    if (role == Qt::UserRole + 7) {
+    if (role == GitRole) {
         if (!g_globalManager->gitEnabledGet() || !m_documentStatus->contains(documentUrl)) {
             return {};
         }

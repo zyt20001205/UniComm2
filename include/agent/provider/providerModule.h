@@ -23,6 +23,8 @@ public:
 
     void apikeySet(const QString &provider, const QString &apikey) const;
 
+    void providerRemove(const QString &id);
+
     [[nodiscard]] BaseProvider *providerGet(const QString &id) const;
 
     [[nodiscard]] ProviderModel *providerModelGet() const {

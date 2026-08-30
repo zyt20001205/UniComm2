@@ -155,6 +155,14 @@ void AgentModule::apikeySet(const QString &provider, const QString &apikey) cons
     m_providerModule->apikeySet(provider, apikey);
 }
 
+void AgentModule::providerRemove(const QString &id) {
+    auto providers = m_config["providers"].toObject();
+    providers.remove(id);
+    m_config["providers"] = providers;
+    m_providerModule->providerRemove(id);
+    agentConfigSave();
+}
+
 QString AgentModule::mcpInsert(const QUrl &url) {
     const auto error = m_mcpModule->serverInsert(url);
     if (!error.isEmpty()) return error;

@@ -55,6 +55,18 @@ void ProviderModule::apikeySet(const QString &provider, const QString &apikey) c
     m_providers.value(provider)->apikeySet(apikey);
 }
 
+void ProviderModule::providerRemove(const QString &id) {
+    const auto indexes = m_providerModel->match(m_providerModel->index(0, 0), ProviderModel::IdRole, id, 1, Qt::MatchExactly);
+    if (indexes.isEmpty()) return;
+    const auto row = indexes.constFirst().row();
+    auto *provider = m_providers.take(id);
+    provider->disconnect(this);
+    provider->apikeyRemove();
+    provider->deleteLater();
+    m_providerConfigs.remove(id);
+    m_providerModel->removeRow(row);
+}
+
 BaseProvider *ProviderModule::providerGet(const QString &id) const {
     return m_providers.value(id);
 }

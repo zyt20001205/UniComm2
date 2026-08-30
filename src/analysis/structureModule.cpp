@@ -89,13 +89,13 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         const auto start = range["start"].toObject();
         const auto end = range["end"].toObject();
         item->setData(name, Qt::DisplayRole);
-        item->setData(detail, Qt::UserRole + 1);
+        item->setData(detail, StructureModel::DetailRole);
         item->setData(QVariantHash{
                           {"startLine", start["line"].toInt()},
                           {"startCharacter", start["character"].toInt()},
                           {"endLine", end["line"].toInt()},
                           {"endCharacter", end["character"].toInt()}
-                      }, Qt::UserRole + 2);
+                      }, StructureModel::PositionRole);
         switch (kind) {
             case LspSymbolKind::Package: {
                 item->setData(QUrl("qrc:/icon/symbolPackage.svg"), Qt::DecorationRole);
@@ -155,7 +155,7 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
 // public
 QHash<int, QByteArray> StructureModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "detail";
-    roles[Qt::UserRole + 2] = "position";
+    roles[DetailRole] = "detail";
+    roles[PositionRole] = "position";
     return roles;
 }

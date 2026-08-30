@@ -51,6 +51,8 @@ public:
 
     void apikeySet(const QString &apikey) override;
 
+    void apikeyRemove() override;
+
     void modelsGet() override;
 
     [[nodiscard]] Model modelGet(const QString &id) const override;

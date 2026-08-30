@@ -47,7 +47,7 @@ QJsonObject OpenAIProvider::requestBuild(const QString &model, const QJsonArray 
 void OpenAIProvider::apikeyGet() {
     const auto job = new QKeychain::ReadPasswordJob("UniComm");
     job->setKey("provider/" + m_id + "/api-key");
-    connect(job, &QKeychain::Job::finished, [this](QKeychain::Job *j) {
+    connect(job, &QKeychain::Job::finished, this, [this](QKeychain::Job *j) {
         QString apikey{};
         if (j->error() == QKeychain::NoError) {
             const auto *readJob = static_cast<QKeychain::ReadPasswordJob *>(j);
@@ -64,13 +64,19 @@ void OpenAIProvider::apikeySet(const QString &apikey) {
     const auto job = new QKeychain::WritePasswordJob("UniComm");
     job->setKey("provider/" + m_id + "/api-key");
     job->setTextData(apikey);
-    connect(job, &QKeychain::Job::finished, [this, apikey](const QKeychain::Job *j) {
+    connect(job, &QKeychain::Job::finished, this, [this, apikey](const QKeychain::Job *j) {
         if (j->error() == QKeychain::NoError) {
             m_request.setRawHeader("Authorization", "Bearer " + apikey.toUtf8());
             modelsGet();
         }
         emit apikeyChanged(apikey);
     });
+    job->start();
+}
+
+void OpenAIProvider::apikeyRemove() {
+    const auto job = new QKeychain::DeletePasswordJob("UniComm");
+    job->setKey("provider/" + m_id + "/api-key");
     job->start();
 }
 
