@@ -13,6 +13,7 @@ OpenAIProvider::OpenAIProvider(const QString &id, const QJsonObject &provider, Q
       m_id(id),
       m_name(provider.value("name").toString()),
       m_api(provider.value("api").toString()),
+      m_modelFetch(provider.contains("models")),
       m_modelList(new ProviderModelModel(this)) {
     m_request.setUrl(QUrl(m_api.toString() + "/chat/completions"));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -73,7 +74,8 @@ void OpenAIProvider::apikeySet(const QString &apikey) {
 
 void OpenAIProvider::modelsGet() {
     m_modelList->clear();
-    if (!m_models.isEmpty()) {
+    // read from config
+    if (!m_modelFetch) {
         for (const auto &model: m_models) {
             auto *item = new QStandardItem(model.name); // NOLINT
             item->setData(model.id, ProviderModelModel::IdRole);
@@ -83,27 +85,28 @@ void OpenAIProvider::modelsGet() {
             m_modelList->appendRow(item);
         }
         emit modelsChanged();
-        return;
     }
+    // request from /models
+    else {
+        auto request = m_request;
+        request.setUrl(QUrl(m_api.toString() + "/models"));
+        auto *reply = g_networkAccessManager->get(request);
 
-    auto request = m_request;
-    request.setUrl(QUrl(m_api.toString() + "/models"));
-    auto *reply = g_networkAccessManager->get(request);
-
-    connect(reply, &QNetworkReply::finished, [this, reply] {
-        const auto models = QJsonDocument::fromJson(reply->readAll()).object().value("data").toArray();
-        for (const auto &value: models) {
-            const auto model = modelGet(value.toObject().value("id").toString());
-            auto *item = new QStandardItem(model.name); // NOLINT
-            item->setData(model.id, ProviderModelModel::IdRole);
-            item->setData(model.id, ProviderModelModel::ModelIdRole);
-            item->setData(model.contextWindow, ProviderModelModel::ContextWindowRole);
-            item->setData(model.maxOutputTokens, ProviderModelModel::MaxOutputTokensRole);
-            m_modelList->appendRow(item);
-        }
-        reply->deleteLater();
-        emit modelsChanged();
-    });
+        connect(reply, &QNetworkReply::finished, [this, reply] {
+            const auto models = QJsonDocument::fromJson(reply->readAll()).object().value("data").toArray();
+            for (const auto &value: models) {
+                const auto model = modelGet(value.toObject().value("id").toString());
+                auto *item = new QStandardItem(model.name); // NOLINT
+                item->setData(model.id, ProviderModelModel::IdRole);
+                item->setData(model.id, ProviderModelModel::ModelIdRole);
+                item->setData(model.contextWindow, ProviderModelModel::ContextWindowRole);
+                item->setData(model.maxOutputTokens, ProviderModelModel::MaxOutputTokensRole);
+                m_modelList->appendRow(item);
+            }
+            reply->deleteLater();
+            emit modelsChanged();
+        });
+    }
 }
 
 BaseProvider::Model OpenAIProvider::modelGet(const QString &id) const {

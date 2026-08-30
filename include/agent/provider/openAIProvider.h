@@ -51,6 +51,7 @@ private:
     QString m_id{};
     QString m_name{};
     QUrl m_api{};
+    bool m_modelFetch{};
     QList<Model> m_models{};
     QNetworkRequest m_request{};
     ProviderModelModel *m_modelList{};
