@@ -438,9 +438,11 @@ QString DocumentModule::documentSave(const QUrl &documentUrl) const {
     if (documentPage == nullptr) return tr("Document save failed: document is not open.");
 
     const auto documentPath = documentUrl.toLocalFile();
-    if (m_watcher->files().contains(documentPath)) m_watcher->removePath(documentPath);
+    const bool watched = m_watcher->files().contains(documentPath);
+    if (watched) m_watcher->removePath(documentPath);
 
     const auto error = documentPage->documentSave();
+    if (watched) m_watcher->addPath(documentPath);
     return error;
 }
 
