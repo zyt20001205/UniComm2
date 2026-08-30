@@ -15,7 +15,7 @@ OpenAIProvider::OpenAIProvider(const QString &id, const QJsonObject &provider, Q
       m_baseUrl(provider.value("api").toString()),
       m_chatEndpoint(provider.value("chatEndpoint").toString("/chat/completions")),
       m_modelEndpoint(provider.value("modelsEndpoint").toString("/models")),
-      m_modelFetch(provider.contains("models")),
+      m_modelFetch(!m_modelEndpoint.isEmpty()),
       m_modelList(new ProviderModelModel(this)) {
     m_request.setUrl(QUrl(m_baseUrl.toString() + m_chatEndpoint));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");

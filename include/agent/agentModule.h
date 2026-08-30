@@ -57,7 +57,11 @@ public:
 
     Q_INVOKABLE void apikeySet(const QString &provider, const QString &apikey) const;
 
+    Q_INVOKABLE void providerInsert(const QString &id, const QJsonObject &config);
+
     Q_INVOKABLE void providerRemove(const QString &id);
+
+    Q_INVOKABLE [[nodiscard]] bool providerExists(const QString &id) const;
 
     Q_INVOKABLE QString mcpInsert(const QUrl &url);
 

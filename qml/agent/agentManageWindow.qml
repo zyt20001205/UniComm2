@@ -70,6 +70,10 @@ Item {
             SettingsPage {
                 title: qsTr("Models")
                 description: qsTr("Configure model providers, credentials, and available models.")
+                actionText: qsTr("Add Provider")
+                actionIcon: "qrc:/icon/add.svg"
+
+                onTriggerAction: providerInsertDialog.openInsert()
 
                 Repeater {
                     model: providerModel
@@ -126,6 +130,15 @@ Item {
                                         font.bold: true
                                     }
 
+                                    Button {
+                                        visible: providerCard.providerCustom
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        flat: true
+                                        icon.source: "qrc:/icon/edit.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 20; Layout.preferredHeight: 20
+                                    }
+
                                     Item {
                                         Layout.fillWidth: true
                                     }
@@ -157,7 +170,6 @@ Item {
                                         text: qsTr("Base URL: %1").arg(providerCard.providerBaseUrl.toString())
                                         color: global.stroke
                                         elide: Text.ElideRight
-                                        Layout.fillWidth: true
                                     }
 
                                     Button {
@@ -166,7 +178,11 @@ Item {
                                         flat: true
                                         icon.source: "qrc:/icon/edit.svg"
                                         icon.width: 16; icon.height: 16
-                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                        Layout.preferredWidth: 20; Layout.preferredHeight: 20
+                                    }
+
+                                    Item {
+                                        Layout.fillWidth: true
                                     }
                                 }
 
@@ -177,7 +193,6 @@ Item {
                                         text: qsTr("Chat endpoint: %1").arg(providerCard.providerChatEndpoint)
                                         color: global.stroke
                                         elide: Text.ElideRight
-                                        Layout.fillWidth: true
                                     }
 
                                     Button {
@@ -186,7 +201,11 @@ Item {
                                         flat: true
                                         icon.source: "qrc:/icon/edit.svg"
                                         icon.width: 16; icon.height: 16
-                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                        Layout.preferredWidth: 20; Layout.preferredHeight: 20
+                                    }
+
+                                    Item {
+                                        Layout.fillWidth: true
                                     }
                                 }
 
@@ -197,7 +216,6 @@ Item {
                                         text: qsTr("Model endpoint: %1").arg(providerCard.providerModelEndpoint)
                                         color: global.stroke
                                         elide: Text.ElideRight
-                                        Layout.fillWidth: true
                                     }
 
                                     Button {
@@ -206,7 +224,11 @@ Item {
                                         flat: true
                                         icon.source: "qrc:/icon/edit.svg"
                                         icon.width: 16; icon.height: 16
-                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                        Layout.preferredWidth: 20; Layout.preferredHeight: 20
+                                    }
+
+                                    Item {
+                                        Layout.fillWidth: true
                                     }
                                 }
 
@@ -450,6 +472,135 @@ Item {
             SettingsPage {
                 title: qsTr("Context")
                 description: qsTr("Manage context limits, token budgets, and compaction.")
+            }
+        }
+    }
+
+    Dialog {
+        id: providerInsertDialog
+        width: 520
+        x: (rootItem.width - width) / 2
+        y: (rootItem.height - height) / 2
+        modal: true
+        title: qsTr("Add Provider")
+        property bool deepseekAdded: false
+
+        function openInsert(): void {
+            deepseekAdded = agentModule.providerExists("deepseek")
+            providerNameTextField.clear()
+            providerBaseUrlTextField.clear()
+            open()
+        }
+
+        function submitCustom(): void {
+            agentModule.providerInsert("", {
+                "name": providerNameTextField.text.trim(),
+                "api": providerBaseUrlTextField.text.trim(),
+                "chatEndpoint": "/chat/completions",
+                "modelsEndpoint": "/models"
+            })
+            close()
+        }
+
+        contentItem: ColumnLayout {
+            spacing: 12
+
+            Label {
+                text: qsTr("Preset")
+                font.bold: true
+            }
+
+            Rectangle {
+                radius: 4
+                color: global.backHover
+                border.color: global.stroke
+                Layout.fillWidth: true
+                Layout.preferredHeight: 56
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 10
+
+                    IconImage {
+                        source: "qrc:/icon/deepseek.svg"
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                    }
+
+                    ColumnLayout {
+                        spacing: 0
+                        Layout.fillWidth: true
+
+                        Label {
+                            text: "DeepSeek"
+                            font.bold: true
+                        }
+
+                        Label {
+                            text: qsTr("Built-in OpenAI-compatible provider")
+                            color: global.stroke
+                        }
+                    }
+
+                    Button {
+                        text: providerInsertDialog.deepseekAdded ? qsTr("Added") : qsTr("Add")
+                        enabled: !providerInsertDialog.deepseekAdded
+                        leftPadding: 12; rightPadding: 12
+                        implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
+
+                        onClicked: {
+                            agentModule.providerInsert("deepseek", {})
+                            providerInsertDialog.deepseekAdded = true
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                color: global.stroke
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+            }
+
+            Label {
+                text: qsTr("OpenAI-compatible")
+                font.bold: true
+            }
+
+            TextField {
+                id: providerNameTextField
+                placeholderText: qsTr("Provider name")
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: providerBaseUrlTextField
+                placeholderText: qsTr("Base URL, for example http://localhost:8000/v1")
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                spacing: 8
+                Layout.fillWidth: true
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    text: qsTr("Cancel")
+
+                    onClicked: providerInsertDialog.close()
+                }
+
+                Button {
+                    text: qsTr("Add")
+                    highlighted: true
+                    enabled: providerNameTextField.text.trim().length > 0
+                             && providerBaseUrlTextField.text.trim().length > 0
+
+                    onClicked: providerInsertDialog.submitCustom()
+                }
             }
         }
     }

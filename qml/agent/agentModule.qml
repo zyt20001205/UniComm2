@@ -1504,9 +1504,9 @@ Item {
                             mode === 1 ? "qrc:/icon/eye.svg" :
                                 mode === 2 ? "qrc:/icon/edit.svg" :
                                     mode === 3 ? "qrc:/icon/lockOpen.svg" : ""
-                    icon.color: mode === 3 ? global.warningFore3 : global.fore
+                    icon.color: !enabled ? global.foreDisabled : mode === 3 ? global.warningFore3 : global.fore
                     icon.width: 16; icon.height: 16
-                    palette.buttonText: mode === 3 ? global.warningFore3 : global.fore
+                    palette.buttonText: !enabled ? global.foreDisabled : mode === 3 ? global.warningFore3 : global.fore
                     implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
                     Layout.preferredHeight: 28
 

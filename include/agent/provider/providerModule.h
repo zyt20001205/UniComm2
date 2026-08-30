@@ -23,9 +23,15 @@ public:
 
     void apikeySet(const QString &provider, const QString &apikey) const;
 
+    void providerInsert(const QString &id, const QJsonObject &overrides);
+
     void providerRemove(const QString &id);
 
     [[nodiscard]] BaseProvider *providerGet(const QString &id) const;
+
+    [[nodiscard]] bool providerExists(const QString &id) const {
+        return m_providers.contains(id);
+    }
 
     [[nodiscard]] ProviderModel *providerModelGet() const {
         return m_providerModel;
@@ -36,6 +42,7 @@ signals:
 
 private:
     QObject *m_modelMenu{};
+    QJsonObject m_catalog{};
     QJsonObject m_providerConfigs{};
     ProviderModel *m_providerModel{};
     QHash<QString, BaseProvider *> m_providers{};

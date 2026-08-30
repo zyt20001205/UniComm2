@@ -21,38 +21,44 @@ void ProviderModule::propertySet(const QVariantHash &objects) {
 void ProviderModule::initialize() {
     QFile file(":/config/api.json");
     if (!file.open(QIODevice::ReadOnly)) return;
-    const auto catalog = QJsonDocument::fromJson(file.readAll()).object();
-    for (auto iterator = m_providerConfigs.constBegin(); iterator != m_providerConfigs.constEnd(); ++iterator) {
-        const auto id = iterator.key();
-        const auto custom = !catalog.contains(id);
-        auto config = catalog.value(id).toObject();
-        const auto overrides = iterator.value().toObject();
-        for (auto override = overrides.constBegin(); override != overrides.constEnd(); ++override) config[override.key()] = override.value();
-        auto *provider = new OpenAIProvider(id, config, this); // NOLINT
-        m_providers[id] = provider;
-
-        auto *item = new QStandardItem(provider->nameGet()); // NOLINT
-        const auto icon = QFile::exists(":/icon/" + id + ".svg") ? "qrc:/icon/" + id + ".svg" : "qrc:/icon/model.svg";
-        item->setData(QUrl(icon), Qt::DecorationRole);
-        item->setData(id, ProviderModel::IdRole);
-        item->setData("", ProviderModel::ApikeyRole);
-        item->setData(provider->baseUrlGet(), ProviderModel::BaseUrlRole);
-        item->setData(custom, ProviderModel::CustomRole);
-        item->setData(provider->chatEndpointGet(), ProviderModel::ChatEndpointRole);
-        item->setData(provider->modelEndpointGet(), ProviderModel::ModelEndpointRole);
-        item->setData(QVariant::fromValue(provider->modelListGet()), ProviderModel::ModelsRole);
-        m_providerModel->appendRow(item);
-
-        connect(provider, &BaseProvider::apikeyChanged, this, [item](const QString &apikey) {
-            item->setData(apikey, ProviderModel::ApikeyRole);
-        });
-        connect(provider, &BaseProvider::modelsChanged, this, &ProviderModule::modelsChanged);
-        provider->apikeyGet();
+    m_catalog = QJsonDocument::fromJson(file.readAll()).object();
+    const auto providerConfigs = m_providerConfigs;
+    for (auto iterator = providerConfigs.constBegin(); iterator != providerConfigs.constEnd(); ++iterator) {
+        providerInsert(iterator.key(), iterator.value().toObject());
     }
 }
 
 void ProviderModule::apikeySet(const QString &provider, const QString &apikey) const {
     m_providers.value(provider)->apikeySet(apikey);
+}
+
+void ProviderModule::providerInsert(const QString &id, const QJsonObject &overrides) {
+    if (m_providers.contains(id)) return;
+
+    const auto custom = !m_catalog.contains(id);
+    auto config = m_catalog.value(id).toObject();
+    for (auto iterator = overrides.constBegin(); iterator != overrides.constEnd(); ++iterator) config[iterator.key()] = iterator.value();
+    auto *provider = new OpenAIProvider(id, config, this); // NOLINT
+    m_providerConfigs[id] = overrides;
+    m_providers[id] = provider;
+
+    auto *item = new QStandardItem(provider->nameGet()); // NOLINT
+    const auto icon = QFile::exists(":/icon/" + id + ".svg") ? "qrc:/icon/" + id + ".svg" : "qrc:/icon/model.svg";
+    item->setData(QUrl(icon), Qt::DecorationRole);
+    item->setData(id, ProviderModel::IdRole);
+    item->setData("", ProviderModel::ApikeyRole);
+    item->setData(provider->baseUrlGet(), ProviderModel::BaseUrlRole);
+    item->setData(custom, ProviderModel::CustomRole);
+    item->setData(provider->chatEndpointGet(), ProviderModel::ChatEndpointRole);
+    item->setData(provider->modelEndpointGet(), ProviderModel::ModelEndpointRole);
+    item->setData(QVariant::fromValue(provider->modelListGet()), ProviderModel::ModelsRole);
+    m_providerModel->appendRow(item);
+
+    connect(provider, &BaseProvider::apikeyChanged, this, [item](const QString &apikey) {
+        item->setData(apikey, ProviderModel::ApikeyRole);
+    });
+    connect(provider, &BaseProvider::modelsChanged, this, &ProviderModule::modelsChanged);
+    provider->apikeyGet();
 }
 
 void ProviderModule::providerRemove(const QString &id) {

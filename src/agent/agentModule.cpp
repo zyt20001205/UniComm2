@@ -155,12 +155,25 @@ void AgentModule::apikeySet(const QString &provider, const QString &apikey) cons
     m_providerModule->apikeySet(provider, apikey);
 }
 
+void AgentModule::providerInsert(const QString &id, const QJsonObject &config) {
+    const auto providerId = id.isEmpty() ? QUuid::createUuid().toString(QUuid::WithoutBraces) : id;
+    auto providers = m_config["providers"].toObject();
+    providers[providerId] = config;
+    m_config["providers"] = providers;
+    m_providerModule->providerInsert(providerId, config);
+    agentConfigSave();
+}
+
 void AgentModule::providerRemove(const QString &id) {
     auto providers = m_config["providers"].toObject();
     providers.remove(id);
     m_config["providers"] = providers;
     m_providerModule->providerRemove(id);
     agentConfigSave();
+}
+
+bool AgentModule::providerExists(const QString &id) const {
+    return m_providerModule->providerExists(id);
 }
 
 QString AgentModule::mcpInsert(const QUrl &url) {
