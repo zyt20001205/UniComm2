@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.31)
 project(UniComm)
 
-set(CMAKE_INSTALL_PREFIX "D:/Workspace/CLionProjects/UniComm-dist" CACHE PATH "UniComm install directory" FORCE)
+set(CMAKE_INSTALL_PREFIX "D:/Workspace/CLionProjects/UniComm-dist/latest" CACHE PATH "UniComm install directory" FORCE)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_AUTOMOC ON)
