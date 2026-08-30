@@ -93,10 +93,7 @@ private:
     QObject *m_quitDialog{};
 
     ConfigManager *m_configManager{};
-    GlobalManager *m_globalManager{};
     LSPManager *m_lspManager{};
-    AudioService *m_audioService{};
-    Ripgrep *m_ripgrep{};
 
     AgentModule *m_agentModule{};
     BreakpointModule *m_breakpointModule{};

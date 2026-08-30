@@ -89,7 +89,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
-    m_overlay->rootContext()->setContextProperty("global", m_globalManager);
+    m_overlay->rootContext()->setContextProperty("global", g_globalManager);
     m_overlay->rootContext()->setContextProperty("agentModule", m_agentModule);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
     m_overlay->rootContext()->setContextProperty("databaseModule", m_databaseModule);
@@ -414,13 +414,10 @@ void MainWindow::moduleInit() {
 
     g_networkAccessManager = new QNetworkAccessManager(qApp);
     m_configManager = new ConfigManager(this);
-    m_globalManager = new GlobalManager(this);
     m_lspManager = new LSPManager(this);
-    m_audioService = new AudioService(this);
-    m_ripgrep = new Ripgrep(this);
-    g_globalManager = m_globalManager;
-    g_audioService = m_audioService;
-    g_ripgrep = m_ripgrep;
+    g_audioService = new AudioService(this);
+    g_ripgrep = new Ripgrep(this);
+    g_globalManager = new GlobalManager();
 
     m_breakpointModule = new BreakpointModule();
     m_databaseModule = new DatabaseModule();
