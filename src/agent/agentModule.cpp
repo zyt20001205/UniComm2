@@ -533,12 +533,13 @@ void AgentModule::changeUpdate(const QString &undoGroupId) const {
 }
 
 void AgentModule::modelUpdate(const QString &provider, const QString &model) const {
-    if (provider.isEmpty() || model.isEmpty()) {
+    const auto providerInstance = m_providerModule->providerGet(provider);
+    if (providerInstance == nullptr || model.isEmpty()) {
         m_modelButton->setProperty("text", tr("Select model"));
         QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(double, 0));
         return;
     }
-    const auto modelInfo = m_providerModule->providerGet(provider)->modelGet(model);
+    const auto modelInfo = providerInstance->modelGet(model);
     m_modelButton->setProperty("text", modelInfo.name);
     QMetaObject::invokeMethod(m_root, "modelUpdate", Q_ARG(double, modelInfo.contextWindow));
 }

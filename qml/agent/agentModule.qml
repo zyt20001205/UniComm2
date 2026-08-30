@@ -1315,7 +1315,7 @@ Item {
                 id: attachmentFlow
                 visible: attachmentModel.count > 0
                 anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
-                anchors.leftMargin: 10; anchors.rightMargin: 10; anchors.topMargin: 8
+                anchors.leftMargin: 10; anchors.rightMargin: 10; anchors.topMargin: visible ? 8 : 0
                 spacing: 4
                 height: visible ? implicitHeight : 0
 
