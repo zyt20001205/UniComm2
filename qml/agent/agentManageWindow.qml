@@ -344,7 +344,7 @@ Item {
                                         visible: providerCard.providerModelEndpoint.length > 0
                                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                                         flat: true
-                                        icon.source: "qrc:/icon/arrowRepeat.svg"
+                                        icon.source: "qrc:/icon/arrowClockwise.svg"
                                         icon.width: 16; icon.height: 16
                                         Layout.preferredWidth: 20; Layout.preferredHeight: 20
 
