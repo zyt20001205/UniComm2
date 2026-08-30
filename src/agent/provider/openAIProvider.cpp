@@ -42,9 +42,9 @@ QJsonObject OpenAIProvider::requestBuild(const QString &model, const QJsonArray 
     QJsonObject body{
         {"model", model},
         {"messages", messages},
-        {"stream", stream},
-        {"tools", tools}
+        {"stream", stream}
     };
+    if (!tools.isEmpty()) body["tools"] = tools;
     if (stream) body["stream_options"] = QJsonObject{{"include_usage", true}};
     return body;
 }
