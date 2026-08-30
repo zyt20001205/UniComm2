@@ -7,6 +7,8 @@
 #include <QVariant>
 #include <utility>
 
+#include "globals.h"
+
 ToastModule::ToastModule(QQmlEngine *engine, QWindow &owner)
     : QQuickView(engine, nullptr),
       m_owner(owner) {
@@ -48,7 +50,7 @@ void ToastModule::show(const int level, const QString &title, const QString &tex
         actionGroupId = m_actionGroupId++;
         m_callbackGroups.insert(actionGroupId, std::move(callbacks));
     }
-    const int toastDuration = duration == 0 ? (actionGroupId == -1 ? 3000 : 5000) : duration;
+    const int toastDuration = duration == 0 && level != ToastLevel::Error ? (actionGroupId == -1 ? 3000 : 5000) : duration;
     const QVariant actionModelValue = actionModel;
     const bool invoked = QMetaObject::invokeMethod(
         m_root,

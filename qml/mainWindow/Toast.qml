@@ -244,7 +244,7 @@ Item {
 
                 Component.onCompleted: {
                     enterAnimation.start()
-                    progressAnimation.start()
+                    if (toastDuration > 0) progressAnimation.start()
                 }
             }
         }
