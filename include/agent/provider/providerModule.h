@@ -25,6 +25,8 @@ public:
 
     void providerInsert(const QString &id, const QJsonObject &overrides);
 
+    void providerEdit(const QString &id, const QJsonObject &config);
+
     void providerRemove(const QString &id);
 
     [[nodiscard]] BaseProvider *providerGet(const QString &id) const;
@@ -61,6 +63,7 @@ public:
         CustomRole,
         ChatEndpointRole,
         ModelEndpointRole,
+        ConfigRole,
         ModelsRole
     };
 

@@ -51,6 +51,7 @@ void ProviderModule::providerInsert(const QString &id, const QJsonObject &overri
     item->setData(custom, ProviderModel::CustomRole);
     item->setData(provider->chatEndpointGet(), ProviderModel::ChatEndpointRole);
     item->setData(provider->modelEndpointGet(), ProviderModel::ModelEndpointRole);
+    item->setData(config, ProviderModel::ConfigRole);
     item->setData(QVariant::fromValue(provider->modelListGet()), ProviderModel::ModelsRole);
     m_providerModel->appendRow(item);
 
@@ -59,6 +60,21 @@ void ProviderModule::providerInsert(const QString &id, const QJsonObject &overri
     });
     connect(provider, &BaseProvider::modelsChanged, this, &ProviderModule::modelsChanged);
     provider->apikeyGet();
+}
+
+void ProviderModule::providerEdit(const QString &id, const QJsonObject &config) {
+    m_providerConfigs[id] = config;
+
+    auto *provider = static_cast<OpenAIProvider *>(m_providers.value(id));
+    provider->configSet(config);
+    const auto indexes = m_providerModel->match(m_providerModel->index(0, 0), ProviderModel::IdRole, id, 1, Qt::MatchExactly);
+    auto *item = m_providerModel->itemFromIndex(indexes.constFirst());
+    item->setText(provider->nameGet());
+    item->setData(provider->baseUrlGet(), ProviderModel::BaseUrlRole);
+    item->setData(provider->chatEndpointGet(), ProviderModel::ChatEndpointRole);
+    item->setData(provider->modelEndpointGet(), ProviderModel::ModelEndpointRole);
+    item->setData(config, ProviderModel::ConfigRole);
+    provider->modelsGet();
 }
 
 void ProviderModule::providerRemove(const QString &id) {
@@ -85,6 +101,7 @@ QHash<int, QByteArray> ProviderModel::roleNames() const {
     roles[CustomRole] = "custom";
     roles[ChatEndpointRole] = "chatEndpoint";
     roles[ModelEndpointRole] = "modelEndpoint";
+    roles[ConfigRole] = "config";
     roles[ModelsRole] = "models";
     return roles;
 }

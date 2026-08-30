@@ -164,6 +164,14 @@ void AgentModule::providerInsert(const QString &id, const QJsonObject &config) {
     agentConfigSave();
 }
 
+void AgentModule::providerEdit(const QString &id, const QJsonObject &config) {
+    auto providers = m_config["providers"].toObject();
+    providers[id] = config;
+    m_config["providers"] = providers;
+    m_providerModule->providerEdit(id, config);
+    agentConfigSave();
+}
+
 void AgentModule::providerRemove(const QString &id) {
     auto providers = m_config["providers"].toObject();
     providers.remove(id);

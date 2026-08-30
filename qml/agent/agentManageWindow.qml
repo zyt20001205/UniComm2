@@ -88,7 +88,19 @@ Item {
                         property bool providerCustom: model.custom
                         property string providerChatEndpoint: model.chatEndpoint
                         property string providerModelEndpoint: model.modelEndpoint
+                        property var providerConfig: model.config
                         property var providerModels: model.models
+
+                        function edit(key: string, label: string, value: string, allowEmpty: bool): void {
+                            providerEditDialog.openEdit(
+                                providerId,
+                                key,
+                                label,
+                                value,
+                                providerConfig,
+                                allowEmpty
+                            )
+                        }
 
                         radius: 6
                         color: global.backHover
@@ -137,6 +149,13 @@ Item {
                                         icon.source: "qrc:/icon/edit.svg"
                                         icon.width: 16; icon.height: 16
                                         Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                        onClicked: providerCard.edit(
+                                            "name",
+                                            qsTr("Provider name"),
+                                            providerCard.providerName,
+                                            false
+                                        )
                                     }
 
                                     Item {
@@ -179,6 +198,13 @@ Item {
                                         icon.source: "qrc:/icon/edit.svg"
                                         icon.width: 16; icon.height: 16
                                         Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                        onClicked: providerCard.edit(
+                                            "api",
+                                            qsTr("Base URL"),
+                                            providerCard.providerBaseUrl.toString(),
+                                            false
+                                        )
                                     }
 
                                     Item {
@@ -202,6 +228,13 @@ Item {
                                         icon.source: "qrc:/icon/edit.svg"
                                         icon.width: 16; icon.height: 16
                                         Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                        onClicked: providerCard.edit(
+                                            "chatEndpoint",
+                                            qsTr("Chat endpoint"),
+                                            providerCard.providerChatEndpoint,
+                                            false
+                                        )
                                     }
 
                                     Item {
@@ -225,6 +258,13 @@ Item {
                                         icon.source: "qrc:/icon/edit.svg"
                                         icon.width: 16; icon.height: 16
                                         Layout.preferredWidth: 20; Layout.preferredHeight: 20
+
+                                        onClicked: providerCard.edit(
+                                            "modelsEndpoint",
+                                            qsTr("Model endpoint"),
+                                            providerCard.providerModelEndpoint,
+                                            true
+                                        )
                                     }
 
                                     Item {
@@ -600,6 +640,77 @@ Item {
                              && providerBaseUrlTextField.text.trim().length > 0
 
                     onClicked: providerInsertDialog.submitCustom()
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: providerEditDialog
+        width: 480
+        x: (rootItem.width - width) / 2
+        y: (rootItem.height - height) / 2
+        modal: true
+        property string providerId
+        property string field
+        property var providerConfig
+        property bool allowEmpty: false
+
+        function openEdit(id: string, key: string, label: string, value: string, config: var, empty: bool): void {
+            providerId = id
+            field = key
+            providerConfig = config
+            title = qsTr("Edit %1").arg(label)
+            allowEmpty = empty
+            providerEditTextField.text = value
+            open()
+        }
+
+        function submit(): void {
+            const config = {}
+            for (const key in providerConfig) config[key] = providerConfig[key]
+            config[field] = providerEditTextField.text.trim()
+            agentModule.providerEdit(providerId, config)
+            close()
+        }
+
+        onOpened: {
+            providerEditTextField.forceActiveFocus()
+            providerEditTextField.selectAll()
+        }
+
+        contentItem: ColumnLayout {
+            spacing: 12
+
+            TextField {
+                id: providerEditTextField
+                Layout.fillWidth: true
+
+                onAccepted: {
+                    if (providerEditDialog.allowEmpty || text.trim().length > 0) providerEditDialog.submit()
+                }
+            }
+
+            RowLayout {
+                spacing: 8
+                Layout.fillWidth: true
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    text: qsTr("Cancel")
+
+                    onClicked: providerEditDialog.close()
+                }
+
+                Button {
+                    text: qsTr("Save")
+                    highlighted: true
+                    enabled: providerEditDialog.allowEmpty || providerEditTextField.text.trim().length > 0
+
+                    onClicked: providerEditDialog.submit()
                 }
             }
         }

@@ -11,16 +11,20 @@
 OpenAIProvider::OpenAIProvider(const QString &id, const QJsonObject &provider, QObject *parent)
     : BaseProvider(parent),
       m_id(id),
-      m_name(provider.value("name").toString()),
-      m_baseUrl(provider.value("api").toString()),
-      m_chatEndpoint(provider.value("chatEndpoint").toString("/chat/completions")),
-      m_modelEndpoint(provider.value("modelsEndpoint").toString("/models")),
-      m_modelFetch(!m_modelEndpoint.isEmpty()),
       m_modelList(new ProviderModelModel(this)) {
-    m_request.setUrl(QUrl(m_baseUrl.toString() + m_chatEndpoint));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    configSet(provider);
+}
 
-    const auto models = provider.value("models").toObject();
+void OpenAIProvider::configSet(const QJsonObject &config) {
+    m_name = config.value("name").toString();
+    m_baseUrl = config.value("api").toString();
+    m_chatEndpoint = config.value("chatEndpoint").toString("/chat/completions");
+    m_modelEndpoint = config.value("modelsEndpoint").toString("/models");
+    m_modelFetch = !m_modelEndpoint.isEmpty();
+    m_models.clear();
+
+    const auto models = config.value("models").toObject();
     for (auto iterator = models.constBegin(); iterator != models.constEnd(); ++iterator) {
         const auto object = iterator.value().toObject();
         const auto limit = object.value("limit").toObject();
@@ -31,6 +35,7 @@ OpenAIProvider::OpenAIProvider(const QString &id, const QJsonObject &provider, Q
             .maxOutputTokens = limit.value("output").toInteger()
         });
     }
+    requestUpdate();
 }
 
 QJsonObject OpenAIProvider::requestBuild(const QString &model, const QJsonArray &messages, const QJsonArray &tools, const bool stream) const {
@@ -100,7 +105,7 @@ void OpenAIProvider::modelsGet() {
         request.setUrl(QUrl(m_baseUrl.toString() + m_modelEndpoint));
         auto *reply = g_networkAccessManager->get(request);
 
-        connect(reply, &QNetworkReply::finished, [this, reply] {
+        connect(reply, &QNetworkReply::finished, this, [this, reply] {
             const auto models = QJsonDocument::fromJson(reply->readAll()).object().value("data").toArray();
             for (const auto &value: models) {
                 const auto model = modelGet(value.toObject().value("id").toString());
@@ -122,4 +127,8 @@ BaseProvider::Model OpenAIProvider::modelGet(const QString &id) const {
         if (model.id == id) return model;
     }
     return Model{.id = id, .name = id};
+}
+
+void OpenAIProvider::requestUpdate() {
+    m_request.setUrl(QUrl(m_baseUrl.toString() + m_chatEndpoint));
 }

@@ -41,6 +41,8 @@ public:
         return m_modelList;
     }
 
+    void configSet(const QJsonObject &config);
+
     [[nodiscard]] QNetworkRequest requestGet() const override {
         return m_request;
     }
@@ -58,6 +60,8 @@ public:
     [[nodiscard]] Model modelGet(const QString &id) const override;
 
 private:
+    void requestUpdate();
+
     QString m_id{};
     QString m_name{};
     QUrl m_baseUrl{};
