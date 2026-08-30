@@ -18,8 +18,6 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void documentSave() override;
-
     [[nodiscard]] QString textGet(int page) const;
 
 private:

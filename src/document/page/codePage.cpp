@@ -48,8 +48,7 @@ CodePage::CodePage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     connect(m_symbolWidget, &SymbolWidget::fillIndicator, handler(), &ScintillaWidget::indicatorFill);
 }
 
-void CodePage::propertySet(const QVariantHash &objects) {
-    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
+void CodePage::propertySet(const QVariantHash &objects) const {
     m_codeWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
         {"mainWindowToast", objects["mainWindowToast"]},
@@ -64,29 +63,8 @@ void CodePage::propertySet(const QVariantHash &objects) {
     });
 }
 
-void CodePage::documentSave() {
-    m_codeWidget->documentSave();
-}
-
-bool CodePage::documentClose(const bool force) {
-    if (force) {
-        emit closeDocument(m_documentUrl);
-        deleteLater();
-        return true;
-    }
-    bool status = true;
-    if (handler()->modifyGet()) {
-        m_saveDialog->setProperty("documentUrl", m_documentUrl);
-        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
-        QMetaObject::invokeMethod(m_saveDialog, "open");
-        const auto eventloop = new QEventLoop(this);
-        const auto conn = connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
-        eventloop->exec();
-        disconnect(conn);
-        delete eventloop;
-        status = m_saveDialog->property("status").toBool();
-    }
-    return status;
+QString CodePage::documentSave() {
+    return m_codeWidget->documentSave();
 }
 
 QVariantHash CodePage::menuLoad(const QString &name) const {
@@ -138,6 +116,10 @@ void CodePage::spellCheckResponse(const QVariantList &typos) const {
     m_codeWidget->spellCheckResponse(typos);
 }
 
+// protected
+bool CodePage::documentModified() const {
+    return handler()->modifyGet();
+}
 
 // private
 void CodePage::savepointChange(const bool status) {

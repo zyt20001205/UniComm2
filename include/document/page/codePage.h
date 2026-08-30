@@ -14,13 +14,11 @@ public:
 
     ~CodePage() override = default;
 
-    void propertySet(const QVariantHash &objects);
+    void propertySet(const QVariantHash &objects) const;
 
     [[nodiscard]] ScintillaWidget *handler() const { return m_codeWidget->handler(); }
 
-    void documentSave() override;
-
-    bool documentClose(bool force = false) override;
+    [[nodiscard]] QString documentSave() override;
 
     [[nodiscard]] QVariantHash menuLoad(const QString &name) const;
 
@@ -91,12 +89,14 @@ signals:
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
+protected:
+    [[nodiscard]] bool documentModified() const override;
+
 private:
     void savepointChange(bool status);
 
     CodeWidget *m_codeWidget{};
     SymbolWidget *m_symbolWidget{};
-    QObject *m_saveDialog{};
 
     QJsonArray m_symbol{};
 };

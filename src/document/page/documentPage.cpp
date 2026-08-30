@@ -1,5 +1,6 @@
 #include "document/page/documentPage.h"
 
+#include <QCloseEvent>
 #include <QDir>
 
 #include "globals.h"
@@ -21,6 +22,11 @@ void DocumentPage::pathDisambiguation() {
     setTitle(relatedPath);
 }
 
+void DocumentPage::closeApprove() {
+    m_closeApproved = true;
+    close();
+}
+
 void DocumentPage::permissionGet() {
     const QString documentPath = m_documentUrl.toLocalFile();
     const QFileInfo documentInfo(documentPath);
@@ -31,11 +37,13 @@ void DocumentPage::permissionGet() {
 
 // protected
 void DocumentPage::closeEvent(QCloseEvent *event) {
-    if (!documentClose()) {
+    if (!m_closeApproved && documentModified()) {
         event->ignore();
+        emit closeRequest(m_documentUrl);
         return;
     }
+
+    event->accept();
     emit closeDocument(m_documentUrl);
     deleteLater();
-    event->accept();
 }

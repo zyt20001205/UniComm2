@@ -14,25 +14,25 @@ public:
 
     ~MarkupPage() override = default;
 
-    void propertySet(const QVariantHash &objects);
+    void propertySet(const QVariantHash &objects) const;
 
     [[nodiscard]] ScintillaWidget *handler() const { return m_editorWidget->handler(); }
 
-    void documentSave() override;
-
-    bool documentClose(bool force = false) override;
+    [[nodiscard]] QString documentSave() override;
 
 signals:
     void changeSelection(const QHash<QString, int> &selection);
 
+protected:
+    [[nodiscard]] bool documentModified() const override;
+
 private:
-    void previewUpdate();
+    void previewUpdate() const;
 
     void savepointChange(bool status);
 
     EditorWidget *m_editorWidget{};
     WebviewWidget *m_webviewWidget{};
-    QObject *m_saveDialog{};
 };
 
 #endif //UNICOMM_MARKUPPAGE_H

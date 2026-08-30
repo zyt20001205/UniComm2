@@ -27,8 +27,7 @@ MarkupPage::MarkupPage(const QJsonObject &documentConfig, const QUrl &documentUr
     connect(m_editorWidget, &EditorWidget::changeContent, this, &MarkupPage::previewUpdate);
 }
 
-void MarkupPage::propertySet(const QVariantHash &objects) {
-    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
+void MarkupPage::propertySet(const QVariantHash &objects) const {
     m_editorWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
         {"mainWindowToast", objects["mainWindowToast"]},
@@ -38,33 +37,17 @@ void MarkupPage::propertySet(const QVariantHash &objects) {
     });
 }
 
-void MarkupPage::documentSave() {
-    m_editorWidget->documentSave();
+QString MarkupPage::documentSave() {
+    return m_editorWidget->documentSave();
 }
 
-bool MarkupPage::documentClose(const bool force) {
-    if (force) {
-        emit closeDocument(m_documentUrl);
-        deleteLater();
-        return true;
-    }
-    bool status = true;
-    if (handler()->modifyGet()) {
-        m_saveDialog->setProperty("documentUrl", m_documentUrl);
-        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
-        QMetaObject::invokeMethod(m_saveDialog, "open");
-        const auto eventloop = new QEventLoop(this);
-        const auto conn = connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
-        eventloop->exec();
-        disconnect(conn);
-        delete eventloop;
-        status = m_saveDialog->property("status").toBool();
-    }
-    return status;
+// protected
+bool MarkupPage::documentModified() const {
+    return handler()->modifyGet();
 }
 
 // private
-void MarkupPage::previewUpdate() {
+void MarkupPage::previewUpdate() const {
     const auto text = handler()->textGet();
     if (QFileInfo(m_documentUrl.toLocalFile()).suffix().toLower() == "md") {
         m_webviewWidget->setHtml(uni_cast<QFullHtmlString>(text));

@@ -36,9 +36,11 @@ void CodeWidget::propertySet(const QVariantHash &objects) {
     });
 }
 
-void CodeWidget::documentSave() {
-    EditorWidget::documentSave();
+QString CodeWidget::documentSave() {
+    auto error = EditorWidget::documentSave();
+    if (!error.isEmpty()) return error;
     didSaveNotification();
+    return {};
 }
 
 QVariantHash CodeWidget::menuLoad(const QString &name) const {

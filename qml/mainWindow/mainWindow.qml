@@ -1072,25 +1072,29 @@ Item {
         modal: true
         title: qsTr("Save and Exit")
         standardButtons: Dialog.Yes | Dialog.No | Dialog.Cancel
-        property bool status
         property string documentUrl
         property string documentName
+        property int closeDecision: Dialog.Cancel
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
             widgetCount += 1
-            documentModuleSaveDialog.status = true
+            closeDecision = Dialog.Cancel
         }
-        onClosed: widgetCount -= 1
-        onAccepted: documentModule.documentSave(documentUrl)
+        onClosed: {
+            widgetCount -= 1
+            if (closeDecision !== Dialog.Cancel)
+                documentModule.documentClose(documentUrl, closeDecision === Dialog.Yes)
+        }
+        onAccepted: closeDecision = Dialog.Yes
 
         Label {
             text: qsTr("Do you want to save changes to " + documentModuleSaveDialog.documentName + "?")
         }
 
         Component.onCompleted: {
-            documentModuleSaveDialog.standardButton(Dialog.Cancel).clicked.connect(function () {
-                documentModuleSaveDialog.status = false
+            documentModuleSaveDialog.standardButton(Dialog.No).clicked.connect(function () {
+                documentModuleSaveDialog.closeDecision = Dialog.No
             })
         }
     }

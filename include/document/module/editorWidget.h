@@ -21,7 +21,7 @@ public:
 
     [[nodiscard]] ScintillaWidget *handler() const { return m_scintillaWidget; }
 
-    virtual void documentSave();
+    [[nodiscard]] virtual QString documentSave();
 
     void documentGoto();
 

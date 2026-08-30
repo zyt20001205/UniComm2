@@ -15,11 +15,11 @@ public:
     // public: file
     void pathDisambiguation();
 
-    virtual void documentSave() = 0;
-
-    virtual bool documentClose(bool force = false) {
-        return true;
+    [[nodiscard]] virtual QString documentSave() {
+        return {};
     }
+
+    void closeApprove();
 
     [[nodiscard]] QUrl documentUrl() {
         return m_documentUrl;
@@ -30,12 +30,21 @@ public:
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
+    void closeRequest(const QUrl &documentUrl);
+
     void closeDocument(const QUrl &documentUrl);
 
 protected:
+    [[nodiscard]] virtual bool documentModified() const {
+        return false;
+    }
+
     void closeEvent(QCloseEvent *event) override;
 
     QUrl m_documentUrl{};
+
+private:
+    bool m_closeApproved{};
 };
 
 #endif //UNICOMM_DOCUMENTPAGE_H

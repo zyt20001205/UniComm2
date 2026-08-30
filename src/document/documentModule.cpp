@@ -9,7 +9,6 @@
 #include <QSet>
 #include <QSharedPointer>
 #include <QTextBrowser>
-#include <QTimer>
 
 #include "globals.h"
 #include "core/fileModule.h"
@@ -33,7 +32,6 @@ DocumentModule::DocumentModule(QWidget *parent)
     : QObject(parent),
       m_config(g_workspaceConfig["documentConfig"].toObject()),
       m_watcher(new QFileSystemWatcher(this)),
-      m_watcherTimer(new QTimer(this)),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
     m_navigationHistory = QVariantHash{
@@ -50,9 +48,6 @@ DocumentModule::DocumentModule(QWidget *parent)
     }
 
     connect(m_watcher, &QFileSystemWatcher::fileChanged, this, &DocumentModule::documentReload);
-    m_watcherTimer->setSingleShot(true);
-    m_watcherTimer->setInterval(1000);
-    connect(m_watcherTimer, &QTimer::timeout, this, [this] { m_watcher->blockSignals(false); });
     qApp->installEventFilter(m_codeAssistant);
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
     connect(m_welcomePage, &WelcomePage::openDocument, this, &DocumentModule::documentOpen, Qt::QueuedConnection);
@@ -97,10 +92,9 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
 }
 
 void DocumentModule::documentConfigSave() {
-    m_watcher->blockSignals(true);
     // save config
     for (const auto &url: m_pageHash.keys()) {
-        documentSave(url);
+        (void) documentSave(url);
     }
     if (m_focusedUrl.isEmpty()) {
         m_config["documentFocused"] = "";
@@ -108,7 +102,6 @@ void DocumentModule::documentConfigSave() {
         m_config["documentFocused"] = m_focusedUrl.toString();
     }
     g_workspaceConfig["documentConfig"] = m_config;
-    m_watcherTimer->start();
 }
 
 void DocumentModule::scriptFontReload(const QJsonObject &fontConfigScript) const {
@@ -287,6 +280,7 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
                 {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
             });
             connect(conflictPage, &ConflictPage::isFocusedChanged, this, [this, conflictPage](const bool status) { documentFocus(conflictPage, status); });
+            connect(conflictPage, &ConflictPage::appendLog, this, &DocumentModule::appendLog);
             connect(conflictPage, &ConflictPage::changeSelection, this, &DocumentModule::changeSelection);
             connect(conflictPage, &ConflictPage::reloadDocument, this, &DocumentModule::documentReload);
         }
@@ -315,7 +309,6 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
                 {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                 {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
                 {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
             });
             connect(codePage, &CodePage::isFocusedChanged, this, [this, codePage](const bool status) { documentFocus(codePage, status); });
@@ -352,10 +345,10 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
                 {"mainWindowToast", QVariant::fromValue(m_toast)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)}
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
             });
             connect(markupPage, &MarkupPage::isFocusedChanged, this, [this, markupPage](const bool status) { documentFocus(markupPage, status); });
+            connect(markupPage, &MarkupPage::appendLog, this, &DocumentModule::appendLog);
             connect(markupPage, &MarkupPage::changeSelection, this, &DocumentModule::changeSelection);
         }
         // pdf page
@@ -374,8 +367,7 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
                 {"mainWindowToast", QVariant::fromValue(m_toast)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)}
             });
             connect(textPage, &TextPage::isFocusedChanged, this, [this, textPage](const bool status) { documentFocus(textPage, status); });
             connect(textPage, &TextPage::appendLog, this, &DocumentModule::appendLog);
@@ -396,7 +388,12 @@ DocumentPage *DocumentModule::documentConstruct(const QUrl &documentUrl) {
         m_watcher->addPath(documentUrl.toLocalFile());
     }
     m_pageHash[documentUrl] = documentPage;
-    connect(documentPage, &DocumentPage::closeDocument, this, &DocumentModule::documentClose);
+    connect(documentPage, &DocumentPage::closeRequest, this, [this, documentUrl] {
+        m_saveDialog->setProperty("documentUrl", documentUrl.toString());
+        m_saveDialog->setProperty("documentName", documentUrl.fileName());
+        QMetaObject::invokeMethod(m_saveDialog, "open");
+    });
+    connect(documentPage, &DocumentPage::closeDocument, this, qOverload<const QUrl &>(&DocumentModule::documentClose));
     return documentPage;
 }
 
@@ -417,11 +414,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             const auto text = handler->textGet();
             for (const auto &transaction: m_transactions) {
                 if (!transaction->documents.contains(documentUrl)) {
-                    transaction->documents.insert(documentUrl, DocumentTextState{
-                                                      .before = text,
-                                                      .after = text,
-                                                      .dirty = handler->modifyGet()
-                                                  });
+                    transaction->documents.insert(documentUrl, DocumentTextState{.before = text, .after = text, .dirty = handler->modifyGet()});
                 }
             }
         }
@@ -440,8 +433,27 @@ void DocumentModule::documentGoto(const QUrl &documentUrl) const {
     QMetaObject::invokeMethod(m_gotoDialog, "open");
 }
 
-void DocumentModule::documentSave(const QUrl &documentUrl) const {
-    if (m_pageHash.contains(documentUrl)) m_pageHash.value(documentUrl)->documentSave();
+QString DocumentModule::documentSave(const QUrl &documentUrl) const {
+    auto *documentPage = m_pageHash.value(documentUrl, nullptr);
+    if (documentPage == nullptr) return tr("Document save failed: document is not open.");
+
+    const auto documentPath = documentUrl.toLocalFile();
+    if (m_watcher->files().contains(documentPath)) m_watcher->removePath(documentPath);
+
+    const auto error = documentPage->documentSave();
+    return error;
+}
+
+void DocumentModule::documentClose(const QUrl &documentUrl, const bool save) const {
+    auto *documentPage = m_pageHash.value(documentUrl);
+    if (save) {
+        const auto error = documentSave(documentUrl);
+        if (!error.isEmpty()) {
+            m_toast->show(ToastLevel::Error, tr("Document save failed"), error);
+            return;
+        }
+    }
+    documentPage->closeApprove();
 }
 
 void DocumentModule::documentReload(const QString &documentPath) {
@@ -451,7 +463,7 @@ void DocumentModule::documentReload(const QString &documentPath) {
         connect(documentPage, &DocumentPage::destroyed, this, [this, documentUrl, documentPath] {
             if (QFileInfo::exists(documentPath)) documentOpen(documentUrl);
         });
-        documentPage->documentClose(true);
+        documentPage->closeApprove();
     }
 }
 
@@ -1429,7 +1441,7 @@ QString DocumentModule::_transactionFlush(const QString &undoGroupId, const QUrl
     return error;
 }
 
-QString DocumentModule::_transactionCheck(const QString &undoGroupId, const QUrl &documentUrl, const bool recursive) {
+QString DocumentModule::_transactionCheck(const QString &undoGroupId, const QUrl &documentUrl, const bool recursive) const {
     const auto transaction = m_transactions.value(undoGroupId);
     if (transaction.isNull()) return {};
 

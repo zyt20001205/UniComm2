@@ -16,6 +16,3 @@ WebPage::WebPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 
 void WebPage::propertySet(const QVariantHash &objects) {
 }
-
-void WebPage::documentSave() {
-}

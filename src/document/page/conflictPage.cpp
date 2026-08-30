@@ -30,8 +30,7 @@ ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &docume
     connect(m_resolveWidget, &ResolveWidget::finishResolve, this, &ConflictPage::resolveFinish);
 }
 
-void ConflictPage::propertySet(const QVariantHash &objects) {
-    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
+void ConflictPage::propertySet(const QVariantHash &objects) const {
     m_conflictWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
         {"mainWindowToast", objects["mainWindowToast"]},
@@ -43,29 +42,13 @@ void ConflictPage::propertySet(const QVariantHash &objects) {
     });
 }
 
-void ConflictPage::documentSave() {
-    m_conflictWidget->documentSave();
+QString ConflictPage::documentSave() {
+    return m_conflictWidget->documentSave();
 }
 
-bool ConflictPage::documentClose(const bool force) {
-    if (force) {
-        emit closeDocument(m_documentUrl);
-        deleteLater();
-        return true;
-    }
-    bool status = true;
-    if (handler()->modifyGet()) {
-        m_saveDialog->setProperty("documentUrl", m_documentUrl);
-        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
-        QMetaObject::invokeMethod(m_saveDialog, "open");
-        const auto eventloop = new QEventLoop(this);
-        const auto conn = connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
-        eventloop->exec();
-        disconnect(conn);
-        delete eventloop;
-        status = m_saveDialog->property("status").toBool();
-    }
-    return status;
+// protected
+bool ConflictPage::documentModified() const {
+    return handler()->modifyGet();
 }
 
 // private
@@ -79,7 +62,7 @@ void ConflictPage::savepointChange(const bool status) {
 }
 
 void ConflictPage::resolveFinish() {
-    documentSave();
+    if (!documentSave().isEmpty()) return;
     connect(g_git, &GitModule::addFinish, this, [this] { emit reloadDocument(m_documentUrl.toLocalFile()); });
     g_git->gitAdd(m_documentUrl);
 }

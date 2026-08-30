@@ -16,18 +16,19 @@ public:
 
     ~ConflictPage() override = default;
 
-    void propertySet(const QVariantHash &objects);
+    void propertySet(const QVariantHash &objects) const;
 
     [[nodiscard]] ScintillaWidget *handler() const { return m_conflictWidget->handler(); }
 
-    void documentSave() override;
-
-    bool documentClose(bool force = false) override;
+    [[nodiscard]] QString documentSave() override;
 
 signals:
     void changeSelection(const QHash<QString, int> &selection);
 
     void reloadDocument(const QString &documentPath);
+
+protected:
+    [[nodiscard]] bool documentModified() const override;
 
 private:
     void savepointChange(bool status);
@@ -37,7 +38,6 @@ private:
     QWidget *m_widget{};
     ConflictWidget *m_conflictWidget{};
     ResolveWidget *m_resolveWidget{};
-    QObject *m_saveDialog{};
 };
 
 #endif //UNICOMM_CONFLICTPAGE_H

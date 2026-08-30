@@ -18,7 +18,7 @@ public:
 
     void propertySet(const QVariantHash &objects) override;
 
-    void documentSave() override;
+    [[nodiscard]] QString documentSave() override;
 
     [[nodiscard]] QVariantHash menuLoad(const QString &name) const;
 

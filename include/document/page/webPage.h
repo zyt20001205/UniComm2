@@ -17,8 +17,6 @@ public:
 
     [[nodiscard]] WebviewWidget *handler() const { return m_webviewWidget; }
 
-    void documentSave() override;
-
 private:
     WebviewWidget *m_webviewWidget{};
 };

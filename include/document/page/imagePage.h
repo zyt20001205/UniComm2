@@ -17,8 +17,6 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void documentSave() override;
-
 private:
     QQuickWidget *m_imageWidget{};
     QObject *m_image{};

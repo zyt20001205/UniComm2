@@ -24,9 +24,6 @@ void PdfPage::propertyGet(const QVariantMap &objects) {
     m_pdf->setProperty("source", m_documentUrl);
 }
 
-void PdfPage::documentSave() {
-}
-
 QString PdfPage::textGet(const int page) const {
     if (page < 0 || page >= m_doc->pageCount()) return {"out of range"};
     return m_doc->getAllText(page).text();

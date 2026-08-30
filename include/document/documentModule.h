@@ -3,7 +3,6 @@
 
 #include <QJsonObject>
 #include <QSharedPointer>
-#include <QStringList>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 #include "document/page/welcomePage.h"
@@ -62,7 +61,9 @@ public:
 
     Q_INVOKABLE [[nodiscard]] QString documentDelete(const QUrl &documentUrl, const QString &undoGroupId = {});
 
-    Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
+    Q_INVOKABLE [[nodiscard]] QString documentSave(const QUrl &documentUrl) const;
+
+    Q_INVOKABLE void documentClose(const QUrl &documentUrl, bool save) const;
 
     void documentReload(const QString &documentPath);
 
@@ -257,7 +258,7 @@ private:
 
     QString _transactionFlush(const QString &undoGroupId, const QUrl &documentUrl = {}, bool recursive = false);
 
-    QString _transactionCheck(const QString &undoGroupId, const QUrl &documentUrl, bool recursive);
+    QString _transactionCheck(const QString &undoGroupId, const QUrl &documentUrl, bool recursive) const;
 
     void _transactionRename(const QString &undoGroupId, const QUrl &sourceUrl, const QUrl &targetUrl, bool recursive);
 
@@ -291,7 +292,6 @@ private:
     QObject *m_editorMenu{};
     QUrl m_focusedUrl{};
     QFileSystemWatcher *m_watcher{};
-    QTimer *m_watcherTimer{};
     WelcomePage *m_welcomePage{}; // TODO: inherits base page later
     CodeAssistant *m_codeAssistant{};
     QHash<QUrl, DocumentPage *> m_pageHash{};

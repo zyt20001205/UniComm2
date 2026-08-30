@@ -18,8 +18,7 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     connect(m_editorWidget, &EditorWidget::changeSelection, this, &TextPage::changeSelection);
 }
 
-void TextPage::propertySet(const QVariantHash &objects) {
-    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
+void TextPage::propertySet(const QVariantHash &objects) const {
     m_editorWidget->propertySet(QVariantHash{
         {"theme", objects["theme"]},
         {"mainWindowToast", objects["mainWindowToast"]},
@@ -29,29 +28,13 @@ void TextPage::propertySet(const QVariantHash &objects) {
     });
 }
 
-void TextPage::documentSave() {
-    m_editorWidget->documentSave();
+QString TextPage::documentSave() {
+    return m_editorWidget->documentSave();
 }
 
-bool TextPage::documentClose(const bool force) {
-    if (force) {
-        emit closeDocument(m_documentUrl);
-        deleteLater();
-        return true;
-    }
-    bool status = true;
-    if (handler()->modifyGet()) {
-        m_saveDialog->setProperty("documentUrl", m_documentUrl);
-        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
-        QMetaObject::invokeMethod(m_saveDialog, "open");
-        const auto eventloop = new QEventLoop(this);
-        const auto conn = connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
-        eventloop->exec();
-        disconnect(conn);
-        delete eventloop;
-        status = m_saveDialog->property("status").toBool();
-    }
-    return status;
+// protected
+bool TextPage::documentModified() const {
+    return handler()->modifyGet();
 }
 
 // private

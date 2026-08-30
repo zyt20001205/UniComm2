@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QKeyEvent>
+#include <QSaveFile>
 #include <QShortcut>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -82,19 +83,35 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
     lexerInit();
 }
 
-void EditorWidget::documentSave() {
-    if (!m_scintillaWidget->modifyGet()) return;
-    // savepoint set
-    m_scintillaWidget->savepointSet();
-    // text get
+QString EditorWidget::documentSave() {
+    if (!m_scintillaWidget->modifyGet()) return {};
+
     const auto documentPath = m_documentUrl.toLocalFile();
-    auto documentFile = QFile(documentPath);
-    if (!documentFile.open(QIODevice::WriteOnly)) return;
-    auto documentTextStream = QTextStream(&documentFile);
+    QSaveFile documentFile(documentPath);
+    if (!documentFile.open(QIODevice::WriteOnly)) {
+        const auto error = tr("Document save failed: %1").arg(documentFile.errorString());
+        emit appendLog(LogLevel::Error, "document save failed", error);
+        return error;
+    }
+
+    QTextStream documentTextStream(&documentFile);
     documentTextStream << m_scintillaWidget->textGet();
-    documentFile.close();
-    // logging
+    documentTextStream.flush();
+    if (documentTextStream.status() != QTextStream::Ok) {
+        documentFile.cancelWriting();
+        const auto error = tr("Document save failed: unable to write the complete document.");
+        emit appendLog(LogLevel::Error, "document save failed", error);
+        return error;
+    }
+    if (!documentFile.commit()) {
+        const auto error = tr("Document save failed: %1").arg(documentFile.errorString());
+        emit appendLog(LogLevel::Error, "document save failed", error);
+        return error;
+    }
+
+    m_scintillaWidget->savepointSet();
     emit appendLog(LogLevel::Info, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
+    return {};
 }
 
 void EditorWidget::documentGoto() {
