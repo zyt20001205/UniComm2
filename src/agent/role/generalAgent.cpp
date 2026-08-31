@@ -12,7 +12,3 @@ QString GeneralAgent::systemGet() const {
            "For tasks that require multiple implementation or investigation steps, call plan_update before starting substantive work and keep the plan current as work progresses. Do not create a plan for simple tasks.\n\n"
            "If required information is missing or ambiguous and cannot be determined reliably with available tools, call user_input_request instead of guessing. Investigate with tools first and ask one concise question at a time. If the user disables further questions, continue using your best judgment and do not call user_input_request again during that turn.";
 }
-
-bool GeneralAgent::planRequired() const {
-    return true;
-}

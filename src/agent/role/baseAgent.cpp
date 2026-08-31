@@ -117,6 +117,6 @@ QJsonArray BaseAgent::toolsGet(const ToolsModule &toolsModule) const {
     return toolsModule.toolsGet(m_tools.value(m_role), m_role == "general" || m_role == "supervisor");
 }
 
-bool BaseAgent::planRequired() const {
-    return false;
+bool BaseAgent::toolContains(const QString &name) const {
+    return m_tools.value(m_role).contains(name);
 }

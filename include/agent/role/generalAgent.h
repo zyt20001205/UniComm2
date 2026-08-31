@@ -8,8 +8,6 @@ public:
     explicit GeneralAgent(QObject *parent = nullptr);
 
     [[nodiscard]] QString systemGet() const override;
-
-    [[nodiscard]] bool planRequired() const override;
 };
 
 #endif //UNICOMM_GENERALAGENT_H

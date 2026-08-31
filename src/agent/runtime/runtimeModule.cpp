@@ -241,7 +241,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                     break;
                 }
                 // plan required check
-                if (!m_turn.planned && m_agent->planRequired() && m_turn.toolCallCount >= g_agent->toolPlanThresholdGet()) {
+                if (!m_turn.planned && m_agent->toolContains("plan_update") && m_turn.toolCallCount >= g_agent->toolPlanThresholdGet()) {
                     emit appendChat(message.id, " ✗");
                     toolResultSet({"Plan required before further tool execution. Call plan_update first, then retry this tool."});
                 } else {

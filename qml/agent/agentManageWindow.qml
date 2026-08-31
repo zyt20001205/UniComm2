@@ -788,7 +788,7 @@ Item {
                                 }
 
                                 Label {
-                                    text: qsTr("Require a plan before allowing more tool calls after this threshold.")
+                                    text: qsTr("Require plan_update before allowing more tool calls after this threshold.")
                                     color: global.stroke
                                     wrapMode: Text.Wrap
                                     Layout.fillWidth: true
@@ -824,7 +824,7 @@ Item {
                             }
 
                             Label {
-                                text: qsTr("This threshold applies only to agents that support planning.")
+                                text: qsTr("This threshold applies only when the plan_update tool is available to the current agent.")
                                 color: global.stroke
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true

@@ -20,7 +20,7 @@ public:
 
     [[nodiscard]] virtual QJsonArray toolsGet(const ToolsModule &toolsModule) const;
 
-    [[nodiscard]] virtual bool planRequired() const;
+    [[nodiscard]] bool toolContains(const QString &name) const;
 
 protected:
     explicit BaseAgent(QString id, QObject *parent = nullptr);
