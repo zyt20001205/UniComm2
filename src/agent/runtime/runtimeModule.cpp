@@ -128,9 +128,10 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                                         : m_turn.status == SqlModule::TurnStatus::Error
                                               ? m_turn.error
                                               : QString("Agent task aborted.");
+                const auto success = m_turn.status == SqlModule::TurnStatus::Completed;
                 m_turn = {};
                 stateSet(AgentState::Ready);
-                emit finishRun(result);
+                emit finishRun(result, success);
                 break;
             }
 
@@ -272,11 +273,11 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             const auto turnId = m_turn.id;
             m_turn.messages[toolCall.messageIndex].timing.startedAt = QDateTime::currentMSecsSinceEpoch();
             auto future = m_toolsModule->toolExecute(m_id, toolCall.name, toolCall.arguments);
-            future.then(this, [this, turnId, toolCall](const QString &result) {
+            future.then(this, [this, turnId, toolCall](const ToolResult &result) {
                 if (m_state != AgentState::ToolExec || m_turn.id != turnId) return;
                 if (m_turn.toolCalls.at(m_turn.currentTool).id != toolCall.id) return;
                 if (toolCall.name != "plan_update") ++m_turn.toolCount;
-                toolResultSet(result);
+                toolResultSet(result.content);
             });
         }
         break;

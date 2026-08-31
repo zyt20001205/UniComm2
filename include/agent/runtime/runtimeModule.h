@@ -97,7 +97,7 @@ signals:
 
     void finishCompact();
 
-    void finishRun(const QString &result);
+    void finishRun(const QString &result, bool success);
 
 private:
     struct ToolCall {

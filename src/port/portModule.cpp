@@ -247,7 +247,7 @@ QString PortModule::portInsert(int index, QJsonObject portConfig, const QString 
         },
         undoGroupId);
     if (!error.isEmpty()) return error;
-    return QString("Port '%1' inserted.").arg(portName);
+    return {};
 }
 
 QString PortModule::portRemove(const QString &portName, const QString &undoGroupId) {
@@ -275,7 +275,7 @@ QString PortModule::portRemove(const QString &portName, const QString &undoGroup
             return QString{};
         },
         undoGroupId);
-    return error.isEmpty() ? QString("Port '%1' removed.").arg(name) : error;
+    return error;
 }
 
 void PortModule::portMove(const int src, const int dst) {

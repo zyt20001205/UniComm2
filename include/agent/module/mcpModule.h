@@ -1,10 +1,8 @@
 #ifndef UNICOMM_MCPMODULE_H
 #define UNICOMM_MCPMODULE_H
 
-#include <QByteArray>
 #include <QFuture>
 #include <QHash>
-#include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
 #include <QStandardItemModel>
@@ -12,6 +10,7 @@
 
 class QStandardItem;
 class McpModel;
+struct ToolResult;
 
 class McpModule final : public QObject {
     Q_OBJECT
@@ -29,7 +28,7 @@ public:
 
     void enabledSet(const QUrl &serverUrl, bool enabled);
 
-    [[nodiscard]] QFuture<QString> toolExecute(const QString &name, const QString &arguments);
+    [[nodiscard]] QFuture<ToolResult> toolExecute(const QString &name, const QString &arguments);
 
     [[nodiscard]] bool toolContains(const QString &name) const;
 

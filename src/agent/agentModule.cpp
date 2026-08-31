@@ -454,7 +454,7 @@ RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString 
     auto *worker = new RuntimeModule(agent, runtimeServicesGet(), this); // NOLINT
     m_runtimes.insert(worker->idGet(), worker);
     subagentCreate(m_runtimes.value(m_primary)->turnIdGet(), worker->idGet(), role, task);
-    connect(worker, &RuntimeModule::finishRun, worker, [this, worker](const QString &result) {
+    connect(worker, &RuntimeModule::finishRun, worker, [this, worker](const QString &result, const bool) {
         subagentUpdate(worker->idGet(), result);
         m_runtimes.remove(worker->idGet());
         worker->deleteLater();

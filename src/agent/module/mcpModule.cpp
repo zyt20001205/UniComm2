@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "globals.h"
+#include "agent/module/toolsModule.h"
 
 // public
 McpModule::McpModule(const QJsonObject &mcpConfig, QObject *parent)
@@ -67,8 +68,8 @@ void McpModule::enabledSet(const QUrl &serverUrl, const bool enabled) {
     }
 }
 
-QFuture<QString> McpModule::toolExecute(const QString &name, const QString &arguments) {
-    if (!m_tools.contains(name)) return QtFuture::makeReadyValueFuture(QString("Unknown MCP tool."));
+QFuture<ToolResult> McpModule::toolExecute(const QString &name, const QString &arguments) {
+    if (!m_tools.contains(name)) return QtFuture::makeReadyValueFuture(ToolResult{"Unknown MCP tool.", false});
     const auto tool = m_tools.value(name);
     const auto params = QJsonObject{
         {"name", tool.name},
@@ -76,7 +77,7 @@ QFuture<QString> McpModule::toolExecute(const QString &name, const QString &argu
     };
     return request(tool.serverUrl, "tools/call", params, tool.name).then(this, [](const QJsonObject &response) {
         if (response.contains("error")) {
-            return QString::fromUtf8(QJsonDocument(response.value("error").toObject()).toJson(QJsonDocument::Compact));
+            return ToolResult{QString::fromUtf8(QJsonDocument(response.value("error").toObject()).toJson(QJsonDocument::Compact)), false};
         }
 
         const auto result = response.value("result").toObject();
@@ -85,10 +86,11 @@ QFuture<QString> McpModule::toolExecute(const QString &name, const QString &argu
             const auto content = value.toObject();
             if (content.value("type") == "text") text.append(content.value("text").toString());
         }
-        if (text.isEmpty()) return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
+        const auto success = !result.value("isError").toBool();
+        if (text.isEmpty()) return ToolResult{QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact)), success};
 
         const auto output = text.join('\n');
-        return result.value("isError").toBool() ? "MCP tool error: " + output : output;
+        return ToolResult{success ? output : "MCP tool error: " + output, success};
     });
 }
 

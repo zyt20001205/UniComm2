@@ -373,7 +373,10 @@ void ToolsModule::initialize() {
                                     {
                                         "options", QJsonObject{
                                             {"type", "array"},
-                                            {"description", "Zero to three mutually exclusive suggested answers, with the recommended option first. Use an empty array when the user should provide free-form input."},
+                                            {
+                                                "description",
+                                                "Zero to three mutually exclusive suggested answers, with the recommended option first. Use an empty array when the user should provide free-form input."
+                                            },
                                             {
                                                 "items", QJsonObject{
                                                     {"type", "object"},
@@ -548,7 +551,10 @@ void ToolsModule::initialize() {
             {
                 "function", QJsonObject{
                     {"name", "directory_list"},
-                    {"description", "List the direct children of a directory and return URLs for subsequent directory and document operations. Omit directory_url to list the current workspace root."},
+                    {
+                        "description",
+                        "List the direct children of a directory and return URLs for subsequent directory and document operations. Omit directory_url to list the current workspace root."
+                    },
                     {
                         "parameters", QJsonObject{
                             {"type", "object"},
@@ -863,7 +869,10 @@ void ToolsModule::initialize() {
                                                             {
                                                                 "line_count", QJsonObject{
                                                                     {"type", "integer"},
-                                                                    {"description", "The number of existing lines to replace. Pass -1 to replace from start_line to the end of the document."}
+                                                                    {
+                                                                        "description",
+                                                                        "The number of existing lines to replace. Pass -1 to replace from start_line to the end of the document."
+                                                                    }
                                                                 }
                                                             },
                                                             {
@@ -875,7 +884,10 @@ void ToolsModule::initialize() {
                                                             {
                                                                 "text", QJsonObject{
                                                                     {"type", "string"},
-                                                                    {"description", "The replacement text without line-number prefixes. Pass an empty string to clear the target lines."}
+                                                                    {
+                                                                        "description",
+                                                                        "The replacement text without line-number prefixes. Pass an empty string to clear the target lines."
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -991,324 +1003,6 @@ QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, 
     return {permissionGet(mode, name), toolTextGet(name, arguments)};
 }
 
-QFuture<QString> ToolsModule::toolExecute(const QString &runtimeId, const QString &name, const QString &arguments) {
-    if (m_mcpModule->toolContains(name)) return m_mcpModule->toolExecute(name, arguments);
-    const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
-    if (name == "subagent_dispatch") {
-        const auto tasks = object.value("tasks").toArray();
-        if (tasks.isEmpty()) return QtFuture::makeReadyValueFuture(QString("No subagent tasks were provided."));
-        auto promise = QSharedPointer<QPromise<QString>>::create();
-        auto results = QSharedPointer<QJsonArray>::create();
-        auto remaining = QSharedPointer<qsizetype>::create(tasks.size());
-        for (qsizetype index = 0; index < tasks.size(); ++index) results->append(QJsonObject{});
-        promise->start();
-        const auto future = promise->future();
-        const auto finish = [promise, results, remaining](const qsizetype index, const QString &role, const QString &result) {
-            (*results)[index] = QJsonObject{{"role", role}, {"result", result}};
-            if (--*remaining > 0) return;
-            promise->addResult(QString::fromUtf8(QJsonDocument(*results).toJson(QJsonDocument::Compact)));
-            promise->finish();
-        };
-        for (qsizetype index = 0; index < tasks.size(); ++index) {
-            const auto task = tasks.at(index).toObject();
-            const auto role = task.value("role").toString();
-            auto *worker = g_agent->subagentDispatch(role, task.value("task").toString());
-            if (worker == nullptr) {
-                finish(index, role, QString("Unknown agent role: %1").arg(role));
-                continue;
-            }
-            connect(worker, &RuntimeModule::finishRun, this, [finish, index, role](const QString &result) {
-                finish(index, role, result);
-            });
-        }
-        return future;
-    }
-    if (name == "script_exec") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        auto threadId = QSharedPointer<QString>::create();
-        auto promise = QSharedPointer<QPromise<QString>>::create();
-        auto connection = QSharedPointer<QMetaObject::Connection>::create();
-        promise->start();
-        const auto future = promise->future();
-        *connection = connect(g_threadpool, &ThreadpoolModule::finishThread, this, [threadId, promise, connection](const QString &id, const QJsonObject &output) {
-            if (id != *threadId) return;
-            disconnect(*connection);
-            promise->addResult(QString::fromUtf8(QJsonDocument(output).toJson(QJsonDocument::Compact)));
-            promise->finish();
-        });
-        g_threadpool->threadStart(documentUrl, InterpreterMode::Agent, *threadId);
-        return future;
-    }
-    return QtFuture::makeReadyValueFuture(toolExecuteSync(runtimeId, name, object));
-}
-
-QString ToolsModule::toolExecuteSync(const QString &runtimeId, const QString &name, const QJsonObject &object) {
-    const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath()).filePath("lua-language-server/meta/3rd/UniComm"));
-    const QDir apiDir(uniCommDir.filePath("library"));
-    const QDir demoDir(uniCommDir.filePath("demo"));
-    // UniComm tools
-    if (name == "api_list") {
-        QJsonArray array{};
-        const auto entries = apiDir.entryInfoList({"*.d.lua"}, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-        for (const auto &entry: entries) {
-            const auto packageName = entry.fileName().chopped(QStringLiteral(".d.lua").size());
-            if (!QStringList({"mqtt", "types"}).contains(packageName)) {
-                array.append(packageName);
-            }
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "api_get") {
-        const auto packageName = object.value("package_name").toString();
-        if (packageName.isEmpty() || packageName.contains('/') || packageName.contains('\\') || packageName.contains("..")) {
-            return "Invalid package name.";
-        }
-        auto file = QFile(apiDir.filePath(packageName + ".d.lua"));
-        if (!file.open(QIODevice::ReadOnly)) {
-            return QString("Package '%1' not found.").arg(packageName);
-        }
-        QTextStream stream(&file);
-        return stream.readAll();
-    }
-    if (name == "demo_get") {
-        const auto packageName = object.value("package_name").toString();
-        if (packageName.isEmpty() || packageName.contains('/') || packageName.contains('\\') || packageName.contains("..")) {
-            return "Invalid package name.";
-        }
-        auto file = QFile(demoDir.filePath(packageName + ".lua"));
-        if (!file.open(QIODevice::ReadOnly)) {
-            return QString("Demo '%1' not found.").arg(packageName);
-        }
-        QTextStream stream(&file);
-        return stream.readAll();
-    }
-    if (name == "database_list") {
-        const auto keys = g_database->databaseList();
-        QJsonArray array{};
-        for (const auto &key: keys) {
-            array.append(key);
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "database_create") {
-        const auto key = object.value("key").toString().trimmed();
-        if (key.isEmpty()) return "Database create failed: key cannot be empty.";
-        const auto error = g_database->databaseInsert(key, {}, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Database '%1' created.").arg(key) : error;
-    }
-    if (name == "database_delete") {
-        const auto key = object.value("key").toString().trimmed();
-        const auto error = g_database->databaseRemove(key, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Database '%1' deleted.").arg(key) : error;
-    }
-    if (name == "datatable_list") {
-        const auto keys = g_datatable->datatableList();
-        QJsonArray array{};
-        for (const auto &key: keys) {
-            array.append(key);
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "datatable_create") {
-        const auto key = object.value("key").toString().trimmed();
-        if (key.isEmpty()) return "Data table create failed: key cannot be empty.";
-        const auto error = g_datatable->datatableInsert(key, {}, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Data table '%1' created.").arg(key) : error;
-    }
-    if (name == "datatable_delete") {
-        const auto key = object.value("key").toString().trimmed();
-        const auto error = g_datatable->datatableRemove(key, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Data table '%1' deleted.").arg(key) : error;
-    }
-    if (name == "plan_update") {
-        if (object.contains("explanation") && !object.value("explanation").isString()) return "Plan update failed: explanation must be a string.";
-        if (!object.value("plan").isArray()) return "Plan update failed: plan must be an array.";
-
-        QJsonArray normalizedSteps{};
-        auto inProgressCount = 0;
-        auto completedCount = 0;
-        for (const auto &value: object.value("plan").toArray()) {
-            if (!value.isObject()) return "Plan update failed: every plan item must be an object.";
-
-            const auto stepObject = value.toObject();
-            const auto description = stepObject.value("step").toString().trimmed();
-            const auto status = stepObject.value("status").toString();
-            if (description.isEmpty()) return "Plan update failed: step must be a non-empty string.";
-            if (status == "in_progress") ++inProgressCount;
-            else if (status == "completed") ++completedCount;
-            else if (status != "pending") return "Plan update failed: status must be pending, in_progress, or completed.";
-
-            normalizedSteps.append(QJsonObject{
-                {"step", description},
-                {"status", status}
-            });
-        }
-        if (normalizedSteps.isEmpty()) return "Plan update failed: plan must contain at least one step.";
-        if (inProgressCount > 1) return "Plan update failed: at most one step can be in progress.";
-
-        const QJsonObject plan{
-            {"explanation", object.value("explanation").toString()},
-            {"plan", normalizedSteps}
-        };
-        g_agent->planUpdate(runtimeId, plan);
-        return QString("Plan updated: %1/%2 steps completed.").arg(completedCount).arg(normalizedSteps.size());
-    }
-    if (name == "port_list") {
-        const auto keys = g_port->portList();
-        QJsonArray array{};
-        for (const auto &key: keys) {
-            array.append(key);
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "port_config_get") {
-        const auto portType = m_portTypes.value(object.value("port_type").toString(), -1);
-        const auto config = PortModule::portConfigGet(portType);
-        if (config.isEmpty()) return "Unsupported port type.";
-        return QString::fromUtf8(QJsonDocument(config).toJson(QJsonDocument::Compact));
-    }
-    if (name == "port_create") {
-        const auto portType = m_portTypes.value(object.value("port_type").toString(), -1);
-        auto config = object.value("config").toObject();
-        config["portType"] = portType;
-        return g_port->portInsert(-1, config, g_agent->undoGroupIdGet());
-    }
-    if (name == "port_delete") {
-        return g_port->portRemove(object.value("port_name").toString(), g_agent->undoGroupIdGet());
-    }
-    if (name == "diagnostics_get") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto diagnostics = g_document->diagnosticsGet(documentUrl);
-        return QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact));
-    }
-    if (name == "directory_list") {
-        const auto url = object.value("directory_url").toString();
-        const auto directoryUrl = url.isEmpty() ? g_workspaceUrl : QUrl(url);
-        if (!QFileInfo(directoryUrl.toLocalFile()).isDir()) return "Directory list failed: directory does not exist.";
-        return QString::fromUtf8(QJsonDocument(g_document->directoryList(directoryUrl)).toJson(QJsonDocument::Compact));
-    }
-    if (name == "directory_create") {
-        const auto directoryUrl = QUrl(object.value("directory_url").toString());
-        const auto error = g_document->directoryCreate(directoryUrl, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Directory created: %1").arg(directoryUrl.toString()) : error;
-    }
-    if (name == "directory_delete") {
-        const auto directoryUrl = QUrl(object.value("directory_url").toString());
-        const auto error = g_document->directoryDelete(directoryUrl, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Directory deleted: %1").arg(directoryUrl.toString()) : error;
-    }
-    if (name == "directory_rename") {
-        const auto sourceUrl = QUrl(object.value("source_url").toString());
-        const auto targetUrl = QUrl(object.value("target_url").toString());
-        const auto error = g_document->directoryRename(sourceUrl, targetUrl, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Directory renamed: %1").arg(targetUrl.toString()) : error;
-    }
-    if (name == "document_create") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto error = g_document->documentCreate(documentUrl, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Document created: %1").arg(documentUrl.toString()) : error;
-    }
-    if (name == "document_delete") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto error = g_document->documentDelete(documentUrl, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Document deleted: %1").arg(documentUrl.toString()) : error;
-    }
-    if (name == "document_rename") {
-        const auto sourceUrl = QUrl(object.value("source_url").toString());
-        const auto targetUrl = QUrl(object.value("target_url").toString());
-        const auto error = g_document->documentRename(sourceUrl, targetUrl, g_agent->undoGroupIdGet());
-        return error.isEmpty() ? QString("Document renamed: %1").arg(targetUrl.toString()) : error;
-    }
-    if (name == "grep_search") {
-        const auto pattern = object.value("pattern").toString();
-        const auto result = g_ripgrep->grep(pattern);
-        return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
-    }
-    if (name == "line_get") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
-        if (!documentInfo.isFile()) return "Line get failed: document does not exist.";
-        const auto startLine = object.value("start_line").toInt();
-        const auto lineCount = object.value("line_count").toInt();
-        if (startLine < 0) return {"Line get failed: start_line is out of range."};
-        if (lineCount == 0 || lineCount < -1) return {"Line get failed: line_count is out of range."};
-
-        const auto text = g_document->linesGet(documentUrl, startLine, lineCount);
-        if (text.isNull()) return {"Line get failed: start_line is out of range."};
-        auto lines = text.split('\n', Qt::KeepEmptyParts);
-        for (qsizetype i = 0; i < lines.size(); ++i) lines[i].prepend(QString::number(startLine + i) + "|");
-        return lines.join('\n');
-    }
-    if (name == "line_set") {
-        const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
-        if (!documentInfo.isFile()) return "Line set failed: document does not exist.";
-        QList<qsizetype> accepted{};
-        QJsonArray applied{};
-        QJsonArray rejected{};
-        const auto edits = object.value("edits").toArray();
-        for (qsizetype index = 0; index < edits.size(); ++index) {
-            const auto edit = edits.at(index).toObject();
-            const auto startLine = edit.value("start_line").toInt();
-            const auto lineCount = edit.value("line_count").toInt();
-            QString reason{};
-            if (startLine < 0) reason = "start_line_out_of_range";
-            else if (lineCount == 0 || lineCount < -1) reason = "line_count_out_of_range";
-            else if (g_document->linesGet(documentUrl, startLine, 1).trimmed() != edit.value("expected").toString().section('\n', 0, 0).trimmed()) reason = "document_changed";
-
-            if (!reason.isEmpty()) {
-                rejected.append(QJsonObject{{"index", index}, {"start_line", startLine}, {"reason", reason}});
-                continue;
-            }
-            accepted.append(index);
-            applied.append(index);
-        }
-        std::sort(accepted.begin(), accepted.end(), [&edits](const qsizetype left, const qsizetype right) {
-            return edits.at(left).toObject().value("start_line").toInt() > edits.at(right).toObject().value("start_line").toInt();
-        });
-        QStringList texts{};
-        QList<int> startLines{};
-        QList<int> lineCounts{};
-        for (const auto index: accepted) {
-            const auto edit = edits.at(index).toObject();
-            texts.append(edit.value("text").toString());
-            startLines.append(edit.value("start_line").toInt());
-            lineCounts.append(edit.value("line_count").toInt());
-        }
-        if (!texts.isEmpty()) {
-            const auto error = g_document->linesSet(documentUrl, texts, startLines, lineCounts, g_agent->undoGroupIdGet());
-            if (!error.isEmpty()) return error;
-        }
-        return QString::fromUtf8(QJsonDocument(QJsonObject{{"applied", applied}, {"rejected", rejected}}).toJson(QJsonDocument::Compact));
-    }
-    if (name == "memory_search") {
-        const auto limit = qBound(1, object.value("limit").toInt(3), 5);
-        const auto results = m_sqlModule->conversationsSearch(object.value("query").toString(), limit);
-        QJsonArray array{};
-        for (const auto &result: results) {
-            QJsonArray messages{};
-            for (const auto &message: result.messages) {
-                if (message.content.isEmpty()) continue;
-                messages.append(QJsonObject{
-                    {"role", message.role},
-                    {"content", message.content}
-                });
-            }
-            array.append(QJsonObject{
-                {"conversation_id", result.conversationId},
-                {"conversation_title", result.conversationTitle},
-                {"turn_id", result.turnId},
-                {"created_at", result.createdAt},
-                {"rank", result.rank},
-                {"messages", messages}
-            });
-        }
-        const auto json = QJsonDocument(array);
-        return QString::fromUtf8(json.toJson(QJsonDocument::Compact));
-    }
-    return {"Unknown tool."};
-}
-
 QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) const {
     const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
     QString chatText{};
@@ -1399,6 +1093,63 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
     return chatText.isEmpty() ? name : chatText;
 }
 
+QFuture<ToolResult> ToolsModule::toolExecute(const QString &runtimeId, const QString &name, const QString &arguments) {
+    if (m_mcpModule->toolContains(name)) return m_mcpModule->toolExecute(name, arguments);
+    const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
+    if (name == "subagent_dispatch") {
+        const auto tasks = object.value("tasks").toArray();
+        if (tasks.isEmpty()) return QtFuture::makeReadyValueFuture(ToolResult{"No subagent tasks were provided.", false});
+        auto promise = QSharedPointer<QPromise<ToolResult> >::create();
+        auto results = QSharedPointer<QJsonArray>::create();
+        auto remaining = QSharedPointer<qsizetype>::create(tasks.size());
+        auto success = QSharedPointer<bool>::create(true);
+        for (qsizetype index = 0; index < tasks.size(); ++index) results->append(QJsonObject{});
+        promise->start();
+        const auto future = promise->future();
+        const auto finish = [promise, results, remaining, success](const qsizetype index, const QString &role, const QString &result, const bool succeeded) {
+            (*results)[index] = QJsonObject{{"role", role}, {"result", result}};
+            *success = *success && succeeded;
+            if (--*remaining > 0) return;
+            promise->addResult(ToolResult{QString::fromUtf8(QJsonDocument(*results).toJson(QJsonDocument::Compact)), *success});
+            promise->finish();
+        };
+        for (qsizetype index = 0; index < tasks.size(); ++index) {
+            const auto task = tasks.at(index).toObject();
+            const auto role = task.value("role").toString();
+            auto *worker = g_agent->subagentDispatch(role, task.value("task").toString());
+            if (worker == nullptr) {
+                finish(index, role, QString("Unknown agent role: %1").arg(role), false);
+                continue;
+            }
+            connect(worker, &RuntimeModule::finishRun, this, [finish, index, role](const QString &result, const bool success) {
+                finish(index, role, result, success);
+            });
+        }
+        return future;
+    }
+    if (name == "script_exec") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        auto threadId = QSharedPointer<QString>::create();
+        auto promise = QSharedPointer<QPromise<ToolResult> >::create();
+        auto connection = QSharedPointer<QMetaObject::Connection>::create();
+        promise->start();
+        const auto future = promise->future();
+        *connection = connect(g_threadpool, &ThreadpoolModule::finishThread, this, [threadId, promise, connection](const QString &id, const QJsonObject &output) {
+            if (id != *threadId) return;
+            disconnect(*connection);
+            promise->addResult(ToolResult{
+                QString::fromUtf8(QJsonDocument(output).toJson(QJsonDocument::Compact)),
+                output.value("err").toString().isEmpty()
+            });
+            promise->finish();
+        });
+        g_threadpool->threadStart(documentUrl, InterpreterMode::Agent, *threadId);
+        return future;
+    }
+    return QtFuture::makeReadyValueFuture(_toolExecute(runtimeId, name, object));
+}
+
+// private
 bool ToolsModule::permissionGet(const int mode, const QString &name) const {
     if (m_mcpModule->toolContains(name)) {
         return mode != RuntimeModule::AgentMode::Chat && (m_mcpModule->toolReadOnly(name) || mode == RuntimeModule::AgentMode::FullAccess);
@@ -1410,4 +1161,290 @@ bool ToolsModule::permissionGet(const int mode, const QString &name) const {
         case RuntimeModule::AgentMode::FullAccess: return true;
         default: return false;
     }
+}
+
+ToolResult ToolsModule::_toolExecute(const QString &runtimeId, const QString &name, const QJsonObject &object) const {
+    const QDir uniCommDir(QDir(QCoreApplication::applicationDirPath()).filePath("lua-language-server/meta/3rd/UniComm"));
+    const QDir apiDir(uniCommDir.filePath("library"));
+    const QDir demoDir(uniCommDir.filePath("demo"));
+    // UniComm tools
+    if (name == "api_list") {
+        QJsonArray array{};
+        const auto entries = apiDir.entryInfoList({"*.d.lua"}, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+        for (const auto &entry: entries) {
+            const auto packageName = entry.fileName().chopped(QStringLiteral(".d.lua").size());
+            if (!QStringList({"mqtt", "types"}).contains(packageName)) {
+                array.append(packageName);
+            }
+        }
+        return {QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "api_get") {
+        const auto packageName = object.value("package_name").toString();
+        if (packageName.isEmpty() || packageName.contains('/') || packageName.contains('\\') || packageName.contains("..")) {
+            return {"Invalid package name.", false};
+        }
+        auto file = QFile(apiDir.filePath(packageName + ".d.lua"));
+        if (!file.open(QIODevice::ReadOnly)) {
+            return {QString("Package '%1' not found.").arg(packageName), false};
+        }
+        QTextStream stream(&file);
+        return {stream.readAll()};
+    }
+    if (name == "demo_get") {
+        const auto packageName = object.value("package_name").toString();
+        if (packageName.isEmpty() || packageName.contains('/') || packageName.contains('\\') || packageName.contains("..")) {
+            return {"Invalid package name.", false};
+        }
+        auto file = QFile(demoDir.filePath(packageName + ".lua"));
+        if (!file.open(QIODevice::ReadOnly)) {
+            return {QString("Demo '%1' not found.").arg(packageName), false};
+        }
+        QTextStream stream(&file);
+        return {stream.readAll()};
+    }
+    if (name == "database_list") {
+        const auto keys = g_database->databaseList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        return {QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "database_create") {
+        const auto key = object.value("key").toString().trimmed();
+        if (key.isEmpty()) return {"Database create failed: key cannot be empty.", false};
+        const auto error = g_database->databaseInsert(key, {}, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Database '%1' created.").arg(key)};
+    }
+    if (name == "database_delete") {
+        const auto key = object.value("key").toString().trimmed();
+        const auto error = g_database->databaseRemove(key, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Database '%1' deleted.").arg(key)};
+    }
+    if (name == "datatable_list") {
+        const auto keys = g_datatable->datatableList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        return {QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "datatable_create") {
+        const auto key = object.value("key").toString().trimmed();
+        if (key.isEmpty()) return {"Data table create failed: key cannot be empty.", false};
+        const auto error = g_datatable->datatableInsert(key, {}, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Data table '%1' created.").arg(key)};
+    }
+    if (name == "datatable_delete") {
+        const auto key = object.value("key").toString().trimmed();
+        const auto error = g_datatable->datatableRemove(key, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Data table '%1' deleted.").arg(key)};
+    }
+    if (name == "plan_update") {
+        if (object.contains("explanation") && !object.value("explanation").isString()) return {"Plan update failed: explanation must be a string.", false};
+        if (!object.value("plan").isArray()) return {"Plan update failed: plan must be an array.", false};
+
+        QJsonArray normalizedSteps{};
+        auto inProgressCount = 0;
+        auto completedCount = 0;
+        for (const auto &value: object.value("plan").toArray()) {
+            if (!value.isObject()) return {"Plan update failed: every plan item must be an object.", false};
+
+            const auto stepObject = value.toObject();
+            const auto description = stepObject.value("step").toString().trimmed();
+            const auto status = stepObject.value("status").toString();
+            if (description.isEmpty()) return {"Plan update failed: step must be a non-empty string.", false};
+            if (status == "in_progress") ++inProgressCount;
+            else if (status == "completed") ++completedCount;
+            else if (status != "pending") return {"Plan update failed: status must be pending, in_progress, or completed.", false};
+
+            normalizedSteps.append(QJsonObject{
+                {"step", description},
+                {"status", status}
+            });
+        }
+        if (normalizedSteps.isEmpty()) return {"Plan update failed: plan must contain at least one step.", false};
+        if (inProgressCount > 1) return {"Plan update failed: at most one step can be in progress.", false};
+
+        const QJsonObject plan{
+            {"explanation", object.value("explanation").toString()},
+            {"plan", normalizedSteps}
+        };
+        g_agent->planUpdate(runtimeId, plan);
+        return {QString("Plan updated: %1/%2 steps completed.").arg(completedCount).arg(normalizedSteps.size())};
+    }
+    if (name == "port_list") {
+        const auto keys = g_port->portList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        return {QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "port_config_get") {
+        const auto portType = m_portTypes.value(object.value("port_type").toString(), -1);
+        const auto config = PortModule::portConfigGet(portType);
+        if (config.isEmpty()) return {"Unsupported port type.", false};
+        return {QString::fromUtf8(QJsonDocument(config).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "port_create") {
+        const auto portType = m_portTypes.value(object.value("port_type").toString(), -1);
+        auto config = object.value("config").toObject();
+        config["portType"] = portType;
+        const auto portName = config.value("portName").toString().trimmed();
+        const auto error = g_port->portInsert(-1, config, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Port '%1' created.").arg(portName)};
+    }
+    if (name == "port_delete") {
+        const auto portName = object.value("port_name").toString().trimmed();
+        const auto error = g_port->portRemove(portName, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Port '%1' deleted.").arg(portName)};
+    }
+    if (name == "diagnostics_get") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto diagnostics = g_document->diagnosticsGet(documentUrl);
+        return {QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "directory_list") {
+        const auto url = object.value("directory_url").toString();
+        const auto directoryUrl = url.isEmpty() ? g_workspaceUrl : QUrl(url);
+        if (!QFileInfo(directoryUrl.toLocalFile()).isDir()) return {"Directory list failed: directory does not exist.", false};
+        return {QString::fromUtf8(QJsonDocument(g_document->directoryList(directoryUrl)).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "directory_create") {
+        const auto directoryUrl = QUrl(object.value("directory_url").toString());
+        const auto error = g_document->directoryCreate(directoryUrl, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Directory created: %1").arg(directoryUrl.toString())};
+    }
+    if (name == "directory_delete") {
+        const auto directoryUrl = QUrl(object.value("directory_url").toString());
+        const auto error = g_document->directoryDelete(directoryUrl, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Directory deleted: %1").arg(directoryUrl.toString())};
+    }
+    if (name == "directory_rename") {
+        const auto sourceUrl = QUrl(object.value("source_url").toString());
+        const auto targetUrl = QUrl(object.value("target_url").toString());
+        const auto error = g_document->directoryRename(sourceUrl, targetUrl, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Directory renamed: %1").arg(targetUrl.toString())};
+    }
+    if (name == "document_create") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto error = g_document->documentCreate(documentUrl, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Document created: %1").arg(documentUrl.toString())};
+    }
+    if (name == "document_delete") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto error = g_document->documentDelete(documentUrl, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Document deleted: %1").arg(documentUrl.toString())};
+    }
+    if (name == "document_rename") {
+        const auto sourceUrl = QUrl(object.value("source_url").toString());
+        const auto targetUrl = QUrl(object.value("target_url").toString());
+        const auto error = g_document->documentRename(sourceUrl, targetUrl, g_agent->undoGroupIdGet());
+        if (!error.isEmpty()) return {error, false};
+        return {QString("Document renamed: %1").arg(targetUrl.toString())};
+    }
+    if (name == "grep_search") {
+        const auto pattern = object.value("pattern").toString();
+        const auto result = g_ripgrep->grep(pattern);
+        return {QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact))};
+    }
+    if (name == "line_get") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
+        if (!documentInfo.isFile()) return {"Line get failed: document does not exist.", false};
+        const auto startLine = object.value("start_line").toInt();
+        const auto lineCount = object.value("line_count").toInt();
+        if (startLine < 0) return {"Line get failed: start_line is out of range.", false};
+        if (lineCount == 0 || lineCount < -1) return {"Line get failed: line_count is out of range.", false};
+
+        const auto text = g_document->linesGet(documentUrl, startLine, lineCount);
+        if (text.isNull()) return {"Line get failed: start_line is out of range.", false};
+        auto lines = text.split('\n', Qt::KeepEmptyParts);
+        for (qsizetype i = 0; i < lines.size(); ++i) lines[i].prepend(QString::number(startLine + i) + "|");
+        return {lines.join('\n')};
+    }
+    if (name == "line_set") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto documentInfo = QFileInfo(documentUrl.toLocalFile());
+        if (!documentInfo.isFile()) return {"Line set failed: document does not exist.", false};
+        QList<qsizetype> accepted{};
+        QJsonArray applied{};
+        QJsonArray rejected{};
+        const auto edits = object.value("edits").toArray();
+        for (qsizetype index = 0; index < edits.size(); ++index) {
+            const auto edit = edits.at(index).toObject();
+            const auto startLine = edit.value("start_line").toInt();
+            const auto lineCount = edit.value("line_count").toInt();
+            QString reason{};
+            if (startLine < 0) reason = "start_line_out_of_range";
+            else if (lineCount == 0 || lineCount < -1) reason = "line_count_out_of_range";
+            else if (g_document->linesGet(documentUrl, startLine, 1).trimmed() != edit.value("expected").toString().section('\n', 0, 0).trimmed()) reason = "document_changed";
+
+            if (!reason.isEmpty()) {
+                rejected.append(QJsonObject{{"index", index}, {"start_line", startLine}, {"reason", reason}});
+                continue;
+            }
+            accepted.append(index);
+            applied.append(index);
+        }
+        std::ranges::sort(accepted, [&edits](const qsizetype left, const qsizetype right) {
+            return edits.at(left).toObject().value("start_line").toInt() > edits.at(right).toObject().value("start_line").toInt();
+        });
+        QStringList texts{};
+        QList<int> startLines{};
+        QList<int> lineCounts{};
+        for (const auto index: accepted) {
+            const auto edit = edits.at(index).toObject();
+            texts.append(edit.value("text").toString());
+            startLines.append(edit.value("start_line").toInt());
+            lineCounts.append(edit.value("line_count").toInt());
+        }
+        if (!texts.isEmpty()) {
+            const auto error = g_document->linesSet(documentUrl, texts, startLines, lineCounts, g_agent->undoGroupIdGet());
+            if (!error.isEmpty()) return {error, false};
+        }
+        return {
+            QString::fromUtf8(QJsonDocument(QJsonObject{{"applied", applied}, {"rejected", rejected}}).toJson(QJsonDocument::Compact)),
+            rejected.isEmpty()
+        };
+    }
+    if (name == "memory_search") {
+        const auto limit = qBound(1, object.value("limit").toInt(3), 5);
+        const auto results = m_sqlModule->conversationsSearch(object.value("query").toString(), limit);
+        QJsonArray array{};
+        for (const auto &result: results) {
+            QJsonArray messages{};
+            for (const auto &message: result.messages) {
+                if (message.content.isEmpty()) continue;
+                messages.append(QJsonObject{
+                    {"role", message.role},
+                    {"content", message.content}
+                });
+            }
+            array.append(QJsonObject{
+                {"conversation_id", result.conversationId},
+                {"conversation_title", result.conversationTitle},
+                {"turn_id", result.turnId},
+                {"created_at", result.createdAt},
+                {"rank", result.rank},
+                {"messages", messages}
+            });
+        }
+        const auto json = QJsonDocument(array);
+        return {QString::fromUtf8(json.toJson(QJsonDocument::Compact))};
+    }
+    return {"Unknown tool.", false};
 }

@@ -11,6 +11,11 @@
 class SqlModule;
 class McpModule;
 
+struct ToolResult {
+    QString content{};
+    bool success{true};
+};
+
 class ToolsModule final : public QObject {
     Q_OBJECT
 
@@ -29,12 +34,12 @@ public:
 
     [[nodiscard]] QString toolTextGet(const QString &name, const QString &arguments) const;
 
-    [[nodiscard]] QFuture<QString> toolExecute(const QString &runtimeId, const QString &name, const QString &arguments);
+    [[nodiscard]] QFuture<ToolResult> toolExecute(const QString &runtimeId, const QString &name, const QString &arguments);
 
 private:
     [[nodiscard]] bool permissionGet(int mode, const QString &name) const;
 
-    [[nodiscard]] QString toolExecuteSync(const QString &runtimeId, const QString &name, const QJsonObject &object);
+    [[nodiscard]] ToolResult _toolExecute(const QString &runtimeId, const QString &name, const QJsonObject &object) const;
 
     QHash<QString, int> m_portTypes{};
     QJsonArray m_tools{};
