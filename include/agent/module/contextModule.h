@@ -7,7 +7,13 @@ class ContextModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit ContextModule(QObject *parent = nullptr);
+    explicit ContextModule(const QJsonObject &config, QObject *parent = nullptr);
+
+    [[nodiscard]] int compactThresholdGet() const;
+
+    void compactThresholdSet(int threshold);
+
+    [[nodiscard]] bool compactRequired(qint64 contextTokens, qint64 contextWindow) const;
 
     [[nodiscard]] QJsonArray contextBuild(const QString &system, const SqlModule::Conversation &conversation, const QList<SqlModule::Message> &history, const QList<SqlModule::Message> &turn, const QList<QUrl> &attachments) const;
 
@@ -19,6 +25,8 @@ private:
     [[nodiscard]] static QString systemBuild(const QString &system, int mode, const QString &summary = {});
 
     [[nodiscard]] static QJsonObject messageBuild(const SqlModule::Message &message);
+
+    QJsonObject m_config{};
 };
 
 #endif //UNICOMM_CONTEXTMODULE_H

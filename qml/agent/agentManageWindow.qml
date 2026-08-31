@@ -584,6 +584,104 @@ Item {
             SettingsPage {
                 title: qsTr("Context")
                 description: qsTr("Manage context limits, token budgets, and compaction.")
+
+                Rectangle {
+                    radius: 6
+                    color: global.backHover
+                    border.color: global.stroke
+                    implicitHeight: contextLayout.implicitHeight + 32
+                    Layout.fillWidth: true
+
+                    ColumnLayout {
+                        id: contextLayout
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 16
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            ColumnLayout {
+                                spacing: 4
+                                Layout.fillWidth: true
+
+                                Label {
+                                    text: qsTr("Automatic compaction")
+                                    font.bold: true
+                                }
+
+                                Label {
+                                    text: qsTr("Compact earlier turns when context usage reaches this threshold.")
+                                    color: global.stroke
+                                    wrapMode: Text.Wrap
+                                    Layout.fillWidth: true
+                                }
+                            }
+
+                            Label {
+                                text: Math.round(compactThresholdSlider.value) + "%"
+                                font.pixelSize: 26
+                                font.bold: true
+                            }
+                        }
+
+                        Slider {
+                            id: compactThresholdSlider
+                            from: 50
+                            to: 95
+                            stepSize: 5
+                            snapMode: Slider.SnapAlways
+                            value: agentModule.compactThresholdGet()
+                            Layout.fillWidth: true
+
+                            onMoved: agentModule.compactThresholdSet(Math.round(value))
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            Label {
+                                text: "50%"
+                                color: global.stroke
+                            }
+
+                            Item {
+                                Layout.fillWidth: true
+                            }
+
+                            Label {
+                                text: "95%"
+                                color: global.stroke
+                            }
+                        }
+
+                        Rectangle {
+                            color: global.stroke
+                            implicitHeight: 1
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            spacing: 8
+                            Layout.fillWidth: true
+
+                            IconImage {
+                                source: "qrc:/icon/info.svg"
+                                sourceSize.width: 16
+                                sourceSize.height: 16
+                                color: global.stroke
+                                Layout.alignment: Qt.AlignTop
+                            }
+
+                            Label {
+                                text: qsTr("At %1%, earlier turns are summarized before the next request. Models without a known context limit are not compacted automatically.").arg(Math.round(compactThresholdSlider.value))
+                                color: global.stroke
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+                }
             }
         }
     }

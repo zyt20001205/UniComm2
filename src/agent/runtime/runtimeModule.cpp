@@ -164,7 +164,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             emit appendChat(message.id, message.content);
 
             const auto model = m_providerModule->providerGet(conversation.provider)->modelGet(conversation.model);
-            stateSet(model.contextWindow > 0 && conversation.contextTokens >= model.contextWindow * 3 / 4 ? AgentState::Compact : AgentState::Request);
+            stateSet(m_contextModule->compactRequired(conversation.contextTokens, model.contextWindow) ? AgentState::Compact : AgentState::Request);
         }
         break;
         case AgentState::Compact: {

@@ -10,8 +10,21 @@
 #include "agent/runtime/runtimeModule.h"
 
 // public
-ContextModule::ContextModule(QObject *parent)
-    : QObject(parent) {
+ContextModule::ContextModule(const QJsonObject &config, QObject *parent)
+    : QObject(parent),
+      m_config(config) {
+}
+
+int ContextModule::compactThresholdGet() const {
+    return m_config["compactThreshold"].toInt();
+}
+
+void ContextModule::compactThresholdSet(const int threshold) {
+    m_config["compactThreshold"] = threshold;
+}
+
+bool ContextModule::compactRequired(const qint64 contextTokens, const qint64 contextWindow) const {
+    return contextWindow > 0 && contextTokens >= contextWindow * compactThresholdGet() / 100;
 }
 
 QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::Conversation &conversation, const QList<SqlModule::Message> &history,

@@ -73,6 +73,10 @@ public:
 
     Q_INVOKABLE void mcpEnabledSet(const QUrl &url, bool enabled);
 
+    Q_INVOKABLE [[nodiscard]] int compactThresholdGet() const;
+
+    Q_INVOKABLE void compactThresholdSet(int threshold);
+
     Q_INVOKABLE void conversationsGet();
 
     Q_INVOKABLE void conversationGet(const QString &id);
