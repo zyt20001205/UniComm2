@@ -28,6 +28,7 @@ public:
             Ready,
             Abort,
             Error,
+            Complete,
 
             Listen,
             STT,
@@ -117,6 +118,8 @@ private:
         QList<QUrl> attachments{};
         QList<SqlModule::Message> messages{};
         qint64 currentUsage{};
+        int status{SqlModule::TurnStatus::Running};
+        QString error{};
         bool planned{false};
         bool questionsAllowed{true};
         qsizetype toolCount{};

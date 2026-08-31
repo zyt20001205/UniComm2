@@ -100,38 +100,54 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
     switch (state) {
         case AgentState::Ready: break;
         case AgentState::Abort: {
+            m_turn.status = SqlModule::TurnStatus::Aborted;
             if (m_reply != nullptr) {
                 m_reply->abort();
                 break;
             }
-            if (!m_turn.id.isEmpty() && m_turn.conversationId.isEmpty()) {
-                const auto result = payload.toString().isEmpty() ? QString("Agent task aborted.") : payload.toString();
+            stateSet(AgentState::Complete);
+        }
+        break;
+        case AgentState::Error: {
+            m_turn.status = SqlModule::TurnStatus::Error;
+            m_turn.error = payload.toString();
+            emit showError(m_turn.error);
+            stateSet(AgentState::Complete);
+        }
+        break;
+        case AgentState::Complete: {
+            if (m_turn.id.isEmpty()) {
+                m_turn = {};
+                stateSet(AgentState::Ready);
+                break;
+            }
+
+            if (m_turn.conversationId.isEmpty()) {
+                const auto result = m_turn.status == SqlModule::TurnStatus::Completed
+                                        ? m_turn.messages.last().content
+                                        : m_turn.status == SqlModule::TurnStatus::Error
+                                              ? m_turn.error
+                                              : QString("Agent task aborted.");
                 m_turn = {};
                 stateSet(AgentState::Ready);
                 emit finishRun(result);
                 break;
             }
-            if (!m_turn.id.isEmpty()) {
-                const auto finishedAt = QDateTime::currentMSecsSinceEpoch();
-                const auto error = payload.toString();
-                auto &user = m_turn.messages.first();
-                user.status = error.isEmpty() ? SqlModule::TurnStatus::Aborted : SqlModule::TurnStatus::Error;
-                user.error = error;
-                user.timing.finishedAt = finishedAt;
-                for (auto &message: m_turn.messages) {
-                    if (message.timing.finishedAt == 0) message.timing.finishedAt = finishedAt;
-                    if (message.role == "assistant") emit finishChat(message.id);
-                }
-                m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
-                emit finishTurn(m_turn.id, finishedAt);
+
+            const auto finishedAt = QDateTime::currentMSecsSinceEpoch();
+            auto &user = m_turn.messages.first();
+            user.status = m_turn.status;
+            user.error = m_turn.error;
+            user.timing.finishedAt = finishedAt;
+            for (auto &message: m_turn.messages) {
+                if (message.timing.finishedAt != 0) continue;
+                message.timing.finishedAt = finishedAt;
+                if (message.role == "assistant") emit finishChat(message.id);
             }
+            m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
+            emit finishTurn(m_turn.id, finishedAt);
             m_turn = {};
             stateSet(AgentState::Ready);
-        }
-        break;
-        case AgentState::Error: {
-            emit showError(payload.toString());
-            stateSet(AgentState::Abort, payload);
         }
         break;
         case AgentState::Pre: {
@@ -278,7 +294,7 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
         connect(reply, &QNetworkReply::finished, this, [this, reply] {
             if (m_reply == reply) m_reply = nullptr;
             if (reply->error() == QNetworkReply::OperationCanceledError) {
-                stateSet(AgentState::Abort);
+                stateSet(AgentState::Complete);
             } else if (reply->error() == QNetworkReply::NoError) {
                 const auto object = QJsonDocument::fromJson(reply->readAll()).object();
                 const auto summary = object.value("choices").toArray().at(0).toObject().value("message").toObject().value("content").toString();
@@ -310,8 +326,9 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
     const auto messageId = message.id;
     emit createChat(m_turn.id, messageId, "assistant");
     auto toolCalls = QSharedPointer<QMap<int, ToolCall> >::create();
+    auto finishReason = QSharedPointer<QString>::create();
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply, messageIndex, messageId, toolCalls] {
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, messageIndex, messageId, toolCalls, finishReason] {
         if (reply->error() != QNetworkReply::NoError) return;
         while (reply->canReadLine()) {
             auto line = reply->readLine().trimmed();
@@ -340,7 +357,10 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
             const auto choices = object.value("choices").toArray();
             if (choices.isEmpty()) continue;
 
-            const auto delta = choices.at(0).toObject().value("delta").toObject();
+            const auto choice = choices.at(0).toObject();
+            const auto reason = choice.value("finish_reason").toString();
+            if (!reason.isEmpty()) *finishReason = reason;
+            const auto delta = choice.value("delta").toObject();
             const auto reasoning = delta.value("reasoning_content").toString();
             const auto content = delta.value("content").toString();
             const auto deltaToolCalls = delta.value("tool_calls").toArray();
@@ -374,14 +394,14 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, messageIndex, messageId, toolCalls] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, messageIndex, messageId, toolCalls, finishReason] {
         if (m_reply == reply) m_reply = nullptr;
         if (reply->error() == QNetworkReply::OperationCanceledError) {
-            stateSet(AgentState::Abort);
+            stateSet(AgentState::Complete);
         } else if (reply->error() == QNetworkReply::NoError) {
             m_turn.messages[messageIndex].timing.finishedAt = QDateTime::currentMSecsSinceEpoch();
             emit finishChat(messageId);
-            if (!toolCalls->isEmpty()) {
+            if (*finishReason == "tool_calls") {
                 QJsonArray _toolCalls{};
                 for (auto toolCall: toolCalls->values()) {
                     if (toolCall.name.isEmpty()) continue;
@@ -403,21 +423,12 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                 }
                 m_turn.messages[messageIndex].toolCalls = _toolCalls;
                 stateSet(AgentState::ToolCall);
-            } else if (m_turn.conversationId.isEmpty()) {
-                const auto result = m_turn.messages.at(messageIndex).content;
-                m_turn = {};
-                stateSet(AgentState::Ready);
-                emit finishRun(result);
-            } else {
-                const auto finishedAt = m_turn.messages.at(messageIndex).timing.finishedAt;
-                auto &user = m_turn.messages.first();
-                user.status = SqlModule::TurnStatus::Completed;
-                user.timing.finishedAt = finishedAt;
-                m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
-                emit finishTurn(m_turn.id, finishedAt);
-                m_turn = {};
-                stateSet(AgentState::Ready);
-            }
+            } else if (*finishReason == "stop") {
+                m_turn.status = SqlModule::TurnStatus::Completed;
+                stateSet(AgentState::Complete);
+            } else if (*finishReason == "length") stateSet(AgentState::Error, "Model output reached the length limit.");
+            else if (*finishReason == "content_filter") stateSet(AgentState::Error, "Model output was blocked by the content filter.");
+            else stateSet(AgentState::Error, "Invalid model finish reason: " + *finishReason);
         } else {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);

@@ -532,7 +532,7 @@ Item {
         Item {
             id: compactCard
             property bool completed: false
-            visible: agentModule.state === 6 || completed
+            visible: agentModule.state === 7 || completed
             Layout.fillWidth: true
             Layout.preferredHeight: visible ? compactLayout.implicitHeight + 20 : 0
 
@@ -629,7 +629,7 @@ Item {
                 target: agentModule
 
                 function onChangeState(): void {
-                    if (agentModule.state !== 6) return
+                    if (agentModule.state !== 7) return
                     compactStatusTimer.stop()
                     compactCard.completed = false
                 }
