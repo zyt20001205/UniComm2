@@ -9,7 +9,7 @@ public:
 
     [[nodiscard]] QString systemGet() const override;
 
-    [[nodiscard]] bool planRequired(qsizetype toolCount) const override;
+    [[nodiscard]] bool planRequired() const override;
 };
 
 #endif //UNICOMM_GENERALAGENT_H

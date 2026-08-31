@@ -227,6 +227,39 @@ void AgentModule::compactThresholdSet(const int threshold) {
     agentConfigSave();
 }
 
+int AgentModule::toolFailureLimitGet() const {
+    return m_config["runtime"].toObject()["toolFailureLimit"].toInt();
+}
+
+void AgentModule::toolFailureLimitSet(const int limit) {
+    auto runtime = m_config["runtime"].toObject();
+    runtime["toolFailureLimit"] = limit;
+    m_config["runtime"] = runtime;
+    agentConfigSave();
+}
+
+int AgentModule::toolPlanThresholdGet() const {
+    return m_config["runtime"].toObject()["toolPlanThreshold"].toInt();
+}
+
+void AgentModule::toolPlanThresholdSet(const int threshold) {
+    auto runtime = m_config["runtime"].toObject();
+    runtime["toolPlanThreshold"] = threshold;
+    m_config["runtime"] = runtime;
+    agentConfigSave();
+}
+
+int AgentModule::toolCallLimitGet() const {
+    return m_config["runtime"].toObject()["toolCallLimit"].toInt();
+}
+
+void AgentModule::toolCallLimitSet(const int limit) {
+    auto runtime = m_config["runtime"].toObject();
+    runtime["toolCallLimit"] = limit;
+    m_config["runtime"] = runtime;
+    agentConfigSave();
+}
+
 // public: conversation management
 void AgentModule::conversationsGet() {
     const auto conversationId = m_conversationId;

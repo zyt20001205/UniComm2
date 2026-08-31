@@ -1,6 +1,7 @@
 #ifndef UNICOMM_RUNTIMEMODULE_H
 #define UNICOMM_RUNTIMEMODULE_H
 
+#include <QJsonObject>
 #include <QUrl>
 
 #include "agent/module/sqlModule.h"
@@ -11,6 +12,7 @@ class ContextModule;
 class ProviderModule;
 class QNetworkReply;
 class ToolsModule;
+struct ToolResult;
 
 struct RuntimeServices {
     ContextModule *contextModule{};
@@ -122,9 +124,11 @@ private:
         QString error{};
         bool planned{false};
         bool questionsAllowed{true};
-        qsizetype toolCount{};
+        qsizetype toolCallCount{};
         QList<ToolCall> toolCalls{};
-        qsizetype currentTool{};
+        qsizetype toolIndex{};
+        QString failedTool{};
+        int failureCount{};
     };
 
     void stateSet(int state, const QVariant &payload = QVariant());
@@ -133,7 +137,7 @@ private:
 
     qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
 
-    void toolResultSet(const QString &result);
+    void toolResultSet(const ToolResult &result);
 
     QString m_id{};
     BaseAgent *m_agent{};

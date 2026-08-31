@@ -77,6 +77,18 @@ public:
 
     Q_INVOKABLE void compactThresholdSet(int threshold);
 
+    Q_INVOKABLE [[nodiscard]] int toolFailureLimitGet() const;
+
+    Q_INVOKABLE void toolFailureLimitSet(int limit);
+
+    Q_INVOKABLE [[nodiscard]] int toolPlanThresholdGet() const;
+
+    Q_INVOKABLE void toolPlanThresholdSet(int threshold);
+
+    Q_INVOKABLE [[nodiscard]] int toolCallLimitGet() const;
+
+    Q_INVOKABLE void toolCallLimitSet(int limit);
+
     Q_INVOKABLE void conversationsGet();
 
     Q_INVOKABLE void conversationGet(const QString &id);

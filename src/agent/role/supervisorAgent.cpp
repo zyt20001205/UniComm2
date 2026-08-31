@@ -18,6 +18,6 @@ QString SupervisorAgent::systemGet() const {
            "If required information is missing or ambiguous and cannot be determined reliably with available tools, call user_input_request instead of guessing. Investigate with tools first and ask one concise question at a time. If the user disables further questions, continue using your best judgment and do not call user_input_request again during that turn.";
 }
 
-bool SupervisorAgent::planRequired(const qsizetype toolCount) const {
-    return toolCount >= 10;
+bool SupervisorAgent::planRequired() const {
+    return true;
 }

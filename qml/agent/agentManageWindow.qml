@@ -42,7 +42,8 @@ Item {
                     {"title": qsTr("MCP"), "icon": "qrc:/icon/mcp.svg"},
                     {"title": qsTr("Skills"), "icon": "qrc:/icon/skill.svg"},
                     {"title": qsTr("Hooks"), "icon": "qrc:/icon/hook.svg"},
-                    {"title": qsTr("Context"), "icon": "qrc:/icon/database.svg"}
+                    {"title": qsTr("Context"), "icon": "qrc:/icon/database.svg"},
+                    {"title": qsTr("Runtime"), "icon": "qrc:/icon/pulse.svg"}
                 ]
                 spacing: 2
 
@@ -675,6 +676,228 @@ Item {
 
                             Label {
                                 text: qsTr("At %1%, earlier turns are summarized before the next request. Models without a known context limit are not compacted automatically.").arg(Math.round(compactThresholdSlider.value))
+                                color: global.stroke
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+                }
+            }
+
+            SettingsPage {
+                title: qsTr("Runtime")
+                description: qsTr("Configure execution limits and failure handling.")
+
+                Rectangle {
+                    radius: 6
+                    color: global.backHover
+                    border.color: global.stroke
+                    implicitHeight: toolFailureLayout.implicitHeight + 32
+                    Layout.fillWidth: true
+
+                    ColumnLayout {
+                        id: toolFailureLayout
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 16
+
+                        RowLayout {
+                            spacing: 16
+                            Layout.fillWidth: true
+
+                            ColumnLayout {
+                                spacing: 4
+                                Layout.fillWidth: true
+
+                                Label {
+                                    text: qsTr("Consecutive tool failure limit")
+                                    font.bold: true
+                                }
+
+                                Label {
+                                    text: qsTr("Stop the current turn when the same tool fails this many times in a row.")
+                                    color: global.stroke
+                                    wrapMode: Text.Wrap
+                                    Layout.fillWidth: true
+                                }
+                            }
+
+                            SpinBox {
+                                from: 3
+                                to: 10
+                                value: agentModule.toolFailureLimitGet()
+                                editable: true
+
+                                onValueModified: agentModule.toolFailureLimitSet(value)
+                            }
+                        }
+
+                        Rectangle {
+                            color: global.stroke
+                            implicitHeight: 1
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            spacing: 8
+                            Layout.fillWidth: true
+
+                            IconImage {
+                                source: "qrc:/icon/info.svg"
+                                sourceSize.width: 16
+                                sourceSize.height: 16
+                                color: global.stroke
+                                Layout.alignment: Qt.AlignTop
+                            }
+
+                            Label {
+                                text: qsTr("A successful call clears the counter. A failure from another tool starts a new counter.")
+                                color: global.stroke
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    radius: 6
+                    color: global.backHover
+                    border.color: global.stroke
+                    implicitHeight: toolPlanLayout.implicitHeight + 32
+                    Layout.fillWidth: true
+
+                    ColumnLayout {
+                        id: toolPlanLayout
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 16
+
+                        RowLayout {
+                            spacing: 16
+                            Layout.fillWidth: true
+
+                            ColumnLayout {
+                                spacing: 4
+                                Layout.fillWidth: true
+
+                                Label {
+                                    text: qsTr("Tool plan threshold")
+                                    font.bold: true
+                                }
+
+                                Label {
+                                    text: qsTr("Require a plan before allowing more tool calls after this threshold.")
+                                    color: global.stroke
+                                    wrapMode: Text.Wrap
+                                    Layout.fillWidth: true
+                                }
+                            }
+
+                            SpinBox {
+                                from: 5
+                                to: 30
+                                value: agentModule.toolPlanThresholdGet()
+                                editable: true
+
+                                onValueModified: agentModule.toolPlanThresholdSet(value)
+                            }
+                        }
+
+                        Rectangle {
+                            color: global.stroke
+                            implicitHeight: 1
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            spacing: 8
+                            Layout.fillWidth: true
+
+                            IconImage {
+                                source: "qrc:/icon/info.svg"
+                                sourceSize.width: 16
+                                sourceSize.height: 16
+                                color: global.stroke
+                                Layout.alignment: Qt.AlignTop
+                            }
+
+                            Label {
+                                text: qsTr("This threshold applies only to agents that support planning.")
+                                color: global.stroke
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    radius: 6
+                    color: global.backHover
+                    border.color: global.stroke
+                    implicitHeight: toolCallLayout.implicitHeight + 32
+                    Layout.fillWidth: true
+
+                    ColumnLayout {
+                        id: toolCallLayout
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 16
+
+                        RowLayout {
+                            spacing: 16
+                            Layout.fillWidth: true
+
+                            ColumnLayout {
+                                spacing: 4
+                                Layout.fillWidth: true
+
+                                Label {
+                                    text: qsTr("Tool call limit")
+                                    font.bold: true
+                                }
+
+                                Label {
+                                    text: qsTr("Stop the current turn after this many tool calls.")
+                                    color: global.stroke
+                                    wrapMode: Text.Wrap
+                                    Layout.fillWidth: true
+                                }
+                            }
+
+                            SpinBox {
+                                from: 10
+                                to: 100
+                                stepSize: 5
+                                value: agentModule.toolCallLimitGet()
+                                editable: true
+
+                                onValueModified: agentModule.toolCallLimitSet(value)
+                            }
+                        }
+
+                        Rectangle {
+                            color: global.stroke
+                            implicitHeight: 1
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            spacing: 8
+                            Layout.fillWidth: true
+
+                            IconImage {
+                                source: "qrc:/icon/info.svg"
+                                sourceSize.width: 16
+                                sourceSize.height: 16
+                                color: global.stroke
+                                Layout.alignment: Qt.AlignTop
+                            }
+
+                            Label {
+                                text: qsTr("Plan updates and user input requests do not count toward this limit.")
                                 color: global.stroke
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true

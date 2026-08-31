@@ -76,7 +76,7 @@ void RuntimeModule::request(const QString &provider, const QString &model, const
 }
 
 void RuntimeModule::permission(const bool status) {
-    auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
+    auto &toolCall = m_turn.toolCalls[m_turn.toolIndex];
     const auto &message = m_turn.messages.at(toolCall.messageIndex);
     toolCall.approved = status;
     if (toolCall.name != "plan_update" && toolCall.name != "user_input_request") emit appendChat(message.id, status ? " ✓" : " ✗");
@@ -87,9 +87,9 @@ void RuntimeModule::userInput(const QString &answer) {
     const auto text = answer.trimmed();
     if (text.isEmpty()) {
         m_turn.questionsAllowed = false;
-        toolResultSet("The user chose not to answer and disabled further questions for this turn. Continue using your best judgment.");
+        toolResultSet({"The user chose not to answer and disabled further questions for this turn. Continue using your best judgment."});
     } else {
-        toolResultSet(text);
+        toolResultSet({text});
     }
 }
 
@@ -214,7 +214,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::ToolCall: {
-            auto &toolCall = m_turn.toolCalls[m_turn.currentTool];
+            auto &toolCall = m_turn.toolCalls[m_turn.toolIndex];
             auto &message = m_turn.messages[toolCall.messageIndex];
             message.timing.startedAt = QDateTime::currentMSecsSinceEpoch();
             const auto [approved, text] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
@@ -230,7 +230,7 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                     input["options"] = options;
                     stateSet(AgentState::UserInput, input.toVariantMap());
                 } else {
-                    toolResultSet("Further questions are disabled for this turn. Continue using the available context and your best judgment.");
+                    toolResultSet({"Further questions are disabled for this turn. Continue using the available context and your best judgment."});
                 }
             } else {
                 emit createChat(m_turn.id, message.id, "tool");
@@ -241,9 +241,9 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                     break;
                 }
                 // plan required check
-                if (!m_turn.planned && m_agent->planRequired(m_turn.toolCount)) {
+                if (!m_turn.planned && m_agent->planRequired() && m_turn.toolCallCount >= g_agent->toolPlanThresholdGet()) {
                     emit appendChat(message.id, " ✗");
-                    toolResultSet("Plan required before further tool execution. Call plan_update first, then retry this tool.");
+                    toolResultSet({"Plan required before further tool execution. Call plan_update first, then retry this tool."});
                 } else {
                     emit appendChat(message.id, " ✓");
                     stateSet(AgentState::ToolExec);
@@ -263,9 +263,9 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::ToolExec: {
-            const auto toolCall = m_turn.toolCalls.at(m_turn.currentTool);
+            const auto toolCall = m_turn.toolCalls.at(m_turn.toolIndex);
             if (!toolCall.approved) {
-                toolResultSet("User denied permission to execute this tool.");
+                toolResultSet({"User denied permission to execute this tool."});
                 break;
             }
 
@@ -275,9 +275,9 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             auto future = m_toolsModule->toolExecute(m_id, toolCall.name, toolCall.arguments);
             future.then(this, [this, turnId, toolCall](const ToolResult &result) {
                 if (m_state != AgentState::ToolExec || m_turn.id != turnId) return;
-                if (m_turn.toolCalls.at(m_turn.currentTool).id != toolCall.id) return;
-                if (toolCall.name != "plan_update") ++m_turn.toolCount;
-                toolResultSet(result.content);
+                if (m_turn.toolCalls.at(m_turn.toolIndex).id != toolCall.id) return;
+                if (toolCall.name != "plan_update") ++m_turn.toolCallCount;
+                toolResultSet(result);
             });
         }
         break;
@@ -453,12 +453,31 @@ qsizetype RuntimeModule::conversationAppend(const QString &role, const QString &
     return index;
 }
 
-void RuntimeModule::toolResultSet(const QString &result) {
-    const auto &toolCall = m_turn.toolCalls.at(m_turn.currentTool);
+void RuntimeModule::toolResultSet(const ToolResult &result) {
+    const auto &toolCall = m_turn.toolCalls.at(m_turn.toolIndex);
     auto &message = m_turn.messages[toolCall.messageIndex];
-    message.content = result;
+    message.content = result.content;
     message.approved = toolCall.approved;
     message.timing.finishedAt = QDateTime::currentMSecsSinceEpoch();
-    ++m_turn.currentTool;
-    stateSet(m_turn.currentTool < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
+    ++m_turn.toolIndex;
+
+    if (result.success) {
+        m_turn.failedTool.clear();
+        m_turn.failureCount = 0;
+    } else if (m_turn.failedTool == toolCall.name) {
+        ++m_turn.failureCount;
+    } else {
+        m_turn.failedTool = toolCall.name;
+        m_turn.failureCount = 1;
+    }
+
+    if (m_turn.failureCount >= g_agent->toolFailureLimitGet()) {
+        stateSet(AgentState::Error, QString("Tool '%1' failed %2 consecutive times.").arg(m_turn.failedTool).arg(m_turn.failureCount));
+        return;
+    }
+    if (m_turn.toolCallCount >= g_agent->toolCallLimitGet()) {
+        stateSet(AgentState::Error, QString("Tool call limit reached: %1.").arg(m_turn.toolCallCount));
+        return;
+    }
+    stateSet(m_turn.toolIndex < m_turn.toolCalls.size() ? AgentState::ToolCall : AgentState::Request);
 }
