@@ -238,13 +238,13 @@ void AgentModule::toolFailureLimitSet(const int limit) {
     agentConfigSave();
 }
 
-int AgentModule::toolPlanThresholdGet() const {
-    return m_config["runtime"].toObject()["toolPlanThreshold"].toInt();
+int AgentModule::toolPlanIntervalGet() const {
+    return m_config["runtime"].toObject()["toolPlanInterval"].toInt();
 }
 
-void AgentModule::toolPlanThresholdSet(const int threshold) {
+void AgentModule::toolPlanIntervalSet(const int interval) {
     auto runtime = m_config["runtime"].toObject();
-    runtime["toolPlanThreshold"] = threshold;
+    runtime["toolPlanInterval"] = interval;
     m_config["runtime"] = runtime;
     agentConfigSave();
 }

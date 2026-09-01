@@ -28,7 +28,7 @@ bool ContextModule::compactRequired(const qint64 contextTokens, const qint64 con
 }
 
 QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::Conversation &conversation, const QList<SqlModule::Message> &history,
-                                       const QList<SqlModule::Message> &turn, const QList<QUrl> &attachments) const {
+                                       const QList<SqlModule::Message> &turn, const QList<QUrl> &attachments, const QString &steering) const {
     QJsonArray context{
         QJsonObject{
             {"role", "system"},
@@ -81,10 +81,11 @@ QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::C
         }
         context.append(message);
     }
+    if (!steering.isEmpty()) context.append(QJsonObject{{"role", "user"}, {"content", steering}});
     return context;
 }
 
-QJsonArray ContextModule::contextBuild(const QString &system, const int mode, const QList<SqlModule::Message> &turn) const {
+QJsonArray ContextModule::contextBuild(const QString &system, const int mode, const QList<SqlModule::Message> &turn, const QString &steering) const {
     QJsonArray context{
         QJsonObject{
             {"role", "system"},
@@ -92,6 +93,7 @@ QJsonArray ContextModule::contextBuild(const QString &system, const int mode, co
         }
     };
     for (const auto &message: turn) context.append(messageBuild(message));
+    if (!steering.isEmpty()) context.append(QJsonObject{{"role", "user"}, {"content", steering}});
     return context;
 }
 

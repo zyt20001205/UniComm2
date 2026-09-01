@@ -197,15 +197,21 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             QJsonArray context{};
             QString providerId{};
             QString modelId{};
+            QString steering{};
+            const auto toolPlanInterval = g_agent->toolPlanIntervalGet();
+            if (toolPlanInterval > 0 && m_agent->toolContains("plan_update") && m_turn.toolPlanCount >= toolPlanInterval) {
+                steering = "Tool activity has reached the configured planning interval. Review progress and call plan_update if the plan is missing or outdated.";
+                m_turn.toolPlanCount %= toolPlanInterval;
+            }
             if (m_turn.conversationId.isEmpty()) {
                 providerId = m_turn.provider;
                 modelId = m_turn.model;
-                context = m_contextModule->contextBuild(m_agent->systemGet(), m_turn.mode, m_turn.messages);
+                context = m_contextModule->contextBuild(m_agent->systemGet(), m_turn.mode, m_turn.messages, steering);
             } else {
                 const auto [conversation, messages] = m_sqlModule->conversationGet(m_turn.conversationId);
                 providerId = conversation.provider;
                 modelId = conversation.model;
-                context = m_contextModule->contextBuild(m_agent->systemGet(), conversation, messages, m_turn.messages, m_turn.attachments);
+                context = m_contextModule->contextBuild(m_agent->systemGet(), conversation, messages, m_turn.messages, m_turn.attachments, steering);
             }
             const auto tools = m_turn.mode == AgentMode::Chat ? QJsonArray{} : m_agent->toolsGet(*m_toolsModule);
             auto *provider = m_providerModule->providerGet(providerId);
@@ -220,7 +226,6 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             const auto [approved, text] = m_toolsModule->toolCall(m_turn.mode, toolCall.name, toolCall.arguments);
             toolCall.approved = approved;
             if (toolCall.name == "plan_update") {
-                m_turn.planned = true;
                 stateSet(AgentState::ToolExec);
             } else if (toolCall.name == "user_input_request") {
                 if (m_turn.questionsAllowed) {
@@ -240,14 +245,8 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
                     stateSet(AgentState::Permission, text);
                     break;
                 }
-                // plan required check
-                if (!m_turn.planned && m_agent->toolContains("plan_update") && m_turn.toolCallCount >= g_agent->toolPlanThresholdGet()) {
-                    emit appendChat(message.id, " ✗");
-                    toolResultSet({"Plan required before further tool execution. Call plan_update first, then retry this tool."});
-                } else {
-                    emit appendChat(message.id, " ✓");
-                    stateSet(AgentState::ToolExec);
-                }
+                emit appendChat(message.id, " ✓");
+                stateSet(AgentState::ToolExec);
             }
         }
         break;
@@ -276,7 +275,12 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             future.then(this, [this, turnId, toolCall](const ToolResult &result) {
                 if (m_state != AgentState::ToolExec || m_turn.id != turnId) return;
                 if (m_turn.toolCalls.at(m_turn.toolIndex).id != toolCall.id) return;
-                if (toolCall.name != "plan_update") ++m_turn.toolCallCount;
+                if (toolCall.name == "plan_update") {
+                    if (result.success) m_turn.toolPlanCount = 0;
+                } else {
+                    ++m_turn.toolCallCount;
+                    ++m_turn.toolPlanCount;
+                }
                 toolResultSet(result);
             });
         }

@@ -122,9 +122,9 @@ private:
         qint64 currentUsage{};
         int status{SqlModule::TurnStatus::Running};
         QString error{};
-        bool planned{false};
         bool questionsAllowed{true};
         qsizetype toolCallCount{};
+        qsizetype toolPlanCount{};
         QList<ToolCall> toolCalls{};
         qsizetype toolIndex{};
         QString failedTool{};

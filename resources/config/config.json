@@ -11,7 +11,7 @@
     "runtime": {
       "toolCallLimit": 40,
       "toolFailureLimit": 3,
-      "toolPlanThreshold": 10
+      "toolPlanInterval": 10
     }
   },
   "breakpointConfig": {

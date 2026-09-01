@@ -783,12 +783,12 @@ Item {
                                 Layout.fillWidth: true
 
                                 Label {
-                                    text: qsTr("Tool plan threshold")
+                                    text: qsTr("Tool plan reminder interval")
                                     font.bold: true
                                 }
 
                                 Label {
-                                    text: qsTr("Require plan_update before allowing more tool calls after this threshold.")
+                                    text: qsTr("Append a plan_update reminder after this many tool calls.")
                                     color: global.stroke
                                     wrapMode: Text.Wrap
                                     Layout.fillWidth: true
@@ -798,10 +798,10 @@ Item {
                             SpinBox {
                                 from: 5
                                 to: 30
-                                value: agentModule.toolPlanThresholdGet()
+                                value: agentModule.toolPlanIntervalGet()
                                 editable: true
 
-                                onValueModified: agentModule.toolPlanThresholdSet(value)
+                                onValueModified: agentModule.toolPlanIntervalSet(value)
                             }
                         }
 
@@ -824,7 +824,7 @@ Item {
                             }
 
                             Label {
-                                text: qsTr("This threshold applies only when the plan_update tool is available to the current agent.")
+                                text: qsTr("Applies only when plan_update is available. Reminders are not stored in conversation history.")
                                 color: global.stroke
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true

@@ -81,9 +81,9 @@ public:
 
     Q_INVOKABLE void toolFailureLimitSet(int limit);
 
-    Q_INVOKABLE [[nodiscard]] int toolPlanThresholdGet() const;
+    Q_INVOKABLE [[nodiscard]] int toolPlanIntervalGet() const;
 
-    Q_INVOKABLE void toolPlanThresholdSet(int threshold);
+    Q_INVOKABLE void toolPlanIntervalSet(int interval);
 
     Q_INVOKABLE [[nodiscard]] int toolCallLimitGet() const;
 
