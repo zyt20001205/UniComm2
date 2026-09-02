@@ -1004,7 +1004,7 @@ QPair<bool, QString> ToolsModule::toolCall(const int mode, const QString &name, 
 }
 
 QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) const {
-    const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
+    const auto object = argumentsGet(arguments);
     QString chatText{};
     if (name == "api_list") {
         chatText = "List available APIs";
@@ -1095,7 +1095,7 @@ QString ToolsModule::toolTextGet(const QString &name, const QString &arguments) 
 
 QFuture<ToolResult> ToolsModule::toolExecute(const QString &runtimeId, const QString &name, const QString &arguments) {
     if (m_mcpModule->toolContains(name)) return m_mcpModule->toolExecute(name, arguments);
-    const auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
+    const auto object = argumentsGet(arguments);
     if (name == "subagent_dispatch") {
         const auto tasks = object.value("tasks").toArray();
         if (tasks.isEmpty()) return QtFuture::makeReadyValueFuture(ToolResult{"No subagent tasks were provided.", false});
@@ -1150,6 +1150,12 @@ QFuture<ToolResult> ToolsModule::toolExecute(const QString &runtimeId, const QSt
 }
 
 // private
+QJsonObject ToolsModule::argumentsGet(const QString &arguments) {
+    auto object = QJsonDocument::fromJson(arguments.toUtf8()).object();
+    if (object.size() == 1 && object.value("arguments").isObject()) return object.value("arguments").toObject();
+    return object;
+}
+
 bool ToolsModule::permissionGet(const int mode, const QString &name) const {
     if (m_mcpModule->toolContains(name)) {
         return mode != RuntimeModule::AgentMode::Chat && (m_mcpModule->toolReadOnly(name) || mode == RuntimeModule::AgentMode::FullAccess);

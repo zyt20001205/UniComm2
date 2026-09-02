@@ -37,6 +37,8 @@ public:
     [[nodiscard]] QFuture<ToolResult> toolExecute(const QString &runtimeId, const QString &name, const QString &arguments);
 
 private:
+    [[nodiscard]] static QJsonObject argumentsGet(const QString &arguments);
+
     [[nodiscard]] bool permissionGet(int mode, const QString &name) const;
 
     [[nodiscard]] ToolResult _toolExecute(const QString &runtimeId, const QString &name, const QJsonObject &object) const;
