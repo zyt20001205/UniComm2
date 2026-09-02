@@ -12,9 +12,21 @@ HookModule::HookModule(const QJsonArray &config, QObject *parent)
     : QObject(parent),
       m_config(config),
       m_hookModel(new HookModel(this)) {
-    auto *item = new QStandardItem(tr("Turn finished")); // NOLINT
-    item->setData(tr("Run scripts after an agent turn finishes."), HookModel::DescriptionRole);
-    m_hookModel->appendRow(item);
+    auto *turnStartItem = new QStandardItem(tr("Turn started")); // NOLINT
+    turnStartItem->setData(tr("Run scripts after an agent turn starts."), HookModel::DescriptionRole);
+    m_hookModel->appendRow(turnStartItem);
+    auto *permissionItem = new QStandardItem(tr("Permission requested")); // NOLINT
+    permissionItem->setData(tr("Run scripts when an agent requests permission."), HookModel::DescriptionRole);
+    m_hookModel->appendRow(permissionItem);
+    auto *userInputItem = new QStandardItem(tr("User input requested")); // NOLINT
+    userInputItem->setData(tr("Run scripts when an agent asks the user for input."), HookModel::DescriptionRole);
+    m_hookModel->appendRow(userInputItem);
+    auto *turnFinishItem = new QStandardItem(tr("Turn finished")); // NOLINT
+    turnFinishItem->setData(tr("Run scripts after an agent turn finishes."), HookModel::DescriptionRole);
+    m_hookModel->appendRow(turnFinishItem);
+    hookUpdate(Event::TurnStart);
+    hookUpdate(Event::PermissionRequest);
+    hookUpdate(Event::UserInputRequest);
     hookUpdate(Event::TurnFinish);
 }
 

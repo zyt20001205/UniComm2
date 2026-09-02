@@ -485,12 +485,14 @@ void AgentModule::permissionRequest(const QString &runtimeId, const QString &mes
     const auto *runtime = m_runtimes.value(runtimeId);
     if (runtime == nullptr) return;
     QMetaObject::invokeMethod(m_root, "permissionRequest",Q_ARG(QString, runtimeId),Q_ARG(QString, runtime->roleGet()),Q_ARG(QString, message));
+    m_hookModule->hookRun(HookModule::Event::PermissionRequest);
 }
 
 void AgentModule::userInputRequest(const QString &runtimeId, const QVariantMap &request) const {
     const auto *runtime = m_runtimes.value(runtimeId);
     if (runtime == nullptr) return;
     QMetaObject::invokeMethod(m_root, "userInputRequest",Q_ARG(QString, runtimeId),Q_ARG(QString, runtime->roleGet()),Q_ARG(QVariant, request));
+    m_hookModule->hookRun(HookModule::Event::UserInputRequest);
 }
 
 void AgentModule::planUpdate(const QString &runtimeId, const QJsonObject &plan) const {
@@ -546,6 +548,7 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
         m_attachments.clear();
         QMetaObject::invokeMethod(m_root, "attachmentsClear");
         QMetaObject::invokeMethod(m_textArea, "clear");
+        m_hookModule->hookRun(HookModule::Event::TurnStart);
     });
     connect(runtime, &RuntimeModule::finishTurn, this, [this, runtime](const QString &turnId, const qint64 finishedAt) {
         if (runtime != m_runtimes.value(m_primary)) return;

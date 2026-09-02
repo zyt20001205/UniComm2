@@ -12,6 +12,9 @@ class HookModule final : public QObject {
 public:
     struct Event {
         enum {
+            TurnStart,
+            PermissionRequest,
+            UserInputRequest,
             TurnFinish
         };
     };
