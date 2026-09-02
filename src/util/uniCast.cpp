@@ -134,6 +134,16 @@ QVariant uni_cast<QVariant, sol::object>(const sol::object &s, const int depth) 
 }
 
 template<>
+QJsonObject uni_cast<QJsonObject, sol::table>(const sol::table &s, const int depth) {
+    QJsonObject d{};
+    for (const auto &[key, value]: s) {
+        if (!key.is<std::string>()) continue;
+        d[QString::fromStdString(key.as<std::string>())] = QJsonValue::fromVariant(uni_cast<QVariant>(value, depth + 1));
+    }
+    return d;
+}
+
+template<>
 QVariantList uni_cast<QVariantList, sol::variadic_args>(const sol::variadic_args &s, const int depth) {
     Q_UNUSED(depth);
     QVariantList d{};

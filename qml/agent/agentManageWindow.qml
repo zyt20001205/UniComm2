@@ -10,7 +10,7 @@ Item {
 
     FileDialog {
         id: hookScriptDialog
-        property string event
+        property int event
         fileMode: FileDialog.OpenFile
         nameFilters: [qsTr("Lua files (*.lua)")]
 
@@ -596,7 +596,7 @@ Item {
 
                     delegate: Rectangle {
                         id: hookCard
-                        property string hookEvent: model.event
+                        property int hookEvent: index
                         property string hookTitle: model.display
                         property string hookDescription: model.description
                         property bool hookEnabled: model.enabled

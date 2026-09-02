@@ -1,7 +1,7 @@
 #ifndef UNICOMM_HOOKMODULE_H
 #define UNICOMM_HOOKMODULE_H
 
-#include <QJsonObject>
+#include <QJsonArray>
 #include <QStandardItemModel>
 
 class HookModel;
@@ -10,26 +10,32 @@ class HookModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit HookModule(const QJsonObject &config, QObject *parent = nullptr);
+    struct Event {
+        enum {
+            TurnFinish
+        };
+    };
+
+    explicit HookModule(const QJsonArray &config, QObject *parent = nullptr);
 
     [[nodiscard]] HookModel *hookModelGet() const;
 
-    [[nodiscard]] const QJsonObject &configGet() const;
+    [[nodiscard]] const QJsonArray &configGet() const;
 
-    void hookEnabledSet(const QString &event, bool enabled);
+    void hookEnabledSet(int event, bool enabled);
 
-    void hookScriptInsert(const QString &event, const QUrl &documentUrl);
+    void hookScriptInsert(int event, const QUrl &documentUrl);
 
-    void hookScriptRemove(const QString &event, const QUrl &documentUrl);
+    void hookScriptRemove(int event, const QUrl &documentUrl);
 
-    void hookRun(const QString &event) const;
+    void hookRun(int event) const;
 
 private:
-    [[nodiscard]] QVariantList scriptsGet(const QString &event) const;
+    [[nodiscard]] QVariantList scriptsGet(int event) const;
 
-    void hookUpdate(const QString &event) const;
+    void hookUpdate(int event) const;
 
-    QJsonObject m_config{};
+    QJsonArray m_config{};
     HookModel *m_hookModel{};
 };
 
@@ -40,8 +46,7 @@ public:
     explicit HookModel(QObject *parent = nullptr);
 
     enum Role {
-        EventRole = Qt::UserRole + 1,
-        DescriptionRole,
+        DescriptionRole = Qt::UserRole + 1,
         EnabledRole,
         ScriptsRole
     };

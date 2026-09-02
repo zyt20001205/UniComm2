@@ -35,11 +35,7 @@ sol::object Port::info(const sol::this_state ts, const std::string &portName) {
 }
 
 void Port::create(const sol::table &config) {
-    QJsonObject portConfig{};
-    for (const auto &[key, value]: config) {
-        if (!key.is<std::string>()) continue;
-        portConfig[QString::fromStdString(key.as<std::string>())] = QJsonValue::fromVariant(uni_cast<QVariant>(value));
-    }
+    const auto portConfig = uni_cast<QJsonObject>(config);
 
     QString error{};
     QMetaObject::invokeMethod(g_port, [&error, &portConfig] {

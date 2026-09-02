@@ -74,11 +74,11 @@ public:
 
     Q_INVOKABLE void mcpEnabledSet(const QUrl &url, bool enabled);
 
-    Q_INVOKABLE void hookEnabledSet(const QString &event, bool enabled);
+    Q_INVOKABLE void hookEnabledSet(int event, bool enabled);
 
-    Q_INVOKABLE void hookScriptInsert(const QString &event, const QUrl &documentUrl);
+    Q_INVOKABLE void hookScriptInsert(int event, const QUrl &documentUrl);
 
-    Q_INVOKABLE void hookScriptRemove(const QString &event, const QUrl &documentUrl);
+    Q_INVOKABLE void hookScriptRemove(int event, const QUrl &documentUrl);
 
     Q_INVOKABLE [[nodiscard]] int compactThresholdGet() const;
 

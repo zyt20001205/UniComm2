@@ -2,6 +2,7 @@
 #define UNICOMM_UNICAST_H
 
 #include <QColor>
+#include <QJsonObject>
 #include <QList>
 #include <QSet>
 #include <QUrl>
@@ -44,6 +45,9 @@ template<>
 
 template<>
 [[nodiscard]] QVariant uni_cast<QVariant, sol::object>(const sol::object &s, int depth);
+
+template<>
+[[nodiscard]] QJsonObject uni_cast<QJsonObject, sol::table>(const sol::table &s, int depth);
 
 template<>
 [[nodiscard]] QVariantList uni_cast<QVariantList, sol::variadic_args>(const sol::variadic_args &s, int depth);

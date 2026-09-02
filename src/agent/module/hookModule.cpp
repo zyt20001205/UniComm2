@@ -8,33 +8,32 @@
 #include "util/uniCast.h"
 
 // public
-HookModule::HookModule(const QJsonObject &config, QObject *parent)
+HookModule::HookModule(const QJsonArray &config, QObject *parent)
     : QObject(parent),
       m_config(config),
       m_hookModel(new HookModel(this)) {
     auto *item = new QStandardItem(tr("Turn finished")); // NOLINT
-    item->setData("turnFinish", HookModel::EventRole);
     item->setData(tr("Run scripts after an agent turn finishes."), HookModel::DescriptionRole);
     m_hookModel->appendRow(item);
-    hookUpdate("turnFinish");
+    hookUpdate(Event::TurnFinish);
 }
 
 HookModel *HookModule::hookModelGet() const {
     return m_hookModel;
 }
 
-const QJsonObject &HookModule::configGet() const {
+const QJsonArray &HookModule::configGet() const {
     return m_config;
 }
 
-void HookModule::hookEnabledSet(const QString &event, const bool enabled) {
+void HookModule::hookEnabledSet(const int event, const bool enabled) {
     auto hook = m_config[event].toObject();
     hook["enabled"] = enabled;
     m_config[event] = hook;
     hookUpdate(event);
 }
 
-void HookModule::hookScriptInsert(const QString &event, const QUrl &documentUrl) {
+void HookModule::hookScriptInsert(const int event, const QUrl &documentUrl) {
     auto hook = m_config[event].toObject();
     auto scripts = hook["scripts"].toArray();
     if (scripts.contains(documentUrl.toString())) return;
@@ -45,7 +44,7 @@ void HookModule::hookScriptInsert(const QString &event, const QUrl &documentUrl)
     hookUpdate(event);
 }
 
-void HookModule::hookScriptRemove(const QString &event, const QUrl &documentUrl) {
+void HookModule::hookScriptRemove(const int event, const QUrl &documentUrl) {
     auto hook = m_config[event].toObject();
     auto scripts = hook["scripts"].toArray();
     for (qsizetype index = 0; index < scripts.size(); ++index) {
@@ -58,7 +57,7 @@ void HookModule::hookScriptRemove(const QString &event, const QUrl &documentUrl)
     hookUpdate(event);
 }
 
-void HookModule::hookRun(const QString &event) const {
+void HookModule::hookRun(const int event) const {
     const auto hook = m_config[event].toObject();
     if (!hook["enabled"].toBool()) return;
     for (const auto &value: hook["scripts"].toArray()) {
@@ -72,7 +71,7 @@ void HookModule::hookRun(const QString &event) const {
 }
 
 // private
-QVariantList HookModule::scriptsGet(const QString &event) const {
+QVariantList HookModule::scriptsGet(const int event) const {
     QVariantList scripts{};
     for (const auto &value: m_config[event].toObject()["scripts"].toArray()) {
         const QUrl documentUrl(value.toString());
@@ -85,9 +84,8 @@ QVariantList HookModule::scriptsGet(const QString &event) const {
     return scripts;
 }
 
-void HookModule::hookUpdate(const QString &event) const {
-    const auto index = m_hookModel->match(m_hookModel->index(0, 0), HookModel::EventRole, event).constFirst();
-    auto *item = m_hookModel->itemFromIndex(index);
+void HookModule::hookUpdate(const int event) const {
+    auto *item = m_hookModel->item(event);
     const auto hook = m_config[event].toObject();
     item->setData(hook["enabled"].toBool(), HookModel::EnabledRole);
     item->setData(scriptsGet(event), HookModel::ScriptsRole);
@@ -100,7 +98,6 @@ HookModel::HookModel(QObject *parent)
 
 QHash<int, QByteArray> HookModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[EventRole] = "event";
     roles[DescriptionRole] = "description";
     roles[EnabledRole] = "enabled";
     roles[ScriptsRole] = "scripts";
