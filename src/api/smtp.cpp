@@ -39,6 +39,7 @@ void Smtp::init(const std::string &portName, const int timeout) {
 }
 
 void Smtp::authLogin(const std::string &username, const std::string &password) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _username = QByteArray::fromStdString(username).toBase64();
     const auto _password = QByteArray::fromStdString(password).toBase64();
@@ -68,6 +69,7 @@ void Smtp::authLogin(const std::string &username, const std::string &password) c
 }
 
 void Smtp::ehlo() const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
 
     QMetaObject::invokeMethod(m_port, [this]() -> QString {
@@ -83,6 +85,7 @@ void Smtp::ehlo() const {
 }
 
 void Smtp::send(const sol::table &mail) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
 
     const auto _from = QByteArray::fromStdString(mail.get<std::string>("from"));
@@ -233,6 +236,7 @@ void Smtp::send(const sol::table &mail) const {
 }
 
 void Smtp::quit() const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
 
     QMetaObject::invokeMethod(m_port, [this]() -> QString {

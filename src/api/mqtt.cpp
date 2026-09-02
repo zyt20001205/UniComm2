@@ -79,6 +79,7 @@ void Mqtt::init(const std::string &portName, const int timeout) {
 }
 
 void Mqtt::connect() {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     QByteArray rxData{};
     QByteArray variableHeader{};

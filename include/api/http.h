@@ -1,6 +1,7 @@
 #ifndef UNICOMM_HTTP_H
 #define UNICOMM_HTTP_H
 
+#include <QPointer>
 #include <QVariant>
 #include <sol/object.hpp>
 #include <sol/table.hpp>
@@ -124,7 +125,7 @@ private:
     std::string m_portName{};
     int m_timeout{};
     QByteArray m_remoteHost{};
-    BasePort *m_port{};
+    QPointer<BasePort> m_port{};
 };
 
 #endif //UNICOMM_HTTP_H

@@ -24,22 +24,27 @@ void ModbusRtu::init(const std::string &portName, const int slaveAddr, const int
 }
 
 sol::table ModbusRtu::readCoils(const sol::this_state ts, const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readBits(ts, FuncCode::ReadCoils, startAddr, quantity);
 }
 
 sol::table ModbusRtu::readDiscreteInputs(const sol::this_state ts, const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readBits(ts, FuncCode::ReadDiscreteInputs, startAddr, quantity);
 }
 
 std::string ModbusRtu::readHoldingRegisters(const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readRegisters(FuncCode::ReadHoldingRegisters, startAddr, quantity);
 }
 
 std::string ModbusRtu::readInputRegisters(const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readRegisters(FuncCode::ReadInputRegisters, startAddr, quantity);
 }
 
 void ModbusRtu::writeSingleCoil(const int coilAddr, const bool value) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     QByteArray coilValue{};
     coilValue.append(static_cast<char>(value ? 0xFF : 0x00));
@@ -70,6 +75,7 @@ void ModbusRtu::writeSingleCoil(const int coilAddr, const bool value) const {
 }
 
 void ModbusRtu::writeSingleRegister(const int regAddr, const std::string &data) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     const auto value = QByteArray::fromHex(QByteArray::fromStdString(data));
     QByteArray txData{};
@@ -98,6 +104,7 @@ void ModbusRtu::writeSingleRegister(const int regAddr, const std::string &data) 
 }
 
 void ModbusRtu::writeMultipleCoils(const int startAddr, const sol::table &values) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     const int quantity = static_cast<int>(values.size());
     const int byteCount = (quantity + 7) / 8;
@@ -136,6 +143,7 @@ void ModbusRtu::writeMultipleCoils(const int startAddr, const sol::table &values
 }
 
 void ModbusRtu::writeMultipleRegisters(const int startAddr, const std::string &data) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     const auto size = static_cast<qsizetype>(data.size() / 2);
     const int regCount = static_cast<int>(size) / 2;

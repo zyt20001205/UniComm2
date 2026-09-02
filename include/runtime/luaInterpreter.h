@@ -14,7 +14,6 @@ class IO;
 class Key;
 class Mouse;
 class Mqtt;
-class Port;
 class String;
 class Thread;
 
@@ -71,7 +70,6 @@ private:
     Key *m_key{};
     Mouse *m_mouse{};
     Mqtt *m_mqtt{};
-    Port *m_port{};
     String *m_string{};
     Thread *m_thread{};
 };

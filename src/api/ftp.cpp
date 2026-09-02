@@ -42,6 +42,7 @@ void Ftp::init(const std::string &portName, const int timeout) {
 }
 
 void Ftp::login(const std::string &username, const std::string &password) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _username = QByteArray::fromStdString(username);
     const auto _password = QByteArray::fromStdString(password);
@@ -66,6 +67,7 @@ void Ftp::login(const std::string &username, const std::string &password) const 
 }
 
 std::string Ftp::pwd() const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString path{};
     QString exception{};
 
@@ -101,6 +103,7 @@ std::string Ftp::pwd() const {
 }
 
 void Ftp::cd(const std::string &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
 
@@ -117,6 +120,7 @@ void Ftp::cd(const std::string &path) const {
 }
 
 sol::table Ftp::list(const sol::this_state ts, const sol::optional<std::string> &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     DataResult result{};
     const auto _path = QByteArray::fromStdString(path.value_or(""));
 
@@ -179,6 +183,7 @@ sol::table Ftp::list(const sol::this_state ts, const sol::optional<std::string> 
 }
 
 sol::object Ftp::stat(const sol::this_state ts, const std::string &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     CtrlResult result{};
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
@@ -245,6 +250,7 @@ sol::object Ftp::stat(const sol::this_state ts, const std::string &path) const {
 }
 
 bool Ftp::exists(const std::string &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     bool exists{};
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
@@ -267,6 +273,7 @@ bool Ftp::exists(const std::string &path) const {
 }
 
 void Ftp::mkdir(const std::string &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
 
@@ -283,6 +290,7 @@ void Ftp::mkdir(const std::string &path) const {
 }
 
 void Ftp::rmdir(const std::string &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
 
@@ -299,6 +307,7 @@ void Ftp::rmdir(const std::string &path) const {
 }
 
 void Ftp::remove(const std::string &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
 
@@ -315,6 +324,7 @@ void Ftp::remove(const std::string &path) const {
 }
 
 void Ftp::rename(const std::string &from, const std::string &to) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _from = QByteArray::fromStdString(from);
     const auto _to = QByteArray::fromStdString(to);
@@ -338,6 +348,7 @@ void Ftp::rename(const std::string &from, const std::string &to) const {
 }
 
 std::string Ftp::download(const std::string &path) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     DataResult dataResult{};
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
@@ -358,6 +369,7 @@ std::string Ftp::download(const std::string &path) const {
 }
 
 void Ftp::upload(const std::string &path, const std::string &data) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _path = QByteArray::fromStdString(path);
     const QByteArray _data(data.data(), static_cast<qsizetype>(data.size()));
@@ -375,6 +387,7 @@ void Ftp::upload(const std::string &path, const std::string &data) const {
 }
 
 void Ftp::quit() const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
 
     QMetaObject::invokeMethod(m_port, [this]() -> QString {

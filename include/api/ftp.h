@@ -1,8 +1,8 @@
 #ifndef UNICOMM_FTP_H
 #define UNICOMM_FTP_H
 
-#include <QByteArray>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 
 #include <sol/object.hpp>
@@ -128,7 +128,7 @@ private:
 
     std::string m_portName{};
     int m_timeout{};
-    BasePort *m_port{};
+    QPointer<BasePort> m_port{};
 };
 
 #endif //UNICOMM_FTP_H

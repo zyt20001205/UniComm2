@@ -2,36 +2,46 @@
 #define UNICOMM_PORT_H
 
 #include <QObject>
+#include <QPointer>
+#include <QString>
 #include <sol/object.hpp>
 #include <sol/table.hpp>
+
+class BasePort;
 
 class Port final : public QObject {
     Q_OBJECT
 
 public:
-    explicit Port(QObject *parent = nullptr);
+    explicit Port(QString portName, QObject *parent = nullptr);
 
     ~Port() override = default;
 
     [[nodiscard]] static sol::table list(sol::this_state ts);
 
-    [[nodiscard]] static sol::object info(sol::this_state ts, const std::string &portName);
+    [[nodiscard]] static Port *create(const sol::table &config, QObject *parent);
 
-    static void create(const sol::table &config);
+    [[nodiscard]] static Port *get(const std::string &portName, QObject *parent);
 
     static void remove(const std::string &portName);
 
-    static void open(const std::string &portName);
+    [[nodiscard]] sol::object info(sol::this_state ts) const;
 
-    static void close(const std::string &portName);
+    void open() const;
 
-    static void clear(const std::string &portName);
+    void close() const;
 
-    static void write(const std::string &portName, const std::string &data, const std::string &peerIp);
+    void clear() const;
 
-    [[nodiscard]] static sol::object read(sol::this_state ts, const std::string &portName, int length, int timeout, const std::string &peerIp);
+    void write(const std::string &data, const std::string &peerIp) const;
 
-    [[nodiscard]] static sol::object readUntil(sol::this_state ts, const std::string &portName, const std::string &text, int timeout, const std::string &peerIp);
+    [[nodiscard]] sol::object read(sol::this_state ts, int length, int timeout, const std::string &peerIp) const;
+
+    [[nodiscard]] sol::object readUntil(sol::this_state ts, const std::string &text, int timeout, const std::string &peerIp) const;
+
+private:
+    QString m_portName{};
+    QPointer<BasePort> m_port{};
 };
 
 #endif //UNICOMM_PORT_H

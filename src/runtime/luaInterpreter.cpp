@@ -35,7 +35,6 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
       m_key(new Key(this)),
       m_mouse(new Mouse(this)),
       m_mqtt(new Mqtt(this)),
-      m_port(new Port(this)),
       m_string(new String(this)),
       m_thread(new Thread(this)) {
     // LuaStandard lib
@@ -251,8 +250,26 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         });
         m_lua["Mqtt"] = mqtt;
     }
-    // Port lib (static)
+    // Port lib (registry + instance)
     {
+        m_lua.new_usertype<Port>(
+            "Port",
+            sol::no_constructor,
+            sol::meta_function::garbage_collect, [](Port *) {
+            },
+            "info", &Port::info,
+            "open", &Port::open,
+            "close", &Port::close,
+            "clear", &Port::clear,
+            "write", [](const Port &port, const std::string &data, const sol::optional<std::string> &peerIp) { port.write(data, peerIp.value_or("")); },
+            "read", [](const Port &port, const sol::this_state ts, const sol::optional<int> length, const sol::optional<int> timeout, const sol::optional<std::string> &peerIp) {
+                return port.read(ts, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
+            },
+            "readUntil", [](const Port &port, const sol::this_state ts, const sol::optional<std::string> &text, const sol::optional<int> timeout,
+                            const sol::optional<std::string> &peerIp) {
+                return port.readUntil(ts, text.value_or("\r\n"), timeout.value_or(0), peerIp.value_or(""));
+            }
+        );
         auto port = m_lua.create_table();
         auto portType = m_lua.create_table();
         portType["SerialPort"] = PortType::SerialPort;
@@ -260,26 +277,10 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         portType["SslClient"] = PortType::SslClient;
         port["Type"] = portType;
         port.set_function("list", [](const sol::this_state ts) { return Port::list(ts); });
-        port.set_function("info", [](const sol::this_state ts, const std::string &portName) { return Port::info(ts, portName); });
-        port.set_function("create", [](const sol::table &config) { Port::create(config); });
+        port.set_function("create", [this](const sol::table &config) { return Port::create(config, this); });
+        port.set_function("get", [this](const std::string &portName) { return Port::get(portName, this); });
         port.set_function("remove", [](const std::string &portName) { Port::remove(portName); });
-        port.set_function("open", [](const std::string &portName) { Port::open(portName); });
-        port.set_function("close", [](const std::string &portName) { Port::close(portName); });
-        port.set_function("clear", [](const std::string &portName) { Port::clear(portName); });
-        port.set_function("write", [](const std::string &portName, const std::string &data, const sol::optional<std::string> &peerIp) {
-            Port::write(portName, data, peerIp.value_or(""));
-        });
-        port.set_function("read",
-                          [](const sol::this_state ts, const std::string &portName, const sol::optional<int> length, const sol::optional<int> timeout,
-                             const sol::optional<std::string> &peerIp) {
-                              return Port::read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
-                          });
-        port.set_function("readUntil",
-                          [](const sol::this_state ts, const std::string &portName, const sol::optional<std::string> &text, const sol::optional<int> timeout,
-                             const sol::optional<std::string> &peerIp) {
-                              return Port::readUntil(ts, portName, text.value_or("\r\n"), timeout.value_or(0), peerIp.value_or(""));
-                          });
-        m_lua["port"] = port;
+        m_lua["Port"] = port;
     }
     // Smtp lib (instance)
     {

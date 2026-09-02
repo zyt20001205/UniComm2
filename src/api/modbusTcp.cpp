@@ -24,22 +24,27 @@ void ModbusTcp::init(const std::string &portName, const int transactionId, const
 }
 
 sol::table ModbusTcp::readCoils(const sol::this_state ts, const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readBits(ts, FuncCode::ReadCoils, startAddr, quantity);
 }
 
 sol::table ModbusTcp::readDiscreteInputs(const sol::this_state ts, const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readBits(ts, FuncCode::ReadDiscreteInputs, startAddr, quantity);
 }
 
 std::string ModbusTcp::readHoldingRegisters(const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readRegisters(FuncCode::ReadHoldingRegisters, startAddr, quantity);
 }
 
 std::string ModbusTcp::readInputRegisters(const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readRegisters(FuncCode::ReadInputRegisters, startAddr, quantity);
 }
 
 void ModbusTcp::writeSingleCoil(const int coilAddr, const bool value) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
@@ -78,6 +83,7 @@ void ModbusTcp::writeSingleCoil(const int coilAddr, const bool value) const {
 }
 
 void ModbusTcp::writeSingleRegister(const int regAddr, const std::string &data) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
@@ -114,6 +120,7 @@ void ModbusTcp::writeSingleRegister(const int regAddr, const std::string &data) 
 }
 
 void ModbusTcp::writeMultipleCoils(const int startAddr, const sol::table &values) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     constexpr int protocolId = 0x00;
     const int quantity = static_cast<int>(values.size());
@@ -160,6 +167,7 @@ void ModbusTcp::writeMultipleCoils(const int startAddr, const sol::table &values
 }
 
 void ModbusTcp::writeMultipleRegisters(const int startAddr, const std::string &data) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     constexpr int protocolId = 0x00;
     const auto value = QByteArray::fromHex(QByteArray::fromStdString(data));

@@ -3,6 +3,7 @@
 
 #include <QHash>
 #include <QObject>
+#include <QPointer>
 #include <sol/object.hpp>
 
 class BasePort;
@@ -38,7 +39,7 @@ private:
 
     std::string m_portName{};
     int m_timeout{};
-    BasePort *m_port{};
+    QPointer<BasePort> m_port{};
 
     enum ControlPacket: int {
         CONNECT

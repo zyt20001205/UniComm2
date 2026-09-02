@@ -47,6 +47,7 @@ void Imap::init(const std::string &portName, const int timeout) {
 }
 
 void Imap::login(const std::string &username, const std::string &password) {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     const auto _username = QByteArray::fromStdString(username);
     const auto _password = QByteArray::fromStdString(password);
@@ -83,6 +84,7 @@ void Imap::login(const std::string &username, const std::string &password) {
 }
 
 sol::object Imap::receive(const sol::this_state ts, const sol::optional<std::string> &from, const sol::optional<int> timeout) {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
     Mail mail{};
     const auto _from = QString::fromStdString(from.value_or(""));
@@ -261,6 +263,7 @@ sol::object Imap::receive(const sol::this_state ts, const sol::optional<std::str
 }
 
 void Imap::logout() {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     QString exception{};
 
     QMetaObject::invokeMethod(m_port, [this]() -> QString {

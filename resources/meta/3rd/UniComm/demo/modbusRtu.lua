@@ -1,5 +1,6 @@
 -- Configure a serial port named "COM10" before running.
-port.open("COM10")
+local port = Port.get("COM10")
+port:open()
 local modbusRtu = ModbusRtu.new("COM10", 1, 1000)
 
 -- Read multiple coil states.

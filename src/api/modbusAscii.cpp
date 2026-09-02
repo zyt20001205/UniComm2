@@ -24,22 +24,27 @@ void ModbusAscii::init(const std::string &portName, const int slaveAddr, const i
 }
 
 sol::table ModbusAscii::readCoils(const sol::this_state ts, const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readBits(ts, FuncCode::ReadCoils, startAddr, quantity);
 }
 
 sol::table ModbusAscii::readDiscreteInputs(const sol::this_state ts, const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readBits(ts, FuncCode::ReadDiscreteInputs, startAddr, quantity);
 }
 
 std::string ModbusAscii::readHoldingRegisters(const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readRegisters(FuncCode::ReadHoldingRegisters, startAddr, quantity);
 }
 
 std::string ModbusAscii::readInputRegisters(const int startAddr, const int quantity) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     return readRegisters(FuncCode::ReadInputRegisters, startAddr, quantity);
 }
 
 void ModbusAscii::writeSingleCoil(const int coilAddr, const bool value) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     const QByteArray coilValue = value ? QByteArray::fromHex("FF00") : QByteArray::fromHex("0000");
     QByteArray txData = ":";
@@ -67,6 +72,7 @@ void ModbusAscii::writeSingleCoil(const int coilAddr, const bool value) const {
 }
 
 void ModbusAscii::writeSingleRegister(const int regAddr, const std::string &data) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     const auto value = QByteArray::fromHex(QByteArray::fromStdString(data));
     QByteArray txData = ":";
@@ -94,6 +100,7 @@ void ModbusAscii::writeSingleRegister(const int regAddr, const std::string &data
 }
 
 void ModbusAscii::writeMultipleCoils(const int startAddr, const sol::table &values) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     const int quantity = static_cast<int>(values.size());
     const int byteCount = (quantity + 7) / 8;
@@ -130,6 +137,7 @@ void ModbusAscii::writeMultipleCoils(const int startAddr, const sol::table &valu
 }
 
 void ModbusAscii::writeMultipleRegisters(const int startAddr, const std::string &data) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     const auto value = QByteArray::fromHex(QByteArray::fromStdString(data));
     const int regCount = static_cast<int>(value.size()) / 2;

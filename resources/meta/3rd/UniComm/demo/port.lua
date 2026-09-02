@@ -1,71 +1,74 @@
 -- A port can be configured in the UI or created by Lua. The three configurations
--- currently supported by port.create are shown below. Copy one block, replace its
--- connection fields, then call port.open separately.
+-- currently supported by Port.create are shown below. Copy one block, replace its
+-- connection fields, then operate on the returned port instance.
 
 -- Serial port:
--- port.create({
---     portType = port.Type.SerialPort,
+-- local serial = Port.create({
+--     portType = Port.Type.SerialPort,
 --     portName = "COM4",
 --     baudRate = 115200,
 --     logFormat = "utf-8",
 -- })
+-- serial:open()
 
 -- TCP client:
--- port.create({
---     portType = port.Type.TcpClient,
+-- local tcp = Port.create({
+--     portType = Port.Type.TcpClient,
 --     portName = "TcpEcho",
 --     remoteHost = "127.0.0.1",
 --     remotePort = 8000,
 --     logFormat = "utf-8",
 -- })
+-- tcp:open()
 
 -- SSL client:
--- port.create({
---     portType = port.Type.SslClient,
+-- local ssl = Port.create({
+--     portType = Port.Type.SslClient,
 --     portName = "Bark",
 --     remoteHost = "api.day.app",
 --     remotePort = 443,
 --     logFormat = "utf-8",
 -- })
+-- ssl:open()
 
 -- Configure an echo-capable stream port named "Echo" before running this demo.
 local name = "Echo"
 local timeout = 1000
+local port = Port.get(name)
 
 -- Discover configured ports and inspect the selected port.
-for _, portName in ipairs(port.list()) do
-    print(portName)
-end
-print(port.info(name))
+print(Port.list())
+print(port:info())
 
-port.open(name)
-port.clear(name)
+port:open()
+port:clear()
 
 -- readUntil includes the delimiter in the returned data.
 local line = "Hello from UniComm\r\n"
-port.write(name, line)
-print(port.readUntil(name, "\r\n", timeout))
+port:write(line)
+print(port:readUntil("\r\n", timeout))
 
 -- read with a positive length waits for exactly that many bytes.
 local request = string.fromHex("01 03 00 00 00 01")
-port.write(name, request)
-local response = port.read(name, #request, timeout)
+port:write(request)
+local response = port:read(#request, timeout)
 ---@cast response string
 print(string.toHex(response, " "))
 
--- port.read(name) immediately drains all bytes currently in the receive buffer.
+-- port:read() immediately drains all bytes currently in the receive buffer.
 
 -- TCP, SSL, and WebSocket servers identify a peer as "address:port".
--- Build the identifier from peerAddress and peerPort returned by port.info().
--- Omitting peerIp from port.write broadcasts; omitting it from port.read selects
+-- Build the identifier from peerAddress and peerPort returned by port:info().
+-- Omitting peerIp from port:write broadcasts; omitting it from port:read selects
 -- one unspecified connected peer.
--- local information = port.info("Server")
+-- local server = Port.get("Server")
+-- local information = server:info()
 -- local peer = information.peer1
 -- local peerIp = peer.peerAddress .. ":" .. peer.peerPort
--- port.write("Server", "Hello", peerIp)
--- local data = port.read("Server", 0, 0, peerIp)
+-- server:write("Hello", peerIp)
+-- local data = server:read(0, 0, peerIp)
 
-port.close(name)
+port:close()
 
 -- Remove a port created by Lua when it is no longer needed.
--- port.remove(name)
+-- Port.remove(name)

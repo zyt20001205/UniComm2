@@ -55,6 +55,7 @@ sol::object Http::put(const sol::this_state ts, const std::string &target, const
 // private
 sol::object Http::request(const sol::this_state ts, const QByteArray &method, const std::string &target, const sol::optional<sol::table> &header,
                           const sol::optional<std::string> &body) const {
+    if (m_port.isNull()) throw sol::error(m_portName + ": port is no longer available");
     Result result{};
     QByteArray txData = method + " " + QByteArray::fromStdString(target) + " HTTP/1.1\r\n";
     txData += "Host: " + m_remoteHost + "\r\n";

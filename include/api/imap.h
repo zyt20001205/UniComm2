@@ -1,9 +1,7 @@
 #ifndef UNICOMM_IMAP_H
 #define UNICOMM_IMAP_H
 
-#include <QByteArray>
-#include <QList>
-#include <QObject>
+#include <QPointer>
 #include <QVariantHash>
 #include <sol/object.hpp>
 #include <variant>
@@ -77,7 +75,7 @@ private:
 
     std::string m_portName{};
     int m_timeout{};
-    BasePort *m_port{};
+    QPointer<BasePort> m_port{};
     int m_count{};
 };
 

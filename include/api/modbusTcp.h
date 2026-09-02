@@ -2,6 +2,7 @@
 #define UNICOMM_MODBUSTCP_H
 
 #include <QObject>
+#include <QPointer>
 #include <sol/table.hpp>
 
 class BasePort;
@@ -79,7 +80,7 @@ private:
     int m_transactionId{};
     int m_unitId{};
     int m_timeout{};
-    BasePort *m_port{};
+    QPointer<BasePort> m_port{};
 };
 
 #endif //UNICOMM_MODBUSTCP_H

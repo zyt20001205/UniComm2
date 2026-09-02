@@ -2,6 +2,7 @@
 #define UNICOMM_SMTP_H
 
 #include <QObject>
+#include <QPointer>
 #include <sol/table.hpp>
 
 class BasePort;
@@ -92,7 +93,7 @@ private:
 
     std::string m_portName{};
     int m_timeout{};
-    BasePort *m_port{};
+    QPointer<BasePort> m_port{};
 };
 
 #endif //UNICOMM_SMTP_H
