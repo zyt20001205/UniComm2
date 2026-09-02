@@ -34,6 +34,28 @@ sol::object Port::info(const sol::this_state ts, const std::string &portName) {
     return uni_cast<sol::object>(ts, infoHash);
 }
 
+void Port::create(const sol::table &config) {
+    QJsonObject portConfig{};
+    for (const auto &[key, value]: config) {
+        if (!key.is<std::string>()) continue;
+        portConfig[QString::fromStdString(key.as<std::string>())] = QJsonValue::fromVariant(uni_cast<QVariant>(value));
+    }
+
+    QString error{};
+    QMetaObject::invokeMethod(g_port, [&error, &portConfig] {
+        error = g_port->portInsert(-1, portConfig);
+    }, Qt::BlockingQueuedConnection);
+    if (!error.isEmpty()) throw sol::error(error.toStdString());
+}
+
+void Port::remove(const std::string &portName) {
+    QString error{};
+    QMetaObject::invokeMethod(g_port, [&error, &portName] {
+        error = g_port->portRemove(QString::fromStdString(portName));
+    }, Qt::BlockingQueuedConnection);
+    if (!error.isEmpty()) throw sol::error(error.toStdString());
+}
+
 void Port::open(const std::string &portName) {
     const auto portIt = g_port->m_portHash.constFind(QString::fromStdString(portName));
     if (portIt == g_port->m_portHash.constEnd()) throw sol::error(portName + " does not exist");

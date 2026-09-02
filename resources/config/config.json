@@ -3,6 +3,12 @@
     "context": {
       "compactThreshold": 75
     },
+    "hooks": {
+      "turnFinish": {
+        "enabled": true,
+        "scripts": []
+      }
+    },
     "id": "",
     "mcp": {},
     "providers": {

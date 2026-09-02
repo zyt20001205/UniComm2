@@ -112,9 +112,9 @@ void TcpServer::monitor(const bool enabled) {
     // TODO: Aggregate statistics across active and disconnected peer buffers.
 }
 
-bool TcpServer::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+bool TcpServer::write(const QByteArray &txData, const QString &logFormat, const QString &txSuffix) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     if (!txSuffix.isEmpty()) m_portConfig["txSuffix"] = txSuffix;
     QByteArray f_txData = txData;
     if (m_portConfig["txSuffix"].toString() == "crlf") f_txData += "\r\n";
@@ -124,9 +124,9 @@ bool TcpServer::write(const QByteArray &txData, const QString &txFormat, const Q
     return handleWrite(f_txData);
 }
 
-bool TcpServer::write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) {
+bool TcpServer::write(const QByteArray &txData, const QString &peerIp, const QString &logFormat, const QString &txSuffix) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     if (!txSuffix.isEmpty()) m_portConfig["txSuffix"] = txSuffix;
     QByteArray f_txData = txData;
     if (m_portConfig["txSuffix"].toString() == "crlf") f_txData += "\r\n";
@@ -136,29 +136,29 @@ bool TcpServer::write(const QByteArray &txData, const QString &peerIp, const QSt
     return handleWrite(f_txData, peerIp);
 }
 
-QByteArray TcpServer::read(const int length, const int timeout, const QString &rxFormat) {
+QByteArray TcpServer::read(const int length, const int timeout, const QString &logFormat) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     if (m_peerHash.isEmpty()) return {};
     return handleRead(length, timeout, m_peerHash.keys().first());
 }
 
-QByteArray TcpServer::read(const int length, const int timeout, const QString &peerIp, const QString &rxFormat) {
+QByteArray TcpServer::read(const int length, const int timeout, const QString &peerIp, const QString &logFormat) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     return handleRead(length, timeout, peerIp);
 }
 
-QByteArray TcpServer::readUntil(const QByteArray &text, const int timeout, const QString &rxFormat) {
+QByteArray TcpServer::readUntil(const QByteArray &text, const int timeout, const QString &logFormat) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     if (m_peerHash.isEmpty()) return {};
     return handleReadUntil(text, timeout, m_peerHash.keys().first());
 }
 
-QByteArray TcpServer::readUntil(const QByteArray &text, const int timeout, const QString &peerIp, const QString &rxFormat) {
+QByteArray TcpServer::readUntil(const QByteArray &text, const int timeout, const QString &peerIp, const QString &logFormat) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     return handleReadUntil(text, timeout, peerIp);
 }
 
@@ -299,12 +299,12 @@ QByteArray TcpServer::handleReadUntil(const QByteArray &text, const int timeout,
 
 void TcpServer::handleLog(const int type, const QByteArray &data, const QTcpSocket *tcpServerPeer) {
     QString message{};
-    const QString format = type == LogLevel::Transmit ? m_portConfig["txFormat"].toString() : m_portConfig["rxFormat"].toString();
-    if (format == "raw") {
+    const QString logFormat = m_portConfig["logFormat"].toString();
+    if (logFormat == "raw") {
         message.reserve(data.size() * 4);
         for (const char c: data) message += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
-    } else if (format == "hex") message = data.toHex(' ').toUpper();
-    else if (format == "ascii") message = QString::fromLatin1(data);
+    } else if (logFormat == "hex") message = data.toHex(' ').toUpper();
+    else if (logFormat == "ascii") message = QString::fromLatin1(data);
     else message = QString::fromUtf8(data);
 
     const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());

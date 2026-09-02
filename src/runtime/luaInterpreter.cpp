@@ -254,8 +254,15 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Port lib (static)
     {
         auto port = m_lua.create_table();
+        auto portType = m_lua.create_table();
+        portType["SerialPort"] = PortType::SerialPort;
+        portType["TcpClient"] = PortType::TcpClient;
+        portType["SslClient"] = PortType::SslClient;
+        port["Type"] = portType;
         port.set_function("list", [](const sol::this_state ts) { return Port::list(ts); });
         port.set_function("info", [](const sol::this_state ts, const std::string &portName) { return Port::info(ts, portName); });
+        port.set_function("create", [](const sol::table &config) { Port::create(config); });
+        port.set_function("remove", [](const std::string &portName) { Port::remove(portName); });
         port.set_function("open", [](const std::string &portName) { Port::open(portName); });
         port.set_function("close", [](const std::string &portName) { Port::close(portName); });
         port.set_function("clear", [](const std::string &portName) { Port::clear(portName); });

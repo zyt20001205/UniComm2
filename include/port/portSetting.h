@@ -171,9 +171,8 @@ private:
     QObject *m_bluetoothSubscribeTypeComboBox{};
     QObject *m_bluetoothStatusLabel{};
     // format
-    QObject *m_txFormatComboBox{};
+    QObject *m_logFormatComboBox{};
     QObject *m_txSuffixComboBox{};
-    QObject *m_rxFormatComboBox{};
     QObject *m_bufferSizeSpinBox{};
     // image
     QVideoSink *m_videoSink{};

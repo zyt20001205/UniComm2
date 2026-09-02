@@ -84,7 +84,7 @@ QVariantHash VideoStream::info() {
 }
 
 // TODO: register commands to video stream
-bool VideoStream::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+bool VideoStream::write(const QByteArray &txData, const QString &logFormat, const QString &txSuffix) {
     bool status = false;
     if (m_screenCapture) status = m_screenCapture->isActive();
     else if (m_cameraCapture) status = m_cameraCapture->isActive();
@@ -108,7 +108,7 @@ bool VideoStream::write(const QByteArray &txData, const QString &txFormat, const
     return {};
 }
 
-QByteArray VideoStream::read(const int length, const int timeout, const QString &rxFormat) {
+QByteArray VideoStream::read(const int length, const int timeout, const QString &logFormat) {
     bool status = false;
     if (m_screenCapture) status = m_screenCapture->isActive();
     else if (m_cameraCapture) status = m_cameraCapture->isActive();

@@ -143,9 +143,8 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_bluetoothSubscribeTypeComboBox = qvariant_cast<QObject *>(objects["bluetoothSubscribeTypeComboBox"]);
     m_bluetoothStatusLabel = qvariant_cast<QObject *>(objects["bluetoothStatusLabel"]);
     // format
-    m_txFormatComboBox = qvariant_cast<QObject *>(objects["txFormatComboBox"]);
+    m_logFormatComboBox = qvariant_cast<QObject *>(objects["logFormatComboBox"]);
     m_txSuffixComboBox = qvariant_cast<QObject *>(objects["txSuffixComboBox"]);
-    m_rxFormatComboBox = qvariant_cast<QObject *>(objects["rxFormatComboBox"]);
     m_bufferSizeSpinBox = qvariant_cast<QObject *>(objects["bufferSizeSpinBox"]);
     // image
     m_videoSink = objects["videoSink"].value<QVideoSink *>();
@@ -244,9 +243,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_bluetoothSubscribeTypeComboBox->setProperty("currentValue", "notify");
         m_bluetoothStatusLabel->setProperty("text", "");
         // format
-        m_txFormatComboBox->setProperty("currentValue", "utf-8");
+        m_logFormatComboBox->setProperty("currentValue", "utf-8");
         m_txSuffixComboBox->setProperty("currentValue", "null");
-        m_rxFormatComboBox->setProperty("currentValue", "utf-8");
         m_bufferSizeSpinBox->setProperty("value", 65536);
     } else {
         m_swipeView->setProperty("currentIndex", 1);
@@ -260,17 +258,15 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_serialPortDataBitsComboBox->setProperty("currentValue", portConfig["dataBits"].toInt());
                 m_serialPortParityComboBox->setProperty("currentValue", portConfig["parity"].toInt());
                 m_serialPortStopBitsComboBox->setProperty("currentValue", portConfig["stopBits"].toInt());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
             case PortType::Visa: {
                 m_visaNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -278,9 +274,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_tcpClientNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_tcpClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
                 m_tcpClientRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -288,9 +283,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_tcpServerNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_tcpServerLocalHostComboBox->setProperty("currentValue", portConfig["localHost"].toString());
                 m_tcpServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -298,9 +292,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_sslClientNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_sslClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
                 m_sslClientRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -310,9 +303,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_sslServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
                 m_sslServerCertificateTextField->setProperty("text", portConfig["certificate"].toString());
                 m_sslServerPrivateKeyTextField->setProperty("text", portConfig["privateKey"].toString());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -320,9 +312,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_webSocketClientNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_webSocketClientUrlTextField->setProperty("text", portConfig["url"].toString());
                 m_webSocketClientMessageTypeComboBox->setProperty("currentValue", portConfig["messageType"].toString());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -334,9 +325,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_webSocketServerCertificateTextField->setProperty("text", portConfig["certificate"].toString());
                 m_webSocketServerPrivateKeyTextField->setProperty("text", portConfig["privateKey"].toString());
                 m_webSocketServerMessageTypeComboBox->setProperty("currentValue", portConfig["messageType"].toString());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -346,9 +336,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_udpSocketLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
                 m_udpSocketRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
                 m_udpSocketRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -413,9 +402,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bluetoothRxCharacteristicComboBox->setProperty("currentValue", rxCharacteristicUuid);
                 m_bluetoothWriteTypeComboBox->setProperty("currentValue", portConfig["writeType"].toString("request"));
                 m_bluetoothSubscribeTypeComboBox->setProperty("currentValue", portConfig["subscribeType"].toString("notify"));
-                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_logFormatComboBox->setProperty("currentValue", portConfig["logFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
-                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
@@ -438,9 +426,8 @@ void PortSetting::portSettingExport() {
                 {"dataBits", m_serialPortDataBitsComboBox->property("currentValue").toInt()},
                 {"parity", m_serialPortParityComboBox->property("currentValue").toInt()},
                 {"stopBits", m_serialPortStopBitsComboBox->property("currentValue").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -449,9 +436,8 @@ void PortSetting::portSettingExport() {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_visaNameComboBox->property("currentValue").toString()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -462,9 +448,8 @@ void PortSetting::portSettingExport() {
                 {"portName", m_tcpClientNameTextField->property("text").toString()},
                 {"remoteHost", m_tcpClientRemoteHostTextField->property("text").toString()},
                 {"remotePort", m_tcpClientRemotePortSpinBox->property("value").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -475,9 +460,8 @@ void PortSetting::portSettingExport() {
                 {"portName", m_tcpServerNameTextField->property("text").toString()},
                 {"localHost", m_tcpServerLocalHostComboBox->property("currentValue").toString()},
                 {"localPort", m_tcpServerLocalPortSpinBox->property("value").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -488,9 +472,8 @@ void PortSetting::portSettingExport() {
                 {"portName", m_sslClientNameTextField->property("text").toString()},
                 {"remoteHost", m_sslClientRemoteHostTextField->property("text").toString()},
                 {"remotePort", m_sslClientRemotePortSpinBox->property("value").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -503,9 +486,8 @@ void PortSetting::portSettingExport() {
                 {"localPort", m_sslServerLocalPortSpinBox->property("value").toInt()},
                 {"certificate", m_sslServerCertificateTextField->property("text").toString()},
                 {"privateKey", m_sslServerPrivateKeyTextField->property("text").toString()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -516,9 +498,8 @@ void PortSetting::portSettingExport() {
                 {"portName", m_webSocketClientNameTextField->property("text").toString()},
                 {"url", m_webSocketClientUrlTextField->property("text").toString()},
                 {"messageType", m_webSocketClientMessageTypeComboBox->property("currentValue").toString()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -533,9 +514,8 @@ void PortSetting::portSettingExport() {
                 {"certificate", m_webSocketServerCertificateTextField->property("text").toString()},
                 {"privateKey", m_webSocketServerPrivateKeyTextField->property("text").toString()},
                 {"messageType", m_webSocketServerMessageTypeComboBox->property("currentValue").toString()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -548,9 +528,8 @@ void PortSetting::portSettingExport() {
                 {"localPort", m_udpSocketLocalPortSpinBox->property("value").toInt()},
                 {"remoteHost", m_udpSocketRemoteHostTextField->property("text").toString()},
                 {"remotePort", m_udpSocketRemotePortSpinBox->property("value").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
@@ -623,9 +602,8 @@ void PortSetting::portSettingExport() {
                 {"rxCharacteristicUuid", m_bluetoothRxCharacteristicComboBox->property("currentValue").toString()},
                 {"writeType", m_bluetoothWriteTypeComboBox->property("currentValue").toString()},
                 {"subscribeType", m_bluetoothSubscribeTypeComboBox->property("currentValue").toString()},
-                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"logFormat", m_logFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
                 {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }

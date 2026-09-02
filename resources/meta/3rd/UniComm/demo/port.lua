@@ -1,4 +1,34 @@
--- Configure an echo-capable stream port named "Echo" before running.
+-- A port can be configured in the UI or created by Lua. The three configurations
+-- currently supported by port.create are shown below. Copy one block, replace its
+-- connection fields, then call port.open separately.
+
+-- Serial port:
+-- port.create({
+--     portType = port.Type.SerialPort,
+--     portName = "COM4",
+--     baudRate = 115200,
+--     logFormat = "utf-8",
+-- })
+
+-- TCP client:
+-- port.create({
+--     portType = port.Type.TcpClient,
+--     portName = "TcpEcho",
+--     remoteHost = "127.0.0.1",
+--     remotePort = 8000,
+--     logFormat = "utf-8",
+-- })
+
+-- SSL client:
+-- port.create({
+--     portType = port.Type.SslClient,
+--     portName = "Bark",
+--     remoteHost = "api.day.app",
+--     remotePort = 443,
+--     logFormat = "utf-8",
+-- })
+
+-- Configure an echo-capable stream port named "Echo" before running this demo.
 local name = "Echo"
 local timeout = 1000
 
@@ -36,3 +66,6 @@ print(string.toHex(response, " "))
 -- local data = port.read("Server", 0, 0, peerIp)
 
 port.close(name)
+
+-- Remove a port created by Lua when it is no longer needed.
+-- port.remove(name)

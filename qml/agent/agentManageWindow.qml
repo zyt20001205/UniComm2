@@ -1,11 +1,21 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.impl
+import QtQuick.Dialogs
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
+
+    FileDialog {
+        id: hookScriptDialog
+        property string event
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTr("Lua files (*.lua)")]
+
+        onAccepted: agentModule.hookScriptInsert(event, selectedFile)
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -580,6 +590,138 @@ Item {
             SettingsPage {
                 title: qsTr("Hooks")
                 description: qsTr("Configure scripts for agent lifecycle events.")
+
+                Repeater {
+                    model: hookModel
+
+                    delegate: Rectangle {
+                        id: hookCard
+                        property string hookEvent: model.event
+                        property string hookTitle: model.display
+                        property string hookDescription: model.description
+                        property bool hookEnabled: model.enabled
+                        property var hookScripts: model.scripts
+                        radius: 6
+                        color: global.backHover
+                        border.color: global.stroke
+                        implicitHeight: hookLayout.implicitHeight + 32
+                        Layout.fillWidth: true
+
+                        ColumnLayout {
+                            id: hookLayout
+                            anchors.fill: parent
+                            anchors.margins: 16
+                            spacing: 12
+
+                            RowLayout {
+                                spacing: 16
+                                Layout.fillWidth: true
+
+                                ColumnLayout {
+                                    spacing: 4
+                                    Layout.fillWidth: true
+
+                                    Label {
+                                        text: hookCard.hookTitle
+                                        font.bold: true
+                                    }
+
+                                    Label {
+                                        text: hookCard.hookDescription
+                                        color: global.stroke
+                                        wrapMode: Text.Wrap
+                                        Layout.fillWidth: true
+                                    }
+                                }
+
+                                Switch {
+                                    checked: hookCard.hookEnabled
+
+                                    onToggled: agentModule.hookEnabledSet(hookCard.hookEvent, checked)
+                                }
+                            }
+
+                            Rectangle {
+                                color: global.stroke
+                                implicitHeight: 1
+                                Layout.fillWidth: true
+                            }
+
+                            Label {
+                                visible: hookCard.hookScripts.length === 0
+                                text: qsTr("No scripts configured.")
+                                color: global.stroke
+                                Layout.fillWidth: true
+                            }
+
+                            Repeater {
+                                model: hookCard.hookScripts
+
+                                delegate: RowLayout {
+                                    id: hookScript
+                                    required property var modelData
+                                    spacing: 8
+                                    Layout.fillWidth: true
+
+                                    IconImage {
+                                        source: hookScript.modelData.decoration
+                                        sourceSize.width: 18
+                                        sourceSize.height: 18
+                                    }
+
+                                    ColumnLayout {
+                                        spacing: 2
+                                        Layout.fillWidth: true
+
+                                        Label {
+                                            text: hookScript.modelData.fileName
+                                            elide: Text.ElideRight
+                                            Layout.fillWidth: true
+                                        }
+
+                                        Label {
+                                            text: hookScript.modelData.documentUrl
+                                            color: global.stroke
+                                            elide: Text.ElideMiddle
+                                            Layout.fillWidth: true
+                                        }
+                                    }
+
+                                    Button {
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        checkable: true
+                                        flat: true
+                                        icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
+                                        icon.width: 16; icon.height: 16
+                                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                        onToggled: {
+                                            if (!checked) agentModule.hookScriptRemove(hookCard.hookEvent, hookScript.modelData.documentUrl)
+                                        }
+
+                                        Timer {
+                                            interval: 1000
+                                            running: parent.checked
+                                            onTriggered: parent.checked = false
+                                        }
+                                    }
+                                }
+                            }
+
+                            Button {
+                                text: qsTr("Add Script")
+                                icon.source: "qrc:/icon/add.svg"
+                                icon.width: 16
+                                icon.height: 16
+
+                                onClicked: {
+                                    hookScriptDialog.event = hookCard.hookEvent
+                                    hookScriptDialog.open()
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             SettingsPage {

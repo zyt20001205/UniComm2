@@ -33,9 +33,9 @@ public:
 
     [[nodiscard]] QVariantHash info() override;
 
-    [[nodiscard]] bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
+    [[nodiscard]] bool write(const QByteArray &txData, const QString &logFormat, const QString &txSuffix) override;
 
-    [[nodiscard]] QByteArray read(int length, int timeout, const QString &rxFormat) override;
+    [[nodiscard]] QByteArray read(int length, int timeout, const QString &logFormat) override;
 
 private:
     QMediaCaptureSession *m_mediaCaptureSession{};

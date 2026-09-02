@@ -10,6 +10,7 @@
 #include "globals.h"
 #include "agent/module/contextModule.h"
 #include "agent/module/evalModule.h"
+#include "agent/module/hookModule.h"
 #include "agent/module/mcpModule.h"
 #include "agent/module/sqlModule.h"
 #include "agent/module/toolsModule.h"
@@ -40,6 +41,7 @@ AgentModule::AgentModule()
       m_providerModule(new ProviderModule(m_config["providers"].toObject(), this)),
       m_sqlModule(new SqlModule(m_config["sql"].toObject(), this)),
       m_evalModule(new EvalModule(m_sqlModule, this)),
+      m_hookModule(new HookModule(m_config["hooks"].toObject(), this)),
       m_toolsModule(new ToolsModule(m_mcpModule, m_sqlModule, this)) {
     connect(m_mcpModule, &McpModule::registerTools, m_toolsModule, &ToolsModule::toolsRegister);
     auto *general = new RuntimeModule(new GeneralAgent(), runtimeServicesGet(), this); // NOLINT
@@ -76,6 +78,7 @@ void AgentModule::propertySet(const QVariantHash &objects) {
     m_manageWindow->setTransientParent(g_mainWindow->windowHandle());
     m_manageWindow->rootContext()->setContextProperty("agentModule", this);
     m_manageWindow->rootContext()->setContextProperty("global", g_globalManager);
+    m_manageWindow->rootContext()->setContextProperty("hookModel", m_hookModule->hookModelGet());
     m_manageWindow->rootContext()->setContextProperty("mcpModel", m_mcpModule->mcpModelGet());
     m_manageWindow->rootContext()->setContextProperty("providerModel", m_providerModule->providerModelGet());
     m_manageWindow->setResizeMode(QQuickView::SizeRootObjectToView);
@@ -212,6 +215,24 @@ void AgentModule::mcpEnabledSet(const QUrl &url, const bool enabled) {
     mcp[url.toString()] = enabled;
     m_config["mcp"] = mcp;
     m_mcpModule->enabledSet(url, enabled);
+    agentConfigSave();
+}
+
+void AgentModule::hookEnabledSet(const QString &event, const bool enabled) {
+    m_hookModule->hookEnabledSet(event, enabled);
+    m_config["hooks"] = m_hookModule->configGet();
+    agentConfigSave();
+}
+
+void AgentModule::hookScriptInsert(const QString &event, const QUrl &documentUrl) {
+    m_hookModule->hookScriptInsert(event, documentUrl);
+    m_config["hooks"] = m_hookModule->configGet();
+    agentConfigSave();
+}
+
+void AgentModule::hookScriptRemove(const QString &event, const QUrl &documentUrl) {
+    m_hookModule->hookScriptRemove(event, documentUrl);
+    m_config["hooks"] = m_hookModule->configGet();
     agentConfigSave();
 }
 
@@ -537,6 +558,7 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
         if (!commitError.isEmpty()) m_toast->show(ToastLevel::Error, tr("Agent"), commitError);
         turnFinish(turnId, finishedAt);
         m_evalModule->update(m_conversationId);
+        m_hookModule->hookRun("turnFinish");
     });
     connect(runtime, &RuntimeModule::createChat, this, [this, runtime](const QString &turnId, const QString &messageId, const QString &role) {
         if (runtime == m_runtimes.value(m_primary)) chatCreate(turnId, messageId, role);

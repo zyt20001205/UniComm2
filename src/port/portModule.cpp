@@ -102,9 +102,8 @@ QJsonObject PortModule::portConfigGet(const int portType) {
                         {"dataBits", 8},
                         {"parity", 0},
                         {"stopBits", 1},
-                        {"txFormat", "utf-8"},
+                        {"logFormat", "utf-8"},
                         {"txSuffix", "null"},
-                        {"rxFormat", "utf-8"},
                         {"bufferSize", 65536}
                     }
                 },
@@ -115,9 +114,8 @@ QJsonObject PortModule::portConfigGet(const int portType) {
                         {"dataBits", QJsonObject{{"enum", QJsonArray{5, 6, 7, 8}}}},
                         {"parity", QJsonObject{{"enum", QJsonArray{0, 2, 3, 4, 5}}, {"description", "0=no, 2=even, 3=odd, 4=space, 5=mark"}}},
                         {"stopBits", QJsonObject{{"enum", QJsonArray{1, 2, 3}}, {"description", "1=one, 2=two, 3=one and a half"}}},
-                        {"txFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
+                        {"logFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
                         {"txSuffix", QJsonObject{{"enum", QJsonArray{"null", "crlf", "modbus crc", "modbus lrc"}}}},
-                        {"rxFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
                         {"bufferSize", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 1048576}}}
                     }
                 }
@@ -137,9 +135,8 @@ QJsonObject PortModule::portConfigGet(const int portType) {
                 },
                 {
                     "defaults", QJsonObject{
-                        {"txFormat", "utf-8"},
+                        {"logFormat", "utf-8"},
                         {"txSuffix", "null"},
-                        {"rxFormat", "utf-8"},
                         {"bufferSize", 65536}
                     }
                 },
@@ -148,9 +145,8 @@ QJsonObject PortModule::portConfigGet(const int portType) {
                         {"portName", QJsonObject{{"type", "string"}}},
                         {"remoteHost", QJsonObject{{"type", "string"}}},
                         {"remotePort", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 65535}}},
-                        {"txFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
+                        {"logFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
                         {"txSuffix", QJsonObject{{"enum", QJsonArray{"null", "crlf", "modbus crc", "modbus lrc"}}}},
-                        {"rxFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
                         {"bufferSize", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 1048576}}}
                     }
                 }
@@ -186,9 +182,8 @@ QString PortModule::portCheck(const QJsonObject &portConfig, const QString &oldP
     }
 
     if (portType == PortType::SerialPort || portType == PortType::TcpClient || portType == PortType::SslClient) {
-        const QJsonArray formats{"raw", "hex", "ascii", "utf-8"};
-        if (!formats.contains(portConfig.value("txFormat"))) return "Port check failed: invalid txFormat.";
-        if (!formats.contains(portConfig.value("rxFormat"))) return "Port check failed: invalid rxFormat.";
+        const QJsonArray logFormats{"raw", "hex", "ascii", "utf-8"};
+        if (!logFormats.contains(portConfig.value("logFormat"))) return "Port check failed: invalid logFormat.";
 
         const QJsonArray suffixes{"null", "crlf", "modbus crc", "modbus lrc"};
         if (!suffixes.contains(portConfig.value("txSuffix"))) return "Port check failed: invalid txSuffix.";

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <sol/object.hpp>
+#include <sol/table.hpp>
 
 class Port final : public QObject {
     Q_OBJECT
@@ -15,6 +16,10 @@ public:
     [[nodiscard]] static sol::table list(sol::this_state ts);
 
     [[nodiscard]] static sol::object info(sol::this_state ts, const std::string &portName);
+
+    static void create(const sol::table &config);
+
+    static void remove(const std::string &portName);
 
     static void open(const std::string &portName);
 

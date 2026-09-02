@@ -138,9 +138,9 @@ void SerialPort::monitor(const bool enabled) {
     }
 }
 
-bool SerialPort::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+bool SerialPort::write(const QByteArray &txData, const QString &logFormat, const QString &txSuffix) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     if (!txSuffix.isEmpty()) m_portConfig["txSuffix"] = txSuffix;
     QByteArray f_txData = txData;
     if (m_portConfig["txSuffix"].toString() == "crlf") f_txData += "\r\n";
@@ -150,15 +150,15 @@ bool SerialPort::write(const QByteArray &txData, const QString &txFormat, const 
     return handleWrite(f_txData);
 }
 
-QByteArray SerialPort::read(const int length, const int timeout, const QString &rxFormat) {
+QByteArray SerialPort::read(const int length, const int timeout, const QString &logFormat) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     return handleRead(length, timeout);
 }
 
-QByteArray SerialPort::readUntil(const QByteArray &text, const int timeout, const QString &rxFormat) {
+QByteArray SerialPort::readUntil(const QByteArray &text, const int timeout, const QString &logFormat) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    if (!logFormat.isEmpty()) m_portConfig["logFormat"] = logFormat;
     return handleReadUntil(text, timeout);
 }
 
@@ -242,12 +242,12 @@ void SerialPort::handleUpdate() {
 
 void SerialPort::handleLog(const int type, const QByteArray &data) {
     QString message{};
-    const QString format = type == LogLevel::Transmit ? m_portConfig["txFormat"].toString() : m_portConfig["rxFormat"].toString();
-    if (format == "raw") {
+    const QString logFormat = m_portConfig["logFormat"].toString();
+    if (logFormat == "raw") {
         message.reserve(data.size() * 4);
         for (const char c: data) message += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
-    } else if (format == "hex") message = data.toHex(' ').toUpper();
-    else if (format == "ascii") message = QString::fromLatin1(data);
+    } else if (logFormat == "hex") message = data.toHex(' ').toUpper();
+    else if (logFormat == "ascii") message = QString::fromLatin1(data);
     else message = QString::fromUtf8(data);
 
     if (type == LogLevel::Transmit) {

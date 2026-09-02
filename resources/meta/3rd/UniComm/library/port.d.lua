@@ -7,6 +7,57 @@
 ---
 port = {}
 
+---@enum PortType
+port.Type = {
+    SerialPort = 0,
+    TcpClient = 2,
+    SslClient = 4,
+}
+
+---@alias PortLogFormat
+---| "raw"
+---| "hex"
+---| "ascii"
+---| "utf-8"
+
+---@alias PortSuffix
+---| "null"
+---| "crlf"
+---| "modbus crc"
+---| "modbus lrc"
+
+---@class PortConfig
+---@field portType PortType Port type selected from `port.Type`.
+---@field portName string Unique name used by `port.open`, `port.write`, and the other port APIs.
+
+---@class SerialPortConfig : PortConfig
+---@field baudRate? integer (default: 115200) Baud rate from 1 to 5000000.
+---@field dataBits? 5|6|7|8 (default: 8)
+---@field parity? 0|2|3|4|5 (default: 0) 0=none, 2=even, 3=odd, 4=space, 5=mark.
+---@field stopBits? 1|2|3 (default: 1) 1=one, 2=two, 3=one and a half.
+---@field logFormat? PortLogFormat (default: "utf-8") Format used to render both transmitted and received data in the port log.
+---@field txSuffix? PortSuffix (default: "null")
+---@field bufferSize? integer (default: 65536) Receive buffer capacity in bytes, from 1 to 1048576.
+
+---@class TcpClientPortConfig : PortConfig
+---@field remoteHost string Remote hostname or IP address.
+---@field remotePort integer Remote port from 1 to 65535.
+---@field logFormat? PortLogFormat (default: "utf-8") Format used to render both transmitted and received data in the port log.
+---@field txSuffix? PortSuffix (default: "null")
+---@field bufferSize? integer (default: 65536) Receive buffer capacity in bytes, from 1 to 1048576.
+
+---@class SslClientPortConfig : PortConfig
+---@field remoteHost string Remote hostname or IP address.
+---@field remotePort integer Remote port from 1 to 65535.
+---@field logFormat? PortLogFormat (default: "utf-8") Format used to render both transmitted and received data in the port log.
+---@field txSuffix? PortSuffix (default: "null")
+---@field bufferSize? integer (default: 65536) Receive buffer capacity in bytes, from 1 to 1048576.
+
+---@alias PortCreateConfig
+---| SerialPortConfig
+---| TcpClientPortConfig
+---| SslClientPortConfig
+
 ---
 ---Returns the names of all configured ports.
 ---
@@ -24,6 +75,25 @@ function port.list() end
 ---@param name portName Target port name.
 ---@return table<string, any> information
 function port.info(name) end
+
+---
+---Creates a configured port.
+---
+---Select the type with `port.Type`, provide the fields of its matching config
+---class, then open the new port separately with `port.open`. The same validation
+---as the graphical port editor is applied; invalid or duplicate configurations
+---raise a Lua error.
+---@param config PortCreateConfig Port configuration matching the selected `port.Type`.
+---@return nil
+function port.create(config) end
+
+---
+---Removes a configured port.
+---
+---The port name must exist. Invalid removal requests raise a Lua error.
+---@param name portName Target port name.
+---@return nil
+function port.remove(name) end
 
 ---
 ---Opens or starts a configured port.

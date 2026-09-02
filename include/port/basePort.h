@@ -26,27 +26,27 @@ public:
     virtual void monitor(bool enabled) {
     }
 
-    [[nodiscard]] virtual bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+    [[nodiscard]] virtual bool write(const QByteArray &txData, const QString &logFormat, const QString &txSuffix) {
         return false;
     }
 
-    [[nodiscard]] virtual bool write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) {
+    [[nodiscard]] virtual bool write(const QByteArray &txData, const QString &peerIp, const QString &logFormat, const QString &txSuffix) {
         return false;
     }
 
-    [[nodiscard]] virtual QByteArray read(int length, int timeout, const QString &rxFormat) {
+    [[nodiscard]] virtual QByteArray read(int length, int timeout, const QString &logFormat) {
         return {};
     }
 
-    [[nodiscard]] virtual QByteArray read(int length, int timeout, const QString &peerIp, const QString &rxFormat) {
+    [[nodiscard]] virtual QByteArray read(int length, int timeout, const QString &peerIp, const QString &logFormat) {
         return {};
     }
 
-    [[nodiscard]] virtual QByteArray readUntil(const QByteArray &text, int timeout, const QString &rxFormat) {
+    [[nodiscard]] virtual QByteArray readUntil(const QByteArray &text, int timeout, const QString &logFormat) {
         return {};
     }
 
-    [[nodiscard]] virtual QByteArray readUntil(const QByteArray &text, int timeout, const QString &peerIp, const QString &rxFormat) {
+    [[nodiscard]] virtual QByteArray readUntil(const QByteArray &text, int timeout, const QString &peerIp, const QString &logFormat) {
         return {};
     }
 

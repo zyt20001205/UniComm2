@@ -977,13 +977,13 @@ Item {
                     Layout.fillWidth: true; Layout.fillHeight: true
 
                     Label {
-                        text: qsTr("Tx Format")
+                        text: qsTr("Log Format")
                         font.pointSize: 12
                         Layout.fillWidth: true
                     }
 
                     ComboBox {
-                        id: txFormatComboBox
+                        id: logFormatComboBox
                         model: ListModel {
                             ListElement {
                                 text: qsTr("raw"); value: "raw"
@@ -1023,33 +1023,6 @@ Item {
                             }
                             ListElement {
                                 text: qsTr("modbus lrc"); value: "modbus lrc"
-                            }
-                        }
-                        textRole: "text"
-                        valueRole: "value"
-                        Layout.fillWidth: true
-                    }
-
-                    Label {
-                        text: qsTr("Rx Format")
-                        font.pointSize: 12
-                        Layout.fillWidth: true
-                    }
-
-                    ComboBox {
-                        id: rxFormatComboBox
-                        model: ListModel {
-                            ListElement {
-                                text: qsTr("raw"); value: "raw"
-                            }
-                            ListElement {
-                                text: qsTr("hex"); value: "hex"
-                            }
-                            ListElement {
-                                text: qsTr("ascii"); value: "ascii"
-                            }
-                            ListElement {
-                                text: qsTr("utf-8"); value: "utf-8"
                             }
                         }
                         textRole: "text"
@@ -2894,9 +2867,8 @@ Item {
             "bluetoothSubscribeTypeComboBox": bluetoothSubscribeTypeComboBox,
             "bluetoothStatusLabel": bluetoothStatusLabel,
             // format
-            "txFormatComboBox": txFormatComboBox,
+            "logFormatComboBox": logFormatComboBox,
             "txSuffixComboBox": txSuffixComboBox,
-            "rxFormatComboBox": rxFormatComboBox,
             "bufferSizeSpinBox": bufferSizeSpinBox,
             // image
             "videoSink": videoOutput.videoSink,
