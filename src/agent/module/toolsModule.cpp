@@ -23,7 +23,9 @@ ToolsModule::ToolsModule(McpModule *mcpModule, SqlModule *sqlModule, QObject *pa
       m_portTypes{
           {"serial_port", PortType::SerialPort},
           {"tcp_client", PortType::TcpClient},
-          {"ssl_client", PortType::SslClient}
+          {"tcp_server", PortType::TcpServer},
+          {"ssl_client", PortType::SslClient},
+          {"ssl_server", PortType::SslServer}
       },
       m_mcpModule(mcpModule),
       m_sqlModule(sqlModule),
@@ -441,7 +443,7 @@ void ToolsModule::initialize() {
                                     {
                                         "port_type", QJsonObject{
                                             {"type", "string"},
-                                            {"enum", QJsonArray{"serial_port", "tcp_client", "ssl_client"}},
+                                            {"enum", QJsonArray{"serial_port", "tcp_client", "tcp_server", "ssl_client", "ssl_server"}},
                                             {"description", "The type of port to configure."}
                                         }
                                     }
@@ -468,7 +470,7 @@ void ToolsModule::initialize() {
                                     {
                                         "port_type", QJsonObject{
                                             {"type", "string"},
-                                            {"enum", QJsonArray{"serial_port", "tcp_client", "ssl_client"}},
+                                            {"enum", QJsonArray{"serial_port", "tcp_client", "tcp_server", "ssl_client", "ssl_server"}},
                                             {"description", "The type of port to create."}
                                         }
                                     },

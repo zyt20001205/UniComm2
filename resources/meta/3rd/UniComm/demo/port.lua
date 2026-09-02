@@ -21,6 +21,16 @@
 -- })
 -- tcp:open()
 
+-- TCP server:
+-- local tcpServer = Port.create({
+--     portType = Port.Type.TcpServer,
+--     portName = "TcpServer",
+--     localHost = "0.0.0.0",
+--     localPort = 8000,
+--     logFormat = "utf-8",
+-- })
+-- tcpServer:open()
+
 -- SSL client:
 -- local ssl = Port.create({
 --     portType = Port.Type.SslClient,
@@ -30,6 +40,18 @@
 --     logFormat = "utf-8",
 -- })
 -- ssl:open()
+
+-- SSL server:
+-- local sslServer = Port.create({
+--     portType = Port.Type.SslServer,
+--     portName = "SslServer",
+--     localHost = "0.0.0.0",
+--     localPort = 8443,
+--     certificate = "server-cert.pem",
+--     privateKey = "server-key.pem",
+--     logFormat = "utf-8",
+-- })
+-- sslServer:open()
 
 -- Configure an echo-capable stream port named "Echo" before running this demo.
 local name = "Echo"

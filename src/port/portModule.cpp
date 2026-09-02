@@ -153,6 +153,48 @@ QJsonObject PortModule::portConfigGet(const int portType) {
             };
             break;
         }
+        case PortType::TcpServer:
+        case PortType::SslServer: {
+            portConfig = {
+                {"type", "object"},
+                {
+                    "required", QJsonArray{
+                        "portName",
+                        "localHost",
+                        "localPort"
+                    }
+                },
+                {
+                    "defaults", QJsonObject{
+                        {"logFormat", "utf-8"},
+                        {"txSuffix", "null"},
+                        {"bufferSize", 65536}
+                    }
+                },
+                {
+                    "properties", QJsonObject{
+                        {"portName", QJsonObject{{"type", "string"}}},
+                        {"localHost", QJsonObject{{"type", "string"}}},
+                        {"localPort", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 65535}}},
+                        {"logFormat", QJsonObject{{"enum", QJsonArray{"raw", "hex", "ascii", "utf-8"}}}},
+                        {"txSuffix", QJsonObject{{"enum", QJsonArray{"null", "crlf", "modbus crc", "modbus lrc"}}}},
+                        {"bufferSize", QJsonObject{{"type", "integer"}, {"minimum", 1}, {"maximum", 1048576}}}
+                    }
+                }
+            };
+            if (portType == PortType::SslServer) {
+                auto required = portConfig.value("required").toArray();
+                required.append("certificate");
+                required.append("privateKey");
+                portConfig["required"] = required;
+
+                auto properties = portConfig.value("properties").toObject();
+                properties["certificate"] = QJsonObject{{"type", "string"}, {"description", "The local path to the PEM certificate."}};
+                properties["privateKey"] = QJsonObject{{"type", "string"}, {"description", "The local path to the PEM private key."}};
+                portConfig["properties"] = properties;
+            }
+            break;
+        }
         default: break;
     }
     return portConfig;
@@ -181,7 +223,23 @@ QString PortModule::portCheck(const QJsonObject &portConfig, const QString &oldP
         if (remotePort < 1 || remotePort > 65535) return "Port check failed: remotePort must be between 1 and 65535.";
     }
 
-    if (portType == PortType::SerialPort || portType == PortType::TcpClient || portType == PortType::SslClient) {
+    if (portType == PortType::TcpServer) {
+        if (portConfig.value("localHost").toString().trimmed().isEmpty()) return "Port check failed: localHost is empty.";
+
+        const auto localPort = portConfig.value("localPort").toInt();
+        if (localPort < 1 || localPort > 65535) return "Port check failed: localPort must be between 1 and 65535.";
+    }
+
+    if (portType == PortType::SslServer) {
+        if (portConfig.value("localHost").toString().trimmed().isEmpty()) return "Port check failed: localHost is empty.";
+
+        const auto localPort = portConfig.value("localPort").toInt();
+        if (localPort < 1 || localPort > 65535) return "Port check failed: localPort must be between 1 and 65535.";
+        if (portConfig.value("certificate").toString().trimmed().isEmpty()) return "Port check failed: certificate is empty.";
+        if (portConfig.value("privateKey").toString().trimmed().isEmpty()) return "Port check failed: privateKey is empty.";
+    }
+
+    if (portType == PortType::SerialPort || portType == PortType::TcpClient || portType == PortType::TcpServer || portType == PortType::SslClient || portType == PortType::SslServer) {
         const QJsonArray logFormats{"raw", "hex", "ascii", "utf-8"};
         if (!logFormats.contains(portConfig.value("logFormat"))) return "Port check failed: invalid logFormat.";
 

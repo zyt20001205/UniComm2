@@ -13,7 +13,9 @@ Port = {}
 Port.Type = {
     SerialPort = 0,
     TcpClient = 2,
+    TcpServer = 3,
     SslClient = 4,
+    SslServer = 5,
 }
 
 ---@alias PortLogFormat
@@ -48,6 +50,13 @@ Port.Type = {
 ---@field txSuffix? PortSuffix (default: "null")
 ---@field bufferSize? integer (default: 65536) Receive buffer capacity in bytes, from 1 to 1048576.
 
+---@class TcpServerPortConfig : PortConfig
+---@field localHost string Local address on which the server listens.
+---@field localPort integer Local listening port from 1 to 65535.
+---@field logFormat? PortLogFormat (default: "utf-8") Format used to render both transmitted and received data in the port log.
+---@field txSuffix? PortSuffix (default: "null")
+---@field bufferSize? integer (default: 65536) Receive buffer capacity in bytes, from 1 to 1048576.
+
 ---@class SslClientPortConfig : PortConfig
 ---@field remoteHost string Remote hostname or IP address.
 ---@field remotePort integer Remote port from 1 to 65535.
@@ -55,10 +64,21 @@ Port.Type = {
 ---@field txSuffix? PortSuffix (default: "null")
 ---@field bufferSize? integer (default: 65536) Receive buffer capacity in bytes, from 1 to 1048576.
 
+---@class SslServerPortConfig : PortConfig
+---@field localHost string Local address on which the server listens.
+---@field localPort integer Local listening port from 1 to 65535.
+---@field certificate string Local path to the PEM certificate.
+---@field privateKey string Local path to the PEM private key.
+---@field logFormat? PortLogFormat (default: "utf-8") Format used to render both transmitted and received data in the port log.
+---@field txSuffix? PortSuffix (default: "null")
+---@field bufferSize? integer (default: 65536) Receive buffer capacity in bytes, from 1 to 1048576.
+
 ---@alias PortCreateConfig
 ---| SerialPortConfig
 ---| TcpClientPortConfig
+---| TcpServerPortConfig
 ---| SslClientPortConfig
+---| SslServerPortConfig
 
 ---
 ---Returns the names of all configured ports.
