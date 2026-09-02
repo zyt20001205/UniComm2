@@ -72,7 +72,7 @@ QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::C
                     {
                         "file", QJsonObject{
                             {"filename", fileInfo.fileName()},
-                            {"file_data", QString::fromLatin1(g_document->textGet(url).toUtf8().toBase64())}
+                            {"file_data", "data:" + mimeType + ";base64," + QString::fromLatin1(g_document->textGet(url).toUtf8().toBase64())}
                         }
                     }
                 });
