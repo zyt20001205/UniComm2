@@ -440,7 +440,6 @@ Item {
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        radius: 6
                                         color: global.backHover
                                         opacity: turnHistory.hoveredNodeId === turnDelegate.nodeId ? 1 : 0
 
@@ -453,7 +452,6 @@ Item {
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        radius: 6
                                         color: turnHistory.selectedNodeId === turnDelegate.nodeId ? global.backSelected : "transparent"
                                     }
 
@@ -566,7 +564,6 @@ Item {
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        radius: 6
                                         color: global.backHover
                                         opacity: turnHistory.hoveredNodeId === messageDelegate.nodeId ? 1 : 0
 
@@ -579,7 +576,6 @@ Item {
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        radius: 6
                                         color: turnHistory.selectedNodeId === messageDelegate.nodeId ? global.backSelected : "transparent"
                                     }
 
