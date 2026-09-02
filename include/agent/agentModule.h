@@ -124,6 +124,8 @@ public:
 
     Q_INVOKABLE void pre();
 
+    Q_INVOKABLE void steer() const;
+
     Q_INVOKABLE void compact() const;
 
     Q_INVOKABLE void permission(const QString &runtimeId, bool status) const;

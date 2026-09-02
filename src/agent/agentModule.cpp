@@ -468,6 +468,11 @@ void AgentModule::pre() {
     m_runtimes.value(m_primary)->pre(m_conversationId, m_textArea->property("text").toString(), m_attachments);
 }
 
+void AgentModule::steer() const {
+    m_runtimes.value(m_primary)->steer(m_textArea->property("text").toString());
+    QMetaObject::invokeMethod(m_textArea, "clear");
+}
+
 void AgentModule::compact() const {
     m_runtimes.value(m_primary)->compact(m_conversationId);
 }

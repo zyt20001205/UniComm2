@@ -53,6 +53,11 @@ void RuntimeModule::pre(const QString &conversationId, const QString &text, cons
     stateSet(AgentState::Pre, text);
 }
 
+void RuntimeModule::steer(const QString &text) {
+    if (!m_turn.steering.isEmpty()) m_turn.steering.append('\n');
+    m_turn.steering.append(text);
+}
+
 void RuntimeModule::compact(const QString &conversationId) {
     m_turn.conversationId = conversationId;
     stateSet(AgentState::Compact);
@@ -194,6 +199,15 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
         }
         break;
         case AgentState::Request: {
+            if (!m_turn.steering.isEmpty()) {
+                const auto messageIndex = conversationAppend("user");
+                auto &message = m_turn.messages[messageIndex];
+                message.content = m_turn.steering;
+                m_turn.steering.clear();
+                emit createChat(m_turn.id, message.id, message.role);
+                emit appendChat(message.id, message.content);
+            }
+
             QJsonArray context{};
             QString providerId{};
             QString modelId{};
@@ -429,8 +443,12 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                 m_turn.messages[messageIndex].toolCalls = _toolCalls;
                 stateSet(AgentState::ToolCall);
             } else if (*finishReason == "stop") {
-                m_turn.status = SqlModule::TurnStatus::Completed;
-                stateSet(AgentState::Complete);
+                if (m_turn.steering.isEmpty()) {
+                    m_turn.status = SqlModule::TurnStatus::Completed;
+                    stateSet(AgentState::Complete);
+                } else {
+                    stateSet(AgentState::Request);
+                }
             } else if (*finishReason == "length") stateSet(AgentState::Error, "Model output reached the length limit.");
             else if (*finishReason == "content_filter") stateSet(AgentState::Error, "Model output was blocked by the content filter.");
             else stateSet(AgentState::Error, "Invalid model finish reason: " + *finishReason);

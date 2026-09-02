@@ -70,6 +70,8 @@ public:
 
     void pre(const QString &conversationId, const QString &text, const QList<QUrl> &attachments);
 
+    void steer(const QString &text);
+
     void compact(const QString &conversationId);
 
     void request(const QString &provider, const QString &model, int mode, const QString &task);
@@ -119,6 +121,7 @@ private:
         int mode{AgentMode::Chat};
         QList<QUrl> attachments{};
         QList<SqlModule::Message> messages{};
+        QString steering{};
         qint64 currentUsage{};
         int status{SqlModule::TurnStatus::Running};
         QString error{};

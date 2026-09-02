@@ -1430,7 +1430,7 @@ Item {
                     id: textArea
                     padding: 10
                     topPadding: 12
-                    placeholderText: qsTr("Ask a question or describe a task")
+                    placeholderText: agentModule.state === 0 ? qsTr("Ask a question or describe a task") : qsTr("Steer the current task")
                     textFormat: TextEdit.PlainText
                     verticalAlignment: TextEdit.AlignTop
                     wrapMode: TextEdit.Wrap
@@ -1440,7 +1440,7 @@ Item {
                     Keys.onPressed: (event) => {
                         if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
                             if (textArea.text.trim().length > 0) {
-                                agentModule.pre()
+                                agentModule.state === 0 ? agentModule.pre() : agentModule.steer()
                             }
                             event.accepted = true
                         }
@@ -1684,11 +1684,17 @@ Item {
                     id: sendButton
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     enabled: agentModule.state !== 0 || textArea.text.trim().length > 0
-                    icon.source: agentModule.state === 0 ? "qrc:/icon/send.svg" : "qrc:/icon/stop.svg"
+                    icon.source: agentModule.state === 0 || textArea.text.trim().length > 0 ? "qrc:/icon/send.svg" : "qrc:/icon/stop.svg"
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 28; Layout.preferredHeight: 28
 
-                    onClicked: agentModule.state === 0 ? agentModule.pre() : agentModule.abort()
+                    onClicked: {
+                        if (textArea.text.trim().length > 0) {
+                            agentModule.state === 0 ? agentModule.pre() : agentModule.steer()
+                        } else {
+                            agentModule.abort()
+                        }
+                    }
                 }
             }
         }
