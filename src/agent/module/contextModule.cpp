@@ -68,14 +68,18 @@ QJsonArray ContextModule::contextBuild(const QString &system, const SqlModule::C
                     continue;
                 }
                 content.append(QJsonObject{
-                    {"type", "file"},
-                    {
-                        "file", QJsonObject{
-                            {"filename", fileInfo.fileName()},
-                            {"file_data", "data:" + mimeType + ";base64," + QString::fromLatin1(g_document->textGet(url).toUtf8().toBase64())}
-                        }
-                    }
+                    {"type", "text"},
+                    {"text", "Attached file: " + url.toString() + "\n\n" + g_document->textGet(url)}
                 });
+                // content.append(QJsonObject{
+                //     {"type", "file"},
+                //     {
+                //         "file", QJsonObject{
+                //             {"filename", fileInfo.fileName()},
+                //             {"file_data", "data:" + mimeType + ";base64," + QString::fromLatin1(g_document->textGet(url).toUtf8().toBase64())}
+                //         }
+                //     }
+                // });
             }
             message["content"] = content;
         }
