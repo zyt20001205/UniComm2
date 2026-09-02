@@ -3,8 +3,10 @@
 
 #include <QJsonArray>
 #include <QStandardItemModel>
+#include <QVariantHash>
 
 class HookModel;
+class ToastModule;
 
 class HookModule final : public QObject {
     Q_OBJECT
@@ -25,6 +27,8 @@ public:
 
     [[nodiscard]] const QJsonArray &configGet() const;
 
+    void propertySet(const QVariantHash &objects);
+
     void hookEnabledSet(int event, bool enabled);
 
     void hookScriptInsert(int event, const QUrl &documentUrl);
@@ -40,6 +44,7 @@ private:
 
     QJsonArray m_config{};
     HookModel *m_hookModel{};
+    ToastModule *m_toast{};
 };
 
 class HookModel final : public QStandardItemModel {

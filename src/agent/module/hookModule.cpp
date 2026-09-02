@@ -4,6 +4,7 @@
 #include <QJsonArray>
 
 #include "globals.h"
+#include "mainWindow/toastModule.h"
 #include "runtime/threadpoolModule.h"
 #include "util/uniCast.h"
 
@@ -36,6 +37,10 @@ HookModel *HookModule::hookModelGet() const {
 
 const QJsonArray &HookModule::configGet() const {
     return m_config;
+}
+
+void HookModule::propertySet(const QVariantHash &objects) {
+    m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
 }
 
 void HookModule::hookEnabledSet(const int event, const bool enabled) {
@@ -75,7 +80,7 @@ void HookModule::hookRun(const int event) const {
     for (const auto &value: hook["scripts"].toArray()) {
         const QUrl documentUrl(value.toString());
         if (!QFileInfo(documentUrl.toLocalFile()).isFile()) {
-            qWarning() << "Hook script does not exist:" << documentUrl;
+            m_toast->show(ToastLevel::Warning, tr("Hook"), tr("Hook script does not exist: %1").arg(documentUrl.toLocalFile()));
             continue;
         }
         g_threadpool->threadStart(documentUrl, InterpreterMode::Agent);

@@ -65,6 +65,7 @@ AgentModule::~AgentModule() {
 
 void AgentModule::propertySet(const QVariantHash &objects) {
     m_toast = qvariant_cast<ToastModule *>(objects["mainWindowToast"]);
+    m_hookModule->propertySet(objects);
     m_modeMenu = qvariant_cast<QObject *>(objects["agentModuleModeMenu"]);
 
     m_evalWindow->setTitle(tr("Agent Evaluation"));
