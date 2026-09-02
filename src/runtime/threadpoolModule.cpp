@@ -114,7 +114,10 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
         emit startDebug(threadId);
         connect(worker, &QThread::finished, this, [this, threadId] { emit stopDebug(threadId); });
     } else if (mode == InterpreterMode::Agent) {
-        connect(worker, &QThread::finished, this, [this, threadId, output] { emit finishThread(threadId, *output); });
+        connect(worker, &QThread::finished, this, [this, threadId, output] {
+            if (output->value("output").toString().isEmpty() && output->value("err").toString().isEmpty()) emit closeTerminal(threadId);
+            emit finishThread(threadId, *output);
+        });
     }
     emit openTerminal(threadId, TerminalPage::Backend::Lua);
     worker->start();

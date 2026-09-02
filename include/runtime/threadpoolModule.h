@@ -40,6 +40,8 @@ public:
 signals:
     void openTerminal(const QString &id, int backend);
 
+    void closeTerminal(const QString &id);
+
     void writeTerminal(const QString &id, const QByteArray &data);
 
     void finishThread(const QString &threadId, const QJsonObject &output);

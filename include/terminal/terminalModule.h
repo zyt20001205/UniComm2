@@ -37,6 +37,8 @@ public:
 
     Q_INVOKABLE void terminalOpen(const QString &id, int backend = TerminalPage::Backend::Conpty);
 
+    void terminalClose(const QString &id) const;
+
     void terminalWrite(const QString &id, const QByteArray &data) const;
 
 private:
