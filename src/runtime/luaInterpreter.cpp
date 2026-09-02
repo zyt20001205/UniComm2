@@ -274,7 +274,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         auto portType = m_lua.create_table();
         portType["SerialPort"] = PortType::SerialPort;
         portType["TcpClient"] = PortType::TcpClient;
+        portType["TcpServer"] = PortType::TcpServer;
         portType["SslClient"] = PortType::SslClient;
+        portType["SslServer"] = PortType::SslServer;
         port["Type"] = portType;
         port.set_function("list", [](const sol::this_state ts) { return Port::list(ts); });
         port.set_function("create", [this](const sol::table &config) { return Port::create(config, this); });
