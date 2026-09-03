@@ -2,6 +2,7 @@
 #define UNICOMM_RUNTIMEMODULE_H
 
 #include <QJsonObject>
+#include <QNetworkReply>
 #include <QUrl>
 
 #include "agent/module/sqlModule.h"
@@ -10,7 +11,6 @@ class BaseAgent;
 class BaseProvider;
 class ContextModule;
 class ProviderModule;
-class QNetworkReply;
 class ToolsModule;
 struct ToolResult;
 
@@ -93,9 +93,9 @@ signals:
 
     void appendChat(const QString &messageId, const QString &text);
 
-    void appendChatReasoning(const QString &messageId, const QString &text);
+    void resetChat(const QString &messageId);
 
-    void finishChat(const QString &messageId);
+    void retryRequest(int attempt, int limit);
 
     void updateUsage(qint64 totalTokens);
 
@@ -136,7 +136,9 @@ private:
 
     void stateSet(int state, const QVariant &payload = QVariant());
 
-    void _request(const BaseProvider *provider, const QJsonObject &body);
+    bool retry(QNetworkReply::NetworkError error, const BaseProvider *provider, const QJsonObject &body, qsizetype messageIndex, int retryCount);
+
+    void _request(const BaseProvider *provider, const QJsonObject &body, qsizetype messageIndex = -1, int retryCount = 0);
 
     qsizetype conversationAppend(const QString &role, const QString &toolCallId = {});
 

@@ -1718,6 +1718,9 @@ Item {
             property string lastAssistantId
             property string finalMessageId
             property string lastActivityType
+            property bool reconnecting: false
+            property int reconnectAttempt: 0
+            property int reconnectLimit: 0
             property var currentToolGroup
             property alias subagents: subagentColumn
             property alias messages: messageColumn
@@ -1760,6 +1763,28 @@ Item {
             Rectangle {
                 color: global.stroke
                 Layout.fillWidth: true; Layout.preferredHeight: 1
+            }
+
+            RowLayout {
+                visible: turnItem.reconnecting
+                Layout.fillWidth: true; Layout.preferredHeight: 24
+                spacing: 6
+
+                IconImage {
+                    color: global.stroke
+                    source: "qrc:/icon/wifiOff.svg"
+                    sourceSize.width: 16; sourceSize.height: 16
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                }
+
+                Label {
+                    text: qsTr("Reconnecting %1 / %2...").arg(turnItem.reconnectAttempt).arg(turnItem.reconnectLimit)
+                    color: global.stroke
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
             }
 
             ColumnLayout {
@@ -2032,6 +2057,19 @@ Item {
         turn.finalMessageId = turn.lastAssistantId
         turn.finishedAt = finishedAt
         turn.collapsed = true
+    }
+
+    function reconnectStart(turnId: string, attempt: int, limit: int): void {
+        const turn = rootItem.turnMap[turnId]
+        if (!turn) return
+        turn.reconnectAttempt = attempt
+        turn.reconnectLimit = limit
+        turn.reconnecting = true
+    }
+
+    function reconnectFinish(turnId: string): void {
+        const turn = rootItem.turnMap[turnId]
+        if (turn) turn.reconnecting = false
     }
 
     function chatClear(): void {

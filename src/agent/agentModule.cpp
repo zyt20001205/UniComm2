@@ -353,14 +353,12 @@ void AgentModule::conversationGet(const QString &id) {
             chatCreate(turnId, message.id, role);
             chatAppend(message.id, m_toolsModule->toolTextGet(toolCall.first, toolCall.second));
             chatAppend(message.id, message.approved ? " ✓" : " ✗");
-            chatFinish(message.id);
             continue;
         }
         const auto &content = message.content;
         if (!content.isEmpty()) {
             chatCreate(turnId, message.id, role);
             chatAppend(message.id, content);
-            chatFinish(message.id);
         }
     }
     if (!turnId.isEmpty()) turnFinish(turnId, finishedAt);
@@ -521,6 +519,9 @@ RuntimeModule *AgentModule::subagentDispatch(const QString &role, const QString 
         m_runtimes.remove(worker->idGet());
         worker->deleteLater();
     });
+    connect(worker, &RuntimeModule::retryRequest, worker, [this, worker](const int attempt, const int limit) {
+        subagentUpdate(worker->idGet(), tr("Connection lost. Retrying %1/%2...").arg(attempt).arg(limit));
+    });
     worker->request(conversation.provider, conversation.model, conversation.mode, task);
     return worker;
 }
@@ -536,7 +537,9 @@ void AgentModule::subagentUpdate(const QString &runtimeId, const QString &messag
 // private
 void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     connect(runtime, &RuntimeModule::changeState, this, [this, runtime] {
-        if (runtime == m_runtimes.value(m_primary)) emit changeState();
+        if (runtime != m_runtimes.value(m_primary)) return;
+        emit changeState();
+        QMetaObject::invokeMethod(m_root, "reconnectFinish", Q_ARG(QString, runtime->turnIdGet()));
     });
     connect(runtime, &RuntimeModule::showError, this, [this, runtime](const QString &message) {
         if (runtime != m_runtimes.value(m_primary)) return;
@@ -575,12 +578,12 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     connect(runtime, &RuntimeModule::appendChat, this, [this, runtime](const QString &messageId, const QString &text) {
         if (runtime == m_runtimes.value(m_primary)) chatAppend(messageId, text);
     });
-    connect(runtime, &RuntimeModule::appendChatReasoning, this, [this, runtime](const QString &messageId, const QString &text) {
-        if (runtime != m_runtimes.value(m_primary)) return;
-        QMetaObject::invokeMethod(m_root, "chatReasoningAppend", Q_ARG(QString, messageId), Q_ARG(QString, text));
+    connect(runtime, &RuntimeModule::resetChat, this, [this, runtime](const QString &messageId) {
+        if (runtime == m_runtimes.value(m_primary)) chatReset(messageId);
     });
-    connect(runtime, &RuntimeModule::finishChat, this, [this, runtime](const QString &messageId) {
-        if (runtime == m_runtimes.value(m_primary)) chatFinish(messageId);
+    connect(runtime, &RuntimeModule::retryRequest, this, [this, runtime](const int attempt, const int limit) {
+        if (runtime != m_runtimes.value(m_primary)) return;
+        QMetaObject::invokeMethod(m_root, "reconnectStart", Q_ARG(QString, runtime->turnIdGet()), Q_ARG(int, attempt), Q_ARG(int, limit));
     });
     connect(runtime, &RuntimeModule::updateUsage, this, [this, runtime](const qint64 totalTokens) {
         if (runtime != m_runtimes.value(m_primary)) return;
@@ -636,8 +639,8 @@ void AgentModule::chatAppend(const QString &messageId, const QString &text) cons
     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QString, messageId), Q_ARG(QString, text));
 }
 
-void AgentModule::chatFinish(const QString &messageId) const {
-    QMetaObject::invokeMethod(m_root, "chatFinish", Q_ARG(QString, messageId));
+void AgentModule::chatReset(const QString &messageId) const {
+    QMetaObject::invokeMethod(m_root, "chatReset", Q_ARG(QString, messageId));
 }
 
 // public

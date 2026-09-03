@@ -164,7 +164,7 @@ private:
 
     void chatAppend(const QString &messageId, const QString &text) const;
 
-    void chatFinish(const QString &messageId) const;
+    void chatReset(const QString &messageId) const;
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};

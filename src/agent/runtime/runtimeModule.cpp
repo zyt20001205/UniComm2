@@ -1,10 +1,12 @@
 #include "agent/runtime/runtimeModule.h"
 
+#include <iterator>
+
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QMap>
-#include <QNetworkReply>
+#include <QTimer>
 #include <QUuid>
 
 #include "globals.h"
@@ -148,7 +150,6 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
             for (auto &message: m_turn.messages) {
                 if (message.timing.finishedAt != 0) continue;
                 message.timing.finishedAt = finishedAt;
-                if (message.role == "assistant") emit finishChat(message.id);
             }
             m_sqlModule->conversationAppend(m_turn.conversationId, m_turn.messages, m_turn.currentUsage);
             emit finishTurn(m_turn.id, finishedAt);
@@ -305,12 +306,69 @@ void RuntimeModule::stateSet(const int state, const QVariant &payload) {
     }
 }
 
-void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &body) {
+bool RuntimeModule::retry(const QNetworkReply::NetworkError error, const BaseProvider *provider, const QJsonObject &body, const qsizetype messageIndex, const int retryCount) {
+    switch (error) {
+        case QNetworkReply::ConnectionRefusedError:
+        case QNetworkReply::RemoteHostClosedError:
+        case QNetworkReply::HostNotFoundError:
+        case QNetworkReply::TimeoutError:
+        case QNetworkReply::TemporaryNetworkFailureError:
+        case QNetworkReply::NetworkSessionFailedError:
+        case QNetworkReply::UnknownNetworkError:
+        case QNetworkReply::ProxyConnectionRefusedError:
+        case QNetworkReply::ProxyConnectionClosedError:
+        case QNetworkReply::ProxyNotFoundError:
+        case QNetworkReply::ProxyTimeoutError:
+        case QNetworkReply::ProtocolFailure:
+        case QNetworkReply::InternalServerError:
+        case QNetworkReply::ServiceUnavailableError:
+        case QNetworkReply::UnknownServerError: break;
+        default: return false;
+    }
+
+    static constexpr int intervals[]{1000, 3000};
+    constexpr int limit = std::size(intervals);
+    if (retryCount >= limit) return false;
+    const auto turnId = m_turn.id;
+    emit retryRequest(retryCount + 1, limit);
+    QTimer::singleShot(intervals[retryCount], this, [this, provider, body, messageIndex, retryCount, turnId] {
+        if (m_turn.id != turnId || m_state == AgentState::Ready) return;
+        _request(provider, body, messageIndex, retryCount + 1);
+    });
+    return true;
+}
+
+void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &body, qsizetype messageIndex, const int retryCount) {
     const auto startedAt = QDateTime::currentMSecsSinceEpoch();
+    const auto stream = body.value("stream").toBool();
+    if (stream) {
+        if (messageIndex < 0) {
+            messageIndex = conversationAppend("assistant");
+            auto &message = m_turn.messages[messageIndex];
+            message.provider = m_turn.provider;
+            message.model = body.value("model").toString();
+            message.timing.createdAt = startedAt;
+            message.timing.startedAt = startedAt;
+            emit createChat(m_turn.id, message.id, "assistant");
+        } else {
+            auto &message = m_turn.messages[messageIndex];
+            message.content.clear();
+            message.reasoningContent.clear();
+            message.toolCalls = {};
+            message.usage = {};
+            message.timing.firstOutputAt = 0;
+            message.timing.finishedAt = 0;
+            m_turn.currentUsage = 0;
+            emit resetChat(message.id);
+            emit updateUsage(0);
+        }
+    }
+
     auto *reply = g_networkAccessManager->post(provider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
-    if (!body.value("stream").toBool()) {
-        connect(reply, &QNetworkReply::finished, this, [this, reply] {
+
+    if (!stream) {
+        connect(reply, &QNetworkReply::finished, this, [this, reply, provider, body, messageIndex, retryCount] {
             if (m_reply == reply) m_reply = nullptr;
             if (reply->error() == QNetworkReply::OperationCanceledError) {
                 stateSet(AgentState::Complete);
@@ -326,7 +384,7 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                     emit updateUsage(0);
                     stateSet(m_turn.id.isEmpty() ? AgentState::Ready : AgentState::Request);
                 }
-            } else {
+            } else if (!retry(reply->error(), provider, body, messageIndex, retryCount)) {
                 const auto data = reply->readAll();
                 const auto message = QJsonDocument::fromJson(data).object().value("error").toObject().value("message").toString();
                 stateSet(AgentState::Error, message.isEmpty() ? reply->errorString() : message);
@@ -336,14 +394,7 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
         return;
     }
 
-    const auto messageIndex = conversationAppend("assistant");
-    auto &message = m_turn.messages[messageIndex];
-    message.provider = m_turn.provider;
-    message.model = body.value("model").toString();
-    message.timing.createdAt = startedAt;
-    message.timing.startedAt = startedAt;
-    const auto messageId = message.id;
-    emit createChat(m_turn.id, messageId, "assistant");
+    const auto messageId = m_turn.messages.at(messageIndex).id;
     auto toolCalls = QSharedPointer<QMap<int, ToolCall> >::create();
     auto finishReason = QSharedPointer<QString>::create();
 
@@ -390,7 +441,6 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                 auto &message = m_turn.messages[messageIndex];
                 if (message.reasoningContent.isEmpty()) stateSet(AgentState::Think);
                 message.reasoningContent.append(reasoning);
-                emit appendChatReasoning(messageId, reasoning);
             }
 
             if (!content.isEmpty()) {
@@ -413,13 +463,17 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, messageIndex, messageId, toolCalls, finishReason] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, provider, body, messageIndex, retryCount, messageId, toolCalls, finishReason] {
         if (m_reply == reply) m_reply = nullptr;
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             stateSet(AgentState::Complete);
         } else if (reply->error() == QNetworkReply::NoError) {
+            if (finishReason->isEmpty()) {
+                if (!retry(QNetworkReply::RemoteHostClosedError, provider, body, messageIndex, retryCount)) stateSet(AgentState::Error, "Model response ended without a finish reason.");
+                reply->deleteLater();
+                return;
+            }
             m_turn.messages[messageIndex].timing.finishedAt = QDateTime::currentMSecsSinceEpoch();
-            emit finishChat(messageId);
             if (*finishReason == "tool_calls") {
                 QJsonArray _toolCalls{};
                 for (auto toolCall: toolCalls->values()) {
@@ -452,7 +506,7 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
             } else if (*finishReason == "length") stateSet(AgentState::Error, "Model output reached the length limit.");
             else if (*finishReason == "content_filter") stateSet(AgentState::Error, "Model output was blocked by the content filter.");
             else stateSet(AgentState::Error, "Invalid model finish reason: " + *finishReason);
-        } else {
+        } else if (!retry(reply->error(), provider, body, messageIndex, retryCount)) {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
