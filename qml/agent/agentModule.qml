@@ -1877,7 +1877,7 @@ Item {
 
         TextArea {
             id: chatTextArea
-            padding: role === "user" ? 6 : 0
+            padding: role === "user" || role === "steering" ? 6 : 0
             leftPadding: padding; rightPadding: padding; topPadding: padding; bottomPadding: padding
             readOnly: true
             textFormat: TextEdit.MarkdownText
@@ -1886,13 +1886,13 @@ Item {
             color: role === "tool" ? global.stroke : global.fore
             visible: contentBuffer.length > 0 && (!turn.collapsed || role === "user" || messageId === turn.finalMessageId)
             Layout.preferredWidth: role === "assistant" || role === "tool" ? chatView.availableWidth : Math.min(chatView.availableWidth * 0.8, implicitWidth)
-            Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
+            Layout.alignment: role === "user" || role === "steering" ? Qt.AlignRight : Qt.AlignLeft
             property var turn
             property string messageId
             property string role
             property string contentBuffer
             background: Rectangle {
-                color: chatTextArea.role === "user" ? global.backSelected :
+                color: chatTextArea.role === "user" || chatTextArea.role === "steering" ? global.backSelected :
                         chatTextArea.role === "assistant" ? "transparent" :
                             chatTextArea.role === "tool" ? "transparent" : global.dangerBack2
                 radius: 6
@@ -2086,6 +2086,7 @@ Item {
 
     function chatCreate(turnId: string, messageId: string, role: string): void {
         const turn = rootItem.turnMap[turnId]
+        if (role === "user" && turn.prompt) role = "steering"
         let container = turn.messages
         if (role === "tool") {
             if (turn.lastActivityType !== "tool") {
@@ -2096,6 +2097,8 @@ Item {
             container = turn.currentToolGroup.messages
             turn.currentToolGroup.count += 1
             turn.lastActivityType = "tool"
+        } else if (role === "steering") {
+            turn.lastActivityType = "steering"
         }
         const obj = chatComponent.createObject(container, {
             turn: turn,
