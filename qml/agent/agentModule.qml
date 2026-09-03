@@ -1718,9 +1718,7 @@ Item {
             property string lastAssistantId
             property string finalMessageId
             property string lastActivityType
-            property bool reconnecting: false
-            property int reconnectAttempt: 0
-            property int reconnectLimit: 0
+            property var activityItem
             property var currentToolGroup
             property alias subagents: subagentColumn
             property alias messages: messageColumn
@@ -1765,28 +1763,6 @@ Item {
                 Layout.fillWidth: true; Layout.preferredHeight: 1
             }
 
-            RowLayout {
-                visible: turnItem.reconnecting
-                Layout.fillWidth: true; Layout.preferredHeight: 24
-                spacing: 6
-
-                IconImage {
-                    color: global.stroke
-                    source: "qrc:/icon/wifiOff.svg"
-                    sourceSize.width: 16; sourceSize.height: 16
-                    Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                }
-
-                Label {
-                    text: qsTr("Reconnecting %1 / %2...").arg(turnItem.reconnectAttempt).arg(turnItem.reconnectLimit)
-                    color: global.stroke
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-            }
-
             ColumnLayout {
                 id: turnContent
                 Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
@@ -1815,6 +1791,37 @@ Item {
 
             onFinishedAtChanged: elapsedUpdate()
             Component.onCompleted: elapsedUpdate()
+        }
+    }
+
+    Component {
+        id: activityComponent
+
+        RowLayout {
+            id: activityItem
+            Layout.fillWidth: true; Layout.preferredHeight: 24
+            spacing: 6
+            property bool reconnecting: false
+            property int reconnectAttempt: 0
+            property int reconnectLimit: 0
+
+            IconImage {
+                color: global.stroke
+                source: activityItem.reconnecting ? "qrc:/icon/wifiOff.svg" : "qrc:/icon/thinking.svg"
+                sourceSize.width: 16; sourceSize.height: 16
+                Layout.preferredWidth: 16; Layout.preferredHeight: 16
+            }
+
+            Label {
+                text: activityItem.reconnecting
+                      ? qsTr("Reconnecting %1 / %2...").arg(activityItem.reconnectAttempt).arg(activityItem.reconnectLimit)
+                      : qsTr("Thinking...")
+                color: global.stroke
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
         }
     }
 
@@ -2059,17 +2066,27 @@ Item {
         turn.collapsed = true
     }
 
+    function thinkingStart(turnId: string): void {
+        const turn = rootItem.turnMap[turnId]
+        if (!turn) return
+        if (!turn.activityItem) turn.activityItem = activityComponent.createObject(turn.messages)
+        turn.activityItem.reconnecting = false
+    }
+
     function reconnectStart(turnId: string, attempt: int, limit: int): void {
         const turn = rootItem.turnMap[turnId]
         if (!turn) return
-        turn.reconnectAttempt = attempt
-        turn.reconnectLimit = limit
-        turn.reconnecting = true
+        if (!turn.activityItem) turn.activityItem = activityComponent.createObject(turn.messages)
+        turn.activityItem.reconnectAttempt = attempt
+        turn.activityItem.reconnectLimit = limit
+        turn.activityItem.reconnecting = true
     }
 
-    function reconnectFinish(turnId: string): void {
+    function activityFinish(turnId: string): void {
         const turn = rootItem.turnMap[turnId]
-        if (turn) turn.reconnecting = false
+        if (!turn || !turn.activityItem) return
+        turn.activityItem.destroy()
+        turn.activityItem = null
     }
 
     function chatClear(): void {

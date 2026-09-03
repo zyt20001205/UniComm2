@@ -539,7 +539,24 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     connect(runtime, &RuntimeModule::changeState, this, [this, runtime] {
         if (runtime != m_runtimes.value(m_primary)) return;
         emit changeState();
-        QMetaObject::invokeMethod(m_root, "reconnectFinish", Q_ARG(QString, runtime->turnIdGet()));
+        const auto turnId = runtime->turnIdGet();
+        switch (runtime->stateGet()) {
+            case AgentState::Request:
+            case AgentState::Think:
+                QMetaObject::invokeMethod(m_root, "thinkingStart", Q_ARG(QString, turnId));
+                break;
+            case AgentState::Abort:
+            case AgentState::Error:
+            case AgentState::Complete:
+            case AgentState::Response:
+            case AgentState::ToolCall:
+            case AgentState::Permission:
+            case AgentState::UserInput:
+            case AgentState::ToolExec:
+                QMetaObject::invokeMethod(m_root, "activityFinish", Q_ARG(QString, turnId));
+                break;
+            default: break;
+        }
     });
     connect(runtime, &RuntimeModule::showError, this, [this, runtime](const QString &message) {
         if (runtime != m_runtimes.value(m_primary)) return;
