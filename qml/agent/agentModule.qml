@@ -1712,10 +1712,13 @@ Item {
             property double startedAt
             property double finishedAt: 0
             property int elapsedSeconds: 0
-            property bool collapsed: true
+            property bool collapsed: false
             property string prompt
             property string response
-            property string lastId
+            property string lastAssistantId
+            property string finalMessageId
+            property string lastActivityType
+            property var currentToolGroup
             property alias subagents: subagentColumn
             property alias messages: messageColumn
             readonly property bool running: finishedAt === 0
@@ -1760,14 +1763,21 @@ Item {
             }
 
             ColumnLayout {
-                id: subagentColumn
+                id: turnContent
                 Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
                 spacing: 6
-            }
 
-            ColumnLayout {
-                id: messageColumn
-                Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
+                ColumnLayout {
+                    id: subagentColumn
+                    visible: !turnItem.collapsed
+                    Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
+                    spacing: 6
+                }
+
+                ColumnLayout {
+                    id: messageColumn
+                    Layout.fillWidth: true; Layout.preferredWidth: chatColumn.width
+                }
             }
 
             Timer {
@@ -1780,6 +1790,53 @@ Item {
 
             onFinishedAtChanged: elapsedUpdate()
             Component.onCompleted: elapsedUpdate()
+        }
+    }
+
+    Component {
+        id: toolGroupComponent
+
+        ColumnLayout {
+            id: toolGroup
+            Layout.fillWidth: true
+            spacing: 2
+            visible: !turn.collapsed
+            property var turn
+            property int count
+            property bool expanded: false
+            property alias messages: toolColumn
+
+            RowLayout {
+                Layout.fillWidth: true; Layout.preferredHeight: 24
+                spacing: 4
+
+                Label {
+                    text: toolGroup.count === 1 ? qsTr("Used 1 tool") : qsTr("Used %1 tools").arg(toolGroup.count)
+                    color: global.stroke
+                }
+
+                IconImage {
+                    color: global.stroke
+                    source: toolGroup.expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                    sourceSize.width: 16; sourceSize.height: 16
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16
+
+                    TapHandler {
+                        onTapped: toolGroup.expanded = !toolGroup.expanded
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+
+            ColumnLayout {
+                id: toolColumn
+                visible: toolGroup.expanded
+                Layout.fillWidth: true
+                spacing: 2
+            }
         }
     }
 
@@ -1818,31 +1875,28 @@ Item {
 
         TextArea {
             id: chatTextArea
-            padding: role === "assistant" ? 0 : 6
+            padding: role === "user" ? 6 : 0
             leftPadding: padding; rightPadding: padding; topPadding: padding; bottomPadding: padding
             readOnly: true
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             ContextMenu.menu: null
-            visible: buffer.length > 0 && (!turn.collapsed || role === "user" || messageId === turn.lastId)
-            Layout.preferredWidth: role === "assistant" ? chatView.availableWidth : Math.min(chatView.availableWidth * 0.8, implicitWidth)
+            color: role === "tool" ? global.stroke : global.fore
+            visible: contentBuffer.length > 0 && (!turn.collapsed || role === "user" || messageId === turn.finalMessageId)
+            Layout.preferredWidth: role === "assistant" || role === "tool" ? chatView.availableWidth : Math.min(chatView.availableWidth * 0.8, implicitWidth)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property var turn
             property string messageId
             property string role
-            property string reasoningBuffer
             property string contentBuffer
-            readonly property string buffer: contentBuffer.length > 0 ? contentBuffer : reasoningBuffer
-            readonly property bool reasoning: role === "assistant" && contentBuffer.length === 0 && reasoningBuffer.length > 0
-            readonly property string displayBuffer: reasoning && turn.collapsed ? qsTr("Thinking...") : buffer
             background: Rectangle {
                 color: chatTextArea.role === "user" ? global.backSelected :
                         chatTextArea.role === "assistant" ? "transparent" :
-                            chatTextArea.role === "tool" ? global.backSelected : global.dangerBack2
+                            chatTextArea.role === "tool" ? "transparent" : global.dangerBack2
                 radius: 6
             }
 
-            onDisplayBufferChanged: {
+            onContentBufferChanged: {
                 if (!timer.running) {
                     timer.start()
                 }
@@ -1853,7 +1907,7 @@ Item {
                 interval: 16
 
                 onTriggered: {
-                    chatTextArea.text = chatTextArea.displayBuffer
+                    chatTextArea.text = chatTextArea.contentBuffer
                 }
             }
 
@@ -1975,7 +2029,9 @@ Item {
 
     function turnFinish(turnId: string, finishedAt: double): void {
         const turn = rootItem.turnMap[turnId]
+        turn.finalMessageId = turn.lastAssistantId
         turn.finishedAt = finishedAt
+        turn.collapsed = true
     }
 
     function chatClear(): void {
@@ -2000,7 +2056,18 @@ Item {
 
     function chatCreate(turnId: string, messageId: string, role: string): void {
         const turn = rootItem.turnMap[turnId]
-        const obj = chatComponent.createObject(turn.messages, {
+        let container = turn.messages
+        if (role === "tool") {
+            if (turn.lastActivityType !== "tool") {
+                turn.currentToolGroup = toolGroupComponent.createObject(turn.messages, {
+                    turn: turn,
+                })
+            }
+            container = turn.currentToolGroup.messages
+            turn.currentToolGroup.count += 1
+            turn.lastActivityType = "tool"
+        }
+        const obj = chatComponent.createObject(container, {
             turn: turn,
             messageId: messageId,
             role: role,
@@ -2012,20 +2079,18 @@ Item {
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer += text
         if (chat.role === "user") chat.turn.prompt += text
-        else {
-            chat.turn.lastId = messageId
-            if (chat.role === "assistant") chat.turn.response = chat.contentBuffer
+        else if (chat.role === "assistant") {
+            chat.turn.lastAssistantId = messageId
+            chat.turn.lastActivityType = "assistant"
+            chat.turn.currentToolGroup = null
+            chat.turn.response = chat.contentBuffer
         }
     }
 
-    function chatReasoningAppend(messageId: string, text: string): void {
+    function chatReset(messageId: string): void {
         const chat = rootItem.chatMap[messageId]
-        chat.reasoningBuffer += text
-        chat.turn.lastId = messageId
-    }
-
-    function chatFinish(messageId: string): void {
-        rootItem.chatMap[messageId].reasoningBuffer = ""
+        chat.contentBuffer = ""
+        chat.turn.response = ""
     }
 
     function subagentCreate(turnId: string, runtimeId: string, role: string, message: string): void {
