@@ -99,8 +99,6 @@ signals:
 
     void updateUsage(qint64 totalTokens);
 
-    void finishCompact();
-
     void finishRun(const QString &result, bool success);
 
 private:

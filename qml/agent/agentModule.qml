@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.impl
 import QtQuick.Dialogs
+import QtQuick.Effects
 import QtQuick.Layouts
 
 Item {
@@ -526,120 +527,6 @@ Item {
                         }
                     }
                 }
-            }
-        }
-
-        Item {
-            id: compactCard
-            property bool completed: false
-            visible: agentModule.state === 7 || completed
-            Layout.fillWidth: true
-            Layout.preferredHeight: visible ? compactLayout.implicitHeight + 20 : 0
-
-            Rectangle {
-                anchors.fill: parent
-                color: global.backSelected
-                border.color: global.stroke
-                border.width: 1
-                radius: 6
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.color: global.fore
-                border.width: 1
-                radius: 6
-                visible: !compactCard.completed
-                opacity: 0.2
-
-                SequentialAnimation on opacity {
-                    running: compactCard.visible && !compactCard.completed
-                    loops: Animation.Infinite
-
-                    NumberAnimation {
-                        from: 0.2
-                        to: 0.8
-                        duration: 450
-                        easing.type: Easing.InOutSine
-                    }
-
-                    NumberAnimation {
-                        from: 0.8
-                        to: 0.2
-                        duration: 450
-                        easing.type: Easing.InOutSine
-                    }
-
-                    PauseAnimation {
-                        duration: 250
-                    }
-                }
-            }
-
-            ColumnLayout {
-                id: compactLayout
-                anchors.fill: parent
-                anchors.margins: 10
-                spacing: 4
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    IconImage {
-                        color: compactCard.completed ? global.stroke : global.fore
-                        source: compactCard.completed ? "qrc:/icon/taskCompleted.svg" : "qrc:/icon/arrowMinimize.svg"
-                        sourceSize.width: 16; sourceSize.height: 16
-                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                    }
-
-                    Label {
-                        text: compactCard.completed ? qsTr("Context compacted") : qsTr("Compacting context")
-                        font.bold: true
-                        Layout.fillWidth: true
-                    }
-
-                    Label {
-                        text: compactCard.completed ? qsTr("Done") :
-                                usageLayout.currentUsage > 0 ? usageLayout.formatTokens(usageLayout.currentUsage) + " " + qsTr("tokens") : ""
-                        color: global.stroke
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    Item {
-                        Layout.preferredWidth: 16
-                    }
-
-                    Label {
-                        text: compactCard.completed ? qsTr("Earlier turns were summarized into a compact context.") :
-                            qsTr("Summarizing earlier turns to free context space.")
-                        color: global.stroke
-                        wrapMode: Text.Wrap
-                        Layout.fillWidth: true
-                    }
-                }
-            }
-
-            Connections {
-                target: agentModule
-
-                function onChangeState(): void {
-                    if (agentModule.state !== 7) return
-                    compactStatusTimer.stop()
-                    compactCard.completed = false
-                }
-            }
-
-            Timer {
-                id: compactStatusTimer
-                interval: 5000
-
-                onTriggered: compactCard.completed = false
             }
         }
 
@@ -1801,22 +1688,105 @@ Item {
             id: activityItem
             Layout.fillWidth: true; Layout.preferredHeight: 24
             spacing: 6
-            property bool reconnecting: false
+            property string activity: "thinking"
             property int reconnectAttempt: 0
             property int reconnectLimit: 0
+            readonly property string activityText: activity === "reconnecting"
+                                                   ? qsTr("Reconnecting %1 / %2...").arg(reconnectAttempt).arg(reconnectLimit)
+                                                   : activity === "compacting" ? qsTr("Compacting context...")
+                                                   : qsTr("Thinking...")
+            readonly property url activityIcon: activity === "reconnecting" ? "qrc:/icon/wifiOff.svg" :
+                                                activity === "compacting" ? "qrc:/icon/arrowMinimize.svg" :
+                                                "qrc:/icon/thinking.svg"
 
-            IconImage {
-                color: global.stroke
-                source: activityItem.reconnecting ? "qrc:/icon/wifiOff.svg" : "qrc:/icon/thinking.svg"
-                sourceSize.width: 16; sourceSize.height: 16
-                Layout.preferredWidth: 16; Layout.preferredHeight: 16
-            }
+            Item {
+                id: activityVisual
+                Layout.preferredWidth: activityContent.implicitWidth
+                Layout.preferredHeight: 24
 
-            Label {
-                text: activityItem.reconnecting
-                      ? qsTr("Reconnecting %1 / %2...").arg(activityItem.reconnectAttempt).arg(activityItem.reconnectLimit)
-                      : qsTr("Thinking...")
-                color: global.stroke
+                RowLayout {
+                    id: activityContent
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 6
+
+                    IconImage {
+                        color: global.stroke
+                        source: activityItem.activityIcon
+                        sourceSize.width: 16; sourceSize.height: 16
+                        Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                    }
+
+                    Label {
+                        text: activityItem.activityText
+                        color: global.stroke
+                    }
+                }
+
+                Item {
+                    id: activityHighlightSource
+                    anchors.fill: parent
+                    visible: false
+                    layer.enabled: true
+
+                    RowLayout {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 6
+
+                        IconImage {
+                            color: global.fore
+                            source: activityItem.activityIcon
+                            sourceSize.width: 16; sourceSize.height: 16
+                            Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                        }
+
+                        Label {
+                            text: activityItem.activityText
+                            color: global.fore
+                        }
+                    }
+                }
+
+                Item {
+                    id: activityHighlightMask
+                    anchors.fill: parent
+                    visible: false
+                    layer.enabled: true
+
+                    Rectangle {
+                        id: activitySweep
+                        width: 32
+                        height: parent.height
+                        gradient: Gradient {
+                            orientation: Gradient.Horizontal
+                            GradientStop { position: 0; color: "transparent" }
+                            GradientStop { position: 0.5; color: "white" }
+                            GradientStop { position: 1; color: "transparent" }
+                        }
+
+                        SequentialAnimation on x {
+                            running: activityItem.visible
+                            loops: Animation.Infinite
+
+                            NumberAnimation {
+                                from: -activitySweep.width
+                                to: activityVisual.width
+                                duration: 1600
+                                easing.type: Easing.InOutCubic
+                            }
+
+                            PauseAnimation {
+                                duration: 500
+                            }
+                        }
+                    }
+                }
+
+                MultiEffect {
+                    anchors.fill: parent
+                    source: activityHighlightSource
+                    maskEnabled: true
+                    maskSource: activityHighlightMask
+                }
             }
 
             Item {
@@ -2067,23 +2037,30 @@ Item {
     }
 
     function thinkingStart(turnId: string): void {
-        const turn = rootItem.turnMap[turnId]
-        if (!turn) return
-        if (!turn.activityItem) turn.activityItem = activityComponent.createObject(turn.messages)
-        turn.activityItem.reconnecting = false
+        activityStart(turnId, "thinking")
+    }
+
+    function compactStart(turnId: string): void {
+        activityStart(turnId, "compacting")
     }
 
     function reconnectStart(turnId: string, attempt: int, limit: int): void {
-        const turn = rootItem.turnMap[turnId]
-        if (!turn) return
+        const activity = activityStart(turnId, "reconnecting")
+        if (!activity) return
+        activity.reconnectAttempt = attempt
+        activity.reconnectLimit = limit
+    }
+
+    function activityStart(turnId: string, type: string): var {
+        const turn = rootItem.turnMap[turnId] || chatColumn.children[chatColumn.children.length - 1]
+        if (!turn) return null
         if (!turn.activityItem) turn.activityItem = activityComponent.createObject(turn.messages)
-        turn.activityItem.reconnectAttempt = attempt
-        turn.activityItem.reconnectLimit = limit
-        turn.activityItem.reconnecting = true
+        turn.activityItem.activity = type
+        return turn.activityItem
     }
 
     function activityFinish(turnId: string): void {
-        const turn = rootItem.turnMap[turnId]
+        const turn = rootItem.turnMap[turnId] || chatColumn.children[chatColumn.children.length - 1]
         if (!turn || !turn.activityItem) return
         turn.activityItem.destroy()
         turn.activityItem = null
@@ -2098,8 +2075,6 @@ Item {
         changeCard.changes = ({})
         changeCard.minimized = true
         requestsClear()
-        compactStatusTimer.stop()
-        compactCard.completed = false
         usageUpdate(0)
         for (let i = chatColumn.children.length - 1; i >= 0; --i) {
             chatColumn.children[i].destroy();
@@ -2215,11 +2190,6 @@ Item {
 
     function changeUpdate(changes): void {
         changeCard.changes = changes ? changes : ({})
-    }
-
-    function compactFinish(): void {
-        compactCard.completed = true
-        compactStatusTimer.restart()
     }
 
     function usageUpdate(totalTokens: double): void {

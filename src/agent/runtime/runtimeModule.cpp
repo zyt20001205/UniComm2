@@ -380,7 +380,6 @@ void RuntimeModule::_request(const BaseProvider *provider, const QJsonObject &bo
                 } else {
                     m_sqlModule->conversationCompact(m_turn.conversationId, summary, m_turn.compactedTurnId);
                     m_turn.compactedTurnId.clear();
-                    emit finishCompact();
                     emit updateUsage(0);
                     stateSet(m_turn.id.isEmpty() ? AgentState::Ready : AgentState::Request);
                 }

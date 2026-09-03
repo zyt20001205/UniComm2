@@ -541,6 +541,12 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
         emit changeState();
         const auto turnId = runtime->turnIdGet();
         switch (runtime->stateGet()) {
+            case AgentState::Ready:
+                QMetaObject::invokeMethod(m_root, "activityFinish", Q_ARG(QString, turnId));
+                break;
+            case AgentState::Compact:
+                QMetaObject::invokeMethod(m_root, "compactStart", Q_ARG(QString, turnId));
+                break;
             case AgentState::Request:
             case AgentState::Think:
                 QMetaObject::invokeMethod(m_root, "thinkingStart", Q_ARG(QString, turnId));
@@ -605,9 +611,6 @@ void AgentModule::primaryRuntimeConnect(RuntimeModule *runtime) {
     connect(runtime, &RuntimeModule::updateUsage, this, [this, runtime](const qint64 totalTokens) {
         if (runtime != m_runtimes.value(m_primary)) return;
         QMetaObject::invokeMethod(m_root, "usageUpdate", Q_ARG(double, totalTokens));
-    });
-    connect(runtime, &RuntimeModule::finishCompact, this, [this, runtime] {
-        if (runtime == m_runtimes.value(m_primary)) QMetaObject::invokeMethod(m_root, "compactFinish");
     });
 }
 
