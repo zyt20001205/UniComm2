@@ -136,6 +136,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"mainWindowToast", QVariant::fromValue(m_toastModule)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"documentModule", QVariant::fromValue(m_documentModule)},
+        {"fileModule", QVariant::fromValue(m_fileModule)},
         {"agentModuleRenameDialog", objects["agentModuleRenameDialog"]},
         {"agentModuleModeMenu", objects["agentModuleModeMenu"]},
         {"agentModuleModelMenu", objects["agentModuleModelMenu"]}

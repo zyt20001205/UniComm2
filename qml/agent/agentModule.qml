@@ -282,38 +282,43 @@ Item {
             Layout.fillWidth: true; Layout.fillHeight: true
             spacing: 4
 
-            Tumbler {
-                id: turnTumbler
+            ListView {
+                id: turnListView
                 visible: count > 0
                 model: chatColumn.children.length
-                visibleItemCount: Math.max(1, Math.floor(availableHeight / 12))
                 property int hoveredIndex: -1
                 readonly property real viewportPosition: Math.max(0, Math.min(chatScrollBar.position, 1 - chatScrollBar.size))
                 readonly property real viewportTop: viewportPosition * chatColumn.height
                 readonly property real viewportBottom: viewportTop + chatView.availableHeight
-                wrap: false
-                padding: 0
-                background: null
+                topMargin: Math.max(0, (height - count * 12) / 2)
+                bottomMargin: topMargin
+                boundsBehavior: Flickable.StopAtBounds
+                snapMode: ListView.SnapToItem
+                clip: true
                 Layout.preferredWidth: 24; Layout.fillHeight: true
 
                 onCountChanged: {
-                    if (count > 0) currentIndex = count - 1
+                    if (count === 0) return
+                    currentIndex = count - 1
+                    positionViewAtIndex(currentIndex, ListView.Center)
                 }
 
-                onMovingChanged: {
-                    if (moving) return
-                    const turn = chatColumn.children[currentIndex]
+                onMovementEnded: {
+                    const index = indexAt(0, contentY + height / 2)
+                    if (index < 0) return
+                    currentIndex = index
+                    const turn = chatColumn.children[index]
                     rootItem.navigateTo(turn.y)
                 }
 
                 delegate: Item {
                     id: turnDelegate
                     required property int index
-                    implicitWidth: turnTumbler.width
-                    implicitHeight: 12
-                    readonly property int hoverDistance: turnTumbler.hoveredIndex < 0 ? 4 : Math.min(4, Math.abs(index - turnTumbler.hoveredIndex))
+                    width: turnListView.width
+                    height: 12
+                    readonly property int hoverDistance: turnListView.hoveredIndex < 0 ? 4 : Math.min(4, Math.abs(index - turnListView.hoveredIndex))
                     readonly property var turn: chatColumn.children[index]
-                    readonly property bool turnVisible: turn.y < turnTumbler.viewportBottom && turn.y + turn.height > turnTumbler.viewportTop
+                    readonly property bool turnVisible: turn.y < turnListView.viewportBottom && turn.y + turn.height > turnListView.viewportTop
 
                     Rectangle {
                         anchors.left: parent.left
@@ -321,10 +326,10 @@ Item {
                         width: 24 - turnDelegate.hoverDistance * 4
                         height: 2
                         radius: 1
-                        color: turnTumbler.hoveredIndex < 0
+                        color: turnListView.hoveredIndex < 0
                             ? turnDelegate.turnVisible ? global.fore : global.stroke
                             : hoverHandler.hovered ? global.fore : global.stroke
-                        opacity: turnTumbler.hoveredIndex < 0 ? 1 : 1 - turnDelegate.hoverDistance * 0.15
+                        opacity: turnListView.hoveredIndex < 0 ? 1 : 1 - turnDelegate.hoverDistance * 0.15
 
                         Behavior on width {
                             NumberAnimation {
@@ -337,14 +342,14 @@ Item {
                         id: hoverHandler
                         onHoveredChanged: {
                             if (hovered) {
-                                turnTumbler.hoveredIndex = turnDelegate.index
+                                turnListView.hoveredIndex = turnDelegate.index
                                 const position = turnToolTip.parent.mapFromItem(parent, parent.width, parent.height / 2)
                                 turnToolTip.prompt = turnDelegate.turn.prompt
                                 turnToolTip.response = turnDelegate.turn.response
                                 turnToolTip.x = position.x + 10
                                 turnToolTip.y = position.y - turnToolTip.implicitHeight / 2
-                            } else if (turnTumbler.hoveredIndex === turnDelegate.index) {
-                                turnTumbler.hoveredIndex = -1
+                            } else if (turnListView.hoveredIndex === turnDelegate.index) {
+                                turnListView.hoveredIndex = -1
                                 turnToolTip.prompt = ""
                                 turnToolTip.response = ""
                             }
@@ -353,8 +358,8 @@ Item {
 
                     TapHandler {
                         onTapped: {
-                            turnTumbler.currentIndex = turnDelegate.index
-                            turnTumbler.positionViewAtIndex(turnDelegate.index, Tumbler.Center)
+                            turnListView.currentIndex = turnDelegate.index
+                            turnListView.positionViewAtIndex(turnDelegate.index, ListView.Center)
                             rootItem.navigateTo(turnDelegate.turn.y)
                         }
                     }
@@ -381,8 +386,8 @@ Item {
 
                     onPositionChanged: {
                         if (followAnimation.running || navigationAnimation.running) return
-                        const viewportPosition = turnTumbler.viewportPosition
-                        let index = viewportPosition === 0 ? 0 : turnTumbler.count - 1
+                        const viewportPosition = turnListView.viewportPosition
+                        let index = viewportPosition === 0 ? 0 : turnListView.count - 1
                         if (viewportPosition > 0 && viewportPosition < 1 - size) {
                             const viewportY = viewportPosition * chatColumn.height + chatView.availableHeight / 2
                             for (let i = 0; i < chatColumn.children.length; ++i) {
@@ -393,9 +398,9 @@ Item {
                                 }
                             }
                         }
-                        if (index === turnTumbler.currentIndex) return
-                        turnTumbler.currentIndex = index
-                        turnTumbler.positionViewAtIndex(index, Tumbler.Center)
+                        if (index === turnListView.currentIndex) return
+                        turnListView.currentIndex = index
+                        turnListView.positionViewAtIndex(index, ListView.Center)
                     }
 
                     onPressedChanged: {
@@ -1603,7 +1608,6 @@ Item {
             property string prompt
             property string response
             property string lastAssistantId
-            property string finalMessageId
             property string lastActivityType
             property var activityItem
             property var currentToolGroup
@@ -1878,14 +1882,18 @@ Item {
         TextArea {
             id: chatTextArea
             padding: role === "user" || role === "steering" ? 6 : 0
-            leftPadding: padding; rightPadding: padding; topPadding: padding; bottomPadding: padding
+            leftPadding: padding; rightPadding: padding; topPadding: padding
+            bottomPadding: padding + (role === "user" || role === "assistant" ? 28 : 0)
+            bottomInset: role === "user" || role === "assistant" ? 28 : 0
             readOnly: true
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             ContextMenu.menu: null
             color: role === "tool" ? global.stroke : global.fore
-            visible: contentBuffer.length > 0 && (!turn.collapsed || role === "user" || messageId === turn.finalMessageId)
-            Layout.preferredWidth: role === "assistant" || role === "tool" ? chatView.availableWidth : Math.min(chatView.availableWidth * 0.8, implicitWidth)
+            visible: contentBuffer.length > 0 && (!turn.collapsed || role === "user" || role === "assistant")
+            Layout.preferredWidth: role === "assistant" || role === "comment" || role === "tool"
+                                   ? chatView.availableWidth
+                                   : Math.min(chatView.availableWidth * 0.8, implicitWidth)
             Layout.alignment: role === "user" || role === "steering" ? Qt.AlignRight : Qt.AlignLeft
             property var turn
             property string messageId
@@ -1893,27 +1901,44 @@ Item {
             property string contentBuffer
             background: Rectangle {
                 color: chatTextArea.role === "user" || chatTextArea.role === "steering" ? global.backSelected :
-                        chatTextArea.role === "assistant" ? "transparent" :
+                        chatTextArea.role === "comment" || chatTextArea.role === "assistant" ? "transparent" :
                             chatTextArea.role === "tool" ? "transparent" : global.dangerBack2
                 radius: 6
             }
 
-            onContentBufferChanged: {
-                if (!timer.running) {
-                    timer.start()
+            RowLayout {
+                anchors.bottom: parent.bottom
+                x: chatTextArea.role === "user" ? parent.width - width : 0
+                height: 24
+                visible: chatTextArea.role === "user" || chatTextArea.role === "assistant"
+                opacity: chatHover.hovered ? 1 : 0
+                enabled: opacity > 0
+                spacing: 2
+
+                Label {
+                    text: Qt.formatDateTime(new Date(chatTextArea.role === "user" ? turn.startedAt : turn.finishedAt), "HH:mm")
+                    color: global.stroke
                 }
-            }
 
-            Timer {
-                id: timer
-                interval: 16
+                Button {
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    icon.source: "qrc:/icon/copy.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onTriggered: {
-                    chatTextArea.text = chatTextArea.contentBuffer
+                    onClicked: fileModule.copyToClipboard(chatTextArea.contentBuffer)
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 150
+                    }
                 }
             }
 
             HoverHandler {
+                id: chatHover
                 cursorShape: chatTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
             }
 
@@ -1935,6 +1960,19 @@ Item {
                         mainLinkMenu.url = chatTextArea.hoveredLink
                         mainLinkMenu.popup()
                     }
+                }
+            }
+
+            onContentBufferChanged: {
+                if (!timer.running) timer.start()
+            }
+
+            Timer {
+                id: timer
+                interval: 16
+
+                onTriggered: {
+                    chatTextArea.text = chatTextArea.contentBuffer
                 }
             }
         }
@@ -2031,7 +2069,7 @@ Item {
 
     function turnFinish(turnId: string, finishedAt: double): void {
         const turn = rootItem.turnMap[turnId]
-        turn.finalMessageId = turn.lastAssistantId
+        if (turn.lastAssistantId) rootItem.chatMap[turn.lastAssistantId].role = "assistant"
         turn.finishedAt = finishedAt
         turn.collapsed = true
     }
@@ -2087,6 +2125,7 @@ Item {
     function chatCreate(turnId: string, messageId: string, role: string): void {
         const turn = rootItem.turnMap[turnId]
         if (role === "user" && turn.prompt) role = "steering"
+        else if (role === "assistant") role = "comment"
         let container = turn.messages
         if (role === "tool") {
             if (turn.lastActivityType !== "tool") {
@@ -2112,9 +2151,9 @@ Item {
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer += text
         if (chat.role === "user") chat.turn.prompt += text
-        else if (chat.role === "assistant") {
+        else if (chat.role === "comment") {
             chat.turn.lastAssistantId = messageId
-            chat.turn.lastActivityType = "assistant"
+            chat.turn.lastActivityType = "comment"
             chat.turn.currentToolGroup = null
             chat.turn.response = chat.contentBuffer
         }
