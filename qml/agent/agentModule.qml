@@ -1859,7 +1859,7 @@ Item {
             IconImage {
                 color: global.fore
                 source: role === "data" ? "qrc:/icon/database.svg" :
-                        role === "hardware" ? "qrc:/icon/hardware.svg" : "qrc:/icon/software.svg"
+                        role === "hardware" ? "qrc:/icon/hardware.svg" : "qrc:/icon/code.svg"
                 sourceSize.width: 24; sourceSize.height: 24
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 Layout.alignment: Qt.AlignTop
@@ -1879,17 +1879,12 @@ Item {
     Component {
         id: chatComponent
 
-        TextArea {
-            id: chatTextArea
+        Control {
+            id: chatItem
             padding: role === "user" || role === "steering" ? 6 : 0
             leftPadding: padding; rightPadding: padding; topPadding: padding
             bottomPadding: padding + (role === "user" || role === "assistant" ? 28 : 0)
             bottomInset: role === "user" || role === "assistant" ? 28 : 0
-            readOnly: true
-            textFormat: TextEdit.MarkdownText
-            wrapMode: Text.Wrap
-            ContextMenu.menu: null
-            color: role === "tool" ? global.stroke : global.fore
             visible: contentBuffer.length > 0 && (!turn.collapsed || role === "user" || role === "assistant")
             Layout.preferredWidth: role === "assistant" || role === "comment" || role === "tool"
                                    ? chatView.availableWidth
@@ -1899,24 +1894,150 @@ Item {
             property string messageId
             property string role
             property string contentBuffer
+
+            function flush(): void {
+                markdownModel.flush()
+            }
+
+            MarkdownModel {
+                id: markdownModel
+                source: chatItem.contentBuffer
+            }
+
             background: Rectangle {
-                color: chatTextArea.role === "user" || chatTextArea.role === "steering" ? global.backSelected :
-                        chatTextArea.role === "comment" || chatTextArea.role === "assistant" ? "transparent" :
-                            chatTextArea.role === "tool" ? "transparent" : global.dangerBack2
+                color: chatItem.role === "user" || chatItem.role === "steering" ? global.backSelected :
+                        chatItem.role === "comment" || chatItem.role === "assistant" ? "transparent" :
+                            chatItem.role === "tool" ? "transparent" : global.dangerBack2
                 radius: 6
+            }
+
+            contentItem: ColumnLayout {
+                spacing: 8
+
+                Repeater {
+                    model: markdownModel
+                    delegate: DelegateChooser {
+                        role: "type"
+
+                        DelegateChoice {
+                            roleValue: MarkdownModel.Markdown
+                            delegate: TextArea {
+                                id: markdownText
+                                required property string content
+                                text: content
+                                readOnly: true
+                                textFormat: TextEdit.MarkdownText
+                                wrapMode: Text.Wrap
+                                ContextMenu.menu: null
+                                color: chatItem.role === "tool" ? global.stroke : global.fore
+                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                background: null
+                                Layout.fillWidth: true
+
+                                HoverHandler {
+                                    cursorShape: markdownText.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                                }
+
+                                TapHandler {
+                                    acceptedButtons: Qt.LeftButton
+
+                                    onTapped: {
+                                        if (markdownText.hoveredLink) documentModule.documentOpen(markdownText.hoveredLink)
+                                    }
+                                }
+
+                                TapHandler {
+                                    acceptedButtons: Qt.RightButton
+
+                                    onTapped: {
+                                        if (!markdownText.hoveredLink) return
+                                        mainLinkMenu.url = markdownText.hoveredLink
+                                        mainLinkMenu.popup()
+                                    }
+                                }
+                            }
+                        }
+
+                        DelegateChoice {
+                            roleValue: MarkdownModel.Code
+                            delegate: Control {
+                                id: codeBlock
+                                required property string content
+                                required property string language
+                                padding: 0
+                                Layout.fillWidth: true
+
+                                background: Rectangle {
+                                    color: global.backHover
+                                    border.color: global.stroke
+                                    border.width: 1
+                                    radius: 6
+                                }
+
+                                contentItem: ColumnLayout {
+                                    spacing: 0
+
+                                    RowLayout {
+                                        Layout.fillWidth: true; Layout.preferredHeight: 24
+                                        Layout.leftMargin: 8; Layout.rightMargin: 4
+                                        spacing: 4
+
+                                        IconImage {
+                                            color: global.stroke
+                                            source: "qrc:/icon/code.svg"
+                                            sourceSize.width: 16; sourceSize.height: 16
+                                            Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                                            Layout.alignment: Qt.AlignVCenter
+                                        }
+
+                                        Label {
+                                            text: codeBlock.language || qsTr("Code")
+                                            color: global.stroke
+                                            verticalAlignment: Text.AlignVCenter
+                                            Layout.fillWidth: true; Layout.fillHeight: true
+                                        }
+
+                                        Button {
+                                            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                            flat: true
+                                            icon.source: "qrc:/icon/copy.svg"
+                                            icon.width: 16; icon.height: 16
+                                            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                                            onClicked: fileModule.copyToClipboard(codeBlock.content)
+                                        }
+                                    }
+
+                                    TextArea {
+                                        id: codeText
+                                        text: codeBlock.content
+                                        readOnly: true
+                                        textFormat: TextEdit.PlainText
+                                        wrapMode: TextEdit.NoWrap
+                                        ContextMenu.menu: null
+                                        color: global.fore
+                                        leftPadding: 8; rightPadding: 8; topPadding: 8; bottomPadding: 8
+                                        background: null
+                                        Layout.fillWidth: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             RowLayout {
                 anchors.bottom: parent.bottom
-                x: chatTextArea.role === "user" ? parent.width - width : 0
+                x: chatItem.role === "user" ? parent.width - width : 0
                 height: 24
-                visible: chatTextArea.role === "user" || chatTextArea.role === "assistant"
+                visible: chatItem.role === "user" || chatItem.role === "assistant"
                 opacity: chatHover.hovered ? 1 : 0
                 enabled: opacity > 0
                 spacing: 2
 
                 Label {
-                    text: Qt.formatDateTime(new Date(chatTextArea.role === "user" ? turn.startedAt : turn.finishedAt), "HH:mm")
+                    text: Qt.formatDateTime(new Date(chatItem.role === "user" ? turn.startedAt : turn.finishedAt), "HH:mm")
                     color: global.stroke
                 }
 
@@ -1927,7 +2048,7 @@ Item {
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    onClicked: fileModule.copyToClipboard(chatTextArea.contentBuffer)
+                    onClicked: fileModule.copyToClipboard(chatItem.contentBuffer)
                 }
 
                 Behavior on opacity {
@@ -1939,41 +2060,7 @@ Item {
 
             HoverHandler {
                 id: chatHover
-                cursorShape: chatTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
-            }
-
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-
-                onTapped: {
-                    if (chatTextArea.hoveredLink) {
-                        documentModule.documentOpen(chatTextArea.hoveredLink)
-                    }
-                }
-            }
-
-            TapHandler {
-                acceptedButtons: Qt.RightButton
-
-                onTapped: {
-                    if (chatTextArea.hoveredLink) {
-                        mainLinkMenu.url = chatTextArea.hoveredLink
-                        mainLinkMenu.popup()
-                    }
-                }
-            }
-
-            onContentBufferChanged: {
-                if (!timer.running) timer.start()
-            }
-
-            Timer {
-                id: timer
-                interval: 16
-
-                onTriggered: {
-                    chatTextArea.text = chatTextArea.contentBuffer
-                }
+                cursorShape: Qt.IBeamCursor
             }
         }
     }
@@ -2069,7 +2156,10 @@ Item {
 
     function turnFinish(turnId: string, finishedAt: double): void {
         const turn = rootItem.turnMap[turnId]
-        if (turn.lastAssistantId) rootItem.chatMap[turn.lastAssistantId].role = "assistant"
+        if (turn.lastAssistantId) {
+            rootItem.chatMap[turn.lastAssistantId].flush()
+            rootItem.chatMap[turn.lastAssistantId].role = "assistant"
+        }
         turn.finishedAt = finishedAt
         turn.collapsed = true
     }
@@ -2162,6 +2252,7 @@ Item {
     function chatReset(messageId: string): void {
         const chat = rootItem.chatMap[messageId]
         chat.contentBuffer = ""
+        chat.flush()
         chat.turn.response = ""
     }
 

@@ -84,6 +84,7 @@ qt_add_resources(UniComm "config_resources"
 )
 
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
+set(UNICOMM_QML_INCLUDE "${UNICOMM_INCLUDE}/qml")
 set(THEME_DIR "${CMAKE_SOURCE_DIR}/resources/theme")
 
 set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt")
@@ -196,6 +197,7 @@ set(WHISPER_MODEL "${WHISPER_DIR}/model")
 
 target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE}
+        ${UNICOMM_QML_INCLUDE}
         ${CMARK_INCLUDE}
         ${DRMINGW_INCLUDE}
         ${ICU_INCLUDE}

@@ -72,6 +72,19 @@ template<>
 [[nodiscard]] sol::table uni_cast<sol::table, QList<QVariant>>(sol::this_state ts, const QList<QVariant> &s, int depth);
 
 // qt -> qt
+struct MarkdownBlock {
+    struct Type {
+        enum {
+            Markdown,
+            Code
+        };
+    };
+
+    int type{};
+    QString content{};
+    QString language{};
+};
+
 struct QFileIcon {
     QUrl value;
     QFileIcon(QUrl s) : value(std::move(s)) {}
@@ -107,6 +120,9 @@ struct QCompactNumber {
     QCompactNumber(QString s) : value(std::move(s)) {}
     operator QString() const { return value; }
 };
+
+template<>
+[[nodiscard]] QList<MarkdownBlock> uni_cast<QList<MarkdownBlock>, QString>(const QString &s, int depth);
 
 template<>
 [[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);

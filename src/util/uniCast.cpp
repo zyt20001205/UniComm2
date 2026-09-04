@@ -295,6 +295,52 @@ QIcon uni_cast<QIcon, QUrl>(const QUrl &s, const int depth) {
 }
 
 template<>
+QList<MarkdownBlock> uni_cast<QList<MarkdownBlock>, QString>(const QString &s, const int depth) {
+    Q_UNUSED(depth);
+    const auto markdown = s.toUtf8();
+    auto *document = cmark_parse_document(markdown.constData(), markdown.size(), CMARK_OPT_FOOTNOTES);
+
+    struct CodeBlock {
+        int startLine{};
+        int endLine{};
+        QString content{};
+        QString language{};
+    };
+
+    QList<CodeBlock> codeBlocks{};
+    auto *iterator = cmark_iter_new(document);
+    while (cmark_iter_next(iterator) != CMARK_EVENT_DONE) {
+        auto *node = cmark_iter_get_node(iterator);
+        if (cmark_iter_get_event_type(iterator) != CMARK_EVENT_ENTER || cmark_node_get_type(node) != CMARK_NODE_CODE_BLOCK) continue;
+        auto content = QString::fromUtf8(cmark_node_get_literal(node));
+        if (content.endsWith('\n')) content.chop(1);
+        codeBlocks.append({
+            .startLine = cmark_node_get_start_line(node),
+            .endLine = cmark_node_get_end_line(node),
+            .content = content,
+            .language = QString::fromUtf8(cmark_node_get_fence_info(node)).section(' ', 0, 0)
+        });
+    }
+    cmark_iter_free(iterator);
+    cmark_node_free(document);
+
+    const auto lines = s.split('\n', Qt::KeepEmptyParts);
+    QList<MarkdownBlock> blocks{};
+    qsizetype currentLine{};
+    for (const auto &codeBlock: codeBlocks) {
+        const qsizetype startLine = codeBlock.startLine - 1;
+        const qsizetype endLine = codeBlock.endLine;
+        const auto content = lines.sliced(currentLine, startLine - currentLine).join('\n');
+        if (!content.trimmed().isEmpty()) blocks.append({MarkdownBlock::Type::Markdown, content, {}});
+        blocks.append({MarkdownBlock::Type::Code, codeBlock.content, codeBlock.language});
+        currentLine = endLine;
+    }
+    const auto content = lines.sliced(currentLine).join('\n');
+    if (!content.trimmed().isEmpty()) blocks.append({MarkdownBlock::Type::Markdown, content, {}});
+    return blocks;
+}
+
+template<>
 QHtmlString uni_cast<QHtmlString, QString>(const QString &s, const int depth) {
     Q_UNUSED(depth);
     const auto md = s.toUtf8();
