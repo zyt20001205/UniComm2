@@ -1,6 +1,6 @@
 #include "mainWindow/mainWindow.h"
 
-#include <core/crashHandler.h>
+#include <core/crashModule.h>
 #include <kddockwidgets/Config.h>
 #include <QLoggingCategory>
 #include <QQuickStyle>
@@ -11,8 +11,6 @@
 #include "mainWindow/kddwCustom.h"
 
 int main(int argc, char *argv[]) {
-    // crash handler init
-    CrashHandler::init();
     QLoggingCategory::setFilterRules("qt.qpa.mime.warning=false");
     // application style init
     QApplication app(argc, argv);
@@ -22,6 +20,11 @@ int main(int argc, char *argv[]) {
     QApplication::setStyle(QStyleFactory::create("Fusion"));
     QQuickStyle::setStyle("FluentWinUI3");
     QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
+    if (CrashModule::reporterMode(QCoreApplication::arguments())) {
+        return CrashModule::reporterExec(QCoreApplication::arguments());
+    }
+    // crash module init
+    CrashModule crashModule;
     // kddw init
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
     auto flags = KDDockWidgets::Config::self().flags();
