@@ -1983,7 +1983,7 @@ Item {
                                         spacing: 4
 
                                         IconImage {
-                                            color: global.stroke
+                                            color: global.fore
                                             source: "qrc:/icon/code.svg"
                                             sourceSize.width: 16; sourceSize.height: 16
                                             Layout.preferredWidth: 16; Layout.preferredHeight: 16
@@ -1992,7 +1992,6 @@ Item {
 
                                         Label {
                                             text: codeBlock.language || qsTr("Code")
-                                            color: global.stroke
                                             verticalAlignment: Text.AlignVCenter
                                             Layout.fillWidth: true; Layout.fillHeight: true
                                         }
@@ -2011,6 +2010,7 @@ Item {
                                     TextArea {
                                         id: codeText
                                         text: codeBlock.content
+                                        font.family: "Consolas"
                                         readOnly: true
                                         textFormat: TextEdit.PlainText
                                         wrapMode: TextEdit.NoWrap
