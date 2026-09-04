@@ -1881,9 +1881,11 @@ Item {
 
         Control {
             id: chatItem
-            padding: role === "user" || role === "steering" ? 6 : 0
-            leftPadding: padding; rightPadding: padding; topPadding: padding
-            bottomPadding: padding + (role === "user" || role === "assistant" ? 28 : 0)
+            padding: 0
+            leftPadding: role === "user" || role === "steering" ? 12 : 0
+            rightPadding: leftPadding
+            topPadding: role === "user" || role === "steering" ? 8 : 0
+            bottomPadding: topPadding + (role === "user" || role === "assistant" ? 28 : 0)
             bottomInset: role === "user" || role === "assistant" ? 28 : 0
             visible: contentBuffer.length > 0 && (!turn.collapsed || role === "user" || role === "assistant")
             Layout.preferredWidth: role === "assistant" || role === "comment" || role === "tool"
@@ -1908,7 +1910,7 @@ Item {
                 color: chatItem.role === "user" || chatItem.role === "steering" ? global.backSelected :
                         chatItem.role === "comment" || chatItem.role === "assistant" ? "transparent" :
                             chatItem.role === "tool" ? "transparent" : global.dangerBack2
-                radius: 6
+                radius: 16
             }
 
             contentItem: ColumnLayout {
@@ -1965,13 +1967,12 @@ Item {
                                 required property string content
                                 required property string language
                                 padding: 0
+                                topPadding: 8
                                 Layout.fillWidth: true
 
                                 background: Rectangle {
-                                    color: global.backHover
-                                    border.color: global.stroke
-                                    border.width: 1
-                                    radius: 6
+                                    color: global.backSelected
+                                    radius: 16
                                 }
 
                                 contentItem: ColumnLayout {
@@ -1979,7 +1980,7 @@ Item {
 
                                     RowLayout {
                                         Layout.fillWidth: true; Layout.preferredHeight: 24
-                                        Layout.leftMargin: 8; Layout.rightMargin: 4
+                                        Layout.leftMargin: 12; Layout.rightMargin: 8
                                         spacing: 4
 
                                         IconImage {
@@ -2007,18 +2008,38 @@ Item {
                                         }
                                     }
 
-                                    TextArea {
-                                        id: codeText
-                                        text: codeBlock.content
-                                        font.family: "Consolas"
-                                        readOnly: true
-                                        textFormat: TextEdit.PlainText
-                                        wrapMode: TextEdit.NoWrap
-                                        ContextMenu.menu: null
-                                        color: global.fore
-                                        leftPadding: 8; rightPadding: 8; topPadding: 8; bottomPadding: 8
-                                        background: null
+                                    Flickable {
+                                        id: codeFlickable
+                                        clip: true
+                                        interactive: false
+                                        boundsBehavior: Flickable.StopAtBounds
+                                        contentWidth: Math.max(width, codeText.contentWidth + codeText.leftPadding + codeText.rightPadding)
+                                        contentHeight: codeText.implicitHeight
                                         Layout.fillWidth: true
+                                        Layout.preferredHeight: codeText.implicitHeight + (codeScrollBar.visible ? codeScrollBar.implicitHeight : 0)
+
+                                        ScrollBar.horizontal: ScrollBar {
+                                            id: codeScrollBar
+                                            policy: ScrollBar.AsNeeded
+                                            palette {
+                                                mid: global.stroke
+                                                dark: global.strokePressed
+                                            }
+                                        }
+
+                                        TextArea {
+                                            id: codeText
+                                            width: codeFlickable.contentWidth
+                                            text: codeBlock.content
+                                            font.family: "Consolas"
+                                            readOnly: true
+                                            textFormat: TextEdit.PlainText
+                                            wrapMode: TextEdit.NoWrap
+                                            ContextMenu.menu: null
+                                            color: global.fore
+                                            leftPadding: 12; rightPadding: 12; topPadding: 8; bottomPadding: 8
+                                            background: null
+                                        }
                                     }
                                 }
                             }
