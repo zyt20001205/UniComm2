@@ -16,6 +16,8 @@ int main(int argc, char *argv[]) {
     QLoggingCategory::setFilterRules("qt.qpa.mime.warning=false");
     // application style init
     QApplication app(argc, argv);
+    QApplication::setApplicationName(QStringLiteral("UniComm"));
+    QApplication::setApplicationVersion(QStringLiteral("0.3.0"));
     QApplication::setWindowIcon(QIcon(":/icon/icon.ico"));
     QApplication::setStyle(QStyleFactory::create("Fusion"));
     QQuickStyle::setStyle("FluentWinUI3");

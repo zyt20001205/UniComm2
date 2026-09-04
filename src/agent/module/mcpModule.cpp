@@ -1,7 +1,6 @@
 #include "agent/module/mcpModule.h"
 
 #include <QFuture>
-#include <QJsonArray>
 #include <QJsonDocument>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -136,7 +135,7 @@ void McpModule::serverInitialize(const QUrl &serverUrl) {
         {
             "clientInfo", QJsonObject{
                 {"name", "UniComm"},
-                {"version", "0.3.0-alpha1"}
+                {"version", QCoreApplication::applicationVersion()}
             }
         }
     };
@@ -243,7 +242,7 @@ QFuture<QJsonObject> McpModule::request(const QUrl &serverUrl, const QString &me
             {
                 "io.modelcontextprotocol/clientInfo", QJsonObject{
                     {"name", "UniComm"},
-                    {"version", "0.3.0-alpha1"}
+                    {"version", QCoreApplication::applicationVersion()}
                 }
             },
             {"io.modelcontextprotocol/clientCapabilities", QJsonObject{}}

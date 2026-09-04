@@ -2,8 +2,6 @@
 
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QJsonArray>
-#include <QJsonDocument>
 #include <QStandardPaths>
 
 #include "globals.h"
@@ -41,6 +39,7 @@ int ConfigManager::mainConfigLoad() {
         }
         workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     }
+    mainConfig["version"] = QCoreApplication::applicationVersion();
     mainConfig["workspace"] = workspaceUrl.toString();
     mainDoc = QJsonDocument(mainConfig);
     if (!mainFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return 1;
@@ -136,7 +135,7 @@ void ConfigManager::mainConfigGenerate() {
     if (QFile mainConfig(QDir::current().filePath("config.json")); mainConfig.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{
             {"theme", 0},
-            {"version", "0.3.0-alpha1"},
+            {"version", QCoreApplication::applicationVersion()},
             {"workspace", ""}
         };
         const QJsonDocument doc(json);

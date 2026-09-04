@@ -133,7 +133,7 @@ runtime directories next to `UniComm.exe`.
 ## Project status
 
 The current line is **v0.3.0-alpha1** for Windows x64. The project is under active
-development, and Alpha releases may contain incomplete or experimental features.
+development, and pre-1.0 releases may contain incomplete or experimental features.
 They should not be treated as a safety-certified control system.
 
 ## License
