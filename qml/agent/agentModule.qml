@@ -137,6 +137,8 @@ Item {
             Label {
                 text: turnToolTip.prompt
                 elide: Text.ElideRight
+                maximumLineCount: 1
+                wrapMode: Text.NoWrap
                 color: global.fore
                 font.bold: true
                 Layout.fillWidth: true
@@ -149,6 +151,7 @@ Item {
                 text: turnToolTip.response
                 textFormat: TextEdit.MarkdownText
                 wrapMode: TextEdit.Wrap
+                verticalAlignment: TextEdit.AlignTop
                 clip: true
                 color: global.stroke
                 background: null
